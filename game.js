@@ -97,20 +97,20 @@ const EVENTS = [
     subject: 'Quick investment opportunity',
     body: 'Honey, I believe in your little business! I want to invest $50. No strings attached!',
     actions: [
-      { label: 'Accept 💰', effect: (gs) => { gs.cash += 50; return 'Mom invested $50!'; } },
-      { label: 'Decline', effect: () => 'You declined. Mom is mildly hurt.' },
+      { label: 'Accept (+$50)', effect: (gs) => { gs.cash += 50; return 'Mom invested $50!'; } },
+      { label: 'Decline (no effect)', effect: () => 'You declined. Mom is mildly hurt.' },
     ]
   },
   {
     sender: 'Angry Customer',
     subject: 'RE: TERRIBLE SERVICE!!!',
-    body: 'I want a FULL REFUND or I\'m leaving a 1-star review everywhere! This will cost $20 to handle.',
+    body: 'I want a FULL REFUND or I\'m leaving a 1-star review everywhere!',
     actions: [
-      { label: 'Handle it ($20)', effect: (gs) => {
+      { label: 'Refund them (-$20)', effect: (gs) => {
         if (gs.cash >= 20) { gs.cash -= 20; return 'Complaint resolved. Crisis averted.'; }
         return 'You don\'t have $20! Customer left a bad review.';
       }},
-      { label: 'Ignore', effect: (gs) => {
+      { label: 'Ignore (rev -10% for 60s)', effect: (gs) => {
         gs.revPenalty = { mult: 0.9, until: Date.now() + 60000 };
         return 'Bad reviews incoming! Revenue -10% for 60s.';
       }},
@@ -121,7 +121,7 @@ const EVENTS = [
     subject: 'Tax Assessment Notice',
     body: 'Your quarterly tax assessment is due. Please remit 10% of current cash balance.',
     actions: [
-      { label: 'Pay taxes', effect: (gs) => {
+      { label: 'Pay taxes (-10% cash)', effect: (gs) => {
         const tax = Math.floor(gs.cash * 0.1);
         gs.cash -= tax;
         return `Paid $${formatNum(tax)} in taxes. Uncle Sam thanks you.`;
@@ -133,8 +133,8 @@ const EVENTS = [
     subject: 'Hey can I get a discount??',
     body: 'Bro remember me from college?? Hook me up with a discount! For old times\' sake 🤙',
     actions: [
-      { label: 'Sure, why not', effect: () => 'Your friend is happy! Team morale +vibes.' },
-      { label: 'Sorry, full price', effect: () => 'They understand. Business is business.' },
+      { label: 'Give discount (+morale)', effect: () => 'Your friend is happy! Team morale +vibes.' },
+      { label: 'Full price (no effect)', effect: () => 'They understand. Business is business.' },
     ]
   },
   {
@@ -142,7 +142,7 @@ const EVENTS = [
     subject: '⚠️ POWER OUTAGE - Building 3',
     body: 'Emergency maintenance required. All systems will be offline for approximately 15 seconds.',
     actions: [
-      { label: 'OK', effect: (gs) => {
+      { label: 'OK (rev paused 15s)', effect: (gs) => {
         gs.powerOutage = { until: Date.now() + 15000 };
         return '⚡ Power outage! Revenue paused for 15 seconds.';
       }},
