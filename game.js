@@ -1550,8 +1550,14 @@ function updateTaxPanel() {
     const guidanceLevel = GUIDANCE_LEVELS[guidanceKey];
     const target = gameState.guidanceTarget;
     const qRev = gameState.earningsQuarterRevenue;
-    const progressPct = target > 0 ? Math.min(999, (qRev / target * 100)) : 0;
-    const progressColor = progressPct >= 100 ? '#217346' : progressPct >= 80 ? '#c90' : '#c00';
+    const daysElapsed = earningsDaysSince || 1;
+    const expectedAtThisPoint = target > 0 ? (target * daysElapsed / EARNINGS_QUARTER_DAYS) : 0;
+    const trackDiff = qRev - expectedAtThisPoint;
+    const trackPct = expectedAtThisPoint > 0 ? ((trackDiff / expectedAtThisPoint) * 100) : 0;
+    const onTrack = qRev >= expectedAtThisPoint;
+    const trackLabel = onTrack ? '✅ On Track' : '⚠️ Off Track';
+    const trackColor = onTrack ? '#217346' : '#c00';
+    const trackDetail = `${onTrack ? '+' : ''}${formatMoney(trackDiff)} (${trackPct >= 0 ? '+' : ''}${trackPct.toFixed(1)}%)`;
     const streakVal = gameState.earningsStreak;
     const streakStr = streakVal > 0 ? `🔥 ${streakVal} beat${streakVal > 1 ? 's' : ''}` :
                       streakVal < 0 ? `❄️ ${Math.abs(streakVal)} miss${Math.abs(streakVal) > 1 ? 'es' : ''}` : '—';
@@ -1591,14 +1597,14 @@ function updateTaxPanel() {
       <div class="cell cell-h"></div>
     </div>`;
 
-    // Revenue vs Target (with progress)
+    // Revenue vs Target
     html += `<div class="grid-row ir-row">
       <div class="row-num">${rowNum++}</div>
       <div class="cell cell-a" style="padding-left:16px;color:#444">Revenue vs Target</div>
-      <div class="cell cell-b"></div>
-      <div class="cell cell-c" style="color:#217346;font-family:Consolas,monospace;font-size:11px;justify-content:flex-end">${formatMoney(qRev)}</div>
-      <div class="cell cell-d" style="font-size:10px;color:#888;justify-content:flex-end">/ ${formatMoney(target)}</div>
-      <div class="cell cell-e" style="font-weight:700;color:${progressColor};font-family:Consolas,monospace;font-size:11px">${progressPct.toFixed(1)}%</div>
+      <div class="cell cell-b" style="font-weight:700;color:${trackColor}">${trackLabel}</div>
+      <div class="cell cell-c" style="font-family:Consolas,monospace;font-size:11px;color:${trackColor}">${trackDetail}</div>
+      <div class="cell cell-d" style="font-size:10px;color:#888">${formatMoney(qRev)} / ${formatMoney(target)}</div>
+      <div class="cell cell-e"></div>
       <div class="cell cell-f"></div>
       <div class="cell cell-g"></div>
       <div class="cell cell-h"></div>
