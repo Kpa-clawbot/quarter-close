@@ -2098,6 +2098,7 @@ const MAX_VALUATION_POINTS = 200;
 let valuationTickCounter = 0;
 let chartPositioned = false;
 let chartDragState = null;
+let marketSentiment = 0; // random walk: drifts between -1 and 1
 
 function initChartDrag() {
   const container = document.getElementById('valuation-chart-container');
@@ -2189,8 +2190,12 @@ function getCompanyValuation() {
     }
   }
 
-  // Market noise — ±2% so line wiggles but doesn't swing wildly
-  const noise = 0.98 + Math.random() * 0.04;
+  // Market sentiment — random walk for natural-looking drift
+  // Small steps most of the time, occasional larger moves
+  const step = (Math.random() - 0.5) * 0.15; // small nudge
+  const jump = Math.random() < 0.05 ? (Math.random() - 0.5) * 0.4 : 0; // rare big move
+  marketSentiment = Math.max(-1, Math.min(1, marketSentiment * 0.97 + step + jump)); // mean-revert slightly
+  const noise = 1 + marketSentiment * 0.04; // ±4% range but smooth
 
   // Subtract tax debt from valuation (liabilities)
   let taxLiabilities = 0;
