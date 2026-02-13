@@ -550,6 +550,8 @@ function trySpawnMiniTask() {
   showMiniTask(text, reward, task.tier);
 }
 
+let miniTaskTimer = null;
+
 function showMiniTask(text, reward, tier) {
   gameState.miniTaskActive = true;
   const bar = document.getElementById('mini-task-bar');
@@ -559,9 +561,28 @@ function showMiniTask(text, reward, tier) {
   document.getElementById('mini-task-reward').textContent = `+${formatMoney(reward)}${streakLabel}`;
   bar.dataset.reward = reward;
   bar.classList.remove('hidden');
+
+  // Auto-expire: skip button fills red over 10s, then auto-skips
+  if (miniTaskTimer) { clearTimeout(miniTaskTimer); miniTaskTimer = null; }
+  const skipBtn = bar.querySelector('.mini-task-skip');
+  skipBtn.style.position = 'relative';
+  skipBtn.style.overflow = 'hidden';
+  // Remove old countdown if any
+  const oldFill = skipBtn.querySelector('.toast-btn-countdown');
+  if (oldFill) oldFill.remove();
+  const fill = document.createElement('div');
+  fill.className = 'toast-btn-countdown';
+  fill.style.animationDuration = '10s';
+  skipBtn.appendChild(fill);
+
+  miniTaskTimer = setTimeout(() => {
+    miniTaskTimer = null;
+    skipMiniTask();
+  }, 10000);
 }
 
 function completeMiniTask() {
+  if (miniTaskTimer) { clearTimeout(miniTaskTimer); miniTaskTimer = null; }
   const bar = document.getElementById('mini-task-bar');
   const reward = parseFloat(bar.dataset.reward) || 0;
   gameState.cash += reward;
@@ -586,6 +607,7 @@ function completeMiniTask() {
 }
 
 function skipMiniTask() {
+  if (miniTaskTimer) { clearTimeout(miniTaskTimer); miniTaskTimer = null; }
   const bar = document.getElementById('mini-task-bar');
   bar.classList.add('hidden');
   gameState.miniTaskActive = false;
