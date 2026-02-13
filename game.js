@@ -1373,15 +1373,21 @@ function updateTaxPanel() {
     <div class="cell cell-g"></div><div class="cell cell-h"></div>
   </div>`;
 
-  // Taxable Income (revenue - depreciation, what IRS taxes)
+  // Taxable Income (revenue - depreciation, what IRS taxes — or AMT if higher)
   const qTaxable = Math.max(0, gameState.quarterRevenue - qDepreciation);
+  const qRegularTax = Math.floor(qTaxable * 0.25);
+  const qAMT = Math.floor(gameState.quarterRevenue * 0.15);
+  const amtApplies = qAMT > qRegularTax && gameState.quarterRevenue > 0;
+  const effectiveTaxable = amtApplies ? gameState.quarterRevenue : qTaxable;
+  const taxableLabel = amtApplies ? 'AMT Taxable Income' : 'Taxable Income';
+  const taxableNote = amtApplies ? '⚠️ AMT floor (15% of revenue)' : 'rev − depreciation';
   html += `<div class="grid-row pnl-row">
     <div class="row-num">${rowNum++}</div>
-    <div class="cell cell-a" style="padding-left:16px;color:#888;font-size:10px">Taxable Income</div>
+    <div class="cell cell-a" style="padding-left:16px;color:${amtApplies ? '#c60' : '#888'};font-size:10px">${taxableLabel}</div>
     <div class="cell cell-b"></div>
-    <div class="cell cell-c" style="color:#888;font-family:Consolas,monospace;font-size:10px;justify-content:flex-end">${formatMoney(qTaxable)}</div>
+    <div class="cell cell-c" style="color:${amtApplies ? '#c60' : '#888'};font-family:Consolas,monospace;font-size:10px;justify-content:flex-end">${formatMoney(effectiveTaxable)}</div>
     <div class="cell cell-d"></div>
-    <div class="cell cell-e"></div><div class="cell cell-f" style="font-size:9px;color:#999">rev − depreciation</div>
+    <div class="cell cell-e"></div><div class="cell cell-f" style="font-size:9px;color:${amtApplies ? '#c60' : '#999'}">${taxableNote}</div>
     <div class="cell cell-g"></div><div class="cell cell-h"></div>
   </div>`;
 
