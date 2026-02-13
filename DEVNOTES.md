@@ -84,6 +84,18 @@
 - No need to clear saves between code changes
 - Only need New Game to switch arcs
 
+### Phase 2.1: IPO + Earnings System
+- **IPO trigger**: `checkIPOTrigger()` fires when `getCompanyValuation() >= 5e12`, shows accept/decline toast (expiresMs: 0)
+- **Stock price**: `getStockPrice() = getCompanyValuation() / sharesOutstanding` — displayed in status bar and IR section
+- **Earnings multiplier**: `gameState._earningsMultiplier` (persisted) — multiplicative factor on valuation, adjusted by earnings beats/misses. This creates discrete stock price jumps on top of fractal noise.
+- **Guidance system**: 4 levels (conservative/in-line/ambitious/aggressive) with different risk/reward. Target = `totalRevPerTick() × 90 × analystBaseline × guidancePct`. Buttons use event delegation on `#tax-panel`.
+- **Earnings quarter**: Independent 90-day cycle tracked by `lastEarningsDay` — separate from tax `lastQuarterDay`. Both can coincide but don't interfere.
+- **Earnings revenue tracking**: `trackEarningsRevenue(amount)` called from all revenue sources (automated, clicks, mini-tasks, golden cells, event effects). Accumulates in `earningsQuarterRevenue`.
+- **IR section**: Rendered inside `updateTaxPanel()` between P&L and Tax Liability sections. Uses same hash-based DOM diffing pattern. Guidance buttons use `data-guidance` attribute with delegated click handler.
+- **Analyst ratchet**: `analystBaseline` multiplier shifts projected revenue baseline. Beats increase (+5%, or +15% on 3+ streak), misses decrease (-3%, or -10% on 2+ streak).
+- **Retained Earnings**: Integer currency, earned on beats only. Formula: `quarterRev × 0.001 × guidanceMult × marginBonus × streakMult`. Displayed but not spendable until Phase 2.2.
+- **Debug**: `forceIPO()` function, 🧪 IPO button next to existing debug buttons.
+
 ## GitHub Issues
 
 ### Closed
@@ -92,6 +104,7 @@
 ### Open
 - #24 — Late-game pacing (extended to 12 tiers, further work TBD)
 - #27 — Excel-style charts (valuation chart done, 7 more ideas: sparkline, pie, waterfall, etc.)
+- #33 — Phase 2.1: IPO + Manual Earnings System (implemented)
 
 ## Commit History
 
@@ -107,3 +120,4 @@
 - `b7b8da4` — Fractal market noise
 - `a1ddb92` — V13 preview image (OG embed)
 - `35610df` — Fix flaky Settle button (hash-based DOM rebuild)
+- `20348f8` — Phase 2.1: IPO + Manual Earnings System
