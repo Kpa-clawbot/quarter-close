@@ -195,34 +195,50 @@ Optional mechanic for when progression truly stalls.
 
 This is the classic prestige loop but themed as corporate restructuring.
 
-## Implementation Priority
+## Implementation Phases
 
-### Phase 2a — MVP Earnings (implement first)
-1. IPO trigger at valuation threshold
-2. Stock price display (market cap ÷ shares)
-3. Quarterly earnings modal with guidance selection
-4. Beat/miss calculation and stock reaction
-5. Retained earnings currency (earning only)
-6. IR section in the grid
+### Phase 2.1 — IPO + Manual Earnings (build first)
 
-### Phase 2b — Prestige Shop
-7. Board Room tab/menu for spending RE
-8. Finance Department Lv1-Lv2 (stop the modals)
-9. Permanent revenue multiplier
-10. Other shop items
+The core earnings loop. RE accumulates but has no use yet — that's intentional. Get the feel right before adding the shop.
 
-### Phase 2c — Advanced Mechanics
-11. Finance Department Lv3-Lv4
-12. Cooking the books + SEC investigations
-13. Stock buybacks
-14. Analyst sentiment system (upgrades/downgrades)
-15. Restructuring (soft reset)
+1. **IPO trigger** — valuation threshold (~$5T), modal event, accept/decline
+2. **Stock price in UI** — market cap ÷ shares, shown in status bar or header
+3. **Guidance selection** — at start of each quarter, 4 buttons in IR grid section (conservative/in-line/ambitious/aggressive). Defaults to in-line if not set.
+4. **Earnings report modal** — every 90 game-days post-IPO. Shows revenue vs target, beat/miss %, stock reaction, RE earned. Also prompts for next quarter's guidance.
+5. **Beat/miss calculation** — compare actual quarterly revenue to guidance target. Stock jumps/drops accordingly.
+6. **Retained earnings accumulation** — earned on beats, displayed in IR section. Not spendable yet.
+7. **Analyst expectations ratchet** — projected revenue baseline shifts based on performance history.
+8. **IR section in grid** — always-visible rows showing quarter, days left, revenue vs target progress, guidance, streak, stock price, RE balance.
+9. **Debug button** — 🧪 Earnings (force trigger like 🧪 IRS)
 
-### Phase 2d — Polish
-16. Earnings call dialog events
-17. Activist investor events
-18. Market conditions (bull/bear cycles)
-19. More random events tied to public company life
+**Done when:** Player can IPO, set guidance, see earnings modals, accumulate RE, watch stock react. RE counter goes up but there's nothing to buy. Tax system continues unchanged alongside earnings.
+
+### Phase 2.2 — Prestige Shop + Finance Dept
+
+RE becomes useful. The modal annoyance pays off.
+
+1. Finance Department Lv1-Lv2 (bought with RE, stops modals)
+2. Board Room sheet tab or menu for spending RE
+3. Permanent revenue multiplier (RE purchase, stacking)
+4. Lobbyist, Analyst Relations, other shop items
+
+### Phase 2.3 — Advanced Mechanics
+
+The interesting stuff.
+
+1. Finance Department Lv3-Lv4 (smart guidance, creative accounting)
+2. Cooking the books + SEC investigations
+3. Stock buybacks
+4. Restructuring (soft reset / prestige)
+
+### Phase 2.4 — Polish & Events
+
+Flavor and depth.
+
+1. Earnings call dialog events
+2. Activist investor events  
+3. Market conditions (bull/bear cycles)
+4. More public company random events
 
 ## Open Questions
 
