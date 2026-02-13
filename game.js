@@ -859,9 +859,9 @@ function updateGridValues() {
     } else {
       const maxUpgrades = maxAffordableUpgrades(state);
       const revGainPerDay = state.employees * src.baseRate * 0.5 / 365.25;
-      const revGainLabel = revGainPerDay > 0 ? ` (+${formatPerTick(revGainPerDay)}/d)` : '';
       a2.innerHTML = (maxUpgrades > 1 ? `<button class="cell-btn btn-max" onclick="upgradeMax(${i})">Max(${maxUpgrades})</button>` : '') +
-        `<button class="cell-btn btn-upgrade" onclick="upgradeSource(${i})" ${gameState.cash >= uCost ? '' : 'disabled'} title="+50% efficiency per employee — adds ${formatPerTick(revGainPerDay)}/day">⬆ ${formatMoney(uCost)}${revGainLabel}</button>`;
+        `<button class="cell-btn btn-upgrade" onclick="upgradeSource(${i})" ${gameState.cash >= uCost ? '' : 'disabled'} title="+50% efficiency per employee — adds ${formatPerTick(revGainPerDay)}/day">⬆ ${formatMoney(uCost)}</button>` +
+        `<span class="upgrade-gain">+${formatPerTick(revGainPerDay)}/d</span>`;
     }
 
     // Action 3: Collect (click) or AUTO badge
