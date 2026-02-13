@@ -1980,12 +1980,14 @@ document.addEventListener('click', (e) => {
       if (col && rowNum) {
         const ref = col + rowNum;
         document.getElementById('cell-ref').textContent = ref;
-        // Show cell content as formula
         const text = cell.textContent.trim();
         document.getElementById('formula-input').textContent = text || '';
-        // Highlight selected cell
+        // Highlight only non-interactive cells (skip action columns on source rows)
         document.querySelectorAll('.cell.selected-cell').forEach(c => c.classList.remove('selected-cell'));
-        cell.classList.add('selected-cell');
+        const isActionCol = cell.matches('[data-field="action1"], [data-field="action2"], [data-field="action3"]');
+        if (!isActionCol) {
+          cell.classList.add('selected-cell');
+        }
       }
     }
   }
