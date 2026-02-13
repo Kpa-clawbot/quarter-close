@@ -1171,7 +1171,7 @@ function processQuarterlyTax() {
         updateTaxPanel();
         return `You ignored the ${qLabel} tax bill. ${formatMoney(taxOwed)} added to tax liability. Interest is accruing...`;
       }},
-    ], { expiresMs: 10000 });
+    ]);
 }
 
 function processTaxDebts() {
@@ -1619,6 +1619,8 @@ function showEvent(event) {
     }, event.timedDelay);
   } else {
     document.getElementById('toast-close').style.display = '';
+    // Default auto-expire: 10s for all events unless explicitly set
+    const expiry = event.expiresMs !== undefined ? event.expiresMs : 10000;
     event.actions.forEach((action, i) => {
       const btn = document.createElement('button');
       btn.className = 'toast-btn' + (i === 0 ? ' toast-primary' : '');
@@ -1635,18 +1637,18 @@ function showEvent(event) {
       };
 
       // Add countdown overlay on the last action if event expires
-      if (event.expiresMs && i === event.actions.length - 1) {
+      if (expiry > 0 && i === event.actions.length - 1) {
         btn.style.position = 'relative';
         btn.style.overflow = 'hidden';
         const fill = document.createElement('div');
         fill.className = 'toast-btn-countdown';
-        fill.style.animationDuration = (event.expiresMs / 1000) + 's';
+        fill.style.animationDuration = (expiry / 1000) + 's';
         btn.appendChild(fill);
 
         eventToastTimer = setTimeout(() => {
           eventToastTimer = null;
           btn.click();
-        }, event.expiresMs);
+        }, expiry);
       }
 
       actionsDiv.appendChild(btn);
