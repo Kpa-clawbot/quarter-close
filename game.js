@@ -1610,10 +1610,10 @@ function updateTaxPanel() {
       <div class="cell cell-a" style="padding-left:16px;color:#444">Guidance</div>
       <div class="cell cell-b" style="font-weight:600;color:#333">${guidanceLevel.emoji} ${guidanceLevel.label}</div>
       <div class="cell cell-c" style="font-size:10px;color:#888;justify-content:flex-end">${guidanceLevel.reMult}× RE</div>
-      <div class="cell cell-d"><button class="cell-btn ir-guidance-btn${guidanceKey === 'conservative' ? ' ir-active' : ''}" data-guidance="conservative" title="70% of projected (0.5× RE)">🛡️ Cons</button></div>
-      <div class="cell cell-e"><button class="cell-btn ir-guidance-btn${guidanceKey === 'in-line' ? ' ir-active' : ''}" data-guidance="in-line" title="90% of projected (1× RE)">📊 In-Line</button></div>
-      <div class="cell cell-f"><button class="cell-btn ir-guidance-btn${guidanceKey === 'ambitious' ? ' ir-active' : ''}" data-guidance="ambitious" title="110% of projected (2× RE)">🎯 Ambit</button></div>
-      <div class="cell cell-g"><button class="cell-btn ir-guidance-btn${guidanceKey === 'aggressive' ? ' ir-active' : ''}" data-guidance="aggressive" title="130% of projected (3× RE)">🔥 Aggr</button></div>
+      <div class="cell cell-d" style="font-size:10px;color:#888">Target: ${formatMoney(gameState.guidanceTarget)}</div>
+      <div class="cell cell-e"></div>
+      <div class="cell cell-f" style="font-size:10px;color:#999">Set at earnings</div>
+      <div class="cell cell-g"></div>
       <div class="cell cell-h"></div>
     </div>`;
 
@@ -2673,13 +2673,6 @@ function init() {
     if (settleAllBtn) {
       e.stopPropagation();
       settleAllTax();
-      return;
-    }
-    // Phase 2.1: Guidance buttons
-    const guidanceBtn = e.target.closest('[data-guidance]');
-    if (guidanceBtn) {
-      e.stopPropagation();
-      setGuidance(guidanceBtn.dataset.guidance);
       return;
     }
   });
