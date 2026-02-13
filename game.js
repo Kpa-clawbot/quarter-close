@@ -81,37 +81,10 @@ const SOURCE_STATS = [
 ];
 
 // ===== TIME SCALE =====
-// Each tick = 1 real second, but represents more in-game time early on
-const TIME_SCALES = [
-  { threshold: 0,      secsPerTick: 86400, label: '⏩⏩ 1 day/s',  unit: 'day' },   // start
-  { threshold: 0.1,    secsPerTick: 3600,  label: '⏩ 1 hr/s',     unit: 'hour' },   // ~$3.15M/yr
-  { threshold: 1,      secsPerTick: 60,    label: '▶ 1 min/s',     unit: 'minute' }, // ~$31.5M/yr
-  { threshold: 10,     secsPerTick: 1,     label: '▶ Real-time',   unit: 'second' }, // ~$315M/yr
-];
-
-let currentTimeScaleIndex = 0;
-
-function getTimeScale() {
-  const realPerSec = totalRealRevPerSec();
-  let idx = 0;
-  for (let i = TIME_SCALES.length - 1; i >= 0; i--) {
-    if (realPerSec >= TIME_SCALES[i].threshold) { idx = i; break; }
-  }
-  return idx;
-}
-
-// Real rev/s (annual / seconds_per_year) — used for time scale thresholds
-function totalRealRevPerSec() {
-  let total = 0;
-  const secsPerYear = 365.25 * 86400;
-  for (const s of gameState.sources) {
-    if (!s.unlocked || s.employees === 0) continue;
-    const stats = SOURCE_STATS[s.id];
-    const upgradeMult = 1 + s.upgradeLevel * 0.5;
-    total += s.employees * stats.baseRate / secsPerYear * upgradeMult;
-  }
-  return total;
-}
+// Fixed: 1 tick = 1 game-day, always
+const SECS_PER_DAY = 86400;
+const SECS_PER_YEAR = 365.25 * SECS_PER_DAY;
+const TIME_LABEL = '▶ 1 day/tick';
 
 // ===== MINI-TASK DEFINITIONS =====
 // Rewards scale: multiplier × current per-tick revenue (min $1)
@@ -259,14 +232,12 @@ function automateCost(source) {
   return Math.floor(Math.max(50, stats.unlockCost) * stats.autoCostMult);
 }
 
-// Revenue per tick for a source (annual rate * time_scale / secs_per_year)
+// Revenue per tick (= per day) for a source
 function sourceRevPerTick(source) {
   if (!source.unlocked || source.employees === 0) return 0;
   const stats = SOURCE_STATS[source.id];
   const upgradeMult = 1 + source.upgradeLevel * 0.5;
-  const secsPerYear = 365.25 * 86400;
-  const scale = TIME_SCALES[currentTimeScaleIndex];
-  return source.employees * stats.baseRate * upgradeMult * scale.secsPerTick / secsPerYear;
+  return source.employees * stats.baseRate * upgradeMult / 365.25;
 }
 
 function totalRevPerTick() {
@@ -378,7 +349,6 @@ function selectArc(arcKey) {
   gameState.miniTaskActive = false;
   gameState.gameStartDate = Date.UTC(2024, 0, 1);
   gameState.gameElapsedSecs = 0;
-  currentTimeScaleIndex = 0;
 
   document.getElementById('arc-select').classList.add('hidden');
   document.getElementById('game-view').classList.remove('hidden');
@@ -460,27 +430,6 @@ function skipMiniTask() {
 }
 
 // ===== TIME SCALE CHANGE NOTIFICATION =====
-function showTimeScaleChange(oldScale, newScale) {
-  const banner = document.getElementById('timescale-banner');
-  const text = document.getElementById('timescale-text');
-
-  let message;
-  if (newScale.secsPerTick < oldScale.secsPerTick) {
-    message = `⏳ Time is slowing down... ${oldScale.label} → ${newScale.label}`;
-  } else {
-    message = `⏩ Time is speeding up! ${oldScale.label} → ${newScale.label}`;
-  }
-
-  text.textContent = message;
-  banner.classList.remove('hidden');
-  banner.classList.add('timescale-flash');
-
-  setTimeout(() => {
-    banner.classList.remove('timescale-flash');
-    banner.classList.add('hidden');
-  }, 4000);
-}
-
 // ===== RENDERING =====
 function buildGrid() {
   if (!gameState.arc) return;
@@ -626,18 +575,16 @@ function updateDisplay() {
   const perTick = totalRevPerTick();
   document.getElementById('total-rev').textContent = formatRate(totalRev);
 
-  // Per-tick display (prominent)
-  document.getElementById('per-tick-display').textContent = formatPerTick(perTick) + '/tick';
+  // Per-tick display (= per day, prominent)
+  document.getElementById('per-tick-display').textContent = formatPerTick(perTick) + '/day';
 
-  // Revenue breakdown stats (real rates, unit included in value)
-  const realPerSec = totalRealRevPerSec();
-  document.getElementById('stat-sec').textContent = formatStatMoney(realPerSec) + '/sec';
-  document.getElementById('stat-min').textContent = formatStatMoney(realPerSec * 60) + '/min';
-  document.getElementById('stat-hr').textContent = formatStatMoney(realPerSec * 3600) + '/hr';
-  document.getElementById('stat-day').textContent = formatStatMoney(realPerSec * 86400) + '/day';
+  // Revenue breakdown stats
+  document.getElementById('stat-sec').textContent = formatStatMoney(totalRev / SECS_PER_YEAR) + '/sec';
+  document.getElementById('stat-min').textContent = formatStatMoney(totalRev / SECS_PER_YEAR * 60) + '/min';
+  document.getElementById('stat-hr').textContent = formatStatMoney(totalRev / SECS_PER_YEAR * 3600) + '/hr';
+  document.getElementById('stat-day').textContent = formatStatMoney(perTick) + '/day';
 
-  const scale = TIME_SCALES[currentTimeScaleIndex];
-  document.getElementById('status-timescale').textContent = scale.label;
+  document.getElementById('status-timescale').textContent = TIME_LABEL;
 
   // In-game date
   const gameDate = new Date(gameState.gameStartDate + gameState.gameElapsedSecs * 1000);
@@ -770,16 +717,6 @@ function gameTick() {
   if (!gameState.arc) return;
   const now = Date.now();
 
-  // Update time scale
-  const newScaleIdx = getTimeScale();
-  if (newScaleIdx !== currentTimeScaleIndex) {
-    const oldScale = TIME_SCALES[currentTimeScaleIndex];
-    const newScale = TIME_SCALES[newScaleIdx];
-    currentTimeScaleIndex = newScaleIdx;
-    showTimeScaleChange(oldScale, newScale);
-  }
-
-  const scale = TIME_SCALES[currentTimeScaleIndex];
   const isPowerOut = gameState.powerOutage && now < gameState.powerOutage.until;
 
   if (!isPowerOut) {
@@ -803,8 +740,8 @@ function gameTick() {
     }
   }
 
-  // Advance in-game time
-  gameState.gameElapsedSecs += scale.secsPerTick;
+  // Advance in-game time (1 tick = 1 day)
+  gameState.gameElapsedSecs += SECS_PER_DAY;
 
   gameState.totalPlayTime++;
   gameState.lastTick = now;
@@ -973,7 +910,6 @@ function loadGame() {
     gameState.totalClicks = data.totalClicks || 0;
     gameState.gameStartDate = data.gameStartDate || Date.UTC(2024, 0, 1);
     gameState.gameElapsedSecs = data.gameElapsedSecs || 0;
-    currentTimeScaleIndex = 0;
     gameState.eventCooldown = 30;
     gameState.miniTaskCooldown = 10;
 
@@ -1000,21 +936,17 @@ function loadGame() {
     }
 
     // Offline earnings — use annual rate, apply time based on real elapsed seconds
-    // Each real second = scale.secsPerTick game-seconds, so convert annual to per-real-second
+    // Each real second = 1 game-day, so offline ticks = elapsed seconds
     if (elapsed > 5) {
-      // Recalculate time scale for loaded state
-      currentTimeScaleIndex = getTimeScale();
-      const offlineScale = TIME_SCALES[currentTimeScaleIndex];
-      const secsPerYear = 365.25 * 86400;
       let offlineEarnings = 0;
       for (const state of gameState.sources) {
         if (state.unlocked && state.automated && state.employees > 0) {
-          const annual = sourceAnnualRev(state);
-          offlineEarnings += annual * offlineScale.secsPerTick / secsPerYear * elapsed;
+          const daily = sourceAnnualRev(state) / 365.25;
+          offlineEarnings += daily * elapsed;
         }
       }
-      // Also advance game time
-      gameState.gameElapsedSecs += offlineScale.secsPerTick * elapsed;
+      // Also advance game time (1 day per elapsed second)
+      gameState.gameElapsedSecs += SECS_PER_DAY * elapsed;
       if (offlineEarnings > 0) {
         gameState.cash += offlineEarnings;
         gameState.totalEarned += offlineEarnings;
@@ -1046,7 +978,6 @@ function resetGame() {
   gameState.totalClicks = 0;
   gameState.gameStartDate = Date.UTC(2024, 0, 1);
   gameState.gameElapsedSecs = 0;
-  currentTimeScaleIndex = 0;
   showArcSelect();
 }
 
