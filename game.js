@@ -2,16 +2,92 @@
    Quarter Close — Game Engine (Phase 1)
    ============================================ */
 
-// ===== REVENUE SOURCE DEFINITIONS =====
-const SOURCES = [
-  { id: 0, name: 'Lemonade Stand', baseRate: 1,    unlockCost: 0,      flavor: 'You start here' },
-  { id: 1, name: 'Lawn Mowing',    baseRate: 5,    unlockCost: 100,    flavor: 'Recurring revenue' },
-  { id: 2, name: 'Dog Walking',    baseRate: 12,   unlockCost: 500,    flavor: 'Scalable' },
-  { id: 3, name: 'Etsy Store',     baseRate: 30,   unlockCost: 2000,   flavor: 'E-commerce pivot' },
-  { id: 4, name: 'Freelance Dev',  baseRate: 80,   unlockCost: 8000,   flavor: 'High margin' },
-  { id: 5, name: 'SaaS Product',   baseRate: 200,  unlockCost: 25000,  flavor: 'MRR baby' },
-  { id: 6, name: 'Consulting Firm',baseRate: 500,  unlockCost: 75000,  flavor: 'Enterprise sales' },
-  { id: 7, name: 'Agency',         baseRate: 1500, unlockCost: 200000, flavor: 'Scaling the team' },
+// ===== BUSINESS ARC DEFINITIONS =====
+const ARCS = {
+  tech: {
+    name: 'Tech Startup',
+    icon: '💻',
+    desc: 'From blog to software empire',
+    sources: [
+      { name: 'Blog with Ads',       flavor: 'Monetize your hot takes' },
+      { name: 'Freelance Web Dev',    flavor: 'Fiverr but classier' },
+      { name: 'WordPress Agency',     flavor: 'Starter sites for everyone' },
+      { name: 'SaaS MVP',            flavor: 'Monthly recurring revenue!' },
+      { name: 'Mobile App',          flavor: 'There\'s an app for that' },
+      { name: 'Series A Startup',    flavor: 'Burn rate is just a number' },
+      { name: 'Dev Shop',            flavor: '50 engineers and a dream' },
+      { name: 'Software Company',    flavor: 'Enterprise contracts 💰' },
+    ]
+  },
+  food: {
+    name: 'Food Empire',
+    icon: '🍋',
+    desc: 'From lemonade stand to food & beverage corp',
+    sources: [
+      { name: 'Lemonade Stand',       flavor: 'When life gives you lemons...' },
+      { name: 'Food Cart',            flavor: 'Street food hustle' },
+      { name: 'Food Truck',           flavor: 'Mobile and trendy' },
+      { name: 'Small Restaurant',     flavor: 'Finally, a real kitchen' },
+      { name: 'Catering Company',     flavor: 'Weddings pay well' },
+      { name: 'Restaurant Chain',     flavor: 'Location, location, location' },
+      { name: 'Franchise Operation',  flavor: 'Other people run your stores' },
+      { name: 'Food & Beverage Corp', flavor: 'Fortune 500 here we come' },
+    ]
+  },
+  ecommerce: {
+    name: 'E-Commerce Hustler',
+    icon: '📦',
+    desc: 'From garage sales to retail empire',
+    sources: [
+      { name: 'Garage Sale',          flavor: 'One man\'s trash...' },
+      { name: 'eBay Reselling',       flavor: 'Buy low, sell high' },
+      { name: 'Dropshipping Store',   flavor: 'Never touch inventory' },
+      { name: 'Amazon FBA',           flavor: 'Let Bezos handle logistics' },
+      { name: 'Warehouse & Distro',   flavor: 'Cutting out the middleman' },
+      { name: 'Private Label Brand',  flavor: 'Your name on the box' },
+      { name: 'Retail Chain',         flavor: 'Brick and mortar comeback' },
+      { name: 'Consumer Empire',      flavor: 'Everything ships next day' },
+    ]
+  },
+  generic: {
+    name: 'Entrepreneur',
+    icon: '📈',
+    desc: 'From side hustle to tech company',
+    sources: [
+      { name: 'Tutoring Service',     flavor: 'Teach what you know' },
+      { name: 'Online Course',        flavor: 'Passive income guru' },
+      { name: 'Consulting Gig',       flavor: 'Charge by the hour' },
+      { name: 'Small Agency',         flavor: 'Hire your first team' },
+      { name: 'SaaS Product',         flavor: 'Productize the service' },
+      { name: 'Venture-Backed Startup', flavor: 'Other people\'s money' },
+      { name: 'Growth-Stage Company', flavor: 'Hockey stick chart' },
+      { name: 'Tech Company',         flavor: 'IPO is calling' },
+    ]
+  },
+};
+
+// ===== ECONOMY (rebalanced) =====
+const SOURCE_STATS = [
+  { baseRate: 0.05,  unlockCost: 0,       clickValue: 1,   autoCostMult: 10 },
+  { baseRate: 0.25,  unlockCost: 50,      clickValue: 2,   autoCostMult: 10 },
+  { baseRate: 1,     unlockCost: 200,     clickValue: 3,   autoCostMult: 10 },
+  { baseRate: 4,     unlockCost: 1000,    clickValue: 5,   autoCostMult: 10 },
+  { baseRate: 12,    unlockCost: 5000,    clickValue: 8,   autoCostMult: 10 },
+  { baseRate: 40,    unlockCost: 20000,   clickValue: 12,  autoCostMult: 10 },
+  { baseRate: 120,   unlockCost: 60000,   clickValue: 15,  autoCostMult: 10 },
+  { baseRate: 400,   unlockCost: 150000,  clickValue: 20,  autoCostMult: 10 },
+];
+
+// ===== MINI-TASK DEFINITIONS =====
+const MINI_TASKS = [
+  { text: 'Approve Invoice #{{num}}?', reward: [5, 10], type: 'approve' },
+  { text: 'Sign contract for Client #{{num}}', reward: [8, 15], type: 'approve' },
+  { text: 'Review expense report (${{num}})', reward: [5, 8], type: 'approve' },
+  { text: 'Authorize PO #{{num}}', reward: [6, 12], type: 'approve' },
+  { text: 'Confirm delivery #{{num}}', reward: [4, 8], type: 'approve' },
+  { text: 'Reply to vendor inquiry', reward: [3, 7], type: 'approve' },
+  { text: 'Process refund #{{num}}', reward: [5, 10], type: 'approve' },
+  { text: 'Approve time sheet for Week {{num}}', reward: [4, 9], type: 'approve' },
 ];
 
 // ===== EVENTS DEFINITIONS =====
@@ -76,16 +152,10 @@ const EVENTS = [
 
 // ===== GAME STATE =====
 let gameState = {
-  cash: 50,
+  arc: null,  // selected arc key
+  cash: 0,
   totalEarned: 0,
-  sources: SOURCES.map((s, i) => ({
-    id: i,
-    unlocked: i === 0,
-    employees: i === 0 ? 1 : 0,
-    upgradeLevel: 0,
-    automated: false,
-    pendingCollect: 0,
-  })),
+  sources: [],
   revPenalty: null,
   powerOutage: null,
   seriesAShown: false,
@@ -94,32 +164,48 @@ let gameState = {
   bossMode: false,
   eventCooldown: 0,
   totalPlayTime: 0,
+  miniTaskCooldown: 0,
+  miniTaskActive: false,
 };
 
-// Track if DOM rows have been built (for incremental updates)
 let gridBuilt = false;
+
+// ===== GET ACTIVE SOURCES (arc-aware) =====
+function getSourceDef(index) {
+  const arc = ARCS[gameState.arc];
+  const stats = SOURCE_STATS[index];
+  return {
+    id: index,
+    name: arc.sources[index].name,
+    flavor: arc.sources[index].flavor,
+    baseRate: stats.baseRate,
+    unlockCost: stats.unlockCost,
+    clickValue: stats.clickValue,
+  };
+}
 
 // ===== COST FORMULAS =====
 function hireCost(source) {
-  const base = SOURCES[source.id].unlockCost || 10;
-  return Math.max(10, Math.floor(base * 0.5 * Math.pow(1.15, source.employees)));
+  const stats = SOURCE_STATS[source.id];
+  const base = stats.unlockCost || 10;
+  return Math.max(5, Math.floor(base * 0.5 * Math.pow(1.15, source.employees)));
 }
 
 function upgradeCost(source) {
-  const base = SOURCES[source.id].baseRate;
-  return Math.floor(10 * base * Math.pow(2, source.upgradeLevel));
+  const stats = SOURCE_STATS[source.id];
+  return Math.floor(Math.max(50, 10 * stats.baseRate) * Math.pow(2, source.upgradeLevel));
 }
 
 function automateCost(source) {
-  const base = SOURCES[source.id].unlockCost || 50;
-  return Math.floor(base * 10);
+  const stats = SOURCE_STATS[source.id];
+  return Math.floor(Math.max(50, stats.unlockCost) * stats.autoCostMult);
 }
 
 function sourceRevPerSec(source) {
   if (!source.unlocked || source.employees === 0) return 0;
-  const base = SOURCES[source.id].baseRate;
+  const stats = SOURCE_STATS[source.id];
   const upgradeMult = 1 + source.upgradeLevel * 0.5;
-  return source.employees * base * upgradeMult;
+  return source.employees * stats.baseRate * upgradeMult;
 }
 
 function totalRevPerSec() {
@@ -172,15 +258,111 @@ function formatDuration(seconds) {
   return `${Math.floor(seconds)}s`;
 }
 
-// ===== RENDERING =====
+// ===== ARC SELECTION =====
+function selectArc(arcKey) {
+  gameState.arc = arcKey;
+  gameState.cash = 0;
+  gameState.totalEarned = 0;
+  gameState.sources = SOURCE_STATS.map((s, i) => ({
+    id: i,
+    unlocked: i === 0,
+    employees: i === 0 ? 1 : 0,
+    upgradeLevel: 0,
+    automated: false,
+    pendingCollect: 0,
+  }));
+  gameState.seriesAShown = false;
+  gameState.totalPlayTime = 0;
+  gameState.eventCooldown = 30;
+  gameState.miniTaskCooldown = 10;
+  gameState.miniTaskActive = false;
 
-// Build the full grid once (called on init and when structure changes: unlock, automate)
+  document.getElementById('arc-select').classList.add('hidden');
+  document.getElementById('game-view').classList.remove('hidden');
+
+  buildGrid();
+  updateDisplay();
+  saveGame();
+}
+
+function showArcSelect() {
+  const container = document.getElementById('arc-options');
+  container.innerHTML = '';
+  for (const [key, arc] of Object.entries(ARCS)) {
+    const div = document.createElement('div');
+    div.className = 'arc-option';
+    div.onclick = () => selectArc(key);
+    div.innerHTML = `
+      <div class="arc-icon">${arc.icon}</div>
+      <div class="arc-name">${arc.name}</div>
+      <div class="arc-desc">${arc.desc}</div>
+      <div class="arc-first">${arc.sources[0].name} → ${arc.sources[7].name}</div>
+    `;
+    container.appendChild(div);
+  }
+  document.getElementById('arc-select').classList.remove('hidden');
+  document.getElementById('game-view').classList.add('hidden');
+}
+
+// ===== MINI-TASKS =====
+function trySpawnMiniTask() {
+  if (gameState.miniTaskActive) return;
+  if (gameState.miniTaskCooldown > 0) { gameState.miniTaskCooldown--; return; }
+
+  // Frequency decreases as passive income grows
+  const passiveIncome = totalRevPerSec();
+  const spawnChance = passiveIncome > 50 ? 0.02 : passiveIncome > 10 ? 0.04 : 0.06;
+  if (Math.random() > spawnChance) return;
+
+  const task = MINI_TASKS[Math.floor(Math.random() * MINI_TASKS.length)];
+  const num = Math.floor(Math.random() * 9000) + 1000;
+  const reward = task.reward[0] + Math.floor(Math.random() * (task.reward[1] - task.reward[0] + 1));
+  const text = task.text.replace('{{num}}', num);
+
+  showMiniTask(text, reward);
+}
+
+function showMiniTask(text, reward) {
+  gameState.miniTaskActive = true;
+  const bar = document.getElementById('mini-task-bar');
+  document.getElementById('mini-task-text').textContent = text;
+  document.getElementById('mini-task-reward').textContent = `+${formatMoney(reward)}`;
+  bar.dataset.reward = reward;
+  bar.classList.remove('hidden');
+}
+
+function completeMiniTask() {
+  const bar = document.getElementById('mini-task-bar');
+  const reward = parseFloat(bar.dataset.reward) || 0;
+  gameState.cash += reward;
+  gameState.totalEarned += reward;
+  bar.classList.add('hidden');
+  gameState.miniTaskActive = false;
+  gameState.miniTaskCooldown = 15 + Math.floor(Math.random() * 15); // 15-30s cooldown
+
+  // Flash feedback
+  document.getElementById('status-text').textContent = `✅ Task done! +${formatMoney(reward)}`;
+  setTimeout(() => { document.getElementById('status-text').textContent = 'Ready'; }, 2000);
+
+  flashCash();
+  updateDisplay();
+}
+
+function skipMiniTask() {
+  const bar = document.getElementById('mini-task-bar');
+  bar.classList.add('hidden');
+  gameState.miniTaskActive = false;
+  gameState.miniTaskCooldown = 10;
+}
+
+// ===== RENDERING =====
 function buildGrid() {
+  if (!gameState.arc) return;
   const container = document.getElementById('revenue-rows');
   container.innerHTML = '';
 
-  for (let i = 0; i < SOURCES.length; i++) {
-    const src = SOURCES[i];
+  for (let i = 0; i < SOURCE_STATS.length; i++) {
+    const src = getSourceDef(i);
     const state = gameState.sources[i];
     const rowNum = i + 4;
 
@@ -224,7 +406,7 @@ function buildGrid() {
   // Filler rows
   const filler = document.getElementById('filler-rows');
   filler.innerHTML = '';
-  const startRow = SOURCES.length + 4;
+  const startRow = SOURCE_STATS.length + 4;
   for (let i = 0; i < 20; i++) {
     const row = document.createElement('div');
     row.className = 'filler-row';
@@ -241,16 +423,15 @@ function buildGrid() {
   updateGridValues();
 }
 
-// Update only the values/buttons in existing rows (called every tick)
 function updateGridValues() {
-  for (let i = 0; i < SOURCES.length; i++) {
-    const src = SOURCES[i];
+  if (!gameState.arc) return;
+  for (let i = 0; i < SOURCE_STATS.length; i++) {
+    const src = getSourceDef(i);
     const state = gameState.sources[i];
     const row = document.getElementById(`source-row-${i}`);
     if (!row) continue;
 
     if (!state.unlocked) {
-      // Update unlock button enabled/disabled state
       const unlockBtn = row.querySelector('[data-btn="unlock"]');
       if (unlockBtn) {
         unlockBtn.disabled = gameState.cash < src.unlockCost;
@@ -258,10 +439,9 @@ function updateGridValues() {
       continue;
     }
 
-    // Check if this was a locked row that's now unlocked — need structural rebuild
     if (row.classList.contains('source-locked')) {
       buildGrid();
-      return; // buildGrid calls updateGridValues
+      return;
     }
 
     const rev = sourceRevPerSec(state);
@@ -291,12 +471,13 @@ function updateGridValues() {
       a2.innerHTML = `<button class="cell-btn btn-upgrade" onclick="upgradeSource(${i})" ${gameState.cash >= uCost ? '' : 'disabled'} title="+50% efficiency per employee">⬆ ${formatMoney(uCost)}</button>`;
     }
 
-    // Action 3: Collect or AUTO badge
+    // Action 3: Collect (click) or AUTO badge
     const a3 = row.querySelector('[data-field="action3"]');
     if (!state.automated) {
       const pending = state.pendingCollect;
-      const hasPending = pending > 0.005; // avoid floating point noise
-      a3.innerHTML = `<button class="cell-btn btn-collect" onclick="collectSource(${i})" ${hasPending ? '' : 'disabled'}>Collect${hasPending ? ' ' + formatMoney(pending) : ''}</button>`;
+      const clickVal = src.clickValue;
+      const hasPending = pending > 0.005;
+      a3.innerHTML = `<button class="cell-btn btn-collect" onclick="collectSource(${i})">Collect${hasPending ? ' ' + formatMoney(pending) : ''} (+${formatMoney(clickVal)})</button>`;
     } else {
       a3.innerHTML = '<span class="auto-badge">⚡ AUTO</span>';
     }
@@ -304,13 +485,14 @@ function updateGridValues() {
 }
 
 function isNextUnlock(index) {
-  for (let i = 0; i < SOURCES.length; i++) {
+  for (let i = 0; i < SOURCE_STATS.length; i++) {
     if (!gameState.sources[i].unlocked) return i === index;
   }
   return false;
 }
 
 function updateDisplay() {
+  if (!gameState.arc) return;
   const cashEl = document.getElementById('cash-display');
   cashEl.textContent = formatMoney(gameState.cash);
 
@@ -327,14 +509,13 @@ function updateDisplay() {
     document.getElementById('status-text').textContent = '⚡ Power Outage — Systems Offline';
   } else if (gameState.revPenalty && Date.now() < gameState.revPenalty.until) {
     document.getElementById('status-text').textContent = '⚠ Revenue penalty active';
-  } else {
-    document.getElementById('status-text').textContent = 'Ready';
   }
+  // Don't overwrite mini-task feedback messages
 }
 
 // ===== GAME ACTIONS =====
 function unlockSource(index) {
-  const src = SOURCES[index];
+  const src = getSourceDef(index);
   const state = gameState.sources[index];
   if (state.unlocked || gameState.cash < src.unlockCost) return;
   if (!isNextUnlock(index)) return;
@@ -342,7 +523,7 @@ function unlockSource(index) {
   gameState.cash -= src.unlockCost;
   state.unlocked = true;
   state.employees = 1;
-  buildGrid(); // Structural change
+  buildGrid();
   updateDisplay();
   flashCash();
 }
@@ -391,10 +572,13 @@ function automateSource(index) {
 
 function collectSource(index) {
   const state = gameState.sources[index];
-  if (!state.unlocked || state.automated || state.pendingCollect <= 0.005) return;
+  if (!state.unlocked || state.automated) return;
 
-  gameState.cash += state.pendingCollect;
-  gameState.totalEarned += state.pendingCollect;
+  // Click value = flat bonus per click + any pending passive
+  const src = getSourceDef(index);
+  const clickEarnings = src.clickValue + state.pendingCollect;
+  gameState.cash += clickEarnings;
+  gameState.totalEarned += clickEarnings;
   state.pendingCollect = 0;
 
   const row = document.getElementById(`source-row-${index}`);
@@ -417,6 +601,7 @@ function flashCash() {
 
 // ===== GAME LOOP (1 second ticks) =====
 function gameTick() {
+  if (!gameState.arc) return;
   const now = Date.now();
   const isPowerOut = gameState.powerOutage && now < gameState.powerOutage.until;
 
@@ -444,6 +629,9 @@ function gameTick() {
   gameState.totalPlayTime++;
   gameState.lastTick = now;
 
+  // Mini-task system
+  trySpawnMiniTask();
+
   // Event system
   if (gameState.eventCooldown > 0) {
     gameState.eventCooldown--;
@@ -462,7 +650,6 @@ function gameTick() {
     showSeriesA();
   }
 
-  // Incremental display update (no DOM rebuild)
   updateGridValues();
   updateDisplay();
 }
@@ -506,20 +693,24 @@ function dismissEvent() {
 // ===== BOSS KEY =====
 function toggleBossMode() {
   gameState.bossMode = !gameState.bossMode;
-  document.getElementById('game-view').classList.toggle('hidden', gameState.bossMode);
+  const gameVisible = !gameState.bossMode && gameState.arc;
+  document.getElementById('game-view').classList.toggle('hidden', !gameVisible);
   document.getElementById('boss-view').classList.toggle('hidden', !gameState.bossMode);
 
   if (gameState.bossMode) {
     document.getElementById('event-toast').classList.add('hidden');
+    document.getElementById('mini-task-bar').classList.add('hidden');
     document.title = 'Book1 - Excel';
   } else {
-    document.title = 'Q4 Financials - Operations.xlsx - Excel Online';
+    document.title = 'Q4 Financials - Operations.xlsx - Quarter Close';
   }
 }
 
 // ===== SAVE / LOAD =====
 function saveGame() {
+  if (!gameState.arc) return;
   const saveData = {
+    arc: gameState.arc,
     cash: gameState.cash,
     totalEarned: gameState.totalEarned,
     sources: gameState.sources.map(s => ({
@@ -553,13 +744,28 @@ function loadGame() {
     if (!raw) return false;
 
     const data = JSON.parse(raw);
+    if (!data.arc) return false;
+
     const now = Date.now();
     const elapsed = Math.min((now - data.savedAt) / 1000, 8 * 3600);
 
-    gameState.cash = data.cash || 50;
+    gameState.arc = data.arc;
+    gameState.cash = data.cash || 0;
     gameState.totalEarned = data.totalEarned || 0;
     gameState.seriesAShown = data.seriesAShown || false;
     gameState.totalPlayTime = data.totalPlayTime || 0;
+    gameState.eventCooldown = 30;
+    gameState.miniTaskCooldown = 10;
+
+    // Rebuild sources for selected arc
+    gameState.sources = SOURCE_STATS.map((s, i) => ({
+      id: i,
+      unlocked: false,
+      employees: 0,
+      upgradeLevel: 0,
+      automated: false,
+      pendingCollect: 0,
+    }));
 
     if (data.sources) {
       data.sources.forEach((saved, i) => {
@@ -588,11 +794,28 @@ function loadGame() {
       }
     }
 
+    // Show game view (skip arc select)
+    document.getElementById('arc-select').classList.add('hidden');
+    document.getElementById('game-view').classList.remove('hidden');
+    buildGrid();
+    updateDisplay();
+
     return true;
   } catch (e) {
     console.error('Load failed:', e);
     return false;
   }
+}
+
+function resetGame() {
+  localStorage.removeItem('quarterClose_save');
+  gameState.arc = null;
+  gameState.cash = 0;
+  gameState.totalEarned = 0;
+  gameState.sources = [];
+  gameState.seriesAShown = false;
+  gameState.totalPlayTime = 0;
+  showArcSelect();
 }
 
 // ===== OFFLINE MODAL =====
@@ -670,11 +893,11 @@ setInterval(() => { saveGame(); }, 30000);
 // ===== INITIALIZATION =====
 function init() {
   generateBossGrid();
-  loadGame();
-  buildGrid();
-  updateDisplay();
+  const loaded = loadGame();
+  if (!loaded) {
+    showArcSelect();
+  }
   setInterval(gameTick, 1000);
-  gameState.eventCooldown = 30;
 }
 
 // Expose for inline onclick
@@ -686,5 +909,9 @@ window.collectSource = collectSource;
 window.dismissEvent = dismissEvent;
 window.dismissOffline = dismissOffline;
 window.dismissSeriesA = dismissSeriesA;
+window.selectArc = selectArc;
+window.resetGame = resetGame;
+window.completeMiniTask = completeMiniTask;
+window.skipMiniTask = skipMiniTask;
 
 document.addEventListener('DOMContentLoaded', init);
