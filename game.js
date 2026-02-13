@@ -2117,8 +2117,6 @@ function initChartDrag() {
       const newH = Math.max(140, chartDragState.origH + dy);
       container.style.width = newW + 'px';
       container.style.height = newH + 'px';
-      // Re-render chart at new size
-      drawValuationChart();
     }
   });
 
@@ -2129,14 +2127,20 @@ function initChartDrag() {
 
 function positionChartDefault() {
   const container = document.getElementById('valuation-chart-container');
-  // Position next to column H of the header row
-  const headerRow = document.getElementById('row-1');
-  if (!headerRow) return;
-  const lastCell = headerRow.querySelector('.cell-h');
-  if (!lastCell) return;
-  const cellRect = lastCell.getBoundingClientRect();
-  container.style.left = (cellRect.right + 8) + 'px';
-  container.style.top = cellRect.top + 'px';
+  // Position to the right of column G (Rev/yr)
+  const cell = document.querySelector('#row-1 .cell-g');
+  if (!cell) {
+    // Fallback: top-right area
+    container.style.right = '20px';
+    container.style.top = '80px';
+    container.style.width = '300px';
+    container.style.height = '200px';
+    chartPositioned = true;
+    return;
+  }
+  const gRect = cell.getBoundingClientRect();
+  container.style.left = (gRect.right + 12) + 'px';
+  container.style.top = gRect.top + 'px';
   container.style.width = '300px';
   container.style.height = '200px';
   chartPositioned = true;
@@ -2169,17 +2173,22 @@ function drawValuationChart() {
     container.classList.add('hidden');
     return;
   }
-  container.classList.remove('hidden');
 
-  if (!chartPositioned) positionChartDefault();
+  if (!chartPositioned) {
+    // Need to show it first so we can position, then set size
+    container.style.width = '300px';
+    container.style.height = '200px';
+    container.classList.remove('hidden');
+    positionChartDefault();
+  }
+  container.classList.remove('hidden');
 
   const canvas = document.getElementById('valuation-chart');
   const ctx = canvas.getContext('2d');
 
-  // Size canvas to container (minus title + padding)
-  const cRect = container.getBoundingClientRect();
-  const W = Math.max(100, Math.floor(cRect.width - 20));
-  const H = Math.max(60, Math.floor(cRect.height - 36));
+  // Use explicit container size
+  const W = Math.max(100, parseInt(container.style.width) || 300) - 20;
+  const H = Math.max(60, parseInt(container.style.height) || 200) - 36;
   canvas.width = W;
   canvas.height = H;
 
