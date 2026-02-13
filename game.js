@@ -631,11 +631,12 @@ function updateDisplay() {
   // Per-tick display (prominent)
   document.getElementById('per-tick-display').textContent = formatPerTick(perTick) + '/tick';
 
-  // Revenue breakdown stats (real rates)
+  // Revenue breakdown stats (real rates, unit included in value)
   const realPerSec = totalRealRevPerSec();
-  document.getElementById('stat-sec').textContent = formatStatMoney(realPerSec);
-  document.getElementById('stat-min').textContent = formatStatMoney(realPerSec * 60);
-  document.getElementById('stat-hr').textContent = formatStatMoney(realPerSec * 3600);
+  document.getElementById('stat-sec').textContent = formatStatMoney(realPerSec) + '/sec';
+  document.getElementById('stat-min').textContent = formatStatMoney(realPerSec * 60) + '/min';
+  document.getElementById('stat-hr').textContent = formatStatMoney(realPerSec * 3600) + '/hr';
+  document.getElementById('stat-day').textContent = formatStatMoney(realPerSec * 86400) + '/day';
 
   const scale = TIME_SCALES[currentTimeScaleIndex];
   document.getElementById('status-timescale').textContent = scale.label;
