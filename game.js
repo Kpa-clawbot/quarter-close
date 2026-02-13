@@ -1185,24 +1185,14 @@ function processQuarterlyTax() {
   showEventToast('IRS', `${qLabel} Quarterly Tax Assessment`,
     `Revenue: ${formatMoney(qRev)}\nDepreciation: (${formatMoney(qDep)})\nTaxable income: ${formatMoney(taxableIncome)}\n\nTax owed (${isAMT ? 'AMT 15%' : '25%'}): ${formatMoney(taxOwed)}${amtNote}`,
     [
-      { label: `Pay ${formatMoney(taxOwed)}`, effect: (gs) => {
-        if (gs.cash < taxOwed) {
-          if (!gs.taxDebts) gs.taxDebts = [];
-          gs.taxDebts.push({
-            original: taxOwed,
-            current: taxOwed,
-            dayCreated: currentDay,
-            daysOverdue: 0,
-            stage: 'notice1',
-            quarter: qLabel,
-          });
-          updateTaxPanel();
-          return `❌ Insufficient funds (${formatMoney(gs.cash)}). ${formatMoney(taxOwed)} added as tax debt.`;
-        }
-        gs.cash -= taxOwed;
-        gs.quarterTaxPaid += taxOwed;
-        gs.totalTaxPaid += taxOwed;
-        return `Paid ${formatMoney(taxOwed)} in ${qLabel} taxes. Good standing with the IRS.`;
+      { label: `Pay ${formatMoney(taxOwed)}`,
+        disabledLabel: 'Not enough cash',
+        cashRequired: taxOwed,
+        effect: (gs) => {
+          gs.cash -= taxOwed;
+          gs.quarterTaxPaid += taxOwed;
+          gs.totalTaxPaid += taxOwed;
+          return `Paid ${formatMoney(taxOwed)} in ${qLabel} taxes. Good standing with the IRS.`;
       }},
       { label: 'Ignore', effect: (gs) => {
         if (!gs.taxDebts) gs.taxDebts = [];
@@ -1260,13 +1250,19 @@ function processTaxDebts() {
       const debtRef = debt; // capture reference for closure
       showEventToast('IRS', '2nd Notice — Unpaid Tax Assessment',
         `This is your second notice. Original: ${formatMoney(debt.original)}, now owed: ${formatMoney(debt.current)}. Continued non-payment will result in revenue garnishment.`,
-        [{ label: 'Pay now', effect: (gs) => { const idx = gs.taxDebts.indexOf(debtRef); if (idx >= 0) settleTaxDebt(idx); return 'Debt settled.'; }},
+        [{ label: 'Pay now',
+           disabledLabel: 'Not enough cash',
+           cashRequired: debt.current,
+           effect: (gs) => { const idx = gs.taxDebts.indexOf(debtRef); if (idx >= 0) settleTaxDebt(idx); return 'Debt settled.'; }},
          { label: 'Ignore', effect: () => 'The IRS does not forget.' }]);
     } else if (debt.stage === 'garnish' && oldStage === 'notice2') {
       const debtRef = debt; // capture reference for closure
       showEventToast('IRS', '⚠ Revenue Garnishment Order',
         `The IRS is now garnishing 15% of your revenue until tax debt of ${formatMoney(debt.current)} is paid. Settle immediately to restore full income.`,
-        [{ label: 'Pay now', effect: (gs) => { const idx = gs.taxDebts.indexOf(debtRef); if (idx >= 0) settleTaxDebt(idx); return 'Debt settled. Garnishment lifted.'; }},
+        [{ label: 'Pay now',
+           disabledLabel: 'Not enough cash',
+           cashRequired: debt.current,
+           effect: (gs) => { const idx = gs.taxDebts.indexOf(debtRef); if (idx >= 0) settleTaxDebt(idx); return 'Debt settled. Garnishment lifted.'; }},
          { label: 'Ignore', effect: () => 'Asset seizure in 90 days.' }]);
     }
   }
@@ -1281,6 +1277,14 @@ function settleTaxDebt(index) {
   if (!gameState.taxDebts || index < 0 || index >= gameState.taxDebts.length) return;
   const debt = gameState.taxDebts[index];
   if (gameState.cash < debt.current) {
+    // Flash the settle button red with inline feedback
+    const btn = document.querySelector(`[data-settle="${index}"]`);
+    if (btn) {
+      const orig = btn.textContent;
+      btn.textContent = `Need ${formatMoney(debt.current)}`;
+      btn.classList.add('settle-flash');
+      setTimeout(() => { btn.textContent = orig; btn.classList.remove('settle-flash'); }, 2000);
+    }
     document.getElementById('status-text').textContent = `❌ Need ${formatMoney(debt.current)} to settle — you have ${formatMoney(gameState.cash)}`;
     return;
   }
@@ -1298,6 +1302,13 @@ function settleAllTax() {
   if (!gameState.taxDebts || gameState.taxDebts.length === 0) return;
   const total = gameState.taxDebts.reduce((sum, d) => sum + d.current, 0);
   if (gameState.cash < total) {
+    const btn = document.querySelector('[data-settle-all]');
+    if (btn) {
+      const orig = btn.textContent;
+      btn.textContent = `Need ${formatMoney(total)}`;
+      btn.classList.add('settle-flash');
+      setTimeout(() => { btn.textContent = orig; btn.classList.remove('settle-flash'); }, 2000);
+    }
     document.getElementById('status-text').textContent = `❌ Need ${formatMoney(total)} to settle all — you have ${formatMoney(gameState.cash)}`;
     return;
   }
@@ -1637,6 +1648,7 @@ function gameTick() {
   sampleValuation();
   drawValuationChart();
 
+  updateToastButtons();
   updateGridValues();
   updateDisplay();
 }
@@ -1648,6 +1660,7 @@ function triggerRandomEvent() {
 }
 
 let eventToastTimer = null;
+let _eventToastActions = null; // track actions with cashRequired for live updates
 
 function showEvent(event) {
   // Handle dynamic events that generate content at trigger time
@@ -1700,12 +1713,26 @@ function showEvent(event) {
     document.getElementById('toast-close').style.display = '';
     // Default auto-expire: 10s for all events unless explicitly set
     const expiry = event.expiresMs !== undefined ? event.expiresMs : 10000;
+    _eventToastActions = []; // reset tracked actions
     event.actions.forEach((action, i) => {
       const btn = document.createElement('button');
       btn.className = 'toast-btn' + (i === 0 ? ' toast-primary' : '');
       btn.textContent = action.label;
+
+      // Track actions with cashRequired for live enable/disable updates
+      if (action.cashRequired !== undefined) {
+        _eventToastActions.push({ btn, action });
+        if (gameState.cash < action.cashRequired) {
+          btn.disabled = true;
+          btn.textContent = action.disabledLabel || 'Not enough cash';
+          btn.classList.add('toast-btn-disabled');
+        }
+      }
+
       btn.onclick = () => {
+        if (btn.disabled) return;
         if (eventToastTimer) { clearTimeout(eventToastTimer); eventToastTimer = null; }
+        _eventToastActions = null;
         const result = action.effect(gameState);
         document.getElementById('status-text').textContent = result;
         setTimeout(() => {
@@ -1739,7 +1766,25 @@ function showEvent(event) {
 
 function dismissEvent() {
   if (eventToastTimer) { clearTimeout(eventToastTimer); eventToastTimer = null; }
+  _eventToastActions = null;
   document.getElementById('event-toast').classList.add('hidden');
+}
+
+// Update toast buttons with cashRequired (called each tick)
+function updateToastButtons() {
+  if (!_eventToastActions) return;
+  for (const { btn, action } of _eventToastActions) {
+    const canAfford = gameState.cash >= action.cashRequired;
+    if (canAfford && btn.disabled) {
+      btn.disabled = false;
+      btn.textContent = action.label;
+      btn.classList.remove('toast-btn-disabled');
+    } else if (!canAfford && !btn.disabled) {
+      btn.disabled = true;
+      btn.textContent = action.disabledLabel || 'Not enough cash';
+      btn.classList.add('toast-btn-disabled');
+    }
+  }
 }
 
 // ===== BOSS KEY =====
