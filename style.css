@@ -661,6 +661,33 @@ body {
 /* ============================================
    Sheet Tabs
    ============================================ */
+/* Revenue Breakdown Bar */
+#revenue-breakdown {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 3px 12px;
+  background: #f0f0f0;
+  border-top: 1px solid #d0d0d0;
+  font-size: 11px;
+  font-family: 'Consolas', 'Courier New', monospace;
+}
+
+.rb-label {
+  color: #666;
+  font-family: 'Segoe UI', Tahoma, sans-serif;
+  font-weight: 600;
+}
+
+.rb-val {
+  color: #333;
+}
+
+.rb-sep {
+  color: #ccc;
+  font-size: 10px;
+}
+
 #sheet-tabs, #boss-sheet-tabs {
   display: flex;
   align-items: flex-end;

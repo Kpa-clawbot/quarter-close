@@ -139,35 +139,22 @@
         <div class="cell cell-h empty-cell"></div>
       </div>
 
-      <!-- Row 2: Cash display + Per-tick -->
+      <!-- Row 2: Cash display + Per-day -->
       <div class="grid-row" id="row-cash">
         <div class="row-num">2</div>
         <div class="cell cell-a cash-label">Total Cash</div>
         <div class="cell cell-b"></div>
         <div class="cell cell-c"></div>
         <div class="cell cell-d cash-value" id="cash-display">$0.00</div>
-        <div class="cell cell-e per-tick-value" id="per-tick-display">$0.00/tick</div>
+        <div class="cell cell-e per-tick-value" id="per-tick-display">$0.00/day</div>
         <div class="cell cell-f rev-label">Total Rev/yr:</div>
         <div class="cell cell-g rev-value" id="total-rev">$0.00</div>
         <div class="cell cell-h empty-cell"></div>
       </div>
 
-      <!-- Row 3: Revenue breakdown stats -->
-      <div class="grid-row" id="row-stats">
-        <div class="row-num">3</div>
-        <div class="cell cell-a stats-header">Revenue Breakdown</div>
-        <div class="cell cell-b"></div>
-        <div class="cell cell-c stats-val" id="stat-sec"></div>
-        <div class="cell cell-d stats-val" id="stat-min"></div>
-        <div class="cell cell-e stats-val" id="stat-hr"></div>
-        <div class="cell cell-f stats-val" id="stat-day"></div>
-        <div class="cell cell-g"></div>
-        <div class="cell cell-h empty-cell"></div>
-      </div>
-
       <!-- Separator row -->
       <div class="grid-row" id="row-sep">
-        <div class="row-num">4</div>
+        <div class="row-num">3</div>
         <div class="cell cell-a sep-cell"></div>
         <div class="cell cell-b sep-cell"></div>
         <div class="cell cell-c sep-cell"></div>
@@ -183,6 +170,18 @@
 
       <!-- Empty filler rows to look like real spreadsheet -->
       <div id="filler-rows"></div>
+    </div>
+
+    <!-- Revenue Breakdown -->
+    <div id="revenue-breakdown">
+      <span class="rb-label">Revenue:</span>
+      <span class="rb-val" id="stat-sec"></span>
+      <span class="rb-sep">│</span>
+      <span class="rb-val" id="stat-min"></span>
+      <span class="rb-sep">│</span>
+      <span class="rb-val" id="stat-hr"></span>
+      <span class="rb-sep">│</span>
+      <span class="rb-val" id="stat-day"></span>
     </div>
 
     <!-- Sheet Tabs -->

@@ -439,7 +439,7 @@ function buildGrid() {
   for (let i = 0; i < SOURCE_STATS.length; i++) {
     const src = getSourceDef(i);
     const state = gameState.sources[i];
-    const rowNum = i + 5;
+    const rowNum = i + 4;
 
     const row = document.createElement('div');
     row.className = 'grid-row';
@@ -481,7 +481,7 @@ function buildGrid() {
   // Filler rows
   const filler = document.getElementById('filler-rows');
   filler.innerHTML = '';
-  const startRow = SOURCE_STATS.length + 5;
+  const startRow = SOURCE_STATS.length + 4;
   for (let i = 0; i < 20; i++) {
     const row = document.createElement('div');
     row.className = 'filler-row';
