@@ -953,9 +953,15 @@ function updateDisplay() {
     const hireFroze = gameState.hireFrozen && Date.now() < gameState.hireFrozen;
     const hireMsg = hireFroze ? ' | Hiring frozen' : '';
     document.getElementById('status-text').textContent = `⚠ Revenue penalty — ${secsLeft}s remaining${hireMsg}`;
+  } else if (gameState.revPenalty) {
+    gameState.revPenalty = null;
+    document.getElementById('status-text').textContent = 'Ready';
   } else if (gameState.revBonus && Date.now() < gameState.revBonus.until) {
     const secsLeft = Math.ceil((gameState.revBonus.until - Date.now()) / 1000);
     document.getElementById('status-text').textContent = `🔥 Revenue ×${gameState.revBonus.mult} — ${secsLeft}s remaining`;
+  } else if (gameState.revBonus) {
+    gameState.revBonus = null;
+    document.getElementById('status-text').textContent = 'Ready';
   } else if (gameState.hireFrozen && Date.now() < gameState.hireFrozen) {
     const secsLeft = Math.ceil((gameState.hireFrozen - Date.now()) / 1000);
     document.getElementById('status-text').textContent = `🚫 Hiring frozen — ${secsLeft}s remaining`;
