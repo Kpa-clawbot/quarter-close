@@ -166,6 +166,25 @@ const EVENTS = [
         gs.cash -= tax;
         return `Paid ${formatMoney(tax)} in taxes. Uncle Sam thanks you.`;
       }},
+      { label: 'Ignore', effect: (gs) => {
+        const roll = Math.random();
+        if (roll < 0.30) {
+          return '🎲 They didn\'t follow up. You got away with it... this time.';
+        } else if (roll < 0.75) {
+          // Audit: -30% cash + 30s rev penalty
+          const fine = Math.floor(gs.cash * 0.30);
+          gs.cash -= fine;
+          gs.revPenalty = { mult: 0.75, until: Date.now() + 30000 };
+          return `🔍 AUDIT — IRS found discrepancies. Fined ${formatMoney(fine)} + revenue hit for 30s.`;
+        } else {
+          // Federal investigation: -50% cash + 60s rev penalty + 60s hire freeze
+          const seized = Math.floor(gs.cash * 0.50);
+          gs.cash -= seized;
+          gs.revPenalty = { mult: 0.50, until: Date.now() + 60000 };
+          gs.hireFrozen = Date.now() + 60000;
+          return `🚨 FEDERAL INVESTIGATION — ${formatMoney(seized)} seized. Revenue halved, hiring frozen for 60s.`;
+        }
+      }},
     ]
   },
   {
@@ -204,6 +223,7 @@ let gameState = {
   revPenalty: null,
   revBonus: null,
   powerOutage: null,
+  hireFrozen: null,
   seriesAShown: false,
   lastSave: Date.now(),
   lastTick: Date.now(),
@@ -578,9 +598,15 @@ function updateGridValues() {
 
     // Action 1: Hire + Max
     const a1 = row.querySelector('[data-field="action1"]');
-    const maxHires = maxAffordable(state);
-    a1.innerHTML = `<button class="cell-btn btn-hire" onclick="hireEmployee(${i})" ${gameState.cash >= hCost ? '' : 'disabled'}>Hire ${formatMoney(hCost)}</button>` +
-      (maxHires > 1 ? `<button class="cell-btn btn-max" onclick="hireMax(${i})">Max(${maxHires})</button>` : '');
+    const frozen = gameState.hireFrozen && Date.now() < gameState.hireFrozen;
+    if (frozen) {
+      const sLeft = Math.ceil((gameState.hireFrozen - Date.now()) / 1000);
+      a1.innerHTML = `<button class="cell-btn btn-hire" disabled>🚫 Frozen (${sLeft}s)</button>`;
+    } else {
+      const maxHires = maxAffordable(state);
+      a1.innerHTML = `<button class="cell-btn btn-hire" onclick="hireEmployee(${i})" ${gameState.cash >= hCost ? '' : 'disabled'}>Hire ${formatMoney(hCost)}</button>` +
+        (maxHires > 1 ? `<button class="cell-btn btn-max" onclick="hireMax(${i})">Max(${maxHires})</button>` : '');
+    }
 
     // Action 2: Upgrade or Automate
     const a2 = row.querySelector('[data-field="action2"]');
@@ -664,7 +690,14 @@ function updateDisplay() {
     }, 3000);
   } else if (gameState.revPenalty && Date.now() < gameState.revPenalty.until) {
     const secsLeft = Math.ceil((gameState.revPenalty.until - Date.now()) / 1000);
-    document.getElementById('status-text').textContent = `⚠ Revenue penalty — ${secsLeft}s remaining`;
+    const hireFroze = gameState.hireFrozen && Date.now() < gameState.hireFrozen;
+    const hireMsg = hireFroze ? ' | Hiring frozen' : '';
+    document.getElementById('status-text').textContent = `⚠ Revenue penalty — ${secsLeft}s remaining${hireMsg}`;
+  } else if (gameState.hireFrozen && Date.now() < gameState.hireFrozen) {
+    const secsLeft = Math.ceil((gameState.hireFrozen - Date.now()) / 1000);
+    document.getElementById('status-text').textContent = `🚫 Hiring frozen — ${secsLeft}s remaining`;
+  } else {
+    if (gameState.hireFrozen) gameState.hireFrozen = null;
   }
   // Don't overwrite mini-task feedback messages
 }
@@ -687,6 +720,7 @@ function unlockSource(index) {
 function hireEmployee(index) {
   const state = gameState.sources[index];
   if (!state.unlocked) return;
+  if (gameState.hireFrozen && Date.now() < gameState.hireFrozen) return;
   const cost = hireCost(state);
   if (gameState.cash < cost) return;
 
@@ -700,6 +734,7 @@ function hireEmployee(index) {
 function hireMax(index) {
   const state = gameState.sources[index];
   if (!state.unlocked) return;
+  if (gameState.hireFrozen && Date.now() < gameState.hireFrozen) return;
   let hired = 0;
   while (true) {
     const cost = hireCost(state);
