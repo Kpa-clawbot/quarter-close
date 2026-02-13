@@ -1567,6 +1567,11 @@ function triggerIRS() {
   processQuarterlyTax();
 }
 
+function triggerBonus() {
+  gameState.revBonus = { mult: 5, until: Date.now() + 30000 };
+  document.getElementById('status-text').textContent = '🔥 Revenue ×5 — 30s remaining (debug)';
+}
+
 function showEventToast(sender, subject, body, actions, opts) {
   showEvent({ sender, subject, body, actions, ...opts });
 }
