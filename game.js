@@ -888,7 +888,82 @@ document.addEventListener('keydown', (e) => {
 });
 
 // ===== AUTO-SAVE (every 30s) =====
-setInterval(() => { saveGame(); }, 30000);
+let autosaveEnabled = true;
+let autosaveInterval = setInterval(() => { saveGame(); }, 30000);
+
+// ===== FILE MENU =====
+let fileMenuOpen = false;
+
+function toggleFileMenu(e) {
+  e.stopPropagation();
+  fileMenuOpen = !fileMenuOpen;
+  const dropdown = document.getElementById('file-dropdown');
+  dropdown.classList.toggle('open', fileMenuOpen);
+  updateAutosaveToggle();
+}
+
+function closeFileMenu() {
+  fileMenuOpen = false;
+  const dropdown = document.getElementById('file-dropdown');
+  if (dropdown) dropdown.classList.remove('open');
+}
+
+function toggleAutosave(e) {
+  e.stopPropagation();
+  autosaveEnabled = !autosaveEnabled;
+  if (autosaveEnabled) {
+    autosaveInterval = setInterval(() => { saveGame(); }, 30000);
+    document.getElementById('status-text').textContent = 'Auto-save enabled';
+  } else {
+    clearInterval(autosaveInterval);
+    document.getElementById('status-text').textContent = 'Auto-save disabled';
+  }
+  updateAutosaveToggle();
+  setTimeout(() => { document.getElementById('status-text').textContent = 'Ready'; }, 2000);
+}
+
+function updateAutosaveToggle() {
+  const el = document.getElementById('autosave-toggle');
+  if (el) el.classList.toggle('off', !autosaveEnabled);
+}
+
+function showAbout() {
+  closeFileMenu();
+  document.getElementById('about-modal').classList.remove('hidden');
+}
+
+function dismissAbout() {
+  document.getElementById('about-modal').classList.add('hidden');
+}
+
+let pendingConfirmAction = null;
+
+function confirmNewGame() {
+  closeFileMenu();
+  document.getElementById('confirm-text').textContent = 'Start a new game? All progress will be lost.';
+  document.getElementById('confirm-modal').classList.remove('hidden');
+  pendingConfirmAction = () => {
+    resetGame();
+    dismissConfirm();
+  };
+}
+
+function confirmAction() {
+  if (pendingConfirmAction) pendingConfirmAction();
+  pendingConfirmAction = null;
+}
+
+function dismissConfirm() {
+  document.getElementById('confirm-modal').classList.add('hidden');
+  pendingConfirmAction = null;
+}
+
+// Close file menu when clicking anywhere else
+document.addEventListener('click', (e) => {
+  if (fileMenuOpen && !e.target.closest('#file-menu')) {
+    closeFileMenu();
+  }
+});
 
 // ===== INITIALIZATION =====
 function init() {
@@ -913,5 +988,12 @@ window.selectArc = selectArc;
 window.resetGame = resetGame;
 window.completeMiniTask = completeMiniTask;
 window.skipMiniTask = skipMiniTask;
+window.toggleFileMenu = toggleFileMenu;
+window.toggleAutosave = toggleAutosave;
+window.showAbout = showAbout;
+window.dismissAbout = dismissAbout;
+window.confirmNewGame = confirmNewGame;
+window.confirmAction = confirmAction;
+window.dismissConfirm = dismissConfirm;
 
 document.addEventListener('DOMContentLoaded', init);
