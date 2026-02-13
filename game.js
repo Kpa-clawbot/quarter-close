@@ -214,6 +214,7 @@ let gameState = {
   totalSpentUpgrades: 0,
   totalSpentAuto: 0,
   lastQuarterDay: 0,      // game-day of last quarter close
+  capitalExpenses: [],     // {amount, dayCreated, quartersLeft} — depreciate over 4 quarters
 };
 
 let gridBuilt = false;
@@ -396,6 +397,7 @@ function selectArc(arcKey) {
   gameState.totalSpentUpgrades = 0;
   gameState.totalSpentAuto = 0;
   gameState.lastQuarterDay = 0;
+  gameState.capitalExpenses = [];
 
   // Clear stale panels
   const taxPanel = document.getElementById('tax-panel');
@@ -732,7 +734,7 @@ function unlockSource(index) {
   if (!isNextUnlock(index)) return;
 
   gameState.cash -= src.unlockCost;
-  gameState.quarterExpenses += src.unlockCost;
+  addCapitalExpense(src.unlockCost);
   state.unlocked = true;
   state.employees = 1;
   buildGrid();
@@ -749,7 +751,7 @@ function hireEmployee(index) {
 
   gameState.cash -= cost;
   state.employees++;
-  gameState.quarterExpenses += cost;
+  addCapitalExpense(cost);
   gameState.totalSpentHires += cost;
   updateGridValues();
   updateDisplay();
@@ -772,7 +774,7 @@ function hireMax(index) {
     if (hired > 1000) break; // safety
   }
   if (hired > 0) {
-    gameState.quarterExpenses += totalCost;
+    addCapitalExpense(totalCost);
     gameState.totalSpentHires += totalCost;
     updateGridValues();
     updateDisplay();
@@ -788,7 +790,7 @@ function upgradeSource(index) {
 
   gameState.cash -= cost;
   state.upgradeLevel++;
-  gameState.quarterExpenses += cost;
+  addCapitalExpense(cost);
   gameState.totalSpentUpgrades += cost;
   updateGridValues();
   updateDisplay();
@@ -803,7 +805,7 @@ function automateSource(index) {
 
   gameState.cash -= cost;
   state.automated = true;
-  gameState.quarterExpenses += cost;
+  addCapitalExpense(cost);
   gameState.totalSpentAuto += cost;
   gameState.cash += state.pendingCollect;
   gameState.totalEarned += state.pendingCollect;
@@ -838,6 +840,38 @@ function collectSource(index) {
   flashCash();
 }
 
+// ===== DEPRECIATION =====
+const DEPRECIATION_QUARTERS = 4;
+
+function addCapitalExpense(amount) {
+  if (!gameState.capitalExpenses) gameState.capitalExpenses = [];
+  gameState.capitalExpenses.push({
+    amount: amount,
+    perQuarter: Math.floor(amount / DEPRECIATION_QUARTERS),
+    quartersLeft: DEPRECIATION_QUARTERS,
+  });
+  gameState.quarterExpenses += amount; // track for P&L display
+}
+
+function getQuarterlyDepreciation() {
+  if (!gameState.capitalExpenses) return 0;
+  let total = 0;
+  for (const cap of gameState.capitalExpenses) {
+    if (cap.quartersLeft > 0) {
+      total += cap.perQuarter;
+    }
+  }
+  return total;
+}
+
+function tickDepreciation() {
+  if (!gameState.capitalExpenses) return;
+  gameState.capitalExpenses = gameState.capitalExpenses.filter(cap => {
+    cap.quartersLeft--;
+    return cap.quartersLeft > 0;
+  });
+}
+
 function flashCash() {
   const el = document.getElementById('cash-display');
   el.classList.remove('cash-bump');
@@ -849,29 +883,53 @@ function flashCash() {
 // ===== TAX DEBT SYSTEM =====
 
 function processQuarterlyTax() {
-  const taxableIncome = gameState.quarterRevenue - gameState.quarterExpenses;
+  const depreciation = getQuarterlyDepreciation();
+  const taxableIncome = gameState.quarterRevenue - depreciation;
   const taxRate = 0.25; // 25% corporate tax
   const taxOwed = Math.max(0, Math.floor(taxableIncome * taxRate));
 
-  // Reset quarterly tracking
+  // Snapshot for display
   const qRev = gameState.quarterRevenue;
-  const qExp = gameState.quarterExpenses;
+  const qDep = depreciation;
+
+  // Tick depreciation (reduce remaining quarters on all assets)
+  tickDepreciation();
+
+  // Reset quarterly tracking
   gameState.quarterRevenue = 0;
   gameState.quarterExpenses = 0;
   gameState.quarterTaxPaid = 0;
 
-  if (taxOwed <= 0) return; // no profit, no tax
+  if (taxOwed <= 0) {
+    const currentDay = Math.floor(gameState.gameElapsedSecs / SECS_PER_DAY);
+    const quarter = Math.floor(currentDay / 90);
+    const qLabel = `Q${(quarter % 4) + 1}`;
+    showEventToast('IRS', `${qLabel} Quarterly Tax Assessment`,
+      `Revenue: ${formatMoney(qRev)}\nDepreciation: (${formatMoney(qDep)})\nTaxable income: ${formatMoney(Math.max(0, taxableIncome))}\n\nNo tax owed this quarter.`,
+      [{ label: 'OK', effect: () => `No tax liability for ${qLabel}. Keep investing!` }]);
+    return;
+  }
 
   const currentDay = Math.floor(gameState.gameElapsedSecs / SECS_PER_DAY);
   const quarter = Math.floor(currentDay / 90);
   const qLabel = `Q${(quarter % 4) + 1}`;
 
   showEventToast('IRS', `${qLabel} Quarterly Tax Assessment`,
-    `Quarterly revenue: ${formatMoney(qRev)}\nExpenses: ${formatMoney(qExp)}\nTaxable income: ${formatMoney(taxableIncome)}\n\nTax owed (25%): ${formatMoney(taxOwed)}`,
+    `Revenue: ${formatMoney(qRev)}\nDepreciation: (${formatMoney(qDep)})\nTaxable income: ${formatMoney(taxableIncome)}\n\nTax owed (25%): ${formatMoney(taxOwed)}`,
     [
       { label: `Pay ${formatMoney(taxOwed)}`, effect: (gs) => {
         if (gs.cash < taxOwed) {
-          return `❌ Insufficient funds. Need ${formatMoney(taxOwed)}, have ${formatMoney(gs.cash)}. Debt created.`;
+          if (!gs.taxDebts) gs.taxDebts = [];
+          gs.taxDebts.push({
+            original: taxOwed,
+            current: taxOwed,
+            dayCreated: currentDay,
+            daysOverdue: 0,
+            stage: 'notice1',
+            quarter: qLabel,
+          });
+          updateTaxPanel();
+          return `❌ Insufficient funds (${formatMoney(gs.cash)}). ${formatMoney(taxOwed)} added as tax debt.`;
         }
         gs.cash -= taxOwed;
         gs.quarterTaxPaid += taxOwed;
@@ -1025,6 +1083,7 @@ function updateTaxPanel() {
   </div>`;
 
   const totalExpenses = gameState.totalSpentHires + gameState.totalSpentUpgrades + gameState.totalSpentAuto;
+  const qDepreciation = getQuarterlyDepreciation();
 
   // Revenue
   html += `<div class="grid-row pnl-row">
@@ -1037,14 +1096,25 @@ function updateTaxPanel() {
     <div class="cell cell-g"></div><div class="cell cell-h"></div>
   </div>`;
 
-  // Expenses
+  // Capital Spending (this quarter)
   html += `<div class="grid-row pnl-row">
     <div class="row-num">${rowNum++}</div>
-    <div class="cell cell-a" style="padding-left:16px;color:#444">Expenses</div>
+    <div class="cell cell-a" style="padding-left:16px;color:#444">Capital Spending</div>
     <div class="cell cell-b"></div>
     <div class="cell cell-c" style="color:#c00;font-family:Consolas,monospace;font-size:11px;justify-content:flex-end">(${formatMoney(gameState.quarterExpenses)})</div>
     <div class="cell cell-d" style="color:#c00;font-family:Consolas,monospace;font-size:11px;justify-content:flex-end">(${formatMoney(totalExpenses)})</div>
-    <div class="cell cell-e"></div><div class="cell cell-f"></div>
+    <div class="cell cell-e"></div><div class="cell cell-f" style="font-size:9px;color:#999">not tax-deductible</div>
+    <div class="cell cell-g"></div><div class="cell cell-h"></div>
+  </div>`;
+
+  // Depreciation
+  html += `<div class="grid-row pnl-row">
+    <div class="row-num">${rowNum++}</div>
+    <div class="cell cell-a" style="padding-left:16px;color:#444">Depreciation</div>
+    <div class="cell cell-b"></div>
+    <div class="cell cell-c" style="color:#c00;font-family:Consolas,monospace;font-size:11px;justify-content:flex-end">(${formatMoney(qDepreciation)})</div>
+    <div class="cell cell-d"></div>
+    <div class="cell cell-e"></div><div class="cell cell-f" style="font-size:9px;color:#999">tax-deductible</div>
     <div class="cell cell-g"></div><div class="cell cell-h"></div>
   </div>`;
 
@@ -1056,6 +1126,18 @@ function updateTaxPanel() {
     <div class="cell cell-c" style="color:#c00;font-family:Consolas,monospace;font-size:11px;justify-content:flex-end">(${formatMoney(gameState.quarterTaxPaid)})</div>
     <div class="cell cell-d" style="color:#c00;font-family:Consolas,monospace;font-size:11px;justify-content:flex-end">(${formatMoney(gameState.totalTaxPaid)})</div>
     <div class="cell cell-e"></div><div class="cell cell-f"></div>
+    <div class="cell cell-g"></div><div class="cell cell-h"></div>
+  </div>`;
+
+  // Taxable Income (revenue - depreciation, what IRS taxes)
+  const qTaxable = Math.max(0, gameState.quarterRevenue - qDepreciation);
+  html += `<div class="grid-row pnl-row">
+    <div class="row-num">${rowNum++}</div>
+    <div class="cell cell-a" style="padding-left:16px;color:#888;font-size:10px">Taxable Income</div>
+    <div class="cell cell-b"></div>
+    <div class="cell cell-c" style="color:#888;font-family:Consolas,monospace;font-size:10px;justify-content:flex-end">${formatMoney(qTaxable)}</div>
+    <div class="cell cell-d"></div>
+    <div class="cell cell-e"></div><div class="cell cell-f" style="font-size:9px;color:#999">rev − depreciation</div>
     <div class="cell cell-g"></div><div class="cell cell-h"></div>
   </div>`;
 
@@ -1343,6 +1425,7 @@ function saveGame() {
     totalSpentUpgrades: gameState.totalSpentUpgrades,
     totalSpentAuto: gameState.totalSpentAuto,
     lastQuarterDay: gameState.lastQuarterDay,
+    capitalExpenses: gameState.capitalExpenses || [],
     savedAt: Date.now(),
   };
 
@@ -1388,6 +1471,7 @@ function loadGame() {
     gameState.totalSpentUpgrades = data.totalSpentUpgrades || 0;
     gameState.totalSpentAuto = data.totalSpentAuto || 0;
     gameState.lastQuarterDay = data.lastQuarterDay || 0;
+    gameState.capitalExpenses = data.capitalExpenses || [];
 
     // Rebuild sources for selected arc
     gameState.sources = SOURCE_STATS.map((s, i) => ({
@@ -1468,6 +1552,7 @@ function resetGame() {
   gameState.totalSpentUpgrades = 0;
   gameState.totalSpentAuto = 0;
   gameState.lastQuarterDay = 0;
+  gameState.capitalExpenses = [];
   gameState.eventCooldown = 0;
   gameState.miniTaskCooldown = 0;
   gameState.miniTaskActive = false;
