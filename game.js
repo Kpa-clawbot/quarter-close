@@ -2256,6 +2256,7 @@ function dismissOffline() {
 
 // ===== SERIES A =====
 function showSeriesA() {
+  gameState.cash += 5000000;
   document.getElementById('series-a-modal').classList.remove('hidden');
 }
 
