@@ -141,3 +141,32 @@ Revenue accrues per tick → spend on upgrades → grow departments → hit quar
 ---
 
 *Created: 2026-02-13*
+
+## Extended Tiers (Late-Game Progression)
+
+All arcs share the same SOURCE_STATS economy. Tiers 8-11 extend the endgame.
+
+### Tech Startup Arc
+| Tier | Name | Rev/emp/yr | Unlock Cost | Flavor |
+|------|------|-----------|-------------|--------|
+| 0 | Blog with Ads | $3K | Free | Monetize your hot takes |
+| 1 | Freelance Web Dev | $30K | $500 | Fiverr but classier |
+| 2 | WordPress Agency | $200K | $5K | Starter sites for everyone |
+| 3 | SaaS MVP | $500K | $25K | Monthly recurring revenue! |
+| 4 | Mobile App | $1M | $100K | There's an app for that |
+| 5 | Series A Startup | $5M | $500K | Burn rate is just a number |
+| 6 | Dev Shop | $20M | $2M | 50 engineers and a dream |
+| 7 | Software Company | $100M | $10M | Enterprise contracts |
+| 8 | Tech Giant | $400M | $50M | TBD |
+| 9 | Big Tech | $1.5B | $250M | TBD |
+| 10 | Monopoly | $5B | $1B | TBD |
+| 11 | Trillion Dollar Club | $15B | $5B | TBD |
+
+### Food Empire Arc
+*(needs tier 8-11 names)*
+
+### E-Commerce Hustler Arc
+*(needs tier 8-11 names)*
+
+### Entrepreneur Arc
+*(needs tier 8-11 names)*

@@ -17,6 +17,10 @@ const ARCS = {
       { name: 'Series A Startup',    flavor: 'Burn rate is just a number' },
       { name: 'Dev Shop',            flavor: '50 engineers and a dream' },
       { name: 'Software Company',    flavor: 'Enterprise contracts 💰' },
+      { name: 'Tech Giant',          flavor: 'Congressional hearings are just PR' },
+      { name: 'Big Tech',            flavor: 'FAANG who?' },
+      { name: 'Monopoly',            flavor: 'Antitrust is a suggestion' },
+      { name: 'Trillion Dollar Club', flavor: 'The GDP of a small country' },
     ]
   },
   food: {
@@ -32,6 +36,10 @@ const ARCS = {
       { name: 'Restaurant Chain',     flavor: 'Location, location, location' },
       { name: 'Franchise Operation',  flavor: 'Other people run your stores' },
       { name: 'Food & Beverage Corp', flavor: 'Fortune 500 here we come' },
+      { name: 'CPG Conglomerate',     flavor: 'You own the grocery shelf' },
+      { name: 'Global Supply Chain',  flavor: 'Farm to table to world' },
+      { name: 'Food Monopoly',        flavor: 'Nestlé sends a fruit basket' },
+      { name: 'You Feed The World',   flavor: 'Governments depend on you' },
     ]
   },
   ecommerce: {
@@ -47,12 +55,16 @@ const ARCS = {
       { name: 'Private Label Brand',  flavor: 'Your name on the box' },
       { name: 'Retail Chain',         flavor: 'Brick and mortar comeback' },
       { name: 'Consumer Empire',      flavor: 'Everything ships next day' },
+      { name: 'Marketplace Platform', flavor: 'You ARE the marketplace' },
+      { name: 'Logistics Network',    flavor: 'Your own planes and warehouses' },
+      { name: 'Retail Monopoly',      flavor: 'Antitrust hearings scheduled' },
+      { name: 'Everything Store',     flavor: 'You sell literally everything' },
     ]
   },
   generic: {
     name: 'Entrepreneur',
     icon: '📈',
-    desc: 'From side hustle to tech company',
+    desc: 'From side hustle to conglomerate',
     sources: [
       { name: 'Tutoring Service',     flavor: 'Teach what you know' },
       { name: 'Online Course',        flavor: 'Passive income guru' },
@@ -62,6 +74,10 @@ const ARCS = {
       { name: 'Venture-Backed Startup', flavor: 'Other people\'s money' },
       { name: 'Growth-Stage Company', flavor: 'Hockey stick chart' },
       { name: 'Tech Company',         flavor: 'IPO is calling' },
+      { name: 'Holding Company',      flavor: 'Diversified portfolio' },
+      { name: 'Private Equity',       flavor: 'Buy, optimize, flip' },
+      { name: 'Conglomerate',         flavor: 'Berkshire vibes' },
+      { name: 'Too Big To Fail',      flavor: 'The Fed has your back' },
     ]
   },
 };
@@ -78,6 +94,10 @@ const SOURCE_STATS = [
   { baseRate: 5000000,     unlockCost: 500000,  clickValue: 250, autoCostMult: 10 },  // ~$5M/yr chain
   { baseRate: 20000000,    unlockCost: 2000000, clickValue: 500, autoCostMult: 10 },  // ~$20M/yr franchise
   { baseRate: 100000000,   unlockCost: 10000000,clickValue: 1000,autoCostMult: 10 },  // ~$100M/yr corp
+  { baseRate: 400000000,   unlockCost: 50000000, clickValue: 2500, autoCostMult: 10 }, // ~$400M/yr tech giant
+  { baseRate: 1500000000,  unlockCost: 250000000, clickValue: 5000, autoCostMult: 10 }, // ~$1.5B/yr big tech
+  { baseRate: 5000000000,  unlockCost: 1000000000, clickValue: 10000, autoCostMult: 10 }, // ~$5B/yr monopoly
+  { baseRate: 15000000000, unlockCost: 5000000000, clickValue: 25000, autoCostMult: 10 }, // ~$15B/yr trillion club
 ];
 
 // ===== TIME SCALE =====
@@ -525,7 +545,7 @@ function showArcSelect() {
       <div class="arc-icon">${arc.icon}</div>
       <div class="arc-name">${arc.name}</div>
       <div class="arc-desc">${arc.desc}</div>
-      <div class="arc-first">${arc.sources[0].name} → ${arc.sources[7].name}</div>
+      <div class="arc-first">${arc.sources[0].name} → ${arc.sources[arc.sources.length - 1].name}</div>
     `;
     container.appendChild(div);
   }
