@@ -1344,13 +1344,14 @@ function updateTaxPanel() {
   </div>`;
 
   // Depreciation
+  const capCount = gameState.capitalExpenses ? gameState.capitalExpenses.length : 0;
   html += `<div class="grid-row pnl-row">
     <div class="row-num">${rowNum++}</div>
     <div class="cell cell-a" style="padding-left:16px;color:#444">Depreciation</div>
     <div class="cell cell-b"></div>
     <div class="cell cell-c" style="color:#c00;font-family:Consolas,monospace;font-size:11px;justify-content:flex-end">(${formatMoney(qDepreciation)})</div>
     <div class="cell cell-d"></div>
-    <div class="cell cell-e"></div><div class="cell cell-f" style="font-size:9px;color:#999">tax-deductible</div>
+    <div class="cell cell-e"></div><div class="cell cell-f" style="font-size:9px;color:#999">${capCount} assets depreciating</div>
     <div class="cell cell-g"></div><div class="cell cell-h"></div>
   </div>`;
 
@@ -1723,7 +1724,7 @@ function loadGame() {
     gameState.totalSpentUpgrades = data.totalSpentUpgrades || 0;
     gameState.totalSpentAuto = data.totalSpentAuto || 0;
     gameState.lastQuarterDay = data.lastQuarterDay || 0;
-    gameState.capitalExpenses = data.capitalExpenses || [];
+    gameState.capitalExpenses = (data.capitalExpenses || []).filter(c => c && c.quartersLeft > 0 && c.perQuarter > 0);
 
     // Rebuild sources for selected arc
     gameState.sources = SOURCE_STATS.map((s, i) => ({
