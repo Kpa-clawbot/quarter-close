@@ -662,9 +662,19 @@ function updateDisplay() {
   document.getElementById('cell-ref').textContent = 'C2';
 
   if (gameState.powerOutage && Date.now() < gameState.powerOutage.until) {
-    document.getElementById('status-text').textContent = '⚡ Power Outage — Systems Offline';
+    const secsLeft = Math.ceil((gameState.powerOutage.until - Date.now()) / 1000);
+    document.getElementById('status-text').textContent = `⚡ SYSTEMS OFFLINE — back in ${secsLeft}s`;
+  } else if (gameState.powerOutage) {
+    gameState.powerOutage = null;
+    document.getElementById('status-text').textContent = '✅ Systems restored';
+    setTimeout(() => {
+      if (document.getElementById('status-text').textContent === '✅ Systems restored') {
+        document.getElementById('status-text').textContent = 'Ready';
+      }
+    }, 3000);
   } else if (gameState.revPenalty && Date.now() < gameState.revPenalty.until) {
-    document.getElementById('status-text').textContent = '⚠ Revenue penalty active';
+    const secsLeft = Math.ceil((gameState.revPenalty.until - Date.now()) / 1000);
+    document.getElementById('status-text').textContent = `⚠ Revenue penalty — ${secsLeft}s remaining`;
   }
   // Don't overwrite mini-task feedback messages
 }
