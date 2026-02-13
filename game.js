@@ -283,7 +283,7 @@ let gameState = {
   goldenCellActive: false,
   goldenCellCooldown: 60,  // don't spawn for first 60s
   totalClicks: 0,
-  gameStartDate: Date.UTC(2024, 0, 1),  // Jan 1, 2024
+  gameStartDate: Date.now(),  // real-world date at game start
   gameElapsedSecs: 0,
   // Financials
   quarterRevenue: 0,      // revenue earned this quarter
@@ -480,7 +480,7 @@ function selectArc(arcKey) {
   gameState.miniTaskStreak = 0;
   gameState.goldenCellActive = false;
   gameState.goldenCellCooldown = 60;
-  gameState.gameStartDate = Date.UTC(2024, 0, 1);
+  gameState.gameStartDate = Date.now();
   gameState.gameElapsedSecs = 0;
   gameState.revPenalty = null;
   gameState.revBonus = null;
@@ -859,7 +859,11 @@ function updateDisplay() {
   // In-game date
   const gameDate = new Date(gameState.gameStartDate + gameState.gameElapsedSecs * 1000);
   const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  document.getElementById('game-date').textContent = monthNames[gameDate.getUTCMonth()] + ' ' + gameDate.getUTCDate() + ', ' + gameDate.getUTCFullYear();
+  const totalDays = Math.floor(gameState.gameElapsedSecs / SECS_PER_DAY);
+  const years = Math.floor(totalDays / 365);
+  const days = totalDays % 365;
+  const ageStr = years > 0 ? `Yr ${years + 1}, Day ${days + 1}` : `Day ${totalDays + 1}`;
+  document.getElementById('game-date').textContent = monthNames[gameDate.getUTCMonth()] + ' ' + gameDate.getUTCDate() + ', ' + gameDate.getUTCFullYear() + `  (${ageStr})`;
 
   // Play time
   const t = gameState.totalPlayTime;
@@ -1778,7 +1782,7 @@ function resetGame() {
   gameState.seriesAShown = false;
   gameState.totalPlayTime = 0;
   gameState.totalClicks = 0;
-  gameState.gameStartDate = Date.UTC(2024, 0, 1);
+  gameState.gameStartDate = Date.now();
   gameState.gameElapsedSecs = 0;
   gameState.revPenalty = null;
   gameState.revBonus = null;
