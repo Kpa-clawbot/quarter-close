@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { width: 1200px; height: 630px; overflow: hidden; font-family: 'Segoe UI', Calibri, sans-serif; }
+  .card {
+    width: 1200px; height: 630px;
+    position: relative;
+    background: #f0f0f0;
+  }
+
+  /* FULL-WIDTH SPREADSHEET BEHIND */
+  .spreadsheet {
+    width: 100%; height: 100%;
+    background: white;
+    display: flex; flex-direction: column;
+  }
+  .toolbar {
+    height: 36px; background: #217346;
+    display: flex; align-items: center;
+    padding: 0 12px; gap: 16px;
+  }
+  .toolbar span { color: white; font-size: 13px; font-weight: 500; }
+  .toolbar .active { background: rgba(255,255,255,0.15); padding: 4px 10px; border-radius: 3px; }
+  .formula-bar {
+    height: 28px; background: #f3f3f3; border-bottom: 1px solid #d4d4d4;
+    display: flex; align-items: center; padding: 0 8px;
+    font-size: 12px; color: #444;
+  }
+  .formula-bar .ref { font-weight: 600; margin-right: 8px; border-right: 1px solid #ccc; padding-right: 8px; }
+  .grid { flex: 1; display: flex; flex-direction: column; }
+  .grid-row {
+    display: flex; border-bottom: 1px solid #e0e0e0;
+    height: 24px; align-items: center;
+  }
+  .grid-row.header { background: #f8f8f8; font-weight: 600; font-size: 11px; color: #555; }
+  .row-num { width: 36px; text-align: center; font-size: 10px; color: #888; background: #f8f8f8; border-right: 1px solid #e0e0e0; height: 100%; display: flex; align-items: center; justify-content: center; }
+  .cell { flex: 1; padding: 0 8px; font-size: 12px; color: #333; border-right: 1px solid #eee; height: 100%; display: flex; align-items: center; }
+  .cell.money { justify-content: flex-end; font-family: Consolas, monospace; color: #217346; }
+  .cell.num { justify-content: flex-end; font-family: Consolas, monospace; }
+  .cell.red { color: #c00; }
+  .cell.bold { font-weight: 700; }
+  .cell.section { font-weight: 700; color: #333; }
+  .cell.label { color: #666; padding-left: 16px; }
+  .cell.locked { color: #bbb; }
+
+  /* VALUATION CHART — floating on spreadsheet behind splash */
+  .val-chart {
+    position: absolute;
+    top: 100px; right: 40px;
+    width: 340px; height: 220px;
+    background: white;
+    border: 1px solid #d4d4d4;
+    z-index: 5;
+    display: flex; flex-direction: column;
+  }
+  .val-chart-title {
+    padding: 4px 8px;
+    font-size: 10px; font-weight: 600; color: #333;
+    border-bottom: 1px solid #e8e8e8;
+    background: #fafafa;
+  }
+  .val-chart-body {
+    flex: 1; padding: 8px;
+    position: relative;
+  }
+  .val-chart-body svg { width: 100%; height: 100%; }
+
+  /* SPLASH OVERLAY — centered, ~70% size */
+  .splash-overlay {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 504px; /* ~70% of 720 */
+    height: 308px; /* ~70% of 440 */
+    background: white;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.25), 0 1px 4px rgba(0,0,0,0.15);
+    display: flex; flex-direction: column;
+    overflow: hidden;
+    z-index: 10;
+  }
+  .splash-inner {
+    flex: 1;
+    display: flex;
+    position: relative;
+  }
+  /* Abstract swoosh on left edge */
+  .swoosh-container {
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 80px;
+    overflow: hidden;
+  }
+  .swoosh-container svg {
+    position: absolute;
+    left: -10px; top: 0;
+    width: 100px; height: 100%;
+  }
+  /* Content */
+  .splash-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 24px 30px 24px 96px;
+    z-index: 2;
+  }
+  .splash-brand {
+    position: absolute;
+    top: 12px; right: 16px;
+    font-size: 11px; color: #999;
+    font-weight: 500;
+  }
+  .splash-icon {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 4px;
+  }
+  .splash-icon .icon-grid {
+    width: 32px; height: 32px;
+    background: #217346;
+    border-radius: 4px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+    gap: 2px;
+    padding: 4px;
+  }
+  .icon-grid .ic { background: rgba(255,255,255,0.7); border-radius: 1px; }
+  .icon-grid .ic:nth-child(odd) { background: rgba(255,255,255,0.9); }
+  .splash-product-label {
+    font-size: 11px; color: #999;
+    font-weight: 400;
+  }
+  .splash-title {
+    font-size: 50px; font-weight: 300;
+    color: #555;
+    letter-spacing: -1.5px; line-height: 1;
+    margin-top: 2px;
+  }
+  .splash-title span {
+    color: #217346;
+    font-weight: 700;
+  }
+  .splash-subtitle {
+    font-size: 13px; color: #217346;
+    font-weight: 600; letter-spacing: 2.5px;
+    text-transform: uppercase;
+    margin-top: 14px;
+  }
+  /* Green accent bar */
+  .splash-bar {
+    height: 6px;
+    background: linear-gradient(90deg, #1a6b35, #2d9a50, #3cb868, #2d9a50, #1a6b35);
+  }
+  .splash-footer {
+    padding: 8px 30px 8px 96px;
+    font-size: 10px; color: #aaa;
+    font-style: italic;
+  }
+</style>
+</head>
+<body>
+<div class="card">
+  <!-- Full spreadsheet background -->
+  <div class="spreadsheet">
+    <div class="toolbar">
+      <span>File</span><span>Edit</span><span>View</span><span>Insert</span><span class="active">Data</span><span>Help</span>
+    </div>
+    <div class="formula-bar">
+      <span class="ref">C5</span>
+      <span>=SUM(C2:C4)*1.15</span>
+    </div>
+    <div class="grid">
+      <div class="grid-row header">
+        <div class="row-num"></div>
+        <div class="cell" style="flex:2">A</div>
+        <div class="cell">B</div>
+        <div class="cell" style="flex:1.2">C</div>
+        <div class="cell" style="flex:1.2">D</div>
+        <div class="cell">E</div>
+        <div class="cell">F</div>
+        <div class="cell">G</div>
+        <div class="cell">H</div>
+      </div>
+      <div class="grid-row">
+        <div class="row-num">1</div>
+        <div class="cell section" style="flex:2">REVENUE SOURCES</div>
+        <div class="cell bold">Employees</div>
+        <div class="cell bold" style="flex:1.2">Revenue/yr</div>
+        <div class="cell bold" style="flex:1.2">Status</div>
+        <div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
+      </div>
+      <div class="grid-row">
+        <div class="row-num">2</div>
+        <div class="cell" style="flex:2">Blog with Ads</div>
+        <div class="cell num">3</div>
+        <div class="cell money" style="flex:1.2">$9,000</div>
+        <div class="cell" style="flex:1.2;color:#217346;font-size:10px">Auto</div>
+        <div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
+      </div>
+      <div class="grid-row">
+        <div class="row-num">3</div>
+        <div class="cell" style="flex:2">Freelance Web Dev</div>
+        <div class="cell num">5</div>
+        <div class="cell money" style="flex:1.2">$150,000</div>
+        <div class="cell" style="flex:1.2;color:#217346;font-size:10px">Auto</div>
+        <div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
+      </div>
+      <div class="grid-row">
+        <div class="row-num">4</div>
+        <div class="cell" style="flex:2">WordPress Agency</div>
+        <div class="cell num">2</div>
+        <div class="cell money" style="flex:1.2">$400,000</div>
+        <div class="cell" style="flex:1.2;color:#c60;font-size:10px">Hire</div>
+        <div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
+      </div>
+      <div class="grid-row">
+        <div class="row-num">5</div>
+        <div class="cell locked" style="flex:2">SaaS MVP</div>
+        <div class="cell locked num">-</div>
+        <div class="cell locked" style="flex:1.2;justify-content:flex-end;font-family:Consolas,monospace">$0</div>
+        <div class="cell locked" style="flex:1.2;font-size:10px">Locked $5K</div>
+        <div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
+      </div>
+      <div class="grid-row">
+        <div class="row-num">6</div>
+        <div class="cell" style="flex:2"></div><div class="cell"></div><div class="cell" style="flex:1.2"></div><div class="cell" style="flex:1.2"></div>
+        <div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
+      </div>
+      <div class="grid-row">
+        <div class="row-num">7</div>
+        <div class="cell section" style="flex:2">PROFIT & LOSS</div>
+        <div class="cell"></div>
+        <div class="cell bold" style="flex:1.2">This Qtr</div>
+        <div class="cell bold" style="flex:1.2">Lifetime</div>
+        <div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
+      </div>
+      <div class="grid-row">
+        <div class="row-num">8</div>
+        <div class="cell label" style="flex:2">Revenue</div>
+        <div class="cell"></div>
+        <div class="cell money" style="flex:1.2">$142,890</div>
+        <div class="cell money" style="flex:1.2">$1,203,447</div>
+        <div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
+      </div>
+      <div class="grid-row">
+        <div class="row-num">9</div>
+        <div class="cell label" style="flex:2">Capital Spending</div>
+        <div class="cell"></div>
+        <div class="cell money red" style="flex:1.2">($88,500)</div>
+        <div class="cell money red" style="flex:1.2">($312,100)</div>
+        <div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
+      </div>
+      <div class="grid-row">
+        <div class="row-num">10</div>
+        <div class="cell label" style="flex:2">Taxes Paid</div>
+        <div class="cell"></div>
+        <div class="cell money red" style="flex:1.2">($12,440)</div>
+        <div class="cell money red" style="flex:1.2">($48,200)</div>
+        <div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
+      </div>
+      <div class="grid-row">
+        <div class="row-num">11</div>
+        <div class="cell" style="flex:2;font-weight:700;padding-left:16px">Net Income</div>
+        <div class="cell"></div>
+        <div class="cell money bold" style="flex:1.2;border-top:1px solid #333;border-bottom:3px double #333">$41,950</div>
+        <div class="cell money bold" style="flex:1.2;border-top:1px solid #333;border-bottom:3px double #333">$843,147</div>
+        <div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
+      </div>
+      <div class="grid-row">
+        <div class="row-num">12</div>
+        <div class="cell" style="flex:2"></div><div class="cell"></div><div class="cell" style="flex:1.2"></div><div class="cell" style="flex:1.2"></div>
+        <div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
+      </div>
+      <div class="grid-row">
+        <div class="row-num">13</div>
+        <div class="cell section" style="flex:2;color:#900">TAX LIABILITY</div>
+        <div class="cell" style="font-size:10px;color:#666">Original</div>
+        <div class="cell" style="flex:1.2;font-size:10px;color:#666;justify-content:flex-end">Total Due</div>
+        <div class="cell" style="flex:1.2;font-size:10px;color:#666">Status</div>
+        <div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
+      </div>
+      <div class="grid-row">
+        <div class="row-num">14</div>
+        <div class="cell" style="flex:2;color:#900">Q2 Assessment</div>
+        <div class="cell" style="font-family:Consolas,monospace;font-size:11px;color:#c00">$35,722</div>
+        <div class="cell" style="flex:1.2;font-family:Consolas,monospace;font-size:11px;color:#c00;font-weight:700;justify-content:flex-end">$38,104</div>
+        <div class="cell" style="flex:1.2;font-size:10px">2nd Notice</div>
+        <div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
+      </div>
+      <div class="grid-row">
+        <div class="row-num">15</div>
+        <div class="cell" style="flex:2"></div><div class="cell"></div><div class="cell" style="flex:1.2"></div><div class="cell" style="flex:1.2"></div>
+        <div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
+      </div>
+      <div class="grid-row">
+        <div class="row-num">16</div>
+        <div class="cell" style="flex:2"></div><div class="cell"></div><div class="cell" style="flex:1.2"></div><div class="cell" style="flex:1.2"></div>
+        <div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
+      </div>
+      <div class="grid-row">
+        <div class="row-num">17</div>
+        <div class="cell" style="flex:2"></div><div class="cell"></div><div class="cell" style="flex:1.2"></div><div class="cell" style="flex:1.2"></div>
+        <div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
+      </div>
+      <div class="grid-row">
+        <div class="row-num">18</div>
+        <div class="cell" style="flex:2"></div><div class="cell"></div><div class="cell" style="flex:1.2"></div><div class="cell" style="flex:1.2"></div>
+        <div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
+      </div>
+      <div class="grid-row">
+        <div class="row-num">19</div>
+        <div class="cell" style="flex:2"></div><div class="cell"></div><div class="cell" style="flex:1.2"></div><div class="cell" style="flex:1.2"></div>
+        <div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
+      </div>
+      <div class="grid-row">
+        <div class="row-num">20</div>
+        <div class="cell" style="flex:2"></div><div class="cell"></div><div class="cell" style="flex:1.2"></div><div class="cell" style="flex:1.2"></div>
+        <div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
+      </div>
+      <div class="grid-row">
+        <div class="row-num">21</div>
+        <div class="cell" style="flex:2"></div><div class="cell"></div><div class="cell" style="flex:1.2"></div><div class="cell" style="flex:1.2"></div>
+        <div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
+      </div>
+      <div class="grid-row">
+        <div class="row-num">22</div>
+        <div class="cell" style="flex:2"></div><div class="cell"></div><div class="cell" style="flex:1.2"></div><div class="cell" style="flex:1.2"></div>
+        <div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- VALUATION CHART — visible on spreadsheet behind splash -->
+  <div class="val-chart">
+    <div class="val-chart-title">Company Valuation</div>
+    <div class="val-chart-body">
+      <svg viewBox="0 0 320 180" preserveAspectRatio="none">
+        <!-- Gridlines -->
+        <line x1="45" y1="10" x2="310" y2="10" stroke="#e8e8e8" stroke-width="0.5"/>
+        <line x1="45" y1="52" x2="310" y2="52" stroke="#e8e8e8" stroke-width="0.5"/>
+        <line x1="45" y1="94" x2="310" y2="94" stroke="#e8e8e8" stroke-width="0.5"/>
+        <line x1="45" y1="136" x2="310" y2="136" stroke="#e8e8e8" stroke-width="0.5"/>
+        <line x1="45" y1="165" x2="310" y2="165" stroke="#d0d0d0" stroke-width="0.5"/>
+        <!-- Y-axis labels -->
+        <text x="42" y="14" text-anchor="end" font-size="7" fill="#888" font-family="Calibri, sans-serif">$5M</text>
+        <text x="42" y="56" text-anchor="end" font-size="7" fill="#888" font-family="Calibri, sans-serif">$3.8M</text>
+        <text x="42" y="98" text-anchor="end" font-size="7" fill="#888" font-family="Calibri, sans-serif">$2.5M</text>
+        <text x="42" y="140" text-anchor="end" font-size="7" fill="#888" font-family="Calibri, sans-serif">$1.3M</text>
+        <text x="42" y="169" text-anchor="end" font-size="7" fill="#888" font-family="Calibri, sans-serif">$0</text>
+        <!-- X-axis labels -->
+        <text x="50" y="178" text-anchor="start" font-size="7" fill="#888" font-family="Calibri, sans-serif">Day 1</text>
+        <text x="305" y="178" text-anchor="end" font-size="7" fill="#888" font-family="Calibri, sans-serif">Day 247</text>
+        <!-- Chart line — Excel blue #4472C4, fractal-style with dips -->
+        <polyline points="
+          50,158 55,155 60,152 65,154 70,148 75,150 80,144 85,140 90,142
+          95,136 100,130 105,134 110,128 115,122 120,126 125,118 130,112
+          135,116 140,108 145,104 150,110 155,102 160,96 165,100 170,92
+          175,88 180,94 185,86 190,80 195,76 200,82 205,88 210,92
+          215,86 220,78 225,72 230,68 235,62 240,66 245,58 250,52
+          255,48 260,54 265,46 270,40 275,36 280,42 285,34 290,28
+          295,24 300,20 305,16
+        " fill="none" stroke="#4472C4" stroke-width="2" stroke-linejoin="round"/>
+        <!-- Subtle fill under line -->
+        <polygon points="
+          50,158 55,155 60,152 65,154 70,148 75,150 80,144 85,140 90,142
+          95,136 100,130 105,134 110,128 115,122 120,126 125,118 130,112
+          135,116 140,108 145,104 150,110 155,102 160,96 165,100 170,92
+          175,88 180,94 185,86 190,80 195,76 200,82 205,88 210,92
+          215,86 220,78 225,72 230,68 235,62 240,66 245,58 250,52
+          255,48 260,54 265,46 270,40 275,36 280,42 285,34 290,28
+          295,24 300,20 305,16
+          305,165 50,165
+        " fill="#4472C4" opacity="0.08"/>
+      </svg>
+    </div>
+  </div>
+
+  <!-- SPLASH OVERLAY — centered over the spreadsheet -->
+  <div class="splash-overlay">
+    <div class="splash-inner">
+      <div class="swoosh-container">
+        <svg viewBox="0 0 100 440" preserveAspectRatio="none">
+          <path d="M0,0 C30,60 60,50 45,110 C30,170 65,150 50,220 C35,290 70,260 55,330 C40,400 35,370 30,440 L0,440 Z" fill="#1a6b35" opacity="0.7"/>
+          <path d="M8,0 C38,70 65,55 50,130 C35,200 70,170 55,250 C40,330 75,290 60,370 C45,430 40,410 35,440 L0,440 L0,0 Z" fill="#2d9a50" opacity="0.5"/>
+          <path d="M0,30 C22,90 50,70 36,150 C22,230 55,195 42,275 C28,355 50,320 36,390 C22,430 14,420 8,440 L0,440 Z" fill="#3cb868" opacity="0.4"/>
+          <path d="M15,0 C45,40 30,90 45,150 C60,210 22,240 38,300 C52,360 30,390 22,440 L0,440 L0,0 Z" fill="#0d5a2d" opacity="0.3"/>
+          <path d="M4,70 C18,100 32,115 25,165 C18,210 32,225 22,285 C10,345 25,375 15,430 L0,430 L0,70 Z" fill="#2b6cb0" opacity="0.15"/>
+          <path d="M0,150 C14,185 28,170 22,230 C14,290 28,275 18,340 C8,400 14,420 8,440 L0,440 L0,150 Z" fill="#7b4fa0" opacity="0.1"/>
+        </svg>
+      </div>
+      <div class="splash-brand">v0.1.0</div>
+      <div class="splash-content">
+        <div class="splash-icon">
+          <div class="icon-grid">
+            <div class="ic"></div><div class="ic"></div><div class="ic"></div>
+            <div class="ic"></div><div class="ic"></div><div class="ic"></div>
+            <div class="ic"></div><div class="ic"></div><div class="ic"></div>
+          </div>
+          <div class="splash-product-label">Q4 Financials.xlsx</div>
+        </div>
+        <div class="splash-title">Quarter <span>Close</span></div>
+        <div class="splash-subtitle">LOOK BUSY. GET RICH.</div>
+      </div>
+    </div>
+    <div class="splash-bar"></div>
+    <div class="splash-footer">An idle tycoon game disguised as a spreadsheet</div>
+  </div>
+</div>
+</body>
+</html>
