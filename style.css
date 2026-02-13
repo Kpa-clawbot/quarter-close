@@ -1534,3 +1534,41 @@ body {
   margin-bottom: 4px;
   font-family: 'Calibri', 'Segoe UI', sans-serif;
 }
+
+/* ============================================
+   Phase 2.1: Investor Relations Section
+   ============================================ */
+.ir-header {
+  background: #f0f7ff !important;
+}
+
+.ir-row {
+  background: #fafcff !important;
+}
+
+.ir-row:hover {
+  background: #f0f5ff !important;
+}
+
+.ir-guidance-btn {
+  font-size: 9px !important;
+  padding: 2px 5px !important;
+  background: #f0f0f0;
+  border: 1px solid #c0c0c0;
+  cursor: pointer;
+  border-radius: 2px;
+  color: #333;
+  transition: all 0.1s;
+}
+
+.ir-guidance-btn:hover {
+  background: #e0e8f0;
+  border-color: #0078d4;
+}
+
+.ir-guidance-btn.ir-active {
+  background: #0078d4;
+  color: white;
+  border-color: #005a9e;
+  font-weight: 600;
+}
