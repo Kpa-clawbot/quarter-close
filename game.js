@@ -2541,11 +2541,13 @@ function processEarnings() {
       stockChange = Math.min(stockChange, 0.30);
     }
 
-    // RE calculation
+    // RE calculation — logarithmic scale so it doesn't explode at high revenue
     const marginBonusMult = 1 + Math.min(margin, 0.5); // up to 1.5× for blowout
     const streakMult = gameState.earningsStreak >= 0 ?
       Math.min(2.0, 1 + gameState.earningsStreak * 0.1) : 1;
-    reEarned = Math.floor(qRevenue * 0.001 * guidanceLevel.reMult * marginBonusMult * streakMult);
+    // Base RE = 10 × log10(quarterRevenue) — e.g. $80B → ~109 base RE
+    const baseRE = qRevenue > 0 ? Math.floor(10 * Math.log10(qRevenue)) : 0;
+    reEarned = Math.floor(baseRE * guidanceLevel.reMult * marginBonusMult * streakMult);
 
     gameState.retainedEarnings += reEarned;
     gameState.earningsStreak = Math.max(0, gameState.earningsStreak) + 1;
