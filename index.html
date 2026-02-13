@@ -111,6 +111,11 @@
       <div class="col-header col-h">H</div>
     </div>
 
+    <!-- Time scale change banner -->
+    <div id="timescale-banner" class="hidden">
+      <span id="timescale-text"></span>
+    </div>
+
     <!-- Mini-task bar (sits between headers and grid) -->
     <div id="mini-task-bar" class="hidden">
       <span id="mini-task-text"></span>
@@ -126,7 +131,7 @@
         <div class="row-num">1</div>
         <div class="cell cell-a header-cell">DEPARTMENT</div>
         <div class="cell cell-b header-cell">Staff</div>
-        <div class="cell cell-c header-cell">Rev/s</div>
+        <div class="cell cell-c header-cell">Rev/yr</div>
         <div class="cell cell-d header-cell"></div>
         <div class="cell cell-e header-cell"></div>
         <div class="cell cell-f header-cell"></div>
@@ -142,7 +147,7 @@
         <div class="cell cell-c"></div>
         <div class="cell cell-d cash-value" id="cash-display">$0.00</div>
         <div class="cell cell-e"></div>
-        <div class="cell cell-f rev-label">Total Rev/s:</div>
+        <div class="cell cell-f rev-label">Total Rev/yr:</div>
         <div class="cell cell-g rev-value" id="total-rev">$0.00</div>
         <div class="cell cell-h empty-cell"></div>
       </div>
@@ -180,6 +185,10 @@
     <div id="status-bar">
       <div id="status-left">
         <span id="status-text">Ready</span>
+        <span class="status-sep">|</span>
+        <span id="game-date">Jan 1, 2024</span>
+        <span class="status-sep">|</span>
+        <span id="status-timescale">⏩⏩ 1 day/s</span>
       </div>
       <div id="status-center">
         <span id="status-save" class="status-indicator">💾 Saved</span>

@@ -66,17 +66,52 @@ const ARCS = {
   },
 };
 
-// ===== ECONOMY (rebalanced) =====
+// ===== ECONOMY (real-world annual revenue per employee) =====
+// baseRate = annual revenue in dollars for 1 employee
+// Game ticks at 1/s, time scale converts annual → per-tick
 const SOURCE_STATS = [
-  { baseRate: 0.05,  unlockCost: 0,       clickValue: 1,   autoCostMult: 10 },
-  { baseRate: 0.25,  unlockCost: 50,      clickValue: 2,   autoCostMult: 10 },
-  { baseRate: 1,     unlockCost: 200,     clickValue: 3,   autoCostMult: 10 },
-  { baseRate: 4,     unlockCost: 1000,    clickValue: 5,   autoCostMult: 10 },
-  { baseRate: 12,    unlockCost: 5000,    clickValue: 8,   autoCostMult: 10 },
-  { baseRate: 40,    unlockCost: 20000,   clickValue: 12,  autoCostMult: 10 },
-  { baseRate: 120,   unlockCost: 60000,   clickValue: 15,  autoCostMult: 10 },
-  { baseRate: 400,   unlockCost: 150000,  clickValue: 20,  autoCostMult: 10 },
+  { baseRate: 3000,        unlockCost: 0,       clickValue: 1,   autoCostMult: 10 },  // ~$3K/yr lemonade stand
+  { baseRate: 30000,       unlockCost: 500,     clickValue: 5,   autoCostMult: 10 },  // ~$30K/yr food cart
+  { baseRate: 200000,      unlockCost: 5000,    clickValue: 20,  autoCostMult: 10 },  // ~$200K/yr food truck
+  { baseRate: 500000,      unlockCost: 25000,   clickValue: 50,  autoCostMult: 10 },  // ~$500K/yr restaurant
+  { baseRate: 1000000,     unlockCost: 100000,  clickValue: 100, autoCostMult: 10 },  // ~$1M/yr catering
+  { baseRate: 5000000,     unlockCost: 500000,  clickValue: 250, autoCostMult: 10 },  // ~$5M/yr chain
+  { baseRate: 20000000,    unlockCost: 2000000, clickValue: 500, autoCostMult: 10 },  // ~$20M/yr franchise
+  { baseRate: 100000000,   unlockCost: 10000000,clickValue: 1000,autoCostMult: 10 },  // ~$100M/yr corp
 ];
+
+// ===== TIME SCALE =====
+// Each tick = 1 real second, but represents more in-game time early on
+const TIME_SCALES = [
+  { threshold: 0,    secsPerTick: 86400, label: '⏩⏩ 1 day/s',  unit: 'day' },   // 1 day per tick
+  { threshold: 100,  secsPerTick: 3600,  label: '⏩ 1 hr/s',     unit: 'hour' },   // 1 hour per tick
+  { threshold: 5000, secsPerTick: 60,    label: '▶ 1 min/s',     unit: 'minute' }, // 1 min per tick
+  { threshold: 50000,secsPerTick: 1,     label: '▶ Real-time',   unit: 'second' }, // real-time
+];
+
+let currentTimeScaleIndex = 0;
+
+function getTimeScale() {
+  const realPerSec = totalRealRevPerSec();
+  let idx = 0;
+  for (let i = TIME_SCALES.length - 1; i >= 0; i--) {
+    if (realPerSec >= TIME_SCALES[i].threshold) { idx = i; break; }
+  }
+  return idx;
+}
+
+// Real rev/s (annual / seconds_per_year) — used for time scale thresholds
+function totalRealRevPerSec() {
+  let total = 0;
+  const secsPerYear = 365.25 * 86400;
+  for (const s of gameState.sources) {
+    if (!s.unlocked || s.employees === 0) continue;
+    const stats = SOURCE_STATS[s.id];
+    const upgradeMult = 1 + s.upgradeLevel * 0.5;
+    total += s.employees * stats.baseRate / secsPerYear * upgradeMult;
+  }
+  return total;
+}
 
 // ===== MINI-TASK DEFINITIONS =====
 const MINI_TASKS = [
@@ -167,6 +202,8 @@ let gameState = {
   miniTaskCooldown: 0,
   miniTaskActive: false,
   totalClicks: 0,
+  gameStartDate: Date.UTC(2024, 0, 1),  // Jan 1, 2024
+  gameElapsedSecs: 0,
 };
 
 let gridBuilt = false;
@@ -202,17 +239,20 @@ function automateCost(source) {
   return Math.floor(Math.max(50, stats.unlockCost) * stats.autoCostMult);
 }
 
-function sourceRevPerSec(source) {
+// Revenue per tick for a source (annual rate * time_scale / secs_per_year)
+function sourceRevPerTick(source) {
   if (!source.unlocked || source.employees === 0) return 0;
   const stats = SOURCE_STATS[source.id];
   const upgradeMult = 1 + source.upgradeLevel * 0.5;
-  return source.employees * stats.baseRate * upgradeMult;
+  const secsPerYear = 365.25 * 86400;
+  const scale = TIME_SCALES[currentTimeScaleIndex];
+  return source.employees * stats.baseRate * upgradeMult * scale.secsPerTick / secsPerYear;
 }
 
-function totalRevPerSec() {
+function totalRevPerTick() {
   let total = 0;
   for (const s of gameState.sources) {
-    total += sourceRevPerSec(s);
+    total += sourceRevPerTick(s);
   }
   if (gameState.revPenalty && Date.now() < gameState.revPenalty.until) {
     total *= gameState.revPenalty.mult;
@@ -223,6 +263,22 @@ function totalRevPerSec() {
     total = 0;
   } else {
     gameState.powerOutage = null;
+  }
+  return total;
+}
+
+// Annual revenue for display
+function sourceAnnualRev(source) {
+  if (!source.unlocked || source.employees === 0) return 0;
+  const stats = SOURCE_STATS[source.id];
+  const upgradeMult = 1 + source.upgradeLevel * 0.5;
+  return source.employees * stats.baseRate * upgradeMult;
+}
+
+function totalAnnualRev() {
+  let total = 0;
+  for (const s of gameState.sources) {
+    total += sourceAnnualRev(s);
   }
   return total;
 }
@@ -239,10 +295,20 @@ function formatNum(n) {
   return n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
-function formatRate(n) {
-  if (n >= 1e6) return '$' + (n / 1e6).toFixed(1) + 'M/s';
-  if (n >= 1e4) return '$' + (n / 1e3).toFixed(1) + 'K/s';
-  return '$' + n.toFixed(2) + '/s';
+function formatRate(annualRev) {
+  // Show rate in the most readable unit
+  if (annualRev >= 1e9) return '$' + (annualRev / 1e9).toFixed(1) + 'B/yr';
+  if (annualRev >= 1e6) return '$' + (annualRev / 1e6).toFixed(1) + 'M/yr';
+  if (annualRev >= 1e3) return '$' + (annualRev / 1e3).toFixed(0) + 'K/yr';
+  return '$' + annualRev.toFixed(0) + '/yr';
+}
+
+function formatPerTick(perTick) {
+  if (perTick >= 1e6) return '$' + (perTick / 1e6).toFixed(1) + 'M';
+  if (perTick >= 1e3) return '$' + (perTick / 1e3).toFixed(1) + 'K';
+  if (perTick >= 1) return '$' + perTick.toFixed(2);
+  if (perTick >= 0.01) return '$' + perTick.toFixed(2);
+  return '$' + perTick.toFixed(4);
 }
 
 function formatDuration(seconds) {
@@ -277,6 +343,9 @@ function selectArc(arcKey) {
   gameState.eventCooldown = 30;
   gameState.miniTaskCooldown = 10;
   gameState.miniTaskActive = false;
+  gameState.gameStartDate = Date.UTC(2024, 0, 1);
+  gameState.gameElapsedSecs = 0;
+  currentTimeScaleIndex = 0;
 
   document.getElementById('arc-select').classList.add('hidden');
   document.getElementById('game-view').classList.remove('hidden');
@@ -311,8 +380,8 @@ function trySpawnMiniTask() {
   if (gameState.miniTaskCooldown > 0) { gameState.miniTaskCooldown--; return; }
 
   // Frequency decreases as passive income grows
-  const passiveIncome = totalRevPerSec();
-  const spawnChance = passiveIncome > 50 ? 0.02 : passiveIncome > 10 ? 0.04 : 0.06;
+  const passiveIncome = totalRevPerTick();
+  const spawnChance = passiveIncome > 500 ? 0.02 : passiveIncome > 50 ? 0.04 : 0.06;
   if (Math.random() > spawnChance) return;
 
   const task = MINI_TASKS[Math.floor(Math.random() * MINI_TASKS.length)];
@@ -355,6 +424,28 @@ function skipMiniTask() {
   bar.classList.add('hidden');
   gameState.miniTaskActive = false;
   gameState.miniTaskCooldown = 10;
+}
+
+// ===== TIME SCALE CHANGE NOTIFICATION =====
+function showTimeScaleChange(oldScale, newScale) {
+  const banner = document.getElementById('timescale-banner');
+  const text = document.getElementById('timescale-text');
+
+  let message;
+  if (newScale.secsPerTick < oldScale.secsPerTick) {
+    message = `⏳ Time is slowing down... ${oldScale.label} → ${newScale.label}`;
+  } else {
+    message = `⏩ Time is speeding up! ${oldScale.label} → ${newScale.label}`;
+  }
+
+  text.textContent = message;
+  banner.classList.remove('hidden');
+  banner.classList.add('timescale-flash');
+
+  setTimeout(() => {
+    banner.classList.remove('timescale-flash');
+    banner.classList.add('hidden');
+  }, 4000);
 }
 
 // ===== RENDERING =====
@@ -446,7 +537,7 @@ function updateGridValues() {
       return;
     }
 
-    const rev = sourceRevPerSec(state);
+    const rev = sourceAnnualRev(state);
     const hCost = hireCost(state);
     const uCost = upgradeCost(state);
     const aCost = automateCost(state);
@@ -498,9 +589,18 @@ function updateDisplay() {
   const cashEl = document.getElementById('cash-display');
   cashEl.textContent = formatMoney(gameState.cash);
 
-  const totalRev = totalRevPerSec();
+  const totalRev = totalAnnualRev();
+  const perTick = totalRevPerTick();
   document.getElementById('total-rev').textContent = formatRate(totalRev);
-  document.getElementById('status-rev').textContent = 'Revenue: ' + formatRate(totalRev);
+
+  const scale = TIME_SCALES[currentTimeScaleIndex];
+  document.getElementById('status-rev').textContent = formatPerTick(perTick) + '/tick';
+  document.getElementById('status-timescale').textContent = scale.label;
+
+  // In-game date
+  const gameDate = new Date(gameState.gameStartDate + gameState.gameElapsedSecs * 1000);
+  const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  document.getElementById('game-date').textContent = monthNames[gameDate.getUTCMonth()] + ' ' + gameDate.getUTCDate() + ', ' + gameDate.getUTCFullYear();
 
   // Play time
   const t = gameState.totalPlayTime;
@@ -617,6 +717,17 @@ function flashCash() {
 function gameTick() {
   if (!gameState.arc) return;
   const now = Date.now();
+
+  // Update time scale
+  const newScaleIdx = getTimeScale();
+  if (newScaleIdx !== currentTimeScaleIndex) {
+    const oldScale = TIME_SCALES[currentTimeScaleIndex];
+    const newScale = TIME_SCALES[newScaleIdx];
+    currentTimeScaleIndex = newScaleIdx;
+    showTimeScaleChange(oldScale, newScale);
+  }
+
+  const scale = TIME_SCALES[currentTimeScaleIndex];
   const isPowerOut = gameState.powerOutage && now < gameState.powerOutage.until;
 
   if (!isPowerOut) {
@@ -629,7 +740,7 @@ function gameTick() {
 
     for (const state of gameState.sources) {
       if (!state.unlocked || state.employees === 0) continue;
-      const rev = sourceRevPerSec(state) * penaltyMult;
+      const rev = sourceRevPerTick(state) * penaltyMult;
 
       if (state.automated) {
         gameState.cash += rev;
@@ -639,6 +750,9 @@ function gameTick() {
       }
     }
   }
+
+  // Advance in-game time
+  gameState.gameElapsedSecs += scale.secsPerTick;
 
   gameState.totalPlayTime++;
   gameState.lastTick = now;
@@ -738,6 +852,8 @@ function saveGame() {
     seriesAShown: gameState.seriesAShown,
     totalPlayTime: gameState.totalPlayTime,
     totalClicks: gameState.totalClicks,
+    gameStartDate: gameState.gameStartDate,
+    gameElapsedSecs: gameState.gameElapsedSecs,
     savedAt: Date.now(),
   };
 
@@ -770,6 +886,9 @@ function loadGame() {
     gameState.seriesAShown = data.seriesAShown || false;
     gameState.totalPlayTime = data.totalPlayTime || 0;
     gameState.totalClicks = data.totalClicks || 0;
+    gameState.gameStartDate = data.gameStartDate || Date.UTC(2024, 0, 1);
+    gameState.gameElapsedSecs = data.gameElapsedSecs || 0;
+    currentTimeScaleIndex = 0;
     gameState.eventCooldown = 30;
     gameState.miniTaskCooldown = 10;
 
@@ -795,14 +914,22 @@ function loadGame() {
       });
     }
 
-    // Offline earnings
+    // Offline earnings — use annual rate, apply time based on real elapsed seconds
+    // Each real second = scale.secsPerTick game-seconds, so convert annual to per-real-second
     if (elapsed > 5) {
+      // Recalculate time scale for loaded state
+      currentTimeScaleIndex = getTimeScale();
+      const offlineScale = TIME_SCALES[currentTimeScaleIndex];
+      const secsPerYear = 365.25 * 86400;
       let offlineEarnings = 0;
       for (const state of gameState.sources) {
         if (state.unlocked && state.automated && state.employees > 0) {
-          offlineEarnings += sourceRevPerSec(state) * elapsed;
+          const annual = sourceAnnualRev(state);
+          offlineEarnings += annual * offlineScale.secsPerTick / secsPerYear * elapsed;
         }
       }
+      // Also advance game time
+      gameState.gameElapsedSecs += offlineScale.secsPerTick * elapsed;
       if (offlineEarnings > 0) {
         gameState.cash += offlineEarnings;
         gameState.totalEarned += offlineEarnings;
@@ -832,6 +959,9 @@ function resetGame() {
   gameState.seriesAShown = false;
   gameState.totalPlayTime = 0;
   gameState.totalClicks = 0;
+  gameState.gameStartDate = Date.UTC(2024, 0, 1);
+  gameState.gameElapsedSecs = 0;
+  currentTimeScaleIndex = 0;
   showArcSelect();
 }
 

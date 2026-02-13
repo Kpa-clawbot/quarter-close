@@ -1187,3 +1187,26 @@ body {
   background: #f0f0f0;
   color: #666;
 }
+
+/* ============================================
+   Time Scale Banner
+   ============================================ */
+#timescale-banner {
+  text-align: center;
+  padding: 8px 16px;
+  background: #1a237e;
+  color: white;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+#timescale-banner.timescale-flash {
+  animation: timescale-pulse 0.6s ease-in-out 3;
+}
+
+@keyframes timescale-pulse {
+  0% { background: #1a237e; }
+  50% { background: #4a148c; }
+  100% { background: #1a237e; }
+}
