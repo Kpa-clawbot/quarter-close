@@ -987,26 +987,27 @@ body {
    ============================================ */
 #event-toast {
   position: fixed;
-  bottom: 40px;
-  right: 16px;
-  width: 340px;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 380px;
   background: white;
   border: 1px solid #d0d0d0;
   border-radius: 4px;
   box-shadow: 0 4px 20px rgba(0,0,0,0.2);
   z-index: 1000;
   font-size: 12px;
-  animation: slideIn 0.3s ease-out;
+  animation: fadeIn 0.2s ease-out;
 }
 
-@keyframes slideIn {
+@keyframes fadeIn {
   from {
-    transform: translateX(120%);
     opacity: 0;
+    transform: translate(-50%, -48%);
   }
   to {
-    transform: translateX(0);
     opacity: 1;
+    transform: translate(-50%, -50%);
   }
 }
 
