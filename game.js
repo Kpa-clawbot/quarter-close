@@ -1096,6 +1096,21 @@ function updateTaxPanel() {
     <div class="cell cell-g"></div><div class="cell cell-h"></div>
   </div>`;
 
+  // Garnishment (if active)
+  const garnishActive = gameState.taxDebts && gameState.taxDebts.some(d => d.stage === 'garnish');
+  if (garnishActive) {
+    const garnishLoss = Math.floor(gameState.quarterRevenue * 0.15 / 0.85); // estimate pre-garnish revenue lost
+    html += `<div class="grid-row pnl-row">
+      <div class="row-num">${rowNum++}</div>
+      <div class="cell cell-a" style="padding-left:16px;color:#c00">🔴 IRS Garnishment</div>
+      <div class="cell cell-b"></div>
+      <div class="cell cell-c" style="color:#c00;font-family:Consolas,monospace;font-size:11px;justify-content:flex-end">−15%</div>
+      <div class="cell cell-d"></div>
+      <div class="cell cell-e"></div><div class="cell cell-f" style="font-size:9px;color:#c00">settle debt to remove</div>
+      <div class="cell cell-g"></div><div class="cell cell-h"></div>
+    </div>`;
+  }
+
   // Capital Spending (this quarter)
   html += `<div class="grid-row pnl-row">
     <div class="row-num">${rowNum++}</div>
