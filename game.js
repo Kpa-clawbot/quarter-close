@@ -458,7 +458,7 @@ function buildGrid() {
         </div>
         <div class="cell cell-e" data-field="action2"></div>
         <div class="cell cell-f" data-field="action3"></div>
-        <div class="cell cell-g empty-cell"></div>
+        <div class="cell cell-g" data-field="annual">—</div>
         <div class="cell cell-h empty-cell"></div>
       `;
     } else {
@@ -470,7 +470,7 @@ function buildGrid() {
         <div class="cell cell-d" data-field="action1"></div>
         <div class="cell cell-e" data-field="action2"></div>
         <div class="cell cell-f" data-field="action3"></div>
-        <div class="cell cell-g empty-cell"></div>
+        <div class="cell cell-g" data-field="annual"></div>
         <div class="cell cell-h empty-cell"></div>
       `;
     }
@@ -520,6 +520,7 @@ function updateGridValues() {
     }
 
     const rev = sourceAnnualRev(state);
+    const revPerDay = rev / 365.25;
     const hCost = hireCost(state);
     const uCost = upgradeCost(state);
     const aCost = automateCost(state);
@@ -531,8 +532,11 @@ function updateGridValues() {
     // Employees
     row.querySelector('[data-field="emp"]').textContent = state.employees;
 
-    // Rate
-    row.querySelector('[data-field="rate"]').textContent = formatRate(rev);
+    // Rev/day (column C)
+    row.querySelector('[data-field="rate"]').textContent = formatPerTick(revPerDay);
+
+    // Rev/yr (column G)
+    row.querySelector('[data-field="annual"]').textContent = formatRate(rev);
 
     // Action 1: Hire
     const a1 = row.querySelector('[data-field="action1"]');
