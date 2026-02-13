@@ -20,7 +20,7 @@
   <meta name="description" content="An idle tycoon game disguised as a spreadsheet. Look busy. Get rich.">
   <title>Q4 Financials - Operations.xlsx - Quarter Close</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='4' fill='%23217346'/><rect x='4' y='4' width='7' height='5' rx='1' fill='white'/><rect x='13' y='4' width='7' height='5' rx='1' fill='white'/><rect x='22' y='4' width='7' height='5' rx='1' fill='white'/><rect x='4' y='11' width='7' height='5' rx='1' fill='white' opacity='0.8'/><rect x='13' y='11' width='7' height='5' rx='1' fill='white' opacity='0.8'/><rect x='22' y='11' width='7' height='5' rx='1' fill='white' opacity='0.8'/><rect x='4' y='18' width='7' height='5' rx='1' fill='white' opacity='0.6'/><rect x='13' y='18' width='7' height='5' rx='1' fill='white' opacity='0.6'/><rect x='22' y='18' width='7' height='5' rx='1' fill='white' opacity='0.6'/><rect x='4' y='25' width='7' height='5' rx='1' fill='white' opacity='0.4'/><rect x='13' y='25' width='7' height='5' rx='1' fill='white' opacity='0.4'/><rect x='22' y='25' width='7' height='5' rx='1' fill='white' opacity='0.4'/></svg>">
-  <link rel="stylesheet" href="style.css?v=5">
+  <link rel="stylesheet" href="style.css?v=6">
 </head>
 <body>
   <!-- ===== ARC SELECTION ===== -->
@@ -158,7 +158,7 @@
       <div class="grid-row" id="row-cash">
         <div class="row-num">2</div>
         <div class="cell cell-a cash-label">Total Cash</div>
-        <div class="cell cell-b"></div>
+        <div class="cell cell-b" id="stock-price-cell"></div>
         <div class="cell cell-c"></div>
         <div class="cell cell-d cash-value" id="cash-display">$0.00</div>
         <div class="cell cell-e per-tick-value" id="per-tick-display">$0.00/day</div>
@@ -207,7 +207,7 @@
       <span class="rb-val" id="stat-hr"></span>
       <span class="rb-sep">│</span>
       <span class="rb-val" id="stat-day"></span>
-      <span style="margin-left:auto"><button class="cell-btn btn-max" onclick="triggerIRS()" style="color:#c00">🧪 IRS</button> <button class="cell-btn btn-max" onclick="triggerBonus()" style="color:#217346">🧪 5×</button></span>
+      <span style="margin-left:auto"><button class="cell-btn btn-max" onclick="triggerIRS()" style="color:#c00">🧪 IRS</button> <button class="cell-btn btn-max" onclick="triggerBonus()" style="color:#217346">🧪 5×</button> <button class="cell-btn btn-max" onclick="forceIPO()" style="color:#0078d4">🧪 IPO</button></span>
     </div>
 
     <!-- Sheet Tabs -->
@@ -232,6 +232,8 @@
         <span id="status-save" class="status-indicator">💾 Saved</span>
       </div>
       <div id="status-right">
+        <span id="stock-ticker" class="hidden" style="color:#ffd700;font-weight:600"></span>
+        <span class="status-sep" id="stock-sep">|</span>
         <span id="status-clicks">🖱 0</span>
         <span class="status-sep">|</span>
         <span id="status-time">⏱ 0:00</span>
@@ -331,7 +333,7 @@
   <div id="about-modal" class="hidden">
     <div id="about-content">
       <h3>📊 Quarter Close</h3>
-      <p>v0.1.0 — Phase 1: Startup</p>
+      <p>v0.2.0 — Phase 2.1: IPO & Earnings</p>
       <p>An idle tycoon game disguised as a spreadsheet.</p>
       <p style="margin-top:12px;color:#999;">Build your empire. Look like you're working.</p>
       <button onclick="dismissAbout()">OK</button>
@@ -413,7 +415,7 @@
     </div>
   </div>
 
-  <script src="game.js?v=9"></script>
+  <script src="game.js?v=10"></script>
   <script>
     if (location.hostname === 'kpa-clawbot.github.io') {
       var s = document.createElement('script');

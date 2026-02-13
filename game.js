@@ -272,6 +272,7 @@ const EVENTS = [
             gs2.cash += bonus;
             gs2.totalEarned += bonus;
             gs2.quarterRevenue += bonus;
+            trackEarningsRevenue(bonus);
             return `💰 ${name} scored! +${formatMoney(bonus)} from the big client.`;
           }},
         ]
@@ -316,6 +317,18 @@ let gameState = {
   lastQuarterDay: 0,      // game-day of last quarter close
   capitalExpenses: [],     // {amount, dayCreated, quartersLeft} — depreciate over 4 quarters
   valuationHistory: [],    // array of {day, val} for chart — sampled every ~5 ticks
+  // Phase 2.1: IPO + Earnings
+  isPublic: false,
+  ipoDay: 0,
+  sharesOutstanding: 1000000000, // 1B shares
+  retainedEarnings: 0,
+  analystBaseline: 1.0,
+  earningsStreak: 0,       // positive = consecutive beats, negative = consecutive misses
+  currentGuidance: null,   // 'conservative'|'in-line'|'ambitious'|'aggressive'
+  guidanceTarget: 0,       // revenue target for current quarter
+  lastEarningsDay: 0,      // game-day of last earnings report
+  earningsQuarterRevenue: 0, // revenue tracked for earnings (separate from tax quarter)
+  ipoStockPriceStart: 0,  // stock price at start of current earnings quarter
 };
 
 let gridBuilt = false;
@@ -518,6 +531,19 @@ function selectArc(arcKey) {
   gameState.lastQuarterDay = 0;
   gameState.capitalExpenses = [];
   gameState.valuationHistory = [];
+  // Phase 2.1
+  gameState.isPublic = false;
+  gameState.ipoDay = 0;
+  gameState.sharesOutstanding = 1000000000;
+  gameState.retainedEarnings = 0;
+  gameState.analystBaseline = 1.0;
+  gameState.earningsStreak = 0;
+  gameState.currentGuidance = null;
+  gameState.guidanceTarget = 0;
+  gameState.lastEarningsDay = 0;
+  gameState.earningsQuarterRevenue = 0;
+  gameState.ipoStockPriceStart = 0;
+  gameState._earningsMultiplier = 1.0;
 
   // Clear stale panels
   const taxPanel = document.getElementById('tax-panel');
@@ -612,6 +638,7 @@ function completeMiniTask() {
   gameState.cash += reward;
   gameState.totalEarned += reward;
   gameState.quarterRevenue += reward;
+  trackEarningsRevenue(reward);
   gameState.totalClicks++;
   gameState.miniTaskStreak++;
   bar.classList.add('hidden');
@@ -702,6 +729,7 @@ function clickGoldenCell(cell) {
   gameState.cash += reward;
   gameState.totalEarned += reward;
   gameState.quarterRevenue += reward;
+  trackEarningsRevenue(reward);
   gameState.totalClicks++;
 
   document.getElementById('status-text').textContent = `✨ Golden cell! +${formatMoney(reward)}`;
@@ -897,6 +925,17 @@ function updateDisplay() {
   // Per-tick display (= per day, prominent)
   document.getElementById('per-tick-display').textContent = formatPerTick(perTick) + '/day';
 
+  // Stock price in header (Phase 2.1)
+  const stockCell = document.getElementById('stock-price-cell');
+  if (stockCell) {
+    if (gameState.isPublic) {
+      const sp = getStockPrice();
+      stockCell.innerHTML = `<span style="font-size:10px;color:#888">📈 </span><span style="font-weight:700;color:#0078d4;font-family:Consolas,monospace;font-size:12px">${formatMoney(sp)}</span>`;
+    } else {
+      stockCell.innerHTML = '';
+    }
+  }
+
   // Revenue breakdown stats
   document.getElementById('stat-sec').textContent = formatStatMoney(totalRev / SECS_PER_YEAR) + '/sec';
   document.getElementById('stat-min').textContent = formatStatMoney(totalRev / SECS_PER_YEAR * 60) + '/min';
@@ -924,6 +963,18 @@ function updateDisplay() {
     : `⏱ ${mins}:${String(secs).padStart(2,'0')}`;
   document.getElementById('status-time').textContent = timeStr;
   document.getElementById('status-clicks').textContent = '🖱 ' + gameState.totalClicks;
+
+  // Phase 2.1: Stock ticker in status bar
+  const stockTicker = document.getElementById('stock-ticker');
+  if (stockTicker) {
+    if (gameState.isPublic) {
+      const price = getStockPrice();
+      stockTicker.textContent = `📈 ${formatMoney(price)}`;
+      stockTicker.classList.remove('hidden');
+    } else {
+      stockTicker.classList.add('hidden');
+    }
+  }
 
   const activeCount = gameState.sources.filter(s => s.unlocked).length;
   const lastRow = activeCount + 3;
@@ -1080,6 +1131,7 @@ function automateSource(index) {
   gameState.cash += state.pendingCollect;
   gameState.totalEarned += state.pendingCollect;
   gameState.quarterRevenue += state.pendingCollect;
+  trackEarningsRevenue(state.pendingCollect);
   state.pendingCollect = 0;
   updateGridValues();
   updateDisplay();
@@ -1096,6 +1148,7 @@ function collectSource(index) {
   gameState.cash += clickEarnings;
   gameState.totalEarned += clickEarnings;
   gameState.quarterRevenue += clickEarnings;
+  trackEarningsRevenue(clickEarnings);
   gameState.totalClicks++;
   state.pendingCollect = 0;
 
@@ -1482,6 +1535,128 @@ function updateTaxPanel() {
     <div class="cell cell-g"></div><div class="cell cell-h"></div>
   </div>`;
 
+  // ===== INVESTOR RELATIONS SECTION (Phase 2.1) =====
+  if (gameState.isPublic) {
+    const currentDay = Math.floor(gameState.gameElapsedSecs / SECS_PER_DAY);
+    const earningsDaysSince = currentDay - gameState.lastEarningsDay;
+    const earningsDaysLeft = Math.max(0, EARNINGS_QUARTER_DAYS - earningsDaysSince);
+    const earningsQLabel = getEarningsQuarterLabel();
+    const stockPrice = getStockPrice();
+    const stockPriceStart = gameState.ipoStockPriceStart || stockPrice;
+    const qtdChange = stockPriceStart > 0 ? ((stockPrice - stockPriceStart) / stockPriceStart * 100) : 0;
+    const qtdColor = qtdChange >= 0 ? '#217346' : '#c00';
+    const qtdStr = (qtdChange >= 0 ? '+' : '') + qtdChange.toFixed(1) + '%';
+    const guidanceKey = gameState.currentGuidance || 'in-line';
+    const guidanceLevel = GUIDANCE_LEVELS[guidanceKey];
+    const target = gameState.guidanceTarget;
+    const qRev = gameState.earningsQuarterRevenue;
+    const progressPct = target > 0 ? Math.min(999, (qRev / target * 100)) : 0;
+    const progressColor = progressPct >= 100 ? '#217346' : progressPct >= 80 ? '#c90' : '#c00';
+    const streakVal = gameState.earningsStreak;
+    const streakStr = streakVal > 0 ? `🔥 ${streakVal} beat${streakVal > 1 ? 's' : ''}` :
+                      streakVal < 0 ? `❄️ ${Math.abs(streakVal)} miss${Math.abs(streakVal) > 1 ? 'es' : ''}` : '—';
+
+    // Separator
+    html += `<div class="grid-row sep-row">
+      <div class="row-num">${rowNum++}</div>
+      <div class="cell cell-a sep-cell"></div><div class="cell cell-b sep-cell"></div>
+      <div class="cell cell-c sep-cell"></div><div class="cell cell-d sep-cell"></div>
+      <div class="cell cell-e sep-cell"></div><div class="cell cell-f sep-cell"></div>
+      <div class="cell cell-g sep-cell"></div><div class="cell cell-h sep-cell"></div>
+    </div>`;
+
+    // IR Header
+    html += `<div class="grid-row ir-header">
+      <div class="row-num">${rowNum++}</div>
+      <div class="cell cell-a" style="font-weight:700;color:#0078d4">INVESTOR RELATIONS</div>
+      <div class="cell cell-b"></div>
+      <div class="cell cell-c"></div>
+      <div class="cell cell-d"></div>
+      <div class="cell cell-e"></div>
+      <div class="cell cell-f" style="font-size:10px;color:#888">Earnings in ${earningsDaysLeft}d</div>
+      <div class="cell cell-g"></div>
+      <div class="cell cell-h"></div>
+    </div>`;
+
+    // Quarter + Days remaining
+    html += `<div class="grid-row ir-row">
+      <div class="row-num">${rowNum++}</div>
+      <div class="cell cell-a" style="padding-left:16px;color:#444">Quarter</div>
+      <div class="cell cell-b" style="font-weight:600;color:#0078d4">${earningsQLabel}</div>
+      <div class="cell cell-c"></div>
+      <div class="cell cell-d" style="font-size:10px;color:#888">Days Left</div>
+      <div class="cell cell-e" style="font-weight:600;color:#333">${earningsDaysLeft}</div>
+      <div class="cell cell-f"></div>
+      <div class="cell cell-g"></div>
+      <div class="cell cell-h"></div>
+    </div>`;
+
+    // Revenue vs Target (with progress)
+    html += `<div class="grid-row ir-row">
+      <div class="row-num">${rowNum++}</div>
+      <div class="cell cell-a" style="padding-left:16px;color:#444">Revenue vs Target</div>
+      <div class="cell cell-b"></div>
+      <div class="cell cell-c" style="color:#217346;font-family:Consolas,monospace;font-size:11px;justify-content:flex-end">${formatMoney(qRev)}</div>
+      <div class="cell cell-d" style="font-size:10px;color:#888;justify-content:flex-end">/ ${formatMoney(target)}</div>
+      <div class="cell cell-e" style="font-weight:700;color:${progressColor};font-family:Consolas,monospace;font-size:11px">${progressPct.toFixed(1)}%</div>
+      <div class="cell cell-f"></div>
+      <div class="cell cell-g"></div>
+      <div class="cell cell-h"></div>
+    </div>`;
+
+    // Guidance row with buttons
+    html += `<div class="grid-row ir-row" id="ir-guidance-row">
+      <div class="row-num">${rowNum++}</div>
+      <div class="cell cell-a" style="padding-left:16px;color:#444">Guidance</div>
+      <div class="cell cell-b" style="font-weight:600;color:#333">${guidanceLevel.emoji} ${guidanceLevel.label}</div>
+      <div class="cell cell-c" style="font-size:10px;color:#888;justify-content:flex-end">${guidanceLevel.reMult}× RE</div>
+      <div class="cell cell-d"><button class="cell-btn ir-guidance-btn${guidanceKey === 'conservative' ? ' ir-active' : ''}" data-guidance="conservative" title="70% of projected (0.5× RE)">🛡️ Cons</button></div>
+      <div class="cell cell-e"><button class="cell-btn ir-guidance-btn${guidanceKey === 'in-line' ? ' ir-active' : ''}" data-guidance="in-line" title="90% of projected (1× RE)">📊 In-Line</button></div>
+      <div class="cell cell-f"><button class="cell-btn ir-guidance-btn${guidanceKey === 'ambitious' ? ' ir-active' : ''}" data-guidance="ambitious" title="110% of projected (2× RE)">🎯 Ambit</button></div>
+      <div class="cell cell-g"><button class="cell-btn ir-guidance-btn${guidanceKey === 'aggressive' ? ' ir-active' : ''}" data-guidance="aggressive" title="130% of projected (3× RE)">🔥 Aggr</button></div>
+      <div class="cell cell-h"></div>
+    </div>`;
+
+    // Streak
+    html += `<div class="grid-row ir-row">
+      <div class="row-num">${rowNum++}</div>
+      <div class="cell cell-a" style="padding-left:16px;color:#444">Streak</div>
+      <div class="cell cell-b" style="color:#333">${streakStr}</div>
+      <div class="cell cell-c"></div>
+      <div class="cell cell-d" style="font-size:10px;color:#888">Analyst Exp</div>
+      <div class="cell cell-e" style="font-family:Consolas,monospace;font-size:11px;color:#333">${(gameState.analystBaseline).toFixed(2)}×</div>
+      <div class="cell cell-f"></div>
+      <div class="cell cell-g"></div>
+      <div class="cell cell-h"></div>
+    </div>`;
+
+    // Stock Price + QTD change
+    html += `<div class="grid-row ir-row">
+      <div class="row-num">${rowNum++}</div>
+      <div class="cell cell-a" style="padding-left:16px;color:#444">Stock Price</div>
+      <div class="cell cell-b" style="font-weight:700;color:#0078d4;font-family:Consolas,monospace;font-size:12px">${formatMoney(stockPrice)}</div>
+      <div class="cell cell-c"></div>
+      <div class="cell cell-d" style="font-size:10px;color:#888">QTD</div>
+      <div class="cell cell-e" style="font-weight:600;color:${qtdColor};font-family:Consolas,monospace;font-size:11px">${qtdStr}</div>
+      <div class="cell cell-f"></div>
+      <div class="cell cell-g"></div>
+      <div class="cell cell-h"></div>
+    </div>`;
+
+    // Retained Earnings
+    html += `<div class="grid-row ir-row">
+      <div class="row-num">${rowNum++}</div>
+      <div class="cell cell-a" style="padding-left:16px;color:#444">Retained Earnings</div>
+      <div class="cell cell-b" style="font-weight:700;color:#7b1fa2;font-family:Consolas,monospace;font-size:12px">${gameState.retainedEarnings.toLocaleString()} RE</div>
+      <div class="cell cell-c"></div>
+      <div class="cell cell-d"></div>
+      <div class="cell cell-e"></div>
+      <div class="cell cell-f" style="font-size:9px;color:#999">Phase 2.2: Board Room</div>
+      <div class="cell cell-g"></div>
+      <div class="cell cell-h"></div>
+    </div>`;
+  }
+
   // ===== TAX LIABILITY (if any debts) =====
   if (hasTaxDebts) {
     const stageLabels = {
@@ -1551,7 +1726,7 @@ function updateTaxPanel() {
   }
 
   // Only rebuild DOM if content actually changed (prevents click-swallowing race)
-  // Hash key parts that change: P&L numbers, tax debt count/amounts/stages, days-to-tax
+  // Hash key parts that change: P&L numbers, tax debt count/amounts/stages, days-to-tax, IR data
   const hashParts = [
     gameState.quarterRevenue|0, gameState.totalEarned|0,
     gameState.quarterExpenses|0, gameState.quarterTaxPaid|0, gameState.totalTaxPaid|0,
@@ -1559,6 +1734,13 @@ function updateTaxPanel() {
     gameState.taxDebts ? gameState.taxDebts.map(d => `${d.current|0}:${d.stage}:${d.daysOverdue}`).join(',') : '',
     gameState.capitalExpenses ? gameState.capitalExpenses.length : 0,
     garnishActive ? 1 : 0,
+    // Phase 2.1: IR section changes
+    gameState.isPublic ? 1 : 0,
+    gameState.earningsQuarterRevenue|0,
+    gameState.currentGuidance || '',
+    gameState.retainedEarnings|0,
+    gameState.earningsStreak|0,
+    gameState.isPublic ? (Math.floor(getStockPrice() * 100)|0) : 0,
   ].join('|');
 
   if (hashParts !== _lastTaxPanelHash) {
@@ -1617,6 +1799,7 @@ function gameTick() {
         gameState.cash += rev;
         gameState.totalEarned += rev;
         gameState.quarterRevenue += rev;
+        trackEarningsRevenue(rev);
         if (garnished > 0) {
           gameState.quarterTaxPaid += garnished;
           gameState.totalTaxPaid += garnished;
@@ -1639,6 +1822,18 @@ function gameTick() {
 
   // Tax debt processing (each tick = 1 day)
   processTaxDebts();
+
+  // Phase 2.1: IPO check
+  checkIPOTrigger();
+
+  // Phase 2.1: Earnings quarter check (every 90 game-days post-IPO)
+  if (gameState.isPublic) {
+    const earningsDaysSince = currentDay - gameState.lastEarningsDay;
+    if (earningsDaysSince >= EARNINGS_QUARTER_DAYS) {
+      processEarnings();
+      gameState.lastEarningsDay = currentDay;
+    }
+  }
 
   gameState.totalPlayTime++;
   gameState.lastTick = now;
@@ -1856,6 +2051,19 @@ function saveGame() {
     lastQuarterDay: gameState.lastQuarterDay,
     capitalExpenses: gameState.capitalExpenses || [],
     valuationHistory: gameState.valuationHistory || [],
+    // Phase 2.1
+    isPublic: gameState.isPublic || false,
+    ipoDay: gameState.ipoDay || 0,
+    sharesOutstanding: gameState.sharesOutstanding || 1000000000,
+    retainedEarnings: gameState.retainedEarnings || 0,
+    analystBaseline: gameState.analystBaseline || 1.0,
+    earningsStreak: gameState.earningsStreak || 0,
+    currentGuidance: gameState.currentGuidance || null,
+    guidanceTarget: gameState.guidanceTarget || 0,
+    lastEarningsDay: gameState.lastEarningsDay || 0,
+    earningsQuarterRevenue: gameState.earningsQuarterRevenue || 0,
+    ipoStockPriceStart: gameState.ipoStockPriceStart || 0,
+    _earningsMultiplier: gameState._earningsMultiplier || 1.0,
     savedAt: Date.now(),
   };
 
@@ -1904,6 +2112,19 @@ function loadGame() {
     gameState.lastQuarterDay = data.lastQuarterDay || 0;
     gameState.capitalExpenses = (data.capitalExpenses || []).filter(c => c && c.quartersLeft > 0 && c.perQuarter > 0);
     gameState.valuationHistory = data.valuationHistory || [];
+    // Phase 2.1
+    gameState.isPublic = data.isPublic || false;
+    gameState.ipoDay = data.ipoDay || 0;
+    gameState.sharesOutstanding = data.sharesOutstanding || 1000000000;
+    gameState.retainedEarnings = data.retainedEarnings || 0;
+    gameState.analystBaseline = data.analystBaseline || 1.0;
+    gameState.earningsStreak = data.earningsStreak || 0;
+    gameState.currentGuidance = data.currentGuidance || null;
+    gameState.guidanceTarget = data.guidanceTarget || 0;
+    gameState.lastEarningsDay = data.lastEarningsDay || 0;
+    gameState.earningsQuarterRevenue = data.earningsQuarterRevenue || 0;
+    gameState.ipoStockPriceStart = data.ipoStockPriceStart || 0;
+    gameState._earningsMultiplier = data._earningsMultiplier || 1.0;
 
     // Rebuild sources for selected arc
     gameState.sources = SOURCE_STATS.map((s, i) => ({
@@ -1986,6 +2207,19 @@ function resetGame() {
   gameState.lastQuarterDay = 0;
   gameState.capitalExpenses = [];
   gameState.valuationHistory = [];
+  // Phase 2.1
+  gameState.isPublic = false;
+  gameState.ipoDay = 0;
+  gameState.sharesOutstanding = 1000000000;
+  gameState.retainedEarnings = 0;
+  gameState.analystBaseline = 1.0;
+  gameState.earningsStreak = 0;
+  gameState.currentGuidance = null;
+  gameState.guidanceTarget = 0;
+  gameState.lastEarningsDay = 0;
+  gameState.earningsQuarterRevenue = 0;
+  gameState.ipoStockPriceStart = 0;
+  gameState._earningsMultiplier = 1.0;
   gameState.eventCooldown = 0;
   gameState.miniTaskCooldown = 0;
   gameState.miniTaskActive = false;
@@ -2184,6 +2418,238 @@ document.addEventListener('click', (e) => {
   }
 });
 
+// ===== PHASE 2.1: IPO + EARNINGS =====
+const IPO_VALUATION_THRESHOLD = 5e12; // $5T
+const EARNINGS_QUARTER_DAYS = 90;
+const GUIDANCE_LEVELS = {
+  conservative: { label: 'Conservative', pct: 0.70, reMult: 0.5, emoji: '🛡️' },
+  'in-line':    { label: 'In-Line',      pct: 0.90, reMult: 1.0, emoji: '📊' },
+  ambitious:    { label: 'Ambitious',    pct: 1.10, reMult: 2.0, emoji: '🎯' },
+  aggressive:   { label: 'Aggressive',   pct: 1.30, reMult: 3.0, emoji: '🔥' },
+};
+
+let ipoOffered = false; // track if we've already shown the IPO prompt this session
+
+function getStockPrice() {
+  if (!gameState.isPublic) return 0;
+  return getCompanyValuation() / gameState.sharesOutstanding;
+}
+
+function checkIPOTrigger() {
+  if (gameState.isPublic || ipoOffered) return;
+  const val = getCompanyValuation();
+  if (val >= IPO_VALUATION_THRESHOLD) {
+    ipoOffered = true;
+    showIPOModal();
+  }
+}
+
+function showIPOModal() {
+  showEventToast('Goldman Sachs', '📈 Investment Banks Are Calling',
+    `Your company valuation has reached ${formatCompact(getCompanyValuation())}. Major investment banks want to take you public.\n\nAn IPO would make your company publicly traded with 1B shares outstanding. You\'ll need to report quarterly earnings and manage investor expectations.\n\nAre you ready for Wall Street?`,
+    [
+      { label: '🔔 Ring the Bell — Go Public!', effect: (gs) => {
+        executeIPO();
+        return '🎉 IPO complete! Welcome to the public markets. Your stock is now trading.';
+      }},
+      { label: 'Not yet', effect: () => {
+        ipoOffered = false; // allow re-trigger
+        return 'You declined the IPO. The bankers will call back when you\'re ready.';
+      }},
+    ], { expiresMs: 0 });
+}
+
+function executeIPO() {
+  const currentDay = Math.floor(gameState.gameElapsedSecs / SECS_PER_DAY);
+  gameState.isPublic = true;
+  gameState.ipoDay = currentDay;
+  gameState.sharesOutstanding = 1000000000;
+  gameState.lastEarningsDay = currentDay;
+  gameState.earningsQuarterRevenue = 0;
+  gameState.currentGuidance = 'in-line';
+  gameState.analystBaseline = 1.0;
+  gameState.earningsStreak = 0;
+  gameState.retainedEarnings = 0;
+
+  // Set initial guidance target
+  const projectedRevenue = totalRevPerTick() * EARNINGS_QUARTER_DAYS * gameState.analystBaseline;
+  const level = GUIDANCE_LEVELS[gameState.currentGuidance];
+  gameState.guidanceTarget = Math.floor(projectedRevenue * level.pct);
+  gameState.ipoStockPriceStart = getStockPrice();
+
+  // Rebuild the grid to show IR section
+  _lastTaxPanelHash = '';
+  updateTaxPanel();
+  buildFillerRows();
+}
+
+function forceIPO() {
+  if (gameState.isPublic) return;
+  executeIPO();
+  document.getElementById('status-text').textContent = '🧪 Debug IPO triggered! You\'re public.';
+  setTimeout(() => { document.getElementById('status-text').textContent = 'Ready'; }, 3000);
+}
+
+function setGuidance(level) {
+  if (!gameState.isPublic) return;
+  gameState.currentGuidance = level;
+  const projectedRevenue = totalRevPerTick() * EARNINGS_QUARTER_DAYS * gameState.analystBaseline;
+  const guidanceLevel = GUIDANCE_LEVELS[level];
+  gameState.guidanceTarget = Math.floor(projectedRevenue * guidanceLevel.pct);
+  _lastTaxPanelHash = ''; // force IR section rebuild
+  updateTaxPanel();
+}
+
+function getEarningsQuarterLabel() {
+  if (!gameState.isPublic) return '';
+  const currentDay = Math.floor(gameState.gameElapsedSecs / SECS_PER_DAY);
+  const daysSinceIPO = currentDay - gameState.ipoDay;
+  const quarterNum = Math.floor(daysSinceIPO / EARNINGS_QUARTER_DAYS);
+  return `Q${(quarterNum % 4) + 1}`;
+}
+
+function processEarnings() {
+  if (!gameState.isPublic) return;
+
+  const qRevenue = gameState.earningsQuarterRevenue;
+  const target = gameState.guidanceTarget;
+  const guidanceKey = gameState.currentGuidance || 'in-line';
+  const guidanceLevel = GUIDANCE_LEVELS[guidanceKey];
+  const qLabel = getEarningsQuarterLabel();
+
+  // Calculate beat/miss
+  let margin = 0;
+  if (target > 0) {
+    margin = (qRevenue - target) / target;
+  }
+
+  let result, stockChange, reEarned;
+  const isInLine = Math.abs(margin) <= 0.05;
+
+  if (qRevenue >= target) {
+    // Beat or in-line
+    if (isInLine) {
+      result = 'IN-LINE';
+      stockChange = 0.01 + Math.random() * 0.04; // +1% to +5%
+    } else {
+      result = 'BEAT';
+      // Stock jump: +5% to +30%, scaled by margin and guidance risk
+      const marginBonus = Math.min(margin, 0.5); // cap at 50% over
+      stockChange = 0.05 + marginBonus * 0.4 + (guidanceLevel.reMult - 0.5) * 0.02;
+      stockChange = Math.min(stockChange, 0.30);
+    }
+
+    // RE calculation
+    const marginBonusMult = 1 + Math.min(margin, 0.5); // up to 1.5× for blowout
+    const streakMult = gameState.earningsStreak >= 0 ?
+      Math.min(2.0, 1 + gameState.earningsStreak * 0.1) : 1;
+    reEarned = Math.floor(qRevenue * 0.001 * guidanceLevel.reMult * marginBonusMult * streakMult);
+
+    gameState.retainedEarnings += reEarned;
+    gameState.earningsStreak = Math.max(0, gameState.earningsStreak) + 1;
+
+    // Analyst ratchet
+    if (gameState.earningsStreak >= 3) {
+      gameState.analystBaseline *= 1.15; // analyst upgrade
+    } else {
+      gameState.analystBaseline *= 1.05;
+    }
+  } else {
+    // Miss
+    if (isInLine) {
+      result = 'IN-LINE';
+      stockChange = -(0.01 + Math.random() * 0.04); // -1% to -5%
+      reEarned = 0;
+      gameState.earningsStreak = 0;
+      gameState.analystBaseline *= 0.97;
+    } else {
+      result = 'MISS';
+      const missMargin = Math.abs(margin);
+      stockChange = -(0.05 + missMargin * 0.4 + (guidanceLevel.reMult - 0.5) * 0.02);
+      stockChange = Math.max(stockChange, -0.25);
+      reEarned = 0;
+
+      gameState.earningsStreak = Math.min(0, gameState.earningsStreak) - 1;
+
+      // Analyst ratchet
+      if (gameState.earningsStreak <= -2) {
+        gameState.analystBaseline *= 0.90; // analyst downgrade
+      } else {
+        gameState.analystBaseline *= 0.97;
+      }
+    }
+  }
+
+  // Apply stock price change via valuation manipulation
+  // We affect the market sentiment to create the price jump
+  const currentPrice = getStockPrice();
+  // Shift market sentiment to create the target price change
+  // noise = 1 + marketSentiment * 0.015, so to move price by X%, we need to shift sentiment
+  // But we want a discrete jump, so we'll adjust a persistent earnings multiplier instead
+  if (!gameState._earningsMultiplier) gameState._earningsMultiplier = 1.0;
+  gameState._earningsMultiplier *= (1 + stockChange);
+
+  const newPrice = getStockPrice();
+
+  // Reset for next quarter
+  const oldQuarterRev = gameState.earningsQuarterRevenue;
+  gameState.earningsQuarterRevenue = 0;
+
+  // Show earnings modal with next quarter guidance selection
+  const marginPct = (margin * 100).toFixed(1);
+  const resultEmoji = result === 'BEAT' ? '📈' : result === 'MISS' ? '📉' : '➡️';
+  const streakText = gameState.earningsStreak > 1 ? `🔥 ${gameState.earningsStreak} consecutive beats` :
+                     gameState.earningsStreak < -1 ? `❄️ ${Math.abs(gameState.earningsStreak)} consecutive misses` : '';
+  const analystText = gameState.earningsStreak >= 3 ? 'Analyst Upgrade ⬆️' :
+                      gameState.earningsStreak <= -2 ? 'Analyst Downgrade ⬇️' : '';
+
+  const stockPctStr = (stockChange >= 0 ? '+' : '') + (stockChange * 100).toFixed(1) + '%';
+
+  showEarningsModal({
+    qLabel,
+    revenue: oldQuarterRev,
+    target,
+    guidanceKey,
+    result,
+    resultEmoji,
+    marginPct,
+    stockChange: stockPctStr,
+    reEarned,
+    streakText,
+    analystText,
+  });
+
+  // Record stock price at start of new quarter
+  gameState.ipoStockPriceStart = getStockPrice();
+}
+
+function showEarningsModal(data) {
+  const guidanceLabel = GUIDANCE_LEVELS[data.guidanceKey].label;
+  const body = `Revenue: ${formatMoney(data.revenue)}\nGuidance: ${formatMoney(data.target)} (${guidanceLabel})\nResult: ${data.result} (${data.marginPct > 0 ? '+' : ''}${data.marginPct}%) ${data.resultEmoji}\n\nStock: ${data.stockChange}\nRetained Earnings: +${data.reEarned} RE${data.streakText ? '\n' + data.streakText : ''}${data.analystText ? '\n' + data.analystText : ''}\n\nSet next quarter guidance:`;
+
+  // Build actions — 4 guidance buttons + close
+  const actions = Object.entries(GUIDANCE_LEVELS).map(([key, level]) => ({
+    label: `${level.emoji} ${level.label} (${Math.round(level.pct * 100)}%)`,
+    effect: (gs) => {
+      setGuidance(key);
+      return `${data.qLabel} earnings reported. Next quarter: ${level.label} guidance set.`;
+    },
+  }));
+
+  showEventToast('Investor Relations', `${data.qLabel} EARNINGS REPORT`,
+    body, actions, { expiresMs: 0 });
+}
+
+function trackEarningsRevenue(amount) {
+  if (gameState.isPublic) {
+    gameState.earningsQuarterRevenue += amount;
+  }
+}
+
+// Expose
+window.forceIPO = forceIPO;
+window.setGuidance = setGuidance;
+
 // ===== INITIALIZATION =====
 function init() {
   generateBossGrid();
@@ -2201,6 +2667,13 @@ function init() {
     if (settleAllBtn) {
       e.stopPropagation();
       settleAllTax();
+      return;
+    }
+    // Phase 2.1: Guidance buttons
+    const guidanceBtn = e.target.closest('[data-guidance]');
+    if (guidanceBtn) {
+      e.stopPropagation();
+      setGuidance(guidanceBtn.dataset.guidance);
       return;
     }
   });
@@ -2334,7 +2807,14 @@ function getCompanyValuation() {
   }
 
   const revMultiple = baseMult * growthMod * noise;
-  return Math.max(0, gameState.cash + annualRev * revMultiple - taxLiabilities);
+  let valuation = Math.max(0, gameState.cash + annualRev * revMultiple - taxLiabilities);
+
+  // Phase 2.1: Earnings multiplier (stock reacts to beats/misses)
+  if (gameState.isPublic && gameState._earningsMultiplier) {
+    valuation *= gameState._earningsMultiplier;
+  }
+
+  return valuation;
 }
 
 function sampleValuation() {
