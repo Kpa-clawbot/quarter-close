@@ -100,11 +100,12 @@ const MINI_TASKS = [
 ];
 
 function miniTaskReward(task) {
-  const perTick = totalRevPerTick();
+  // Use annual rev / 365.25 to get base daily rate, unaffected by penalties/outages
+  const dailyRev = totalAnnualRev() / 365.25;
   const low = task.rewardMult[0];
   const high = task.rewardMult[1];
   const mult = low + Math.random() * (high - low);
-  return Math.max(1, perTick * mult);
+  return Math.max(1, dailyRev * mult);
 }
 
 // ===== EVENTS DEFINITIONS =====
