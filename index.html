@@ -39,7 +39,17 @@
 
     <!-- Ribbon / Menu Bar -->
     <div id="menu-bar">
-      <span class="menu-item">File</span>
+      <span class="menu-item" id="file-menu" onclick="toggleFileMenu(event)">File
+        <div class="menu-dropdown" id="file-dropdown">
+          <div class="menu-dropdown-item" onclick="saveGame()">Save <span class="shortcut">Ctrl+S</span></div>
+          <div class="menu-dropdown-sep"></div>
+          <div class="menu-dropdown-item toggle" id="autosave-toggle" onclick="toggleAutosave(event)">Auto-save</div>
+          <div class="menu-dropdown-sep"></div>
+          <div class="menu-dropdown-item" onclick="confirmNewGame()">New Game</div>
+          <div class="menu-dropdown-sep"></div>
+          <div class="menu-dropdown-item" onclick="showAbout()">About</div>
+        </div>
+      </span>
       <span class="menu-item">Home</span>
       <span class="menu-item">Insert</span>
       <span class="menu-item">Page Layout</span>
@@ -265,6 +275,28 @@
         <p class="series-a-sub">New departments, board of directors, and VC funding rounds await...</p>
       </div>
       <button id="series-a-ok" onclick="dismissSeriesA()">Continue Building</button>
+    </div>
+  </div>
+
+  <!-- ===== ABOUT MODAL ===== -->
+  <div id="about-modal" class="hidden">
+    <div id="about-content">
+      <h3>📊 Quarter Close</h3>
+      <p>v0.1.0 — Phase 1: Startup</p>
+      <p>An idle tycoon game disguised as a spreadsheet.</p>
+      <p style="margin-top:12px;color:#999;">Build your empire. Look like you're working.</p>
+      <button onclick="dismissAbout()">OK</button>
+    </div>
+  </div>
+
+  <!-- ===== CONFIRM MODAL ===== -->
+  <div id="confirm-modal" class="hidden">
+    <div id="confirm-content">
+      <p id="confirm-text">Are you sure?</p>
+      <div id="confirm-buttons">
+        <button onclick="dismissConfirm()">Cancel</button>
+        <button class="confirm-danger" id="confirm-ok" onclick="confirmAction()">Yes, start over</button>
+      </div>
     </div>
   </div>
 
