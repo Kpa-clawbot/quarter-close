@@ -542,8 +542,15 @@ function buildFillerRows() {
   const filler = document.getElementById('filler-rows');
   filler.innerHTML = '';
   const taxRowCount = gameState.taxDebts && gameState.taxDebts.length > 0 ? gameState.taxDebts.length + 3 : 0;
-  const totalFillerTarget = 20;
-  const fillerCount = Math.max(2, totalFillerTarget - taxRowCount);
+
+  // Calculate how many rows needed to fill viewport
+  const ROW_HEIGHT = 28;
+  const gridBottom = filler.getBoundingClientRect().top;
+  const viewportHeight = window.innerHeight;
+  const bottomChrome = 55; // revenue bar + sheet tabs + status bar
+  const available = viewportHeight - gridBottom - bottomChrome;
+  const fillerCount = Math.max(3, Math.ceil(available / ROW_HEIGHT));
+
   const startRow = SOURCE_STATS.length + 4 + taxRowCount;
   for (let i = 0; i < fillerCount; i++) {
     const row = document.createElement('div');
@@ -1457,3 +1464,4 @@ window.confirmAction = confirmAction;
 window.dismissConfirm = dismissConfirm;
 
 document.addEventListener('DOMContentLoaded', init);
+window.addEventListener('resize', () => { if (gridBuilt) buildFillerRows(); });
