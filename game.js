@@ -848,8 +848,10 @@ function updateGridValues() {
       a1.innerHTML = `<button class="cell-btn btn-hire" disabled>🚫 Frozen (${sLeft}s)</button>`;
     } else {
       const maxHires = maxAffordable(state);
+      const upgradeMult = 1 + state.upgradeLevel * 0.5;
+      const hireGainPerDay = src.baseRate * upgradeMult / 365.25;
       a1.innerHTML = (maxHires > 1 ? `<button class="cell-btn btn-max" onclick="hireMax(${i})">Max(${maxHires})</button>` : '') +
-        `<button class="cell-btn btn-hire" onclick="hireEmployee(${i})" ${gameState.cash >= hCost ? '' : 'disabled'}>Hire ${formatMoney(hCost)}</button>`;
+        `<button class="cell-btn btn-hire" onclick="hireEmployee(${i})" ${gameState.cash >= hCost ? '' : 'disabled'} title="Hire 1 employee — adds ${formatPerTick(hireGainPerDay)}/day">Hire ${formatMoney(hCost)} (+${formatPerTick(hireGainPerDay)}/d)</button>`;
     }
 
     // Action 2: Upgrade or Automate
