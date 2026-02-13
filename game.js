@@ -182,9 +182,10 @@ const EVENTS = [
     subject: 'Hey can I get a discount??',
     body: 'Bro remember me from college?? Hook me up with a discount! For old times\' sake 🤙',
     actions: [
-      { label: 'Give discount (+5% rev for 30s)', effect: (gs) => {
-        gs.revBonus = { mult: 1.05, until: Date.now() + 30000 };
-        return 'Your friend told everyone! Word of mouth +5% revenue for 30s.';
+      { label: 'Give discount (-1% cash)', effect: (gs) => {
+        const cost = Math.max(5, Math.floor(gs.cash * 0.01));
+        gs.cash -= cost;
+        return `Gave ${formatMoney(cost)} discount. Your friend is happy!`;
       }},
       { label: 'Full price (no effect)', effect: () => 'They understand. Business is business.' },
     ]
