@@ -167,23 +167,17 @@ const EVENTS = [
         return `Paid ${formatMoney(tax)} in taxes. Uncle Sam thanks you.`;
       }},
       { label: 'Ignore', effect: (gs) => {
-        const roll = Math.random();
-        if (roll < 0.30) {
-          return '🎲 They didn\'t follow up. You got away with it... this time.';
-        } else if (roll < 0.75) {
-          // Audit: -30% cash + 30s rev penalty
-          const fine = Math.floor(gs.cash * 0.30);
-          gs.cash -= fine;
-          gs.revPenalty = { mult: 0.75, until: Date.now() + 30000 };
-          return `🔍 AUDIT — IRS found discrepancies. Fined ${formatMoney(fine)} + revenue hit for 30s.`;
-        } else {
-          // Federal investigation: -50% cash + 60s rev penalty + 60s hire freeze
-          const seized = Math.floor(gs.cash * 0.50);
-          gs.cash -= seized;
-          gs.revPenalty = { mult: 0.50, until: Date.now() + 60000 };
-          gs.hireFrozen = Date.now() + 60000;
-          return `🚨 FEDERAL INVESTIGATION — ${formatMoney(seized)} seized. Revenue halved, hiring frozen for 60s.`;
-        }
+        const amount = Math.floor(gs.cash * 0.1);
+        if (!gs.taxDebts) gs.taxDebts = [];
+        gs.taxDebts.push({
+          original: amount,
+          current: amount,
+          dayCreated: Math.floor(gs.gameElapsedSecs / 86400),
+          daysOverdue: 0,
+          stage: 'notice1', // notice1 → notice2 → garnish → seizure
+        });
+        updateTaxPanel();
+        return `You ignored the IRS. ${formatMoney(amount)} added to tax liability. Interest is accruing...`;
       }},
     ]
   },
@@ -224,6 +218,7 @@ let gameState = {
   revBonus: null,
   powerOutage: null,
   hireFrozen: null,
+  taxDebts: [],
   seriesAShown: false,
   lastSave: Date.now(),
   lastTick: Date.now(),
@@ -811,6 +806,149 @@ function flashCash() {
 }
 
 // ===== GAME LOOP (1 second ticks) =====
+// ===== TAX DEBT SYSTEM =====
+function processTaxDebts() {
+  if (!gameState.taxDebts || gameState.taxDebts.length === 0) return;
+
+  let needsUpdate = false;
+  for (const debt of gameState.taxDebts) {
+    // Accrue 1% daily interest
+    debt.current = Math.floor(debt.current * 1.01);
+    debt.daysOverdue++;
+
+    // Escalation stages
+    const oldStage = debt.stage;
+    if (debt.daysOverdue >= 180 && debt.stage !== 'seizure') {
+      debt.stage = 'seizure';
+    } else if (debt.daysOverdue >= 90 && debt.stage === 'notice2') {
+      debt.stage = 'garnish';
+    } else if (debt.daysOverdue >= 30 && debt.stage === 'notice1') {
+      debt.stage = 'notice2';
+    }
+
+    if (debt.stage !== oldStage) needsUpdate = true;
+
+    // Seizure: IRS just takes it
+    if (debt.stage === 'seizure') {
+      const penalty = Math.floor(debt.current * 1.25); // 25% penalty on top
+      gameState.cash -= penalty;
+      if (gameState.cash < 0) gameState.cash = 0;
+      showEventToast('IRS', 'Asset Seizure Notice',
+        `The IRS has seized ${formatMoney(penalty)} from your accounts. Tax debt of ${formatMoney(debt.current)} plus 25% penalty. This was avoidable.`,
+        [{ label: 'OK', effect: () => 'Assets seized. Consider paying next time.' }]);
+      debt.settled = true;
+      needsUpdate = true;
+    }
+
+    // Stage change notifications
+    if (debt.stage === 'notice2' && oldStage === 'notice1') {
+      showEventToast('IRS', '2nd Notice — Unpaid Tax Assessment',
+        `This is your second notice. Original: ${formatMoney(debt.original)}, now owed: ${formatMoney(debt.current)}. Continued non-payment will result in revenue garnishment.`,
+        [{ label: 'Pay now', effect: (gs) => { settleTaxDebt(gameState.taxDebts.indexOf(debt)); return 'Debt settled.'; }},
+         { label: 'Ignore', effect: () => 'The IRS does not forget.' }]);
+    } else if (debt.stage === 'garnish' && oldStage === 'notice2') {
+      showEventToast('IRS', '⚠ Revenue Garnishment Order',
+        `The IRS is now garnishing 15% of your revenue until tax debt of ${formatMoney(debt.current)} is paid. Settle immediately to restore full income.`,
+        [{ label: 'Pay now', effect: (gs) => { settleTaxDebt(gameState.taxDebts.indexOf(debt)); return 'Debt settled. Garnishment lifted.'; }},
+         { label: 'Ignore', effect: () => 'Asset seizure in 90 days.' }]);
+    }
+  }
+
+  // Remove settled debts
+  gameState.taxDebts = gameState.taxDebts.filter(d => !d.settled);
+
+  if (needsUpdate || gameState.taxDebts.length > 0) updateTaxPanel();
+}
+
+function settleTaxDebt(index) {
+  if (!gameState.taxDebts || index < 0 || index >= gameState.taxDebts.length) return;
+  const debt = gameState.taxDebts[index];
+  if (gameState.cash < debt.current) {
+    document.getElementById('status-text').textContent = `❌ Need ${formatMoney(debt.current)} to settle — you have ${formatMoney(gameState.cash)}`;
+    return;
+  }
+  gameState.cash -= debt.current;
+  gameState.taxDebts.splice(index, 1);
+  updateTaxPanel();
+  updateDisplay();
+  flashCash();
+}
+
+function settleAllTax() {
+  if (!gameState.taxDebts || gameState.taxDebts.length === 0) return;
+  const total = gameState.taxDebts.reduce((sum, d) => sum + d.current, 0);
+  if (gameState.cash < total) {
+    document.getElementById('status-text').textContent = `❌ Need ${formatMoney(total)} to settle all — you have ${formatMoney(gameState.cash)}`;
+    return;
+  }
+  gameState.cash -= total;
+  gameState.taxDebts = [];
+  updateTaxPanel();
+  updateDisplay();
+  flashCash();
+}
+
+function totalTaxOwed() {
+  if (!gameState.taxDebts) return 0;
+  return gameState.taxDebts.reduce((sum, d) => sum + d.current, 0);
+}
+
+function updateTaxPanel() {
+  const panel = document.getElementById('tax-panel');
+  if (!gameState.taxDebts || gameState.taxDebts.length === 0) {
+    panel.classList.add('hidden');
+    return;
+  }
+  panel.classList.remove('hidden');
+
+  const tbody = document.getElementById('tax-rows');
+  tbody.innerHTML = '';
+
+  const stageLabels = {
+    notice1: '1st Notice',
+    notice2: '⚠ 2nd Notice',
+    garnish: '🔴 Garnishment',
+    seizure: '🚨 Seizure',
+  };
+
+  for (let i = 0; i < gameState.taxDebts.length; i++) {
+    const d = gameState.taxDebts[i];
+    const interest = d.current - d.original;
+    const daysToNext = d.stage === 'notice1' ? (30 - d.daysOverdue) :
+                       d.stage === 'notice2' ? (90 - d.daysOverdue) :
+                       d.stage === 'garnish' ? (180 - d.daysOverdue) : 0;
+    const nextLabel = d.stage === 'notice1' ? '2nd Notice' :
+                      d.stage === 'notice2' ? 'Garnishment' :
+                      d.stage === 'garnish' ? 'Seizure' : '—';
+
+    tbody.innerHTML += `
+      <div class="tax-row">
+        <span class="tax-cell tax-orig">${formatMoney(d.original)}</span>
+        <span class="tax-cell tax-interest">${formatMoney(interest)}</span>
+        <span class="tax-cell tax-total">${formatMoney(d.current)}</span>
+        <span class="tax-cell tax-days">${d.daysOverdue}d</span>
+        <span class="tax-cell tax-stage">${stageLabels[d.stage]}</span>
+        <span class="tax-cell tax-next">${daysToNext > 0 ? nextLabel + ' in ' + daysToNext + 'd' : '—'}</span>
+        <span class="tax-cell tax-action"><button class="cell-btn btn-max" onclick="settleTaxDebt(${i})">Settle</button></span>
+      </div>`;
+  }
+
+  const total = totalTaxOwed();
+  document.getElementById('tax-total').textContent = formatMoney(total);
+  const settleAllBtn = document.getElementById('tax-settle-all');
+  settleAllBtn.style.display = gameState.taxDebts.length > 1 ? '' : 'none';
+}
+
+// Debug: trigger IRS event
+function triggerIRS() {
+  const irsEvent = EVENTS.find(e => e.sender === 'IRS');
+  showEvent(irsEvent);
+}
+
+function showEventToast(sender, subject, body, actions) {
+  showEvent({ sender, subject, body, actions });
+}
+
 function gameTick() {
   if (!gameState.arc) return;
   const now = Date.now();
@@ -824,6 +962,10 @@ function gameTick() {
     } else {
       gameState.revPenalty = null;
     }
+
+    // Tax garnishment
+    const garnishActive = gameState.taxDebts && gameState.taxDebts.some(d => d.stage === 'garnish');
+    if (garnishActive) penaltyMult *= 0.85;
 
     for (const state of gameState.sources) {
       if (!state.unlocked || state.employees === 0) continue;
@@ -840,6 +982,9 @@ function gameTick() {
 
   // Advance in-game time (1 tick = 1 day)
   gameState.gameElapsedSecs += SECS_PER_DAY;
+
+  // Tax debt processing (each tick = 1 day)
+  processTaxDebts();
 
   gameState.totalPlayTime++;
   gameState.lastTick = now;
@@ -974,6 +1119,7 @@ function saveGame() {
     totalClicks: gameState.totalClicks,
     gameStartDate: gameState.gameStartDate,
     gameElapsedSecs: gameState.gameElapsedSecs,
+    taxDebts: gameState.taxDebts || [],
     savedAt: Date.now(),
   };
 
@@ -1010,6 +1156,7 @@ function loadGame() {
     gameState.gameElapsedSecs = data.gameElapsedSecs || 0;
     gameState.eventCooldown = 30;
     gameState.miniTaskCooldown = 10;
+    gameState.taxDebts = data.taxDebts || [];
 
     // Rebuild sources for selected arc
     gameState.sources = SOURCE_STATS.map((s, i) => ({
@@ -1057,6 +1204,7 @@ function loadGame() {
     document.getElementById('game-view').classList.remove('hidden');
     buildGrid();
     updateDisplay();
+    updateTaxPanel();
 
     return true;
   } catch (e) {
