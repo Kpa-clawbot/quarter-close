@@ -500,6 +500,16 @@ function updateDisplay() {
   document.getElementById('total-rev').textContent = formatRate(totalRev);
   document.getElementById('status-rev').textContent = 'Revenue: ' + formatRate(totalRev);
 
+  // Play time
+  const t = gameState.totalPlayTime;
+  const hrs = Math.floor(t / 3600);
+  const mins = Math.floor((t % 3600) / 60);
+  const secs = t % 60;
+  const timeStr = hrs > 0
+    ? `⏱ ${hrs}:${String(mins).padStart(2,'0')}:${String(secs).padStart(2,'0')}`
+    : `⏱ ${mins}:${String(secs).padStart(2,'0')}`;
+  document.getElementById('status-time').textContent = timeStr;
+
   const activeCount = gameState.sources.filter(s => s.unlocked).length;
   const lastRow = activeCount + 3;
   document.getElementById('formula-input').textContent = `=SUM(C4:C${lastRow})`;
