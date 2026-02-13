@@ -1766,6 +1766,7 @@ function showEventToast(sender, subject, body, actions, opts) {
 
 function gameTick() {
   if (!gameState.arc) return;
+  if (gameState.earningsPaused) return;
   const now = Date.now();
 
   const isPowerOut = gameState.powerOutage && now < gameState.powerOutage.until;
@@ -2114,6 +2115,7 @@ function loadGame() {
     gameState.valuationHistory = data.valuationHistory || [];
     // Phase 2.1
     gameState.isPublic = data.isPublic || false;
+    gameState.earningsPaused = false; // transient, never persist
     gameState.ipoDay = data.ipoDay || 0;
     gameState.sharesOutstanding = data.sharesOutstanding || 1000000000;
     gameState.retainedEarnings = data.retainedEarnings || 0;
@@ -2619,6 +2621,9 @@ function processEarnings() {
     analystText,
   });
 
+  // Pause game while earnings modal is open
+  gameState.earningsPaused = true;
+
   // Record stock price at start of new quarter
   gameState.ipoStockPriceStart = getStockPrice();
 }
@@ -2631,6 +2636,7 @@ function showEarningsModal(data) {
   const actions = Object.entries(GUIDANCE_LEVELS).map(([key, level]) => ({
     label: `${level.emoji} ${level.label} (${Math.round(level.pct * 100)}%)`,
     effect: (gs) => {
+      gs.earningsPaused = false;
       setGuidance(key);
       return `${data.qLabel} earnings reported. Next quarter: ${level.label} guidance set.`;
     },
