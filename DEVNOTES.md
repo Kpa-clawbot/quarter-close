@@ -66,7 +66,7 @@
 - **Lesson:** When innerHTML is rebuilt frequently, NEVER rely on button stability — use event delegation AND minimize unnecessary rebuilds
 
 ### Event Toast System
-- `showEventToast()` renders Outlook-style popup with buttons
+- `showEventToast()` renders desktop notification-style popup with buttons
 - `expiresMs` controls auto-expire (default 10000, 0 to disable)
 - Last button gets countdown overlay (CSS `toast-btn-countdown` animation)
 - `eventToastTimer` global cleared on click/dismiss

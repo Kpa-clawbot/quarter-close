@@ -92,7 +92,7 @@ Each revenue source has:
 - "Tax due in Nd" countdown
 - Garnishment shown as red line when active
 
-## Events (Outlook-style toasts)
+## Events (Desktop notification toasts)
 
 ### Standard Events (~2% chance per tick)
 - Mom wants to invest, customer complaint, power outage, college buddy discount

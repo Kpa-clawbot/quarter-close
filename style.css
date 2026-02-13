@@ -685,6 +685,22 @@ body {
   color: #1565c0;
 }
 
+.cell-btn.settle-flash {
+  background: #fdd !important;
+  color: #c00 !important;
+  border-color: #c00 !important;
+  font-size: 8px !important;
+  animation: settle-shake 0.3s ease;
+}
+
+@keyframes settle-shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-3px); }
+  40% { transform: translateX(3px); }
+  60% { transform: translateX(-2px); }
+  80% { transform: translateX(2px); }
+}
+
 .cell-btn.btn-upgrade {
   background: #fff3e0;
   border-color: #ffb74d;
@@ -950,7 +966,7 @@ body {
 }
 
 /* ============================================
-   Event Toast (Outlook-style)
+   Event Toast (Desktop notification style)
    ============================================ */
 #event-toast {
   position: fixed;
@@ -1045,6 +1061,18 @@ body {
 
 .toast-btn.toast-primary:hover {
   background: #106ebe;
+}
+
+.toast-btn-disabled, .toast-btn-disabled.toast-primary {
+  background: #e0e0e0;
+  color: #999;
+  border-color: #ccc;
+  cursor: not-allowed;
+}
+
+.toast-btn-disabled:hover, .toast-btn-disabled.toast-primary:hover {
+  background: #e0e0e0;
+  color: #999;
 }
 
 /* Timed event countdown */
