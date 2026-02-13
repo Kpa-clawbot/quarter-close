@@ -1897,6 +1897,20 @@ function showEvent(event) {
   if (eventToastTimer) { clearTimeout(eventToastTimer); eventToastTimer = null; }
 
   const toast = document.getElementById('event-toast');
+
+  // Restore saved position if available
+  const savedPos = localStorage.getItem('quarterClose_toastPos');
+  if (savedPos) {
+    const pos = JSON.parse(savedPos);
+    toast.style.left = pos.left + 'px';
+    toast.style.top = pos.top + 'px';
+    toast.style.transform = 'none';
+  } else {
+    toast.style.left = '50%';
+    toast.style.top = '50%';
+    toast.style.transform = 'translate(-50%, -50%)';
+  }
+
   document.getElementById('toast-sender').textContent = event.sender;
   document.getElementById('toast-body').textContent = event.body;
 
@@ -2262,6 +2276,44 @@ function showSeriesA() {
 
 function dismissSeriesA() {
   document.getElementById('series-a-modal').classList.add('hidden');
+}
+
+// ===== TOAST DRAG =====
+let toastDragState = null;
+
+function initToastDrag() {
+  const header = document.getElementById('toast-header');
+  header.style.cursor = 'move';
+
+  header.addEventListener('mousedown', (e) => {
+    if (e.target.id === 'toast-close') return;
+    e.preventDefault();
+    const toast = document.getElementById('event-toast');
+    const rect = toast.getBoundingClientRect();
+    // Switch from centered to absolute positioning on first drag
+    toast.style.transform = 'none';
+    toast.style.left = rect.left + 'px';
+    toast.style.top = rect.top + 'px';
+    toastDragState = { startX: e.clientX, startY: e.clientY, origLeft: rect.left, origTop: rect.top };
+  });
+
+  document.addEventListener('mousemove', (e) => {
+    if (!toastDragState) return;
+    const dx = e.clientX - toastDragState.startX;
+    const dy = e.clientY - toastDragState.startY;
+    const toast = document.getElementById('event-toast');
+    toast.style.left = (toastDragState.origLeft + dx) + 'px';
+    toast.style.top = (toastDragState.origTop + dy) + 'px';
+  });
+
+  document.addEventListener('mouseup', () => {
+    if (toastDragState) {
+      const toast = document.getElementById('event-toast');
+      const rect = toast.getBoundingClientRect();
+      localStorage.setItem('quarterClose_toastPos', JSON.stringify({ left: rect.left, top: rect.top }));
+      toastDragState = null;
+    }
+  });
 }
 
 // ===== BOSS VIEW GENERATION =====
@@ -2669,6 +2721,7 @@ window.setGuidance = setGuidance;
 function init() {
   generateBossGrid();
   initChartDrag();
+  initToastDrag();
 
   // Delegated click handler for tax panel buttons (survives innerHTML rebuilds)
   document.getElementById('tax-panel').addEventListener('click', (e) => {
