@@ -83,10 +83,10 @@ const SOURCE_STATS = [
 // ===== TIME SCALE =====
 // Each tick = 1 real second, but represents more in-game time early on
 const TIME_SCALES = [
-  { threshold: 0,    secsPerTick: 86400, label: '⏩⏩ 1 day/s',  unit: 'day' },   // 1 day per tick
-  { threshold: 100,  secsPerTick: 3600,  label: '⏩ 1 hr/s',     unit: 'hour' },   // 1 hour per tick
-  { threshold: 5000, secsPerTick: 60,    label: '▶ 1 min/s',     unit: 'minute' }, // 1 min per tick
-  { threshold: 50000,secsPerTick: 1,     label: '▶ Real-time',   unit: 'second' }, // real-time
+  { threshold: 0,      secsPerTick: 86400, label: '⏩⏩ 1 day/s',  unit: 'day' },   // start
+  { threshold: 0.1,    secsPerTick: 3600,  label: '⏩ 1 hr/s',     unit: 'hour' },   // ~$3.15M/yr
+  { threshold: 1,      secsPerTick: 60,    label: '▶ 1 min/s',     unit: 'minute' }, // ~$31.5M/yr
+  { threshold: 10,     secsPerTick: 1,     label: '▶ Real-time',   unit: 'second' }, // ~$315M/yr
 ];
 
 let currentTimeScaleIndex = 0;
