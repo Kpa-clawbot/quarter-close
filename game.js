@@ -227,6 +227,34 @@ const EVENTS = [
       { label: 'Camera shy', effect: () => 'Missed opportunity for free press.' },
     ]
   },
+  {
+    sender: 'Sales Team',
+    subject: '🎉 Big client just signed!',
+    body: null, // dynamic — set at trigger time
+    dynamic: true,
+    setup: (gs) => {
+      const unlocked = gs.sources.map((s, i) => ({ s, i })).filter(x => x.s.unlocked && x.s.employees > 0);
+      if (unlocked.length === 0) return null;
+      const pick = unlocked[Math.floor(Math.random() * unlocked.length)];
+      const src = getSourceDef(pick.i);
+      const arc = ARCS[gs.arc];
+      const name = arc.names[pick.i] || src.name;
+      const mult = 5 + Math.floor(Math.random() * 6); // 5-10×
+      const bonus = Math.floor(sourceRevPerTick(pick.s) * mult);
+      if (bonus <= 0) return null;
+      return {
+        body: `The ${name} department just landed a whale client! One-time bonus of ${formatMoney(bonus)} (${mult}× daily revenue).`,
+        actions: [
+          { label: `Cash the check (+${formatMoney(bonus)})`, effect: (gs2) => {
+            gs2.cash += bonus;
+            gs2.totalEarned += bonus;
+            gs2.quarterRevenue += bonus;
+            return `💰 ${name} scored! +${formatMoney(bonus)} from the big client.`;
+          }},
+        ]
+      };
+    },
+  },
 ];
 
 // ===== GAME STATE =====
@@ -1394,6 +1422,13 @@ function triggerRandomEvent() {
 }
 
 function showEvent(event) {
+  // Handle dynamic events that generate content at trigger time
+  if (event.dynamic && event.setup) {
+    const result = event.setup(gameState);
+    if (!result) return; // couldn't generate (e.g., no unlocked sources)
+    event = { ...event, body: result.body, actions: result.actions };
+  }
+
   const toast = document.getElementById('event-toast');
   document.getElementById('toast-sender').textContent = event.sender;
   document.getElementById('toast-body').textContent = event.body;
