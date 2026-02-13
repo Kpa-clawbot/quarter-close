@@ -1062,7 +1062,7 @@ function addCapitalExpense(amount) {
   if (!gameState.capitalExpenses) gameState.capitalExpenses = [];
   gameState.capitalExpenses.push({
     amount: amount,
-    perQuarter: Math.floor(amount / DEPRECIATION_QUARTERS),
+    perQuarter: Math.max(1, Math.floor(amount / DEPRECIATION_QUARTERS)),
     quartersLeft: DEPRECIATION_QUARTERS,
   });
   gameState.quarterExpenses += amount; // track for P&L display
