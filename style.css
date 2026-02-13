@@ -486,6 +486,40 @@ body {
   font-size: 11px;
 }
 
+.per-tick-value {
+  font-weight: 700;
+  color: #0078d4 !important;
+  font-size: 12px !important;
+  font-family: 'Consolas', 'Courier New', monospace;
+  animation: tick-pulse 1s ease-in-out infinite alternate;
+}
+
+@keyframes tick-pulse {
+  from { opacity: 0.8; }
+  to { opacity: 1; }
+}
+
+.stats-header {
+  font-weight: 600;
+  color: #555;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.stats-label {
+  color: #888;
+  font-size: 10px;
+  justify-content: flex-end;
+  padding-right: 4px !important;
+}
+
+.stats-val {
+  color: #333;
+  font-family: 'Consolas', 'Courier New', monospace;
+  font-size: 11px;
+}
+
 .sep-cell {
   background: #f5f5f5;
   height: 4px !important;
