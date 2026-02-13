@@ -2198,10 +2198,21 @@ function getCompanyValuation() {
     }
   }
 
-  // Market sentiment — random walk for natural-looking drift
-  const step = (Math.random() - 0.5) * 0.15;
-  const jump = Math.random() < 0.05 ? (Math.random() - 0.5) * 0.4 : 0;
-  marketSentiment = Math.max(-1, Math.min(1, marketSentiment * 0.97 + step + jump));
+  // Market sentiment — fractal noise with volatility clustering
+  // Volatility itself is a random walk (calm periods → chaotic bursts)
+  if (!gameState._volState) gameState._volState = 0.3;
+  gameState._volState += (Math.random() - 0.5) * 0.1;
+  gameState._volState = Math.max(0.05, Math.min(1.0, gameState._volState));
+  const vol = gameState._volState;
+
+  // Multiple random sources blended at different frequencies
+  const fast = (Math.random() - 0.5) * vol * 0.2;
+  const slow = (Math.random() < 0.1) ? (Math.random() - 0.5) * vol * 0.5 : 0; // 10% chance of drift shift
+  const shock = (Math.random() < 0.02) ? (Math.random() - 0.5) * vol * 1.2 : 0; // 2% chance of big move
+
+  marketSentiment += fast + slow + shock;
+  marketSentiment *= 0.985; // gentle mean reversion
+  marketSentiment = Math.max(-1, Math.min(1, marketSentiment));
   const noise = 1 + marketSentiment * 0.015; // ±1.5% range
 
   // Subtract tax debt from valuation (liabilities)
