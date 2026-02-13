@@ -142,31 +142,42 @@ Revenue accrues per tick → spend on upgrades → grow departments → hit quar
 
 *Created: 2026-02-13*
 
-## Extended Tiers (Late-Game Progression)
+## All Arcs & Tiers (12 tiers each)
 
-All arcs share the same SOURCE_STATS economy. Tiers 8-11 extend the endgame.
+All arcs share the same SOURCE_STATS economy (same rev/unlock per tier). Each has unique department names and flavor.
 
-### Tech Startup Arc
-| Tier | Name | Rev/emp/yr | Unlock Cost | Flavor |
-|------|------|-----------|-------------|--------|
-| 0 | Blog with Ads | $3K | Free | Monetize your hot takes |
-| 1 | Freelance Web Dev | $30K | $500 | Fiverr but classier |
-| 2 | WordPress Agency | $200K | $5K | Starter sites for everyone |
-| 3 | SaaS MVP | $500K | $25K | Monthly recurring revenue! |
-| 4 | Mobile App | $1M | $100K | There's an app for that |
-| 5 | Series A Startup | $5M | $500K | Burn rate is just a number |
-| 6 | Dev Shop | $20M | $2M | 50 engineers and a dream |
-| 7 | Software Company | $100M | $10M | Enterprise contracts |
-| 8 | Tech Giant | $400M | $50M | TBD |
-| 9 | Big Tech | $1.5B | $250M | TBD |
-| 10 | Monopoly | $5B | $1B | TBD |
-| 11 | Trillion Dollar Club | $15B | $5B | TBD |
+### Shared Economy
+| Tier | Rev/emp/yr | Unlock Cost |
+|------|-----------|-------------|
+| 0 | $3K | Free |
+| 1 | $30K | $500 |
+| 2 | $200K | $5K |
+| 3 | $500K | $25K |
+| 4 | $1M | $100K |
+| 5 | $5M | $500K |
+| 6 | $20M | $2M |
+| 7 | $100M | $10M |
+| 8 | $400M | $50M |
+| 9 | $1.5B | $250M |
+| 10 | $5B | $1B |
+| 11 | $15B | $5B |
 
-### Food Empire Arc
-*(needs tier 8-11 names)*
+### 💻 Tech Startup
+*From blog to software empire*
 
-### E-Commerce Hustler Arc
-*(needs tier 8-11 names)*
+Blog with Ads → Freelance Web Dev → WordPress Agency → SaaS MVP → Mobile App → Series A Startup → Dev Shop → Software Company → Tech Giant → Big Tech → Monopoly → Trillion Dollar Club
 
-### Entrepreneur Arc
-*(needs tier 8-11 names)*
+### 🍋 Food Empire
+*From lemonade stand to food & beverage corp*
+
+Lemonade Stand → Food Cart → Food Truck → Small Restaurant → Catering Company → Restaurant Chain → Franchise Operation → Food & Beverage Corp → CPG Conglomerate → Global Supply Chain → Food Monopoly → You Feed The World
+
+### 📦 E-Commerce Hustler
+*From garage sales to retail empire*
+
+Garage Sale → eBay Reselling → Dropshipping Store → Amazon FBA → Warehouse & Distro → Private Label Brand → Retail Chain → Consumer Empire → Marketplace Platform → Logistics Network → Retail Monopoly → Everything Store
+
+### 📈 Entrepreneur
+*From side hustle to conglomerate*
+
+Tutoring Service → Online Course → Consulting Gig → Small Agency → SaaS Product → Venture-Backed Startup → Growth-Stage Company → Tech Company → Holding Company → Private Equity → Conglomerate → Too Big To Fail

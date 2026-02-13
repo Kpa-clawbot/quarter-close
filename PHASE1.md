@@ -4,7 +4,7 @@
 
 ## What You're Building
 
-A lemonade-stand-to-small-business idle game that looks like Excel.
+A startup-to-corporation idle game that looks like Excel. Choose from 4 career arcs, each with 12 tiers of progression.
 
 ## Win Condition (Phase 1)
 
@@ -13,124 +13,159 @@ Reach $1M revenue → unlocks "Series A" teaser (end of phase 1 content, cliffha
 ## Core Mechanics
 
 ### The Grid
-- Looks like a real spreadsheet with columns: A (Department/Item), B (Employees), C (Output/hr), D (Revenue/hr), E (Upgrade Cost), F (Action)
+- Looks like a real spreadsheet with columns: A (Department), B (Staff), C (Rev/day), D (Hire), E (Upgrade), F (Automate), G (Rev/yr), H (Max buttons)
 - Rows = revenue sources you've unlocked
 - Cells update in real time (numbers tick up)
-- Formula bar shows fake formulas ("=SUM(D2:D12)")
+- Formula bar shows cell reference + content when clicked (green outline on selected cell)
+- Clicking cells updates formula bar live each tick
+
+### Career Arcs (choose at start)
+- **Tech Startup** — Blog → Freelance → SaaS → Big Tech
+- **Food Empire** — Lemonade → Food Truck → Restaurant Chain → Global
+- **E-Commerce Hustler** — eBay → Dropshipping → D2C → Marketplace
+- **Entrepreneur** — Tutoring → Consulting → Agency → Corporation
 
 ### Starting State
-- Row 1: "Lemonade Stand" — 1 employee, $1/hr
-- Cash balance shown in a cell (e.g., B1 = "Cash: $50.00")
+- Arc selection screen on first play
+- Row 1: Tier 0 source — 1 employee, ~$8/day
+- Cash balance in row 2 (column E)
 - One sheet tab: "Operations"
+- Game date starts from real-world date, shows company age
 
-### Revenue Sources (unlock in order)
-| # | Name | Base $/hr | Unlock Cost | Flavor |
-|---|------|-----------|-------------|--------|
-| 1 | Lemonade Stand | $1 | Free | You start here |
-| 2 | Lawn Mowing | $5 | $100 | "Recurring revenue" |
-| 3 | Dog Walking | $12 | $500 | "Scalable" |
-| 4 | Etsy Store | $30 | $2,000 | "E-commerce pivot" |
-| 5 | Freelance Dev | $80 | $8,000 | "High margin" |
-| 6 | SaaS Product | $200 | $25,000 | "MRR baby" |
-| 7 | Consulting Firm | $500 | $75,000 | "Enterprise sales" |
-| 8 | Agency | $1,500 | $200,000 | "Scaling the team" |
+### Revenue Sources (12 tiers per arc)
+| Tier | Rev/emp/yr | Unlock Cost | Flavor |
+|------|-----------|-------------|--------|
+| 0 | $3K | Free | Starting out |
+| 1 | $30K | $500 | First real revenue |
+| 2 | $200K | $5K | Scaling up |
+| 3 | $500K | $25K | Getting serious |
+| 4 | $1M | $100K | Real business |
+| 5 | $5M | $500K | Growth stage |
+| 6 | $20M | $2M | Major player |
+| 7 | $100M | $10M | Industry leader |
+| 8 | $400M | $50M | Market dominant |
+| 9 | $1.5B | $250M | Global player |
+| 10 | $5B | $1B | Near monopoly |
+| 11 | $15B | $5B | Trillion dollar club |
 
 ### Upgrades
-Each revenue source has upgrades:
+Each revenue source has:
 - **Hire** (add employee) — multiplies output, increasing cost each hire
-- **Efficiency** — increases $/hr per employee (e.g., better tools, training)
-- **Automate** — expensive one-time buy, row now produces without clicking
+- **Upgrade** — increases $/day per employee (progressive cost)
+- **Automate** — expensive one-time buy, row produces without clicking
+- **Max(N)** — buy max affordable hires/upgrades in one click (shown when 2+ affordable)
 
 ### Clicking
-- Before automation: must click "Collect" button in column F to trigger revenue tick
+- Before automation: must click row to trigger revenue tick
 - After automation: revenue flows passively
-- Gives the classic idle game "click early, automate later" curve
+- Click value scales with progression ($1-$20 early)
 
 ### Time
-- Game runs on a tick (1 second intervals)
+- Fixed: 1 tick = 1 game-day, always
 - Revenue per tick = sum of all active rows
-- Offline: on return, calculate elapsed time × revenue rate, cap at 8 hours ("Your team worked overtime!")
+- Offline: on return, calculate elapsed × revenue rate, cap at 8 hours
 
-## UI Layout
+## Tax System
 
-```
-┌─────────────────────────────────────────────────────────┐
-│ 📁 File  Edit  View  Insert  Format  Help              │
-├─────────────────────────────────────────────────────────┤
-│ fx │ =SUM(D2:D8)                                       │
-├────┬──────────────┬─────┬────────┬─────────┬────────────┤
-│    │ A            │ B   │ C      │ D       │ E          │
-├────┼──────────────┼─────┼────────┼─────────┼────────────┤
-│ 1  │ OPERATIONS   │     │        │ Cash:   │ $1,234.56  │
-├────┼──────────────┼─────┼────────┼─────────┼────────────┤
-│ 2  │ Lemon Stand  │ 3   │ $3/s   │ [Hire]  │ [Upgrade]  │
-├────┼──────────────┼─────┼────────┼─────────┼────────────┤
-│ 3  │ Lawn Mowing  │ 1   │ $5/s   │ [Hire]  │ [Upgrade]  │
-├────┼──────────────┼─────┼────────┼─────────┼────────────┤
-│ 4  │ 🔒 Dog Walk  │     │        │ $500    │ [Unlock]   │
-├────┼──────────────┼─────┼────────┼─────────┼────────────┤
-│ ...│              │     │        │         │            │
-├────┴──────────────┴─────┴────────┴─────────┴────────────┤
-│ ◀ Operations │ + │                                      │
-├─────────────────────────────────────────────────────────┤
-│ Ready                              Revenue: $8/s  ▶ ▶▶ │
-└─────────────────────────────────────────────────────────┘
-```
+### Quarterly Tax (every 90 game-days)
+- 25% corporate tax on (revenue − depreciation)
+- **AMT floor**: minimum 15% of gross revenue (can't deduct to zero)
+- Pay immediately or ignore (creates tax debt)
+- Tax toast shows full breakdown: revenue, depreciation, taxable income
 
-## Events (Simple Set for Phase 1)
+### Tax Debt Escalation
+- Ignored taxes accrue 1% daily compound interest
+- **Notice 1** (0-29 days) → **2nd Notice** (30-89d) → **Garnishment** (90-179d, -15% revenue) → **Seizure** (180d, takes debt + 25% penalty)
+- Settle individually or all at once from P&L panel
+- Tax liabilities subtract from company valuation
 
-Random popups styled as Outlook notification toasts:
-- "Mom wants to invest $50" → Accept (free cash) / Decline
-- "Customer complaint!" → Handle ($20 cost) or Ignore (lose 10% revenue for 60s)
-- "Tax time!" → Pay 10% of cash balance
-- "Friend wants a discount" → Yes (morale+) / No (nothing)
-- "Power outage" → All revenue paused for 15 seconds
+### Depreciation
+- Capital spending (hires, upgrades, automation) depreciates over 4 quarters
+- 25% deducted each quarter from taxable income
+- Prevents gaming tax day by dumping money right before
 
-Frequency: every 60-120 seconds
+## P&L Section
+- Revenue, Capital Spending, Depreciation, Taxes Paid, Taxable Income, Net Income
+- Double-underline on Net Income (accounting convention)
+- Red parentheses for losses
+- AMT row turns orange when AMT applies
+- "Tax due in Nd" countdown
+- Garnishment shown as red line when active
+
+## Events (Outlook-style toasts)
+
+### Standard Events (~2% chance per tick)
+- Mom wants to invest, customer complaint, power outage, college buddy discount
+- All rewards/costs scale with game state (% of cash or × per-tick revenue)
+- **Auto-expire in 10s** — last button gets red countdown fill, auto-fires
+
+### Dynamic Events
+- **Viral/media bonuses**: TikTok (3× 30s), Forbes (2× 60s), Reddit (5× 15s), Local news (2× 45s)
+- **Lucky client**: random unlocked source gets 5-10× burst
+- Revenue bonuses shown in status bar with countdown
+
+### Mini-Tasks (every 20-60s)
+- Approve/decline popups (expense reports, PTO, invoices)
+- Reward: 2-10× current per-tick revenue
+- **Streak system**: 3=1.5×, 5=2×, 10=3× multiplier
+- Skip resets streak, auto-skip after 10s
+
+### Golden Cell
+- Random cell pulses gold for 5s
+- Click for 20× daily revenue bonus
+- 30-60s cooldown between occurrences
+
+## Company Valuation Chart
+- Canvas-rendered line chart (Excel blue #4472C4)
+- Formula: Cash + (Annual Revenue × Multiple × Growth Modifier × Market Noise) − Tax Liabilities
+- Fractal market noise: volatility random walk (0.05-1.0), three frequency layers
+- Draggable + resizable floating overlay
+- Up to 200 data points, sampled every tick
 
 ## Boss Key
-
-- Press `Esc` → instant switch to empty spreadsheet (just a grid, no game elements)
+- Press `Esc` → instant switch to empty spreadsheet
 - Press `Esc` again → back to game
 - Game keeps running underneath
 
 ## Saves
-
 - Auto-save to localStorage every 30 seconds
-- Manual save = Ctrl+S (intercept browser save)
-- Save includes: cash, all row states, upgrades, unlocks, timestamp for offline calc
+- Manual save = Ctrl+S (intercepts browser save)
+- Backward-compatible format with fallback defaults
 
-## Tech
+## Help Screen
+- Help menu bar item → scrollable modal with full game guide
+- Covers: goal, money, mini-tasks, events, taxes/AMT/depreciation, chart, shortcuts
 
-- Single `index.html` file (or index.html + style.css + game.js)
-- No build step, no framework
-- CSS Grid for the spreadsheet layout
-- requestAnimationFrame or setInterval for game loop
-- localStorage for persistence
+## OG Preview / Social Embed
+- Office 2003 splash screen style overlay on spreadsheet background
+- Blue valuation chart peeking out behind splash
+- 1200×630, properly tagged with og:image, twitter:card meta
 
-## What's NOT in Phase 1
-
-- No stock price / IPO
-- No quarterly earnings
-- No departments (just "Operations" tab)
-- No cooking the books
-- No analyst calls
-- No board of directors
-- No prestige/reset mechanic
-- Just the core idle loop + spreadsheet disguise + events
+## Analytics
+- GoatCounter (privacy-friendly, no cookies)
+- Only loads on github.io domain (skips local/LAN dev)
 
 ## Definition of Done
 
-- [ ] Looks convincingly like a spreadsheet at a glance
-- [ ] 8 revenue sources unlockable in sequence
-- [ ] Hire + upgrade mechanics working
-- [ ] Automation mechanic working
-- [ ] Offline progress on return
-- [ ] Random events popping up
-- [ ] Boss key works
-- [ ] Save/load works
-- [ ] Reaching $1M shows "Series A offer" teaser
-- [ ] Playable and fun for 30-60 minutes
+- [x] Looks convincingly like a spreadsheet at a glance
+- [x] 12 revenue sources unlockable in sequence (4 arcs)
+- [x] Hire + upgrade + Max mechanics working
+- [x] Automation mechanic working
+- [x] Offline progress on return
+- [x] Random events with auto-expire
+- [x] Mini-tasks with streak system
+- [x] Golden cell mechanic
+- [x] Quarterly tax + AMT + depreciation
+- [x] P&L section with live updates
+- [x] IRS debt escalation (notice → garnishment → seizure)
+- [x] Company valuation chart (draggable, fractal noise)
+- [x] Boss key works
+- [x] Save/load works (backward compatible)
+- [x] Help screen
+- [x] Formula bar updates with clicked cell
+- [x] OG preview image for social embeds
+- [ ] Reaching $1M shows "Series A" teaser
+- [ ] Revenue breakdown bar polish
 
 ---
 
