@@ -2157,8 +2157,8 @@ function positionChartDefault() {
   const gRect = cell.getBoundingClientRect();
   container.style.left = (gRect.right + 12) + 'px';
   container.style.top = gRect.top + 'px';
-  container.style.width = '300px';
-  container.style.height = '200px';
+  container.style.width = '420px';
+  container.style.height = '260px';
   chartPositioned = true;
 }
 
