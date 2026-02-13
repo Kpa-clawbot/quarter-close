@@ -1101,7 +1101,13 @@ function processQuarterlyTax() {
   const depreciation = getQuarterlyDepreciation();
   const taxableIncome = gameState.quarterRevenue - depreciation;
   const taxRate = 0.25; // 25% corporate tax
-  const taxOwed = Math.max(0, Math.floor(taxableIncome * taxRate));
+  const regularTax = Math.max(0, Math.floor(taxableIncome * taxRate));
+
+  // AMT: minimum 15% of gross revenue (can't deduct your way to zero)
+  const amtRate = 0.15;
+  const amtTax = Math.floor(gameState.quarterRevenue * amtRate);
+  const isAMT = amtTax > regularTax;
+  const taxOwed = Math.max(regularTax, amtTax);
 
   // Snapshot for display
   const qRev = gameState.quarterRevenue;
@@ -1129,8 +1135,9 @@ function processQuarterlyTax() {
   const quarter = Math.floor(currentDay / 90);
   const qLabel = `Q${(quarter % 4) + 1}`;
 
+  const amtNote = isAMT ? `\n⚠️ AMT applies (15% of revenue > regular tax)` : '';
   showEventToast('IRS', `${qLabel} Quarterly Tax Assessment`,
-    `Revenue: ${formatMoney(qRev)}\nDepreciation: (${formatMoney(qDep)})\nTaxable income: ${formatMoney(taxableIncome)}\n\nTax owed (25%): ${formatMoney(taxOwed)}`,
+    `Revenue: ${formatMoney(qRev)}\nDepreciation: (${formatMoney(qDep)})\nTaxable income: ${formatMoney(taxableIncome)}\n\nTax owed (${isAMT ? 'AMT 15%' : '25%'}): ${formatMoney(taxOwed)}${amtNote}`,
     [
       { label: `Pay ${formatMoney(taxOwed)}`, effect: (gs) => {
         if (gs.cash < taxOwed) {
