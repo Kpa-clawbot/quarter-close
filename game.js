@@ -2181,7 +2181,7 @@ function getCompanyValuation() {
   // Base multiple scales with company size
   const baseMult = annualRev > 1e9 ? 15 : annualRev > 1e8 ? 12 : annualRev > 1e7 ? 10 : annualRev > 1e6 ? 8 : 5;
 
-  // Growth rate modifier — compare current rev to recent history
+  // Growth rate modifier — very mild, just enough to notice
   let growthMod = 1.0;
   const hist = gameState.valuationHistory;
   if (hist && hist.length >= 10) {
@@ -2189,23 +2189,20 @@ function getCompanyValuation() {
     const currentVal = gameState.cash + annualRev * baseMult;
     if (oldVal > 0) {
       const growthRate = (currentVal - oldVal) / oldVal;
-      // Mild modifier: 0.85× to 1.5×
-      if (growthRate > 0.5) growthMod = 1.5;
-      else if (growthRate > 0.2) growthMod = 1.3;
-      else if (growthRate > 0.05) growthMod = 1.15;
-      else if (growthRate > 0.01) growthMod = 1.05;
+      if (growthRate > 0.5) growthMod = 1.08;
+      else if (growthRate > 0.2) growthMod = 1.05;
+      else if (growthRate > 0.05) growthMod = 1.02;
       else if (growthRate > -0.05) growthMod = 1.0;
-      else if (growthRate > -0.2) growthMod = 0.9;
-      else growthMod = 0.85;
+      else if (growthRate > -0.2) growthMod = 0.97;
+      else growthMod = 0.95;
     }
   }
 
   // Market sentiment — random walk for natural-looking drift
-  // Small steps most of the time, occasional larger moves
-  const step = (Math.random() - 0.5) * 0.15; // small nudge
-  const jump = Math.random() < 0.05 ? (Math.random() - 0.5) * 0.4 : 0; // rare big move
-  marketSentiment = Math.max(-1, Math.min(1, marketSentiment * 0.97 + step + jump)); // mean-revert slightly
-  const noise = 1 + marketSentiment * 0.04; // ±4% range but smooth
+  const step = (Math.random() - 0.5) * 0.15;
+  const jump = Math.random() < 0.05 ? (Math.random() - 0.5) * 0.4 : 0;
+  marketSentiment = Math.max(-1, Math.min(1, marketSentiment * 0.97 + step + jump));
+  const noise = 1 + marketSentiment * 0.015; // ±1.5% range
 
   // Subtract tax debt from valuation (liabilities)
   let taxLiabilities = 0;
