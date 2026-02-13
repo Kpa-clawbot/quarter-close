@@ -1257,14 +1257,16 @@ function processTaxDebts() {
 
     // Stage change notifications
     if (debt.stage === 'notice2' && oldStage === 'notice1') {
+      const debtRef = debt; // capture reference for closure
       showEventToast('IRS', '2nd Notice — Unpaid Tax Assessment',
         `This is your second notice. Original: ${formatMoney(debt.original)}, now owed: ${formatMoney(debt.current)}. Continued non-payment will result in revenue garnishment.`,
-        [{ label: 'Pay now', effect: (gs) => { settleTaxDebt(gameState.taxDebts.indexOf(debt)); return 'Debt settled.'; }},
+        [{ label: 'Pay now', effect: (gs) => { const idx = gs.taxDebts.indexOf(debtRef); if (idx >= 0) settleTaxDebt(idx); return 'Debt settled.'; }},
          { label: 'Ignore', effect: () => 'The IRS does not forget.' }]);
     } else if (debt.stage === 'garnish' && oldStage === 'notice2') {
+      const debtRef = debt; // capture reference for closure
       showEventToast('IRS', '⚠ Revenue Garnishment Order',
         `The IRS is now garnishing 15% of your revenue until tax debt of ${formatMoney(debt.current)} is paid. Settle immediately to restore full income.`,
-        [{ label: 'Pay now', effect: (gs) => { settleTaxDebt(gameState.taxDebts.indexOf(debt)); return 'Debt settled. Garnishment lifted.'; }},
+        [{ label: 'Pay now', effect: (gs) => { const idx = gs.taxDebts.indexOf(debtRef); if (idx >= 0) settleTaxDebt(idx); return 'Debt settled. Garnishment lifted.'; }},
          { label: 'Ignore', effect: () => 'Asset seizure in 90 days.' }]);
     }
   }
@@ -1286,6 +1288,7 @@ function settleTaxDebt(index) {
   gameState.quarterTaxPaid += debt.current;
   gameState.totalTaxPaid += debt.current;
   gameState.taxDebts.splice(index, 1);
+  _lastTaxPanelHash = ''; // force rebuild
   updateTaxPanel();
   updateDisplay();
   flashCash();
@@ -1302,6 +1305,7 @@ function settleAllTax() {
   gameState.quarterTaxPaid += total;
   gameState.totalTaxPaid += total;
   gameState.taxDebts = [];
+  _lastTaxPanelHash = ''; // force rebuild
   updateTaxPanel();
   updateDisplay();
   flashCash();
@@ -1312,15 +1316,20 @@ function totalTaxOwed() {
   return gameState.taxDebts.reduce((sum, d) => sum + d.current, 0);
 }
 
+let _lastTaxPanelHash = '';
+
 function updateTaxPanel() {
   const panel = document.getElementById('tax-panel');
   const hasTaxDebts = gameState.taxDebts && gameState.taxDebts.length > 0;
   const hasActivity = gameState.totalEarned > 0;
 
   if (!hasActivity && !hasTaxDebts) {
-    panel.classList.add('hidden');
-    panel.innerHTML = '';
-    buildFillerRows();
+    if (_lastTaxPanelHash !== 'empty') {
+      panel.classList.add('hidden');
+      panel.innerHTML = '';
+      buildFillerRows();
+      _lastTaxPanelHash = 'empty';
+    }
     return;
   }
   panel.classList.remove('hidden');
@@ -1521,8 +1530,22 @@ function updateTaxPanel() {
     </div>`;
   }
 
-  panel.innerHTML = html;
-  buildFillerRows();
+  // Only rebuild DOM if content actually changed (prevents click-swallowing race)
+  // Hash key parts that change: P&L numbers, tax debt count/amounts/stages, days-to-tax
+  const hashParts = [
+    gameState.quarterRevenue|0, gameState.totalEarned|0,
+    gameState.quarterExpenses|0, gameState.quarterTaxPaid|0, gameState.totalTaxPaid|0,
+    daysToTax,
+    gameState.taxDebts ? gameState.taxDebts.map(d => `${d.current|0}:${d.stage}:${d.daysOverdue}`).join(',') : '',
+    gameState.capitalExpenses ? gameState.capitalExpenses.length : 0,
+    garnishActive ? 1 : 0,
+  ].join('|');
+
+  if (hashParts !== _lastTaxPanelHash) {
+    _lastTaxPanelHash = hashParts;
+    panel.innerHTML = html;
+    buildFillerRows();
+  }
 }
 
 // Debug: trigger quarterly tax
@@ -1903,6 +1926,7 @@ function resetGame() {
   gameState.miniTaskStreak = 0;
   gameState.goldenCellActive = false;
   gameState.goldenCellCooldown = 60;
+  _lastTaxPanelHash = ''; // force rebuild
   showArcSelect();
 }
 
