@@ -336,6 +336,16 @@ function formatPerTick(perTick) {
   return '$' + perTick.toFixed(4);
 }
 
+function formatStatMoney(n) {
+  if (n >= 1e9) return '$' + (n / 1e9).toFixed(2) + 'B';
+  if (n >= 1e6) return '$' + (n / 1e6).toFixed(2) + 'M';
+  if (n >= 1e3) return '$' + (n / 1e3).toFixed(2) + 'K';
+  if (n >= 1) return '$' + n.toFixed(2);
+  if (n >= 0.01) return '$' + n.toFixed(4);
+  if (n >= 0.0001) return '$' + n.toFixed(6);
+  return '$' + n.toExponential(1);
+}
+
 function formatDuration(seconds) {
   if (seconds >= 3600) {
     const h = Math.floor(seconds / 3600);
@@ -482,7 +492,7 @@ function buildGrid() {
   for (let i = 0; i < SOURCE_STATS.length; i++) {
     const src = getSourceDef(i);
     const state = gameState.sources[i];
-    const rowNum = i + 4;
+    const rowNum = i + 5;
 
     const row = document.createElement('div');
     row.className = 'grid-row';
@@ -524,7 +534,7 @@ function buildGrid() {
   // Filler rows
   const filler = document.getElementById('filler-rows');
   filler.innerHTML = '';
-  const startRow = SOURCE_STATS.length + 4;
+  const startRow = SOURCE_STATS.length + 5;
   for (let i = 0; i < 20; i++) {
     const row = document.createElement('div');
     row.className = 'filler-row';
@@ -618,8 +628,16 @@ function updateDisplay() {
   const perTick = totalRevPerTick();
   document.getElementById('total-rev').textContent = formatRate(totalRev);
 
+  // Per-tick display (prominent)
+  document.getElementById('per-tick-display').textContent = formatPerTick(perTick) + '/tick';
+
+  // Revenue breakdown stats (real rates)
+  const realPerSec = totalRealRevPerSec();
+  document.getElementById('stat-sec').textContent = formatStatMoney(realPerSec);
+  document.getElementById('stat-min').textContent = formatStatMoney(realPerSec * 60);
+  document.getElementById('stat-hr').textContent = formatStatMoney(realPerSec * 3600);
+
   const scale = TIME_SCALES[currentTimeScaleIndex];
-  document.getElementById('status-rev').textContent = formatPerTick(perTick) + '/tick';
   document.getElementById('status-timescale').textContent = scale.label;
 
   // In-game date
