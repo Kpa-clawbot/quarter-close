@@ -904,35 +904,47 @@ function trySpawnGoldenCell() {
   const pick = unlocked[Math.floor(Math.random() * unlocked.length)];
   const rowIndex = pick.i;
 
-  // Pick a random visible cell in that row (columns b through h)
-  // On mobile (narrow screens), columns G and H are hidden — exclude them (#46)
-  let cols = ['cell-b', 'cell-c', 'cell-d', 'cell-e', 'cell-f', 'cell-g', 'cell-h'];
-  if (window.innerWidth <= 600) {
-    cols = ['cell-b', 'cell-c', 'cell-d', 'cell-e', 'cell-f'];
-  }
-  const colClass = cols[Math.floor(Math.random() * cols.length)];
-
   // Find the grid row for this source
   const gridRows = document.querySelectorAll('#grid-container .source-row');
   if (rowIndex >= gridRows.length) return;
 
   const row = gridRows[rowIndex];
-  const cell = row.querySelector('.' + colClass);
-  if (!cell) return;
-
   const reward = Math.floor(totalRevPerTick() * 20);
   if (reward <= 0) return;
 
   gameState.goldenCellActive = true;
-  cell.classList.add('golden-cell');
-  cell.dataset.goldenReward = reward;
+
+  if (isMobile()) {
+    // On mobile, apply golden to the whole card row
+    row.classList.add('golden-cell');
+    row.dataset.goldenReward = reward;
+  } else {
+    // On desktop, pick a random visible cell in that row
+    let cols = ['cell-b', 'cell-c', 'cell-d', 'cell-e', 'cell-f', 'cell-g', 'cell-h'];
+    if (window.innerWidth <= 768) {
+      cols = ['cell-b', 'cell-c', 'cell-d', 'cell-e', 'cell-f'];
+    }
+    const colClass = cols[Math.floor(Math.random() * cols.length)];
+    const cell = row.querySelector('.' + colClass);
+    if (!cell) return;
+    cell.classList.add('golden-cell');
+    cell.dataset.goldenReward = reward;
+  }
 
   // 5 second window
   goldenCellTimer = setTimeout(() => {
-    cell.classList.remove('golden-cell');
-    delete cell.dataset.goldenReward;
+    if (isMobile()) {
+      row.classList.remove('golden-cell');
+      delete row.dataset.goldenReward;
+    } else {
+      const goldenEl = row.querySelector('.golden-cell');
+      if (goldenEl) {
+        goldenEl.classList.remove('golden-cell');
+        delete goldenEl.dataset.goldenReward;
+      }
+    }
     gameState.goldenCellActive = false;
-    gameState.goldenCellCooldown = 30 + Math.floor(Math.random() * 30); // 30-60s before next
+    gameState.goldenCellCooldown = 30 + Math.floor(Math.random() * 30);
   }, 5000);
 }
 
@@ -1596,9 +1608,11 @@ function settleTaxDebt(index) {
   gameState.totalTaxPaid += debt.current;
   gameState.taxDebts.splice(index, 1);
   _lastTaxPanelHash = ''; // force rebuild
+  _lastMobilePnlHash = ''; // force mobile rebuild
   updateTaxPanel();
   updateDisplay();
   flashCash();
+  if (isMobile() && _mobileActiveTab === 'pnl') buildMobilePnL();
 }
 
 function settleAllTax() {
@@ -1620,9 +1634,11 @@ function settleAllTax() {
   gameState.totalTaxPaid += total;
   gameState.taxDebts = [];
   _lastTaxPanelHash = ''; // force rebuild
+  _lastMobilePnlHash = ''; // force mobile rebuild
   updateTaxPanel();
   updateDisplay();
   flashCash();
+  if (isMobile() && _mobileActiveTab === 'pnl') buildMobilePnL();
 }
 
 function totalTaxOwed() {
@@ -2183,17 +2199,24 @@ function showEvent(event) {
 
   const toast = document.getElementById('event-toast');
 
-  // Restore saved position if available
-  const savedPos = localStorage.getItem('quarterClose_toastPos');
-  if (savedPos) {
-    const pos = JSON.parse(savedPos);
-    toast.style.left = pos.left + 'px';
-    toast.style.top = pos.top + 'px';
-    toast.style.transform = 'none';
+  // Restore saved position if available (desktop only)
+  if (!isMobile()) {
+    const savedPos = localStorage.getItem('quarterClose_toastPos');
+    if (savedPos) {
+      const pos = JSON.parse(savedPos);
+      toast.style.left = pos.left + 'px';
+      toast.style.top = pos.top + 'px';
+      toast.style.transform = 'none';
+    } else {
+      toast.style.left = '50%';
+      toast.style.top = '50%';
+      toast.style.transform = 'translate(-50%, -50%)';
+    }
   } else {
-    toast.style.left = '50%';
-    toast.style.top = '50%';
-    toast.style.transform = 'translate(-50%, -50%)';
+    // On mobile, reset to CSS-controlled position
+    toast.style.left = '';
+    toast.style.top = '';
+    toast.style.transform = '';
   }
 
   document.getElementById('toast-sender').textContent = event.sender;
@@ -2590,6 +2613,10 @@ let toastDragState = null;
 
 function initToastDrag() {
   const header = document.getElementById('toast-header');
+
+  // No drag on mobile
+  if (isMobile()) return;
+
   header.style.cursor = 'move';
 
   header.addEventListener('mousedown', (e) => {
@@ -3111,6 +3138,8 @@ function updateBoardRoomTab() {
   } else {
     tabBR.classList.add('hidden');
   }
+  // Also update mobile nav
+  if (typeof updateMobileNav === 'function') updateMobileNav();
 }
 
 let _lastBoardRoomHash = '';
@@ -3244,10 +3273,13 @@ function purchaseBoardRoomUpgrade(id) {
   setTimeout(() => { document.getElementById('status-text').textContent = 'Ready'; }, 3000);
 
   _lastBoardRoomHash = ''; // force rebuild
+  _lastMobileBRHash = ''; // force mobile rebuild
   buildBoardRoom();
   _lastTaxPanelHash = ''; // force IR section rebuild (RE changed)
+  _lastMobilePnlHash = ''; // force mobile P&L rebuild (RE changed)
   updateDisplay();
   saveGame();
+  if (isMobile() && _mobileActiveTab === 'boardroom') buildMobileBoardRoom();
 }
 
 // ===== INITIALIZATION =====
