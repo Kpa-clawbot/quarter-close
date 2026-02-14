@@ -844,69 +844,73 @@ function toggleCtoBudgetAuto(enabled) {
 
 // CTO auto-upgrade logic — buys ONE dept upgrade per tick
 function ctoAutoUpgrade() {
-  const level = gameState.activeCTOLevel;
-  if (!level || getTechDeptLevel() < level) return;
+  try {
+    const level = gameState.activeCTOLevel;
+    if (!level || getTechDeptLevel() < level) return;
 
-  // Budget 0% = CTO paused
-  if (gameState.ctoBudgetPct === 0) return;
+    // Budget 0% = CTO paused
+    if (gameState.ctoBudgetPct === 0) return;
 
-  // Bootstrap budget for first quarter after CTO purchase (budget not yet set)
-  if (gameState.ctoQuarterBudget <= 0 && gameState.ctoBudgetPct > 0) {
-    gameState.ctoQuarterBudget = (totalAnnualRev() / 4) * (gameState.ctoBudgetPct / 100);
-    gameState.ctoSpentThisQuarter = 0;
-  }
-
-  // Budget check — don't exceed quarterly budget
-  const budgetRemaining = gameState.ctoQuarterBudget > 0
-    ? gameState.ctoQuarterBudget - gameState.ctoSpentThisQuarter
-    : Infinity; // no budget set = unlimited (fallback)
-  if (budgetRemaining <= 0) return;
-
-  // Build candidate list: all unlocked depts with affordable upgrades
-  const candidates = [];
-  for (let i = 0; i < gameState.sources.length; i++) {
-    const state = gameState.sources[i];
-    if (!state.unlocked || state.employees === 0) continue;
-    const cost = upgradeCost(state);
-    if (cost > gameState.cash || cost > budgetRemaining) continue;
-    const revGain = sourceRevPerTick(state) * 0.5;
-    const roi = cost > 0 ? revGain / cost : 0;
-    candidates.push({ index: i, cost, revGain, roi });
-  }
-  if (candidates.length === 0) return;
-
-  let pick = null;
-
-  if (level === 1) {
-    // The Intern: cheapest first
-    candidates.sort((a, b) => a.cost - b.cost);
-    pick = candidates[0];
-  } else if (level === 2) {
-    // Competent CTO: best ROI first, skip very low ROI
-    candidates.sort((a, b) => b.roi - a.roi);
-    pick = candidates.find(c => c.roi >= 0.001) || null;
-  } else if (level === 3) {
-    // Elite CTO: ROI + timing awareness
-    candidates.sort((a, b) => b.roi - a.roi);
-    const currentDay = Math.floor(gameState.gameElapsedSecs / SECS_PER_DAY);
-    const earningsDaysSince = currentDay - gameState.lastEarningsDay;
-    const daysLeft = Math.max(0, EARNINGS_QUARTER_DAYS - earningsDaysSince);
-    let threshold = 0.001;
-    if (daysLeft < 5) {
-      threshold = 0.05;
-    } else if (daysLeft < 20) {
-      threshold = 0.01;
+    // Bootstrap budget for first quarter after CTO purchase (budget not yet set)
+    if (gameState.ctoQuarterBudget <= 0 && gameState.ctoBudgetPct > 0) {
+      gameState.ctoQuarterBudget = (totalAnnualRev() / 4) * (gameState.ctoBudgetPct / 100);
+      gameState.ctoSpentThisQuarter = 0;
     }
-    pick = candidates.find(c => c.roi >= threshold) || null;
-  }
 
-  // Buy ONE upgrade per tick
-  if (pick) {
-    gameState.ctoSpentThisQuarter += pick.cost;
-    upgradeSource(pick.index);
-    // Show CTO activity in status bar
-    const deptName = SOURCE_STATS[gameState.sources[pick.index].id]?.name || 'Dept';
-    document.getElementById('status-text').textContent = `🔧 CTO: upgraded ${deptName} (${formatMoney(pick.cost)})`;
+    // Budget check — don't exceed quarterly budget
+    const budgetRemaining = gameState.ctoQuarterBudget > 0
+      ? gameState.ctoQuarterBudget - gameState.ctoSpentThisQuarter
+      : Infinity; // no budget set = unlimited (fallback)
+    if (budgetRemaining <= 0) return;
+
+    // Build candidate list: all unlocked depts with affordable upgrades
+    const candidates = [];
+    for (let i = 0; i < gameState.sources.length; i++) {
+      const state = gameState.sources[i];
+      if (!state.unlocked || state.employees === 0) continue;
+      const stats = SOURCE_STATS[state.id];
+      if (!stats) continue; // safety: skip unknown sources
+      const cost = upgradeCost(state);
+      if (cost > gameState.cash || cost > budgetRemaining) continue;
+      const revGain = sourceRevPerTick(state) * 0.5;
+      const roi = cost > 0 ? revGain / cost : 0;
+      candidates.push({ index: i, cost, revGain, roi, name: stats.name });
+    }
+    if (candidates.length === 0) return;
+
+    let pick = null;
+
+    if (level === 1) {
+      // The Intern: cheapest first
+      candidates.sort((a, b) => a.cost - b.cost);
+      pick = candidates[0];
+    } else if (level === 2) {
+      // Competent CTO: best ROI first, skip very low ROI
+      candidates.sort((a, b) => b.roi - a.roi);
+      pick = candidates.find(c => c.roi >= 0.001) || null;
+    } else if (level === 3) {
+      // Elite CTO: ROI + timing awareness
+      candidates.sort((a, b) => b.roi - a.roi);
+      const currentDay = Math.floor(gameState.gameElapsedSecs / SECS_PER_DAY);
+      const earningsDaysSince = currentDay - gameState.lastEarningsDay;
+      const daysLeft = Math.max(0, EARNINGS_QUARTER_DAYS - earningsDaysSince);
+      let threshold = 0.001;
+      if (daysLeft < 5) {
+        threshold = 0.05;
+      } else if (daysLeft < 20) {
+        threshold = 0.01;
+      }
+      pick = candidates.find(c => c.roi >= threshold) || null;
+    }
+
+    // Buy ONE upgrade per tick
+    if (pick) {
+      gameState.ctoSpentThisQuarter += pick.cost;
+      gameState.ctoUpgradeCount = (gameState.ctoUpgradeCount || 0) + 1;
+      upgradeSource(pick.index);
+    }
+  } catch (e) {
+    console.error('[CTO] Error:', e);
   }
 }
 
@@ -2755,7 +2759,7 @@ function updateTaxPanel() {
         <div class="cell cell-c" style="display:flex;align-items:center">${ctoLevels}</div>
         <div class="cell cell-d"></div>
         <div class="cell cell-e"></div>
-        <div class="cell cell-f" style="font-size:9px;color:#888">${activeCTO > 0 ? 'Auto-upgrading depts' : ''}</div>
+        <div class="cell cell-f" style="font-size:9px;color:#888">${activeCTO > 0 ? `Upgrades: ${gameState.ctoUpgradeCount || 0}` : ''}</div>
         <div class="cell cell-g"></div>
         <div class="cell cell-h"></div>
       </div>`;
@@ -2887,6 +2891,7 @@ function updateTaxPanel() {
     Math.floor(gameState.ctoSpentThisQuarter || 0),
     Math.floor(gameState.ctoQuarterBudget || 0),
     gameState.ctoBudgetAuto ? 1 : 0,
+    gameState.ctoUpgradeCount || 0,
     getFinanceDeptLevel(),
     getTechDeptLevel(),
   ].join('|');
