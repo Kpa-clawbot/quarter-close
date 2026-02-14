@@ -478,16 +478,21 @@ function pickCFOGuidance(level) {
     return 'ambitious';
   }
 
-  // Lv2 and Lv3: project revenue vs each guidance target
-  const projectedRev = totalRevPerTick() * EARNINGS_QUARTER_DAYS;
-  const safetyMargin = level >= 3 ? 1.05 : 1.20;
+  // Lv2 and Lv3: pick the most aggressive guidance where target is beatable
+  // Target = projectedRev × pct × analystBaseline
+  // We beat it if projectedRev > target, i.e. 1 > pct × analystBaseline
+  // safetyMargin adds a buffer (lower = more aggressive)
+  const safetyMargin = level >= 3 ? 1.02 : 1.08;
+
+  // Also factor in recent momentum — if we beat last quarter, we can be bolder
+  const momentumBonus = gameState.earningsStreak > 0 ? 0.05 * Math.min(gameState.earningsStreak, 5) : 0;
 
   // Find the most aggressive guidance we can safely beat
   let bestPick = 'conservative'; // fallback
   for (const key of keys) {
     const gl = GUIDANCE_LEVELS[key];
-    const target = projectedRev * gl.pct * gameState.analystBaseline;
-    if (projectedRev > target * safetyMargin) {
+    const threshold = gl.pct * gameState.analystBaseline * safetyMargin;
+    if (1 + momentumBonus > threshold) {
       bestPick = key;
     }
   }
