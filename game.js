@@ -168,14 +168,14 @@ const EVENTS = [
     subject: 'RE: TERRIBLE SERVICE!!!',
     body: 'I want a FULL REFUND or I\'m leaving a 1-star review everywhere!',
     actions: [
+      { label: 'Ignore (rev -10% for 60s)', effect: (gs) => {
+        gs.revPenalty = { mult: 0.9, until: Date.now() + 60000 };
+        return 'Bad reviews incoming! Revenue -10% for 60s.';
+      }},
       { label: 'Refund (-2% cash)', effect: (gs) => {
         const refund = Math.max(5, Math.floor(gs.cash * 0.02));
         gs.cash -= refund;
         return `Refunded ${formatMoney(refund)}. Complaint resolved.`;
-      }},
-      { label: 'Ignore (rev -10% for 60s)', effect: (gs) => {
-        gs.revPenalty = { mult: 0.9, until: Date.now() + 60000 };
-        return 'Bad reviews incoming! Revenue -10% for 60s.';
       }},
     ]
   },
