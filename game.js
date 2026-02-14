@@ -2825,6 +2825,28 @@ function updateToastButtons() {
   }
 }
 
+// ===== DEBUG: TRIGGER EVENTS =====
+// Console: debugEvent() — lists all events with index
+// Console: debugEvent(5) — triggers event #5
+// Console: debugEvent('ransomware') — triggers first event matching keyword
+function debugEvent(query) {
+  if (query === undefined) {
+    console.table(EVENTS.map((e, i) => ({ '#': i, sender: e.sender, subject: e.subject })));
+    console.log('Usage: debugEvent(index) or debugEvent("keyword")');
+    return;
+  }
+  let event;
+  if (typeof query === 'number') {
+    event = EVENTS[query];
+  } else {
+    const q = query.toLowerCase();
+    event = EVENTS.find(e => e.sender.toLowerCase().includes(q) || e.subject.toLowerCase().includes(q));
+  }
+  if (!event) { console.error('Event not found'); return; }
+  console.log(`Triggering: ${event.sender} — ${event.subject}`);
+  showEvent(event);
+}
+
 // ===== BOSS KEY =====
 function toggleBossMode() {
   gameState.bossMode = !gameState.bossMode;
