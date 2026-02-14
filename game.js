@@ -50,7 +50,7 @@ const ARCS = {
       { name: 'Garage Sale',          flavor: 'One man\'s trash...' },
       { name: 'eBay Reselling',       flavor: 'Buy low, sell high' },
       { name: 'Dropshipping Store',   flavor: 'Never touch inventory' },
-      { name: 'Amazon FBA',           flavor: 'Let Bezos handle logistics' },
+      { name: 'Drop Shipping',          flavor: 'Let the warehouse handle logistics' },
       { name: 'Warehouse & Distro',   flavor: 'Cutting out the middleman' },
       { name: 'Private Label Brand',  flavor: 'Your name on the box' },
       { name: 'Retail Chain',         flavor: 'Brick and mortar comeback' },
@@ -227,7 +227,7 @@ const EVENTS = [
     weight: 1,
     sender: 'IT Security',
     subject: '🔒 RANSOMWARE DETECTED - All Systems',
-    body: 'CryptoLocker variant detected on the network. All file shares encrypted. Pay the ransom or wait for IT to rebuild from backups.',
+    body: 'Ransomware detected on the network. All file shares encrypted. Pay the ransom or wait for IT to rebuild from backups.',
     actions: [
       { label: '💰 Pay ransom (15% cash)', effect: (gs) => {
         const cost = Math.max(100, Math.floor(gs.cash * 0.15));
@@ -284,7 +284,7 @@ const EVENTS = [
     weight: 3,
     sender: 'IT Department',
     subject: '📧 Email server is DOWN',
-    body: 'Exchange is unreachable. No one can send or receive email until it\'s fixed. Approval workflows are frozen.',
+    body: 'Mail server is unreachable. No one can send or receive email until it\'s fixed. Approval workflows are frozen.',
     actions: [
       { label: 'Wait it out', effect: (gs) => {
         const duration = 45000 + Math.floor(Math.random() * 15000); // 45-60s
