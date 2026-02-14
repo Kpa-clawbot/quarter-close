@@ -73,7 +73,7 @@ All mechanics have feature toggles (Data menu → Game Options).
 ---
 
 ## 3. Management Focus
-**Status:** [ ] Not started
+**Status:** [x] Shipped (commit `a03c8d3`)
 
 **Concept:** Click on departments to give them an "attention" buff that boosts output. Focus decays over time, rewarding active management.
 
