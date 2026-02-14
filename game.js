@@ -3265,7 +3265,45 @@ function buildBoardRoom() {
     <div class="cell cell-g sep-cell"></div><div class="cell cell-h sep-cell"></div>
   </div>`;
 
+  // Group upgrades by category, sort each group by cost ascending
+  const categoryOrder = ['Finance', 'Revenue', 'Tax', 'Investor', 'Protection'];
+  const categoryLabels = {
+    Finance: '📊 Finance',
+    Revenue: '💰 Revenue',
+    Tax: '🏛️ Tax',
+    Investor: '📈 Investor Relations',
+    Protection: '🛡️ Protection',
+  };
+  const grouped = {};
   for (const upgrade of BOARD_ROOM_UPGRADES) {
+    if (!grouped[upgrade.category]) grouped[upgrade.category] = [];
+    grouped[upgrade.category].push(upgrade);
+  }
+  // Sort each group by effective cost
+  for (const cat of Object.keys(grouped)) {
+    grouped[cat].sort((a, b) => getUpgradeCost(a) - getUpgradeCost(b));
+  }
+
+  let totalUpgradeRows = 0;
+  for (const cat of categoryOrder) {
+    const upgrades = grouped[cat];
+    if (!upgrades || upgrades.length === 0) continue;
+
+    // Category header row
+    html += `<div class="grid-row br-category-row">
+      <div class="row-num">${rowNum++}</div>
+      <div class="cell cell-a" style="font-weight:700;color:#555;font-size:11px;border-bottom:1px solid #ccc">${categoryLabels[cat] || cat}</div>
+      <div class="cell cell-b" style="border-bottom:1px solid #ccc"></div>
+      <div class="cell cell-c" style="border-bottom:1px solid #ccc"></div>
+      <div class="cell cell-d" style="border-bottom:1px solid #ccc"></div>
+      <div class="cell cell-e" style="border-bottom:1px solid #ccc"></div>
+      <div class="cell cell-f" style="border-bottom:1px solid #ccc"></div>
+      <div class="cell cell-g" style="border-bottom:1px solid #ccc"></div>
+      <div class="cell cell-h" style="border-bottom:1px solid #ccc"></div>
+    </div>`;
+    totalUpgradeRows++;
+
+    for (const upgrade of upgrades) {
     const owned = getBoardRoomUpgradeCount(upgrade.id);
     const isOwned = owned > 0 && upgrade.maxCount !== Infinity;
     const requiresMet = !upgrade.requires || hasBoardRoomUpgrade(upgrade.requires);
@@ -3315,7 +3353,9 @@ function buildBoardRoom() {
       <div class="cell cell-g"></div>
       <div class="cell cell-h"></div>
     </div>`;
-  }
+    totalUpgradeRows++;
+    } // end upgrade loop
+  } // end category loop
 
   // Filler rows for the board room view
   const ROW_HEIGHT = 28;
@@ -3327,7 +3367,7 @@ function buildBoardRoom() {
   const bottomChrome = (revBar ? revBar.offsetHeight : 0) +
                         (sheetTabs ? sheetTabs.offsetHeight : 0) +
                         (statusBar ? statusBar.offsetHeight : 0);
-  const usedRows = BOARD_ROOM_UPGRADES.length + 3; // header + sep + upgrades
+  const usedRows = totalUpgradeRows + 3; // header + sep + upgrades + category headers
   const available = viewportHeight - gridBottom - bottomChrome - (usedRows * ROW_HEIGHT);
   const fillerCount = Math.max(3, Math.ceil(available / ROW_HEIGHT) + 1);
 
