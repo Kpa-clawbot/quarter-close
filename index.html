@@ -20,9 +20,46 @@
   <meta name="description" content="An idle tycoon game disguised as a spreadsheet. Look busy. Get rich.">
   <title>Q4 Financials - Operations.xlsx - Quarter Close</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='4' fill='%23217346'/><rect x='4' y='4' width='7' height='5' rx='1' fill='white'/><rect x='13' y='4' width='7' height='5' rx='1' fill='white'/><rect x='22' y='4' width='7' height='5' rx='1' fill='white'/><rect x='4' y='11' width='7' height='5' rx='1' fill='white' opacity='0.8'/><rect x='13' y='11' width='7' height='5' rx='1' fill='white' opacity='0.8'/><rect x='22' y='11' width='7' height='5' rx='1' fill='white' opacity='0.8'/><rect x='4' y='18' width='7' height='5' rx='1' fill='white' opacity='0.6'/><rect x='13' y='18' width='7' height='5' rx='1' fill='white' opacity='0.6'/><rect x='22' y='18' width='7' height='5' rx='1' fill='white' opacity='0.6'/><rect x='4' y='25' width='7' height='5' rx='1' fill='white' opacity='0.4'/><rect x='13' y='25' width='7' height='5' rx='1' fill='white' opacity='0.4'/><rect x='22' y='25' width='7' height='5' rx='1' fill='white' opacity='0.4'/></svg>">
-  <link rel="stylesheet" href="style.css?v=20">
+  <link rel="stylesheet" href="style.css?v=80">
 </head>
 <body>
+  <!-- ===== SPLASH SCREEN ===== -->
+  <div id="splash-screen">
+    <div id="splash-overlay"></div>
+    <div id="splash-dialog">
+      <div id="splash-waves">
+        <svg viewBox="0 0 500 200" preserveAspectRatio="none">
+          <path d="M0,120 C80,180 160,100 240,140 C320,180 400,80 500,120 L500,200 L0,200 Z" fill="#217346" opacity="0.3"/>
+          <path d="M0,150 C100,190 180,120 280,160 C380,200 440,130 500,160 L500,200 L0,200 Z" fill="#217346" opacity="0.5"/>
+          <path d="M0,170 C60,200 150,150 250,180 C350,210 420,160 500,180 L500,200 L0,200 Z" fill="#217346" opacity="0.8"/>
+        </svg>
+      </div>
+      <div id="splash-version">v0.2.0</div>
+      <div id="splash-content">
+        <div id="splash-icon">
+          <svg width="36" height="36" viewBox="0 0 36 36">
+            <rect width="36" height="36" rx="4" fill="#217346"/>
+            <g fill="white" font-family="Segoe UI,Arial,sans-serif" font-weight="700" font-size="9">
+              <line x1="12" y1="8" x2="12" y2="28" stroke="white" stroke-width="0.5" opacity="0.5"/>
+              <line x1="20" y1="8" x2="20" y2="28" stroke="white" stroke-width="0.5" opacity="0.5"/>
+              <line x1="28" y1="8" x2="28" y2="28" stroke="white" stroke-width="0.5" opacity="0.5"/>
+              <line x1="6" y1="12" x2="32" y2="12" stroke="white" stroke-width="0.5" opacity="0.5"/>
+              <line x1="6" y1="18" x2="32" y2="18" stroke="white" stroke-width="0.5" opacity="0.5"/>
+              <line x1="6" y1="24" x2="32" y2="24" stroke="white" stroke-width="0.5" opacity="0.5"/>
+            </g>
+          </svg>
+          <span id="splash-filename">Q4 Financials.xlsx</span>
+        </div>
+        <h1 id="splash-title">Quarter <em>Close</em></h1>
+        <p id="splash-tagline">LOOK BUSY. GET RICH.</p>
+      </div>
+      <div id="splash-progress-track">
+        <div id="splash-progress-bar"></div>
+      </div>
+      <p id="splash-subtitle"><em>An idle tycoon game disguised as a spreadsheet</em></p>
+    </div>
+  </div>
+
   <!-- ===== ARC SELECTION ===== -->
   <div id="arc-select" class="hidden">
     <div id="arc-container">
@@ -69,7 +106,11 @@
       <span class="menu-item">Insert</span>
       <span class="menu-item">Page Layout</span>
       <span class="menu-item">Formulas</span>
-      <span class="menu-item">Data</span>
+      <span class="menu-item" id="data-menu" onclick="toggleDataMenu(event)">Data
+        <div class="menu-dropdown" id="data-dropdown">
+          <div class="menu-dropdown-item" onclick="showGameOptions()">Game Options...</div>
+        </div>
+      </span>
       <span class="menu-item">Review</span>
       <span class="menu-item">View</span>
       <span class="menu-item" onclick="showHelp()">Help</span>
@@ -136,42 +177,30 @@
         <div class="col-header col-h">H</div>
       </div>
       <!-- Row 1: Header / Cash -->
-      <div class="grid-row header-row" id="row-1">
+      <!-- Row 1: Key stats -->
+      <div class="grid-row stats-row" id="row-cash">
         <div class="row-num">1</div>
+        <div class="cell cell-a cash-label">💰 Cash</div>
+        <div class="cell cell-b cash-value" id="cash-display">$0.00</div>
+        <div class="cell cell-c per-tick-value" id="per-tick-display">$0.00/day</div>
+        <div class="cell cell-d"></div>
+        <div class="cell cell-e"></div>
+        <div class="cell cell-f rev-label">Total Rev/yr:</div>
+        <div class="cell cell-g rev-value" id="total-rev">$0.00</div>
+        <div class="cell cell-h" id="stock-price-cell"></div>
+      </div>
+
+      <!-- Row 2: Column headers -->
+      <div class="grid-row header-row" id="row-1">
+        <div class="row-num">2</div>
         <div class="cell cell-a header-cell">DEPARTMENT</div>
         <div class="cell cell-b header-cell">Staff</div>
         <div class="cell cell-c header-cell">Rev/day</div>
-        <div class="cell cell-d header-cell"></div>
-        <div class="cell cell-e header-cell"></div>
-        <div class="cell cell-f header-cell"></div>
+        <div class="cell cell-d header-cell">Hire</div>
+        <div class="cell cell-e header-cell">Upgrade</div>
+        <div class="cell cell-f header-cell">Actions</div>
         <div class="cell cell-g header-cell">Rev/yr</div>
         <div class="cell cell-h empty-cell"></div>
-      </div>
-
-      <!-- Row 2: Cash display + Per-day -->
-      <div class="grid-row" id="row-cash">
-        <div class="row-num">2</div>
-        <div class="cell cell-a cash-label">Total Cash</div>
-        <div class="cell cell-b" id="stock-price-cell"></div>
-        <div class="cell cell-c"></div>
-        <div class="cell cell-d cash-value" id="cash-display">$0.00</div>
-        <div class="cell cell-e per-tick-value" id="per-tick-display">$0.00/day</div>
-        <div class="cell cell-f rev-label">Total Rev/yr:</div>
-        <div class="cell cell-g rev-value" id="total-rev">$0.00</div>
-        <div class="cell cell-h empty-cell"></div>
-      </div>
-
-      <!-- Separator row -->
-      <div class="grid-row" id="row-sep">
-        <div class="row-num">3</div>
-        <div class="cell cell-a sep-cell"></div>
-        <div class="cell cell-b sep-cell"></div>
-        <div class="cell cell-c sep-cell"></div>
-        <div class="cell cell-d sep-cell"></div>
-        <div class="cell cell-e sep-cell"></div>
-        <div class="cell cell-f sep-cell"></div>
-        <div class="cell cell-g sep-cell"></div>
-        <div class="cell cell-h sep-cell"></div>
       </div>
 
       <!-- Revenue source rows (dynamically populated) -->
@@ -204,35 +233,7 @@
       <span class="rb-val" id="stat-hr"></span>
       <span class="rb-sep">│</span>
       <span class="rb-val" id="stat-day"></span>
-      <span style="margin-left:auto"><button class="cell-btn btn-max" onclick="triggerIRS()" style="color:#c00">🧪 IRS</button> <button class="cell-btn btn-max" onclick="triggerBonus()" style="color:#217346">🧪 5×</button> <button class="cell-btn btn-max" onclick="forceIPO()" style="color:#0078d4">🧪 IPO</button> <button class="cell-btn btn-max" onclick="resetBoardRoom()" style="color:#7b1fa2">🧪 Reset BR</button></span>
-    </div>
-
-    <!-- ===== MOBILE P&L VIEW ===== -->
-    <div id="mobile-pnl-view" class="mobile-only hidden">
-      <div id="mobile-pnl-content"></div>
-    </div>
-
-    <!-- ===== MOBILE BOARD ROOM VIEW ===== -->
-    <div id="mobile-boardroom-view" class="mobile-only hidden">
-      <div id="mobile-boardroom-content"></div>
-    </div>
-
-    <!-- ===== MOBILE SETTINGS VIEW ===== -->
-    <div id="mobile-settings-view" class="mobile-only hidden">
-      <div class="mob-settings-section">
-        <h3>📊 Quarter Close</h3>
-        <p class="mob-settings-version">v0.3.0 — Phase 2.2</p>
-      </div>
-      <div class="mob-settings-section">
-        <button class="mob-settings-btn" onclick="saveGame()">💾 Save Game</button>
-        <button class="mob-settings-btn" id="mob-autosave-btn" onclick="toggleAutosaveMobile()">Auto-save: ON</button>
-        <button class="mob-settings-btn" onclick="toggleBossMode()">🕶️ Boss Mode</button>
-        <button class="mob-settings-btn" onclick="showHelp()">❓ Help</button>
-        <button class="mob-settings-btn mob-danger" onclick="confirmNewGame()">🗑️ New Game</button>
-      </div>
-      <div class="mob-settings-section">
-        <div class="mob-settings-stats" id="mob-stats"></div>
-      </div>
+      <span style="margin-left:auto" id="debug-tools" class="hidden"><button class="cell-btn btn-max" onclick="triggerIRS()" style="color:#c00">🧪 IRS</button> <button class="cell-btn btn-max" onclick="triggerBonus()" style="color:#217346">🧪 5×</button> <button class="cell-btn btn-max" onclick="forceIPO()" style="color:#0078d4">🧪 IPO</button> <button class="cell-btn btn-max" onclick="resetBoardRoom()" style="color:#7b1fa2">🧪 Reset BR</button> <span style="position:relative;display:inline-block"><button class="cell-btn btn-max" onclick="toggleDebugEventDropdown()" style="color:#e65100">🧪 Event ▾</button><div id="debug-event-dropdown" class="hidden" style="position:absolute;bottom:100%;right:0;background:#fff;border:1px solid #ccc;border-radius:4px;box-shadow:0 2px 8px rgba(0,0,0,.2);max-height:300px;overflow-y:auto;z-index:999;width:320px;margin-bottom:2px"></div></span></span>
     </div>
 
     <!-- Sheet Tabs -->
@@ -265,6 +266,35 @@
         <span id="status-time">⏱ 0:00</span>
         <span class="status-sep">|</span>
         <span id="status-zoom">100%</span>
+      </div>
+    </div>
+
+    <!-- ===== MOBILE P&L VIEW ===== -->
+    <div id="mobile-pnl-view" class="mobile-only hidden">
+      <div id="mobile-pnl-content"></div>
+    </div>
+
+    <!-- ===== MOBILE BOARD ROOM VIEW ===== -->
+    <div id="mobile-boardroom-view" class="mobile-only hidden">
+      <div id="mobile-boardroom-content"></div>
+    </div>
+
+    <!-- ===== MOBILE SETTINGS VIEW ===== -->
+    <div id="mobile-settings-view" class="mobile-only hidden">
+      <div class="mob-settings-section">
+        <h3>📊 Quarter Close</h3>
+        <p class="mob-settings-version">v0.2.0 — Late-Game Progression</p>
+      </div>
+      <div class="mob-settings-section">
+        <button class="mob-settings-btn" onclick="saveGame()">💾 Save Game</button>
+        <button class="mob-settings-btn" id="mob-autosave-btn" onclick="toggleAutosaveMobile()">Auto-save: ON</button>
+        <button class="mob-settings-btn" onclick="toggleBossMode()">🕶️ Boss Mode</button>
+        <button class="mob-settings-btn" onclick="showGameOptions()">⚙️ Game Options</button>
+        <button class="mob-settings-btn" onclick="showHelp()">❓ Help</button>
+        <button class="mob-settings-btn mob-danger" onclick="confirmNewGame()">🗑️ New Game</button>
+      </div>
+      <div class="mob-settings-section">
+        <div class="mob-settings-stats" id="mob-stats"></div>
       </div>
     </div>
 
@@ -345,6 +375,18 @@
     <div id="toast-actions"></div>
   </div>
 
+  <!-- ===== DEAL POPUP ===== -->
+  <div id="deal-popup" class="hidden">
+    <div id="deal-header">🤝 <span id="deal-client"></span></div>
+    <div id="deal-body"></div>
+    <div id="deal-progress-text"></div>
+    <div id="deal-bar-wrap"><div id="deal-bar"></div></div>
+    <button id="deal-sign-btn" class="toast-btn toast-primary" onclick="clickDeal()">
+      ✍️ Sign
+      <div id="deal-timer-fill" class="toast-btn-countdown"></div>
+    </button>
+  </div>
+
   <!-- ===== OFFLINE MODAL ===== -->
   <div id="offline-modal" class="hidden">
     <div id="offline-content">
@@ -379,10 +421,53 @@
   <div id="about-modal" class="hidden">
     <div id="about-content">
       <h3>📊 Quarter Close</h3>
-      <p>v0.3.0 — Phase 2.2: Board Room</p>
+      <p>v0.2.0 — Late-Game Progression</p>
       <p>An idle tycoon game disguised as a spreadsheet.</p>
       <p style="margin-top:12px;color:#999;">Build your empire. Look like you're working.</p>
       <button onclick="dismissAbout()">OK</button>
+    </div>
+  </div>
+
+  <!-- ===== GAME OPTIONS MODAL ===== -->
+  <div id="options-modal" class="hidden">
+    <div id="options-content">
+      <div class="help-header">
+        <h3>⚙️ Game Options</h3>
+        <button class="help-close" onclick="dismissOptions()">✕</button>
+      </div>
+      <div class="options-body">
+        <div class="options-section">
+          <h4>Active Play Mechanics</h4>
+          <p class="options-desc">These mechanics reward active clicking. Toggle off for a more idle experience.</p>
+          <label class="option-toggle">
+            <input type="checkbox" id="toggle-deals" onchange="toggleFeature('closeTheDeals', this.checked)">
+            <span class="option-name">🤝 Close the Deal</span>
+            <span class="option-info">Random high-value contracts that require rapid clicking to close.</span>
+          </label>
+          <label class="option-toggle">
+            <input type="checkbox" id="toggle-overtime" onchange="toggleFeature('overtime', this.checked)">
+            <span class="option-name">⏰ Overtime</span>
+            <span class="option-info">Click for instant revenue bursts with diminishing returns per quarter.</span>
+          </label>
+          <label class="option-toggle">
+            <input type="checkbox" id="toggle-focus" onchange="toggleFeature('managementFocus', this.checked)">
+            <span class="option-name">🎯 Management Focus</span>
+            <span class="option-info">Click departments to temporarily boost their output.</span>
+          </label>
+        </div>
+        <div class="options-section">
+          <h4>Event Frequency</h4>
+          <p class="options-desc">How often random events fire. Default: ~1 event per quarter.</p>
+          <label class="option-toggle" style="align-items:center">
+            <input type="range" id="event-freq-slider" min="0" max="1000" value="100" step="10" oninput="setEventFreqMult(this.value)" style="width:120px">
+            <span class="option-name" id="event-freq-label">📬 Events: 1.0×</span>
+            <span class="option-info">0 = off, 1× = default, 10× = absolute mayhem</span>
+          </label>
+        </div>
+      </div>
+      <div class="options-footer">
+        <button onclick="dismissOptions()">OK</button>
+      </div>
     </div>
   </div>
 
@@ -393,73 +478,198 @@
         <h3>📊 Quarter Close — Help</h3>
         <button class="help-close" onclick="dismissHelp()">✕</button>
       </div>
+      <div class="help-tabs">
+        <button class="help-tab active" onclick="showHelpTab('basics')">Basics</button>
+        <button class="help-tab" onclick="showHelpTab('active')">Active Play</button>
+        <button class="help-tab" onclick="showHelpTab('events')">Events & Taxes</button>
+        <button class="help-tab" onclick="showHelpTab('boardroom')">Board Room</button>
+        <button class="help-tab" onclick="showHelpTab('tips')">Tips</button>
+      </div>
       <div class="help-body">
-        <div class="help-section">
-          <h4>🎯 Goal</h4>
-          <p>Build a company from nothing. Start with a lemonade stand, end with a tech empire. The spreadsheet is your cover — it looks like you're working.</p>
+
+        <!-- BASICS TAB -->
+        <div class="help-page active" id="help-basics">
+          <div class="help-columns">
+            <div class="help-section">
+              <h4>🎯 Goal</h4>
+              <p>Build a company from nothing. Start with a blog, end with a tech empire. The spreadsheet is your cover — it looks like you're working.</p>
+            </div>
+            <div class="help-section">
+              <h4>🏗️ Departments</h4>
+              <p>Each department is a revenue source with employees. Higher tiers unlock as you earn more and produce exponentially more revenue.</p>
+            </div>
+            <div class="help-section">
+              <h4>👥 Hiring</h4>
+              <p><b>Hire</b> employees to increase revenue per day. The <b>Max(N)</b> button hires as many as you can afford at once.</p>
+            </div>
+            <div class="help-section">
+              <h4>⬆️ Upgrades</h4>
+              <p><b>Upgrade</b> a department to multiply each employee's output (2×, 4×, 8×...). Upgrades are the biggest revenue multiplier.</p>
+            </div>
+            <div class="help-section">
+              <h4>🤖 Automation</h4>
+              <p><b>Automate</b> a department so it collects revenue automatically — no more clicking "Collect". Essential for scaling.</p>
+            </div>
+            <div class="help-section">
+              <h4>📈 Earnings & IPO</h4>
+              <p>Once big enough, you'll <b>go public</b>. Each quarter you set earnings guidance, then try to beat it. Beating guidance earns <b>Retained Earnings (RE)</b> — the prestige currency for Board Room upgrades.</p>
+            </div>
+          </div>
         </div>
 
-        <div class="help-section">
-          <h4>💰 Making Money</h4>
-          <p><b>Click "Collect"</b> on a department to grab its pending revenue. Early on, clicking is your main income.</p>
-          <p><b>Hire employees</b> to increase a department's revenue per day. More staff = more money.</p>
-          <p><b>Upgrade</b> departments to multiply each employee's output (2×, 4×, 8×...).</p>
-          <p><b>Automate</b> a department so it collects revenue automatically — no clicking needed.</p>
-          <p><b>Unlock new departments</b> as you earn enough. Higher tiers earn exponentially more.</p>
+        <!-- ACTIVE PLAY TAB -->
+        <div class="help-page" id="help-active">
+          <p style="color:#888;margin-bottom:12px">All three mechanics are optional — toggle them in <b>Data → Game Options</b>.</p>
+          <div class="help-columns">
+            <div class="help-section">
+              <h4>🎯 Management Focus</h4>
+              <p><b>Click a department's name</b> (look for the 🎯 icon) to add focus points.</p>
+              <p>Each point = <b>+5% revenue</b> for that department, up to <b>+50%</b> at max focus.</p>
+              <p>Focus <b>decays</b> over time — 1 point lost every 10 seconds of not clicking. Keep rotating between departments for maximum benefit.</p>
+              <p>The bonus shows as a green percentage in the Rev/day column.</p>
+            </div>
+            <div class="help-section">
+              <h4>⏰ Overtime</h4>
+              <p>The <b>"Push It"</b> button below your departments gives instant cash equal to 5 seconds of revenue.</p>
+              <p><b>Diminishing returns:</b> each click in the same quarter gives less. Click 1 = 100%, click 5 ≈ 57%, click 10 ≈ 40%.</p>
+              <p>Resets every quarter — fresh energy each Q.</p>
+              <p>Shows your click count, next payout, and efficiency %.</p>
+            </div>
+            <div class="help-section">
+              <h4>🤝 Close the Deal</h4>
+              <p>Random enterprise contracts pop up as toasts every 1–4 minutes.</p>
+              <p>Click <b>"✍️ Sign"</b> rapidly to collect enough signatures before the 12-second timer expires.</p>
+              <p>Required clicks scale with company size. Reward = 30–60 seconds of revenue.</p>
+              <p>Miss it? The client walks — no penalty, just missed money.</p>
+            </div>
+            <div class="help-section">
+              <h4>📋 Mini-Tasks</h4>
+              <p>Desktop-style notifications pop up periodically. Click <b>✔ Approve</b> for bonus cash.</p>
+              <p>Auto-expire in 10 seconds — miss it and your streak resets.</p>
+              <p><b>Streaks:</b> 3 in a row = 1.5×, 5 = 2×, 10 = 3× reward.</p>
+            </div>
+          </div>
         </div>
 
-        <div class="help-section">
-          <h4>📋 Mini-Tasks</h4>
-          <p>Desktop-style task notifications pop up periodically. Click <b>✔ Approve</b> for bonus cash. They auto-expire in 10 seconds — if you miss it, your streak resets.</p>
-          <p><b>Streaks:</b> 3 in a row = 1.5× reward, 5 = 2×, 10 = 3×.</p>
+        <!-- EVENTS & TAXES TAB -->
+        <div class="help-page" id="help-events">
+          <div class="help-columns">
+            <div class="help-section">
+              <h4>📧 Random Events</h4>
+              <p>Toast notifications with choices: Mom's investment, angry customers, viral moments, IT disasters, R&D breakthroughs, and more.</p>
+              <p>Each has a <b>10-second timer</b> — the last option auto-fires if you don't choose.</p>
+              <p>Events have different rarities — angry customers and password resets happen often, while ransomware and DDoS attacks are rare.</p>
+              <p>At default frequency, expect roughly <b>1 event per quarter</b>.</p>
+              <p><b>Event frequency</b> can be adjusted in Settings (0× = off, 10× = absolute mayhem).</p>
+              <p><b>Golden cells</b> occasionally glow in the grid — click them fast for a big bonus!</p>
+            </div>
+            <div class="help-section">
+              <h4>🔬 R&D Breakthroughs</h4>
+              <p>Rare event that <b>permanently doubles</b> a random department's revenue.</p>
+              <p>Appears roughly every <b>3-4 game years</b> at default event frequency.</p>
+              <p>Stacks: a second breakthrough on the same dept = 4× total.</p>
+            </div>
+            <div class="help-section">
+              <h4>⚡ IT Disasters</h4>
+              <p>8 types: ransomware, DDoS, DB corruption, email outage, password reset, cloud outage, P0 bug, laptop recall.</p>
+              <p>Effects range from revenue penalties to full production freezes. Some offer a costly quick-fix vs. waiting it out.</p>
+              <p>Active effects show as color-coded indicators in the $/day display.</p>
+            </div>
+            <div class="help-section">
+              <h4>🏛️ Quarterly Taxes</h4>
+              <p>Every 90 game-days, the IRS sends a tax bill.</p>
+              <p><b>Regular tax:</b> 25% of (Revenue − Depreciation).</p>
+              <p><b>AMT floor:</b> You always pay at least 15% of gross revenue — can't deduct your way to zero.</p>
+            </div>
+            <div class="help-section">
+              <h4>⚠️ Tax Consequences</h4>
+              <p><b>Pay or ignore</b> — but ignored bills accrue <b>1% daily interest</b> and escalate:</p>
+              <p>Notice → 2nd Notice → <b>Garnishment</b> (−15% revenue) → <b>Asset Seizure</b>.</p>
+              <p><b>Depreciation:</b> Capital spending (hires, upgrades, automation) is deducted over 4 quarters, not immediately.</p>
+            </div>
+          </div>
         </div>
 
-        <div class="help-section">
-          <h4>📧 Events</h4>
-          <p>Random events pop up as desktop-style toasts (Mom's investment, angry customers, viral TikTok moments). Each has a 10-second timer — the last option auto-fires if you don't choose.</p>
-          <p><b>Golden cells</b> occasionally glow gold in the grid — click them fast for a big bonus!</p>
+        <!-- BOARD ROOM TAB -->
+        <div class="help-page" id="help-boardroom">
+          <p style="color:#888;margin-bottom:12px">Unlocks after <b>IPO</b>. Spend <b>Retained Earnings (RE)</b> on permanent upgrades.</p>
+          <div class="help-columns">
+            <div class="help-section">
+              <h4>📊 CFO (Finance)</h4>
+              <p>Auto-handles quarterly earnings guidance. Three levels:</p>
+              <p><b>Lv1 "The Intern"</b> — picks guidance randomly. Often wrong, but no more popups.</p>
+              <p><b>Lv2 "Competent CFO"</b> — reads context: plays safe after misses, gets bolder on beat streaks. ~70% optimal.</p>
+              <p><b>Lv3 "Elite CFO"</b> — factors in streaks, analyst pressure, bonuses, and penalties. Knows when to push and when to pull back. ~90% optimal.</p>
+              <p>Switch between owned levels anytime in the IR section.</p>
+            </div>
+            <div class="help-section">
+              <h4>🔥 Earnings Streaks</h4>
+              <p>Consecutive beats earn bonus RE: <b>+10% per beat</b>, up to <b>2.0× at 10 beats</b>.</p>
+              <p>The current multiplier shows in the IR section and earnings report.</p>
+              <p>A miss resets your streak to zero. High streaks also make analysts ratchet up expectations faster — the CFO factors this in.</p>
+            </div>
+            <div class="help-section">
+              <h4>💰 Revenue Boosts</h4>
+              <p><b>Revenue Multipliers</b> — permanent boosts that stack (1.1× → 1.25× → 1.5×).</p>
+              <p><b>Growth Initiative</b> — repeatable +2% per purchase. Cost scales 10% each time. Stacks multiplicatively — buy early, buy often.</p>
+            </div>
+            <div class="help-section">
+              <h4>🏛️ Tax & Protection</h4>
+              <p><b>Lobbyist / Tax Haven</b> — reduce tax rate (25% → 20% → 15%).</p>
+              <p><b>CPA on Retainer</b> — auto-pays taxes and settles debts. No more IRS toasts.</p>
+              <p><b>Golden Parachute</b> — blocks one IRS asset seizure (consumed, rebuyable).</p>
+              <p><b>Analyst Relations</b> — slows analyst expectation ratchet by 50%.</p>
+            </div>
+            <div class="help-section">
+              <h4>★ Restructure</h4>
+              <p>Each automated department gets a <b>★ Restructure</b> button post-IPO.</p>
+              <p>Each level = <b>10× revenue</b> for that department. Costs RE.</p>
+              <p>Stacks: ★2 = 100×, ★3 = 1,000×.</p>
+            </div>
+            <div class="help-section">
+              <h4>🔬 R&D Breakthroughs</h4>
+              <p>Random event: R&D discovers a breakthrough that <b>permanently doubles</b> a department's revenue.</p>
+              <p>Choose: implement (×2 revenue) or file patent (5% cash).</p>
+              <p>Stacks on same dept: ×4, ×8, ×16...</p>
+            </div>
+            <div class="help-section">
+              <h4>📈 Stock & Valuation</h4>
+              <p>Valuation = Cash + (Annual Revenue × market multiple).</p>
+              <p>The floating chart tracks it over time. Drag to move, resize from corner.</p>
+              <p>Stock price shown in column H of the stats row.</p>
+            </div>
+          </div>
         </div>
 
-        <div class="help-section">
-          <h4>🏛️ Taxes</h4>
-          <p>Every 90 game-days, the IRS sends a quarterly tax bill.</p>
-          <p><b>Regular tax:</b> 25% of (Revenue − Depreciation).</p>
-          <p><b>AMT floor:</b> You always pay at least 15% of gross revenue — no deducting your way to zero.</p>
-          <p><b>Pay or ignore</b> — but ignored bills accrue 1% daily interest and escalate: Notice → 2nd Notice → Garnishment (−15% revenue) → Asset Seizure.</p>
-          <p><b>Depreciation:</b> Capital spending (hires, upgrades, automation) is deducted over 4 quarters, not immediately.</p>
+        <!-- TIPS TAB -->
+        <div class="help-page" id="help-tips">
+          <div class="help-columns">
+            <div class="help-section">
+              <h4>⌨️ Keyboard Shortcuts</h4>
+              <p><b>Esc</b> — Boss key! Instantly switches to a fake empty spreadsheet.</p>
+              <p><b>Ctrl+S</b> — Manual save (auto-save is always on).</p>
+            </div>
+            <div class="help-section">
+              <h4>📊 Spreadsheet Details</h4>
+              <p><b>Click any cell</b> to see its reference in the formula bar, just like real Excel.</p>
+              <p><b>Column headers</b> (A, B, C...) are purely cosmetic — for immersion.</p>
+            </div>
+            <div class="help-section">
+              <h4>🎮 Game Management</h4>
+              <p><b>File → New Game</b> — start over with a fresh company.</p>
+              <p><b>Data → Game Options</b> — toggle active play mechanics on/off.</p>
+              <p><b>File → Save</b> — auto-save runs, but manual save works too.</p>
+            </div>
+            <div class="help-section">
+              <h4>💡 Strategy Tips</h4>
+              <p>Focus spending on the <b>highest tier you can afford</b> — lower tiers become irrelevant fast.</p>
+              <p><b>Automate early</b> — the sooner a dept runs itself, the sooner you can focus elsewhere.</p>
+              <p><b>Beat earnings guidance</b> to earn RE — conservative guidance is safer but earns less RE.</p>
+              <p><b>Growth Initiative</b> compounds — 10 purchases = +21.9% total revenue.</p>
+            </div>
+          </div>
         </div>
 
-        <div class="help-section">
-          <h4>📈 Valuation Chart</h4>
-          <p>The floating chart shows your company's valuation over time. Drag to move, resize from the corner. Valuation = Cash + (Annual Revenue × market multiple).</p>
-        </div>
-
-        <div class="help-section">
-          <h4>⌨️ Tips</h4>
-          <p><b>Esc</b> — Boss key! Switches to a fake empty spreadsheet instantly.</p>
-          <p><b>Ctrl+S</b> — Save game. Auto-save is on by default.</p>
-          <p><b>File → New Game</b> — Start over with a different career path.</p>
-          <p><b>Click any cell</b> to see its reference in the formula bar (just like Excel).</p>
-        </div>
-
-        <div class="help-section">
-          <h4>🔢 Max Buttons</h4>
-          <p>When you can afford 2+ hires or upgrades, a <b>Max(N)</b> link appears — click it to buy them all at once.</p>
-        </div>
-
-        <div class="help-section">
-          <h4>🏢 Board Room (Post-IPO)</h4>
-          <p>After going public, the <b>Board Room</b> tab unlocks. Spend <b>Retained Earnings (RE)</b> on permanent upgrades:</p>
-          <p><b>Finance Dept</b> — auto-handles quarterly earnings. Three levels with increasing intelligence:</p>
-          <p style="margin-left:16px"><b>Lv1 "The Intern"</b> — randomizes guidance (often wrong, but no more popups).</p>
-          <p style="margin-left:16px"><b>Lv2 "Competent CFO"</b> — analyzes revenue trends, picks smartly ~70% of the time.</p>
-          <p style="margin-left:16px"><b>Lv3 "Elite CFO"</b> — factors in streaks, bonuses, and analyst pressure. ~90% optimal.</p>
-          <p style="margin-left:16px">You can switch between owned levels anytime in the IR section.</p>
-          <p><b>Revenue Multipliers</b> — permanent boosts that stack (1.1× → 1.25× → 1.5×).</p>
-          <p><b>Lobbyist / Tax Haven</b> — reduce your tax rate (25% → 20% → 15%).</p>
-          <p><b>Analyst Relations</b> — slows the analyst expectation ratchet by 50%.</p>
-          <p><b>Golden Parachute</b> — protects against IRS asset seizure (consumed on use, rebuyable).</p>
-        </div>
       </div>
     </div>
   </div>
@@ -475,7 +685,7 @@
     </div>
   </div>
 
-  <script src="game.js?v=20"></script>
+  <script src="game.js?v=80"></script>
   <script>
     if (location.hostname === 'kpa-clawbot.github.io') {
       var s = document.createElement('script');
