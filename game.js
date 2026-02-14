@@ -1445,7 +1445,8 @@ function updateGridValues() {
     const focusLevel = state.focus || 0;
     const focusable = isFeatureEnabled('managementFocus') && state.automated;
     const focusIcon = focusable ? `<span class="focus-icon${focusLevel > 0 ? ' focus-active' : ''}" title="Click to boost revenue (+5% per click, max +50%)">🎯</span>` : '';
-    nameCell.innerHTML = focusIcon + src.name + (state.upgradeLevel > 0 ? ` <span style="color:#999;font-size:10px">Lv${state.upgradeLevel}</span>` : '') + prestigeTag + breakthroughTag;
+    const tags = (state.upgradeLevel > 0 ? `<span style="color:#999;font-size:10px">Lv${state.upgradeLevel}</span>` : '') + prestigeTag + breakthroughTag;
+    nameCell.innerHTML = `<span style="display:flex;align-items:center;justify-content:space-between;width:100%"><span>${focusIcon}${src.name}</span><span style="white-space:nowrap">${tags}</span></span>`;
     if (focusable) {
       nameCell.style.cursor = 'pointer';
       nameCell.classList.add('focusable');
