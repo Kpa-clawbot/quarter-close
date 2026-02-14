@@ -156,6 +156,7 @@ The Finance Dept is the flagship Board Room upgrade. It auto-handles quarterly e
 | Tax Haven | 8,000 RE | Tax rate → 15% (requires Lobbyist) |
 | Analyst Relations | 2,000 RE | Analyst ratchet slowed 50% |
 | Golden Parachute | 3,000 RE | Survive one asset seizure (consumed, rebuyable) |
+| Growth Initiative | 50 RE (scales +10%) | +2% revenue, repeatable, stacks as 1.02^N |
 
 ## Idle Mechanics
 

@@ -21,6 +21,13 @@ All notable changes to Quarter Close.
 - Existing saves with inflated baseline (>2.5) reset to 1.5 on load
 - Analyst Relations upgrade: ×1.03/×1.01 (was ×1.075/×1.025)
 
+### Growth Initiative (RE Progression)
+- **New repeatable Board Room upgrade**: +2% revenue multiplier per purchase, stacks multiplicatively (1.02^N)
+- Base cost 50 RE, scales 10% per purchase (50 → 55 → 60 → 66 → 73...)
+- Gives players something to spend RE on every quarter instead of long empty grinds
+- Snowballs gradually — log10 RE formula keeps it balanced
+- RE stats in IR section: "Last Q: +198" and ETA to next affordable upgrade with real time estimate
+
 ### Number Formatting
 - Added **Quadrillion (Q)** tier to all format functions — formatMoney, formatRate, formatPerTick, formatStatMoney, formatCompact
 - Added **Trillion (T)** tier where missing — no more "13335M" displays
