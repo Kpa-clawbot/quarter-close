@@ -2689,7 +2689,9 @@ function gameTick() {
 
   // Close the Deal spawning
   if (isFeatureEnabled('closeTheDeals') && !gameState.dealActive) {
-    if (!gameState.dealCooldown) gameState.dealCooldown = 60 + Math.floor(Math.random() * 120);
+    if (gameState.dealCooldown === undefined || gameState.dealCooldown === null) {
+      gameState.dealCooldown = 60 + Math.floor(Math.random() * 120);
+    }
     if (gameState.dealCooldown > 0) {
       gameState.dealCooldown--;
     } else if (totalRevPerTick() > 0 && !isPowerOut &&
