@@ -857,10 +857,10 @@ function ctoAutoUpgrade() {
       gameState.ctoSpentThisQuarter = 0;
     }
 
-    // Budget check — don't exceed quarterly budget
-    const budgetRemaining = gameState.ctoQuarterBudget > 0
+    // Budget check — don't exceed quarterly budget (Lv2+ only, Lv1 ignores budget)
+    const budgetRemaining = (level >= 2 && gameState.ctoQuarterBudget > 0)
       ? gameState.ctoQuarterBudget - gameState.ctoSpentThisQuarter
-      : Infinity; // no budget set = unlimited (fallback)
+      : Infinity;
     if (budgetRemaining <= 0) return;
 
     // Build candidate list: all unlocked depts with affordable upgrades
@@ -871,7 +871,8 @@ function ctoAutoUpgrade() {
       const stats = SOURCE_STATS[state.id];
       if (!stats) continue; // safety: skip unknown sources
       const cost = upgradeCost(state);
-      if (cost > gameState.cash || cost > budgetRemaining) continue;
+      if (cost > gameState.cash) continue;
+      if (level >= 2 && cost > budgetRemaining) continue;
       // ROI = annual revenue gain / cost (how many years to pay back)
       const annualRevGain = sourceRevPerTick(state) * 365.25 * 0.5;
       const roi = cost > 0 ? annualRevGain / cost : 0;
