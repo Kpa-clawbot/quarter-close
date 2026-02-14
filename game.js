@@ -2619,7 +2619,9 @@ function loadGame() {
     gameState.lastEarningsDay = data.lastEarningsDay || 0;
     gameState.earningsQuarterRevenue = data.earningsQuarterRevenue || 0;
     gameState.ipoStockPriceStart = data.ipoStockPriceStart || 0;
-    gameState._earningsMultiplier = data._earningsMultiplier || 1.0;
+    gameState._earningsMultiplier = Math.max(0.1, data._earningsMultiplier || 1.0);
+    // Rescue saves where multiplier was destroyed by repeated misses
+    if (gameState._earningsMultiplier < 0.3) gameState._earningsMultiplier = 0.5;
     // Phase 2.2: Board Room
     gameState.boardRoomPurchases = data.boardRoomPurchases || {};
     gameState.activeCFOLevel = data.activeCFOLevel || 0;
@@ -3165,6 +3167,10 @@ function processEarnings() {
   // But we want a discrete jump, so we'll adjust a persistent earnings multiplier instead
   if (!gameState._earningsMultiplier) gameState._earningsMultiplier = 1.0;
   gameState._earningsMultiplier *= (1 + stockChange);
+  // Floor at 0.1 so valuation can't be completely destroyed
+  gameState._earningsMultiplier = Math.max(0.1, gameState._earningsMultiplier);
+  // Gentle mean-reversion toward 1.0 (5% per quarter)
+  gameState._earningsMultiplier += (1.0 - gameState._earningsMultiplier) * 0.05;
 
   const newPrice = getStockPrice();
 
