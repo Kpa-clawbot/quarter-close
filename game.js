@@ -478,44 +478,125 @@ function pickCFOGuidance(level) {
     return 'ambitious';
   }
 
-  // Lv2 and Lv3: pick the most aggressive guidance where target is beatable
-  // Target = projectedRev × pct × analystBaseline
-  // We beat it if projectedRev > target, i.e. 1 > pct × analystBaseline
-  // safetyMargin adds a buffer (lower = more aggressive)
-  const safetyMargin = level >= 3 ? 1.02 : 1.08;
+  // Lv2/Lv3: context-aware weighted pick
+  // Base weights for each guidance level
+  const weights = { conservative: 0, 'in-line': 0, ambitious: 0, aggressive: 0 };
+  const streak = gameState.earningsStreak;
+  const baseline = gameState.analystBaseline;
 
-  // Also factor in recent momentum — if we beat last quarter, we can be bolder
-  const momentumBonus = gameState.earningsStreak > 0 ? 0.05 * Math.min(gameState.earningsStreak, 5) : 0;
+  if (level === 2) {
+    // Competent CFO — reads trends but not perfectly
+    if (streak <= -2) {
+      // After multiple misses: play it safe
+      weights.conservative = 70;
+      weights['in-line'] = 25;
+      weights.ambitious = 5;
+    } else if (streak < 0) {
+      // After one miss: cautious
+      weights.conservative = 40;
+      weights['in-line'] = 45;
+      weights.ambitious = 15;
+    } else if (streak === 0) {
+      // Fresh start or reset: balanced
+      weights.conservative = 20;
+      weights['in-line'] = 50;
+      weights.ambitious = 25;
+      weights.aggressive = 5;
+    } else if (streak <= 3) {
+      // Short beat streak: getting confident
+      weights.conservative = 10;
+      weights['in-line'] = 35;
+      weights.ambitious = 40;
+      weights.aggressive = 15;
+    } else {
+      // Long beat streak: bold but not reckless
+      weights.conservative = 5;
+      weights['in-line'] = 20;
+      weights.ambitious = 45;
+      weights.aggressive = 30;
+    }
 
-  // Find the most aggressive guidance we can safely beat
-  let bestPick = 'conservative'; // fallback
+    // Analyst pressure adjustment — high baseline means analysts expect more
+    if (baseline > 1.15) {
+      weights.conservative += 20;
+      weights['in-line'] += 10;
+      weights.ambitious -= 15;
+      weights.aggressive -= 15;
+    }
+  } else {
+    // Lv3: Elite CFO — smarter weights, factors in more context
+    if (streak <= -2) {
+      weights.conservative = 50;
+      weights['in-line'] = 40;
+      weights.ambitious = 10;
+    } else if (streak < 0) {
+      weights.conservative = 25;
+      weights['in-line'] = 50;
+      weights.ambitious = 20;
+      weights.aggressive = 5;
+    } else if (streak === 0) {
+      weights.conservative = 10;
+      weights['in-line'] = 40;
+      weights.ambitious = 35;
+      weights.aggressive = 15;
+    } else if (streak <= 3) {
+      weights.conservative = 5;
+      weights['in-line'] = 20;
+      weights.ambitious = 45;
+      weights.aggressive = 30;
+    } else if (streak <= 6) {
+      // Strong streak but analysts ratcheting — pull back slightly
+      weights.conservative = 5;
+      weights['in-line'] = 25;
+      weights.ambitious = 40;
+      weights.aggressive = 30;
+    } else {
+      // Very long streak — analysts are aggressive, play safer
+      weights.conservative = 10;
+      weights['in-line'] = 35;
+      weights.ambitious = 35;
+      weights.aggressive = 20;
+    }
+
+    // High analyst baseline: elite CFO recognizes danger
+    if (baseline > 1.15) {
+      weights.conservative += 15;
+      weights['in-line'] += 10;
+      weights.ambitious -= 10;
+      weights.aggressive -= 15;
+    } else if (baseline < 0.85) {
+      // Low expectations: be bolder
+      weights.ambitious += 10;
+      weights.aggressive += 10;
+      weights.conservative -= 10;
+      weights['in-line'] -= 10;
+    }
+
+    // Active revenue penalty: notch safer
+    if (gameState.revPenalty && Date.now() < gameState.revPenalty.until) {
+      weights.conservative += 20;
+      weights.ambitious -= 10;
+      weights.aggressive -= 10;
+    }
+    // Active revenue bonus: notch bolder
+    if (gameState.revBonus && Date.now() < gameState.revBonus.until) {
+      weights.ambitious += 10;
+      weights.aggressive += 10;
+      weights.conservative -= 10;
+    }
+  }
+
+  // Ensure no negative weights
+  for (const k of keys) weights[k] = Math.max(0, weights[k]);
+
+  // Weighted random pick
+  const total = keys.reduce((sum, k) => sum + weights[k], 0);
+  let roll = Math.random() * total;
   for (const key of keys) {
-    const gl = GUIDANCE_LEVELS[key];
-    const threshold = gl.pct * gameState.analystBaseline * safetyMargin;
-    if (1 + momentumBonus > threshold) {
-      bestPick = key;
-    }
+    roll -= weights[key];
+    if (roll <= 0) return key;
   }
-
-  if (level >= 3) {
-    // Elite CFO adjustments
-    const keyIdx = keys.indexOf(bestPick);
-
-    // Long streak (>5): one notch safer — analysts are ratcheting hard
-    if (gameState.earningsStreak > 5 && keyIdx > 0) {
-      bestPick = keys[keyIdx - 1];
-    }
-    // Active revenue bonus: one notch more aggressive
-    else if (gameState.revBonus && Date.now() < gameState.revBonus.until && keyIdx < keys.length - 1) {
-      bestPick = keys[keyIdx + 1];
-    }
-    // Active revenue penalty: one notch safer
-    else if (gameState.revPenalty && Date.now() < gameState.revPenalty.until && keyIdx > 0) {
-      bestPick = keys[keyIdx - 1];
-    }
-  }
-
-  return bestPick;
+  return 'in-line'; // fallback
 }
 
 function setActiveCFOLevel(level) {
