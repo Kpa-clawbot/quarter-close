@@ -260,14 +260,7 @@ const EVENTS = [
         const unlocked = gs.sources.map((s, i) => ({ s, i })).filter(x => x.s.unlocked && x.s.employees > 0);
         if (unlocked.length > 0) {
           const top = unlocked[unlocked.length - 1];
-          top.s._dbOutage = { until: Date.now() + duration, origEmployees: top.s.employees };
-          top.s.employees = 0; // temporarily zero out
-          setTimeout(() => {
-            if (top.s._dbOutage) {
-              top.s.employees = top.s._dbOutage.origEmployees;
-              delete top.s._dbOutage;
-            }
-          }, duration);
+          gs.dbOutage = { sourceIndex: top.i, until: Date.now() + duration };
           const arc = ARCS[gs.arc];
           const name = arc.names[top.i] || getSourceDef(top.i).name;
           return `${name} offline for ${Math.round(duration/1000)}s while database recovers.`;
@@ -762,6 +755,7 @@ let gameState = {
   revPenalty: null,
   revBonus: null,
   powerOutage: null,
+  dbOutage: null,
   hireFrozen: null,
   taxDebts: [],
   seriesAShown: false,
@@ -915,8 +909,10 @@ function sourceRevPerTick(source) {
 
 function totalRevPerTick() {
   let total = 0;
-  for (const s of gameState.sources) {
-    total += sourceRevPerTick(s);
+  const dbOut = gameState.dbOutage && Date.now() < gameState.dbOutage.until ? gameState.dbOutage.sourceIndex : -1;
+  for (let i = 0; i < gameState.sources.length; i++) {
+    if (i === dbOut) continue; // department offline from DB corruption
+    total += sourceRevPerTick(gameState.sources[i]);
   }
   // Board Room revenue multiplier
   total *= getBoardRoomRevMultiplier();
@@ -1050,6 +1046,8 @@ function selectArc(arcKey) {
   gameState.revPenalty = null;
   gameState.revBonus = null;
   gameState.powerOutage = null;
+  gameState.dbOutage = null;
+  gameState.miniTaskBlocked = null;
   gameState.hireFrozen = null;
   gameState.taxDebts = [];
   gameState.quarterRevenue = 0;
@@ -1583,9 +1581,24 @@ function updateDisplay() {
     document.getElementById('status-text').textContent = `⚡ SYSTEMS OFFLINE — back in ${secsLeft}s`;
   } else if (gameState.powerOutage) {
     gameState.powerOutage = null;
+  gameState.dbOutage = null;
+  gameState.miniTaskBlocked = null;
     document.getElementById('status-text').textContent = '✅ Systems restored';
     setTimeout(() => {
       if (document.getElementById('status-text').textContent === '✅ Systems restored') {
+        document.getElementById('status-text').textContent = 'Ready';
+      }
+    }, 3000);
+  } else if (gameState.dbOutage && Date.now() < gameState.dbOutage.until) {
+    const secsLeft = Math.ceil((gameState.dbOutage.until - Date.now()) / 1000);
+    const arc = ARCS[gameState.arc];
+    const name = arc ? arc.names[gameState.dbOutage.sourceIndex] || 'Department' : 'Department';
+    document.getElementById('status-text').textContent = `💾 ${name} offline — DB recovering ${secsLeft}s`;
+  } else if (gameState.dbOutage) {
+    gameState.dbOutage = null;
+    document.getElementById('status-text').textContent = '✅ Database restored';
+    setTimeout(() => {
+      if (document.getElementById('status-text').textContent === '✅ Database restored') {
         document.getElementById('status-text').textContent = 'Ready';
       }
     }, 3000);
@@ -3086,6 +3099,8 @@ function resetGame() {
   gameState.revPenalty = null;
   gameState.revBonus = null;
   gameState.powerOutage = null;
+  gameState.dbOutage = null;
+  gameState.miniTaskBlocked = null;
   gameState.hireFrozen = null;
   gameState.taxDebts = [];
   gameState.quarterRevenue = 0;
