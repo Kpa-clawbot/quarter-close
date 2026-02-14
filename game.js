@@ -614,13 +614,10 @@ function automateCost(source) {
 
 // Prestige: restructure a department for 10× revenue, costs RE
 function prestigeCost(source) {
-  const tier = source.id; // source tier (0-11)
   const level = source.prestigeLevel || 0;
-  // Base: 100 RE for tier 0, scales up with tier and prestige level
-  // Tier scaling: higher tiers cost more (they're more valuable)
-  // Prestige scaling: each level costs 3× the previous
-  const baseCost = Math.floor(100 * Math.pow(2, tier) * Math.pow(3, level));
-  return Math.min(baseCost, 1000000); // safety cap
+  // Flat 50 RE base, scales 3× per prestige level (50 → 150 → 450 → 1350...)
+  // No tier scaling — higher tiers are inherently more valuable (10× bigger base)
+  return Math.floor(50 * Math.pow(3, level));
 }
 
 function restructureSource(index) {
