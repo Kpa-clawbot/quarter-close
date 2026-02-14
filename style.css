@@ -2532,69 +2532,171 @@ body {
 }
 
 /* ============================================
-   LANDSCAPE MODE
+   LANDSCAPE MODE — Compact desktop layout for phones in landscape
    ============================================ */
 @media (max-width: 900px) and (max-height: 500px) and (orientation: landscape) {
-  /* In landscape on mobile, use a more compact card layout */
-  #row-cash {
-    padding: 6px 12px;
+  /* Touch optimization */
+  *, *::before, *::after {
+    touch-action: manipulation;
   }
 
-  #row-cash #cash-display {
-    font-size: 18px !important;
+  html, body {
+    overscroll-behavior: none;
   }
 
-  .source-row {
-    padding: 8px !important;
-    gap: 6px !important;
+  /* Compact title bar */
+  #title-bar {
+    height: 22px;
+    font-size: 10px;
+    padding: 0 4px;
   }
 
-  .source-row .cell-btn {
-    min-height: 36px !important;
-    font-size: 12px !important;
-  }
-
-  #status-bar {
-    height: 20px;
+  .title-btn {
+    width: 36px;
+    height: 22px;
     font-size: 10px;
   }
 
-  #mobile-nav {
-    padding: 0;
+  #title-text {
+    font-size: 10px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
-  .mob-nav-btn {
-    min-height: 40px;
-    padding: 4px 4px;
+  /* Hide menu bar and toolbar — vertical space is critical */
+  #menu-bar, #toolbar, #formula-bar {
+    display: none;
   }
 
-  .mob-nav-icon {
-    font-size: 16px;
+  /* Hide G/H columns to fit */
+  .cell-g, .cell-h, .col-g, .col-h {
+    display: none !important;
   }
 
-  .mob-nav-label {
+  .filler-row > :nth-child(8),
+  .filler-row > :nth-child(9) {
+    display: none !important;
+  }
+
+  #grid-container {
+    grid-template-columns: 28px minmax(60px, 1.2fr) 32px 50px minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr);
+  }
+
+  /* Compact column headers */
+  #col-headers > * {
+    height: 18px;
+    min-height: 18px;
+  }
+
+  .col-header {
+    font-size: 10px;
+  }
+
+  /* Compact grid rows */
+  .grid-row > * {
+    min-height: 32px;
+  }
+
+  .header-row > * {
+    min-height: 20px;
+  }
+
+  /* Cell buttons — smaller but still touchable */
+  .cell-btn {
+    min-height: 32px;
+    min-width: 40px;
+    padding: 4px 8px;
+    font-size: 11px;
+  }
+
+  .cell-btn.btn-max {
+    min-height: 32px;
+    font-size: 10px;
+  }
+
+  .row-num {
     font-size: 9px;
   }
 
-  /* Toast: more compact in landscape */
+  .cell {
+    font-size: 12px;
+    padding: 1px 3px;
+  }
+
+  .sep-cell {
+    height: 2px !important;
+    min-height: 2px !important;
+  }
+
+  #row-sep > * {
+    min-height: 2px !important;
+  }
+
+  #filler-rows {
+    display: none !important;
+  }
+
+  /* Compact bottom chrome */
+  #revenue-breakdown {
+    padding: 2px 8px;
+    font-size: 10px;
+  }
+
+  #stat-hr, #stat-day {
+    display: none;
+  }
+
+  #revenue-breakdown .rb-sep:nth-of-type(2),
+  #revenue-breakdown .rb-sep:nth-of-type(3) {
+    display: none;
+  }
+
+  #revenue-breakdown > span:last-child {
+    display: none;
+  }
+
+  #sheet-tabs {
+    height: 22px;
+  }
+
+  .sheet-tab {
+    font-size: 10px;
+    padding: 2px 10px;
+    min-height: 22px;
+  }
+
+  #status-bar {
+    height: 18px;
+    font-size: 10px;
+    padding: 0 6px;
+  }
+
+  #status-center { display: none; }
+  #status-clicks, #status-zoom, #stock-sep { display: none; }
+
+  /* Toast: fit landscape */
   #event-toast {
-    max-width: 60vw;
-    max-height: 80vh;
+    max-width: 50vw;
+    max-height: 90vh;
+  }
+
+  #toast-body {
+    max-height: 40vh;
+    overflow-y: auto;
   }
 
   .toast-btn {
     min-height: 36px;
   }
 
-  /* Modals: landscape fit */
+  /* Modals */
   #help-content {
     max-height: 90vh;
     max-width: 70vw;
   }
 
-  #about-content,
-  #offline-content,
-  #confirm-content {
+  #about-content, #offline-content, #confirm-content {
     max-width: 60vw;
   }
 
@@ -2604,5 +2706,13 @@ body {
 
   #valuation-chart-container {
     display: none !important;
+  }
+
+  /* Mini-task bar compact */
+  #mini-task-bar {
+    padding: 3px 8px;
+    font-size: 11px;
+    gap: 6px;
+    max-width: 100%;
   }
 }

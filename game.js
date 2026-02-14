@@ -3629,7 +3629,7 @@ window.switchTab = switchTab;
 // ============================================
 
 function isMobile() {
-  return window.innerWidth <= 600;
+  return window.matchMedia('(max-width: 600px)').matches;
 }
 
 let _mobileActiveTab = 'operations';
