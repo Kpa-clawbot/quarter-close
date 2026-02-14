@@ -197,3 +197,14 @@
 - Entire P&L section (Revenue, Expenses, Depreciation, Taxes Paid, Taxable Income, Net Income) removed from `updateTaxPanel()`.
 - Was redundant with tax panel and revenue breakdown bar.
 - IR section now starts immediately after panel unhide.
+
+### Clicking Mechanics (v0.3.0)
+- **Feature Toggle System**: Data menu → "Game Options..." modal. Three checkboxes: Close the Deal, Overtime, Management Focus (all default ON). Stored in `gameState.featureToggles`, gated by `isFeatureEnabled(key)`.
+- **Overtime**: "⏰ Overtime" row below source rows. "Push It" button gives 5s of revenue × diminishing factor `1/(1+clicks×0.15)`. Resets each quarter. Shows click count, next amount, efficiency %. Hidden when disabled or no revenue.
+- **Close the Deal**: Random enterprise contract toasts every 3-8 min. Rapid-click "✍️ Sign" button to collect signatures (10-30 required, scales with `log10(annualRev)`). 12s timer. Reward = 30-60s of revenue. Fun client names (Hooli, Initech, etc). Separate cooldown from random events.
+- **Management Focus**: Click dept name to add focus (max 10 = +50%). Each point = +5% via `focusMult` in `sourceRevPerTick()`/`sourceAnnualRev()`. Decays 1 point per 10s idle. Transient (not saved — resets on load). Visual: 🎯N tag, green flash on click.
+- **All three count toward quarterly revenue + earnings tracking.**
+
+### Bug: Prestige/Breakthrough Not Persisting
+- `prestigeLevel` and `breakthroughMult` were being loaded from save but never written to the save object's `sources.map()`.
+- Fix: added both fields to serialization in `saveGame()`. Commit `72ac758`.

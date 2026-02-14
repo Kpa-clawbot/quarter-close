@@ -62,6 +62,16 @@ Revenue accrues per tick → spend on upgrades → grow departments → hit quar
 
 ## Advanced Mechanics
 
+### Active Play Mechanics (Toggleable via Data → Game Options)
+
+All three are optional — toggle off in Game Options for pure idle experience.
+
+**Overtime** — Click "Push It" for instant revenue bursts (5s of revenue per click). Diminishing returns per quarter (resets each Q). Creates strategic tension: spam overtime to hit guidance but analysts ratchet up.
+
+**Close the Deal** — Random enterprise contract toasts (every 3-8 min). Rapid-click "Sign" button to close before 12s timer expires. Clicks scale with company size. Reward = 30-60s of revenue. No penalty for missing — just missed money.
+
+**Management Focus** — Click department names to add focus (max 10 = +50% rev). Decays 1 point every 10s idle. Rewards constant attention rotation across departments. Transient (resets on page load).
+
 ### Activist Investors
 - Random events — someone tries hostile takeover
 - Must hit certain metrics to fight them off
