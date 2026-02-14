@@ -2285,16 +2285,16 @@ body {
     justify-content: stretch;
   }
 
-  /* Card row 3: Upgrade + Collect/Auto (full width) */
+  /* Card row 3: Upgrade + Collect/Auto (side by side) */
   .source-row > .cell-e {
-    flex: 1 1 auto;
+    flex: 1 1 45%;
     order: 11;
     display: flex !important;
     gap: 6px;
   }
 
   .source-row > .cell-f {
-    flex: 0 0 auto;
+    flex: 1 1 45%;
     order: 12;
     display: flex !important;
     gap: 6px;
@@ -2343,7 +2343,15 @@ body {
 
   /* Auto badge */
   .source-row .auto-badge {
-    display: none !important;
+    font-size: 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px 8px;
+    background: #e0f2f1;
+    border-radius: 4px;
+    color: #00695c;
+    font-weight: 600;
   }
 
   /* ===== OVERTIME ROW ===== */
