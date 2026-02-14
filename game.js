@@ -1112,7 +1112,7 @@ function buildGrid() {
     <div class="cell cell-b" id="overtime-clicks" style="font-size:11px;color:#888"></div>
     <div class="cell cell-c" id="overtime-next" style="font-family:Consolas,monospace;font-size:11px;color:#217346;justify-content:flex-end"></div>
     <div class="cell cell-d">
-      <button class="cell-btn btn-collect" id="overtime-btn" onclick="clickOvertime()">Push It</button>
+      <button class="cell-btn btn-collect" id="overtime-btn" onclick="clickOvertime()" title="Instant cash (5s of revenue). Diminishing returns per quarter.">Push It</button>
     </div>
     <div class="cell cell-e" id="overtime-diminish" style="font-size:10px;color:#999"></div>
     <div class="cell cell-f"></div>
@@ -1230,7 +1230,7 @@ function updateGridValues() {
       const maxHires = maxAffordable(state);
       const upgradeMult = 1 + state.upgradeLevel * 0.5;
       const hireGainPerDay = src.baseRate * upgradeMult / 365.25;
-      a1.innerHTML = (maxHires > 1 ? `<button class="cell-btn btn-max" onclick="hireMax(${i})">Max(${maxHires})</button>` : '') +
+      a1.innerHTML = (maxHires > 1 ? `<button class="cell-btn btn-max" onclick="hireMax(${i})" title="Hire all ${maxHires} you can afford">Max(${maxHires})</button>` : '') +
         `<button class="cell-btn btn-hire" onclick="hireEmployee(${i})" ${gameState.cash >= hCost ? '' : 'disabled'} title="Hire 1 employee — adds ${formatPerTick(hireGainPerDay)}/day">Hire ${formatMoney(hCost)} (+${formatPerTick(hireGainPerDay)}/d)</button>`;
     }
 
@@ -1241,7 +1241,7 @@ function updateGridValues() {
     } else {
       const maxUpgrades = maxAffordableUpgrades(state);
       const revGainPerDay = state.employees * src.baseRate * 0.5 / 365.25;
-      a2.innerHTML = (maxUpgrades > 1 ? `<button class="cell-btn btn-max" onclick="upgradeMax(${i})">Max(${maxUpgrades})</button>` : '') +
+      a2.innerHTML = (maxUpgrades > 1 ? `<button class="cell-btn btn-max" onclick="upgradeMax(${i})" title="Buy all ${maxUpgrades} upgrades you can afford">Max(${maxUpgrades})</button>` : '') +
         `<button class="cell-btn btn-upgrade" onclick="upgradeSource(${i})" ${gameState.cash >= uCost ? '' : 'disabled'} title="+50% efficiency per employee — adds ${formatPerTick(revGainPerDay)}/day">⬆ ${formatMoney(uCost)} (+${formatPerTick(revGainPerDay)}/d)</button>`;
     }
 
@@ -1251,7 +1251,7 @@ function updateGridValues() {
       const pending = state.pendingCollect;
       const clickVal = src.clickValue;
       const hasPending = pending > 0.005;
-      a3.innerHTML = `<button class="cell-btn btn-collect" onclick="collectSource(${i})">Collect${hasPending ? ' ' + formatMoney(pending) : ''} (+${formatMoney(clickVal)})</button>`;
+      a3.innerHTML = `<button class="cell-btn btn-collect" onclick="collectSource(${i})" title="Click to collect pending revenue">Collect${hasPending ? ' ' + formatMoney(pending) : ''} (+${formatMoney(clickVal)})</button>`;
     } else if (gameState.isPublic) {
       const pCost = prestigeCost(state);
       const canPrestige = gameState.retainedEarnings >= pCost;
@@ -2099,11 +2099,16 @@ function updateTaxPanel() {
       const btnStyle = (active) => active
         ? 'cursor:pointer;font-weight:700;color:#fff;background:#0078d4;padding:1px 6px;border-radius:2px;font-size:11px;margin-right:3px'
         : 'cursor:pointer;color:#0078d4;border:1px solid #0078d4;padding:1px 5px;border-radius:2px;font-size:10px;margin-right:3px;background:transparent';
-      let cfoManual = `<span style="${btnStyle(activeCFO === 0)}" onclick="setActiveCFOLevel(0)">Manual</span>`;
+      let cfoManual = `<span style="${btnStyle(activeCFO === 0)}" onclick="setActiveCFOLevel(0)" title="Set earnings guidance yourself each quarter">Manual</span>`;
       const labels = { 1: '👶 1', 2: '📊 2', 3: '🎩 3' };
+      const tooltips = {
+        1: 'The Intern — auto-sets guidance randomly (often wrong)',
+        2: 'Competent CFO — analyzes trends, ~70% optimal',
+        3: 'Elite CFO — factors in everything, ~90% optimal'
+      };
       let cfoLevels = '';
       for (let lvl = 1; lvl <= maxCFOLevel; lvl++) {
-        cfoLevels += `<span style="${btnStyle(activeCFO === lvl)}" onclick="setActiveCFOLevel(${lvl})">${labels[lvl]}</span>`;
+        cfoLevels += `<span style="${btnStyle(activeCFO === lvl)}" onclick="setActiveCFOLevel(${lvl})" title="${tooltips[lvl]}">${labels[lvl]}</span>`;
       }
       // Record for active CFO
       const record = gameState.cfoRecords[activeCFO];
