@@ -955,6 +955,11 @@ function totalAnnualRev() {
 
 // ===== FORMATTING =====
 function formatMoney(n) {
+  if (n >= 1e33) return '$' + (n / 1e33).toFixed(2) + 'Dc';
+  if (n >= 1e30) return '$' + (n / 1e30).toFixed(2) + 'No';
+  if (n >= 1e27) return '$' + (n / 1e27).toFixed(2) + 'Oc';
+  if (n >= 1e24) return '$' + (n / 1e24).toFixed(2) + 'Sp';
+  if (n >= 1e21) return '$' + (n / 1e21).toFixed(2) + 'Sx';
   if (n >= 1e18) return '$' + (n / 1e18).toFixed(2) + 'Qi';
   if (n >= 1e15) return '$' + (n / 1e15).toFixed(2) + 'Q';
   if (n >= 1e12) return '$' + (n / 1e12).toFixed(2) + 'T';
@@ -970,6 +975,11 @@ function formatNum(n) {
 
 function formatRate(annualRev) {
   // Show rate in the most readable unit
+  if (annualRev >= 1e33) return '$' + (annualRev / 1e33).toFixed(1) + 'Dc/yr';
+  if (annualRev >= 1e30) return '$' + (annualRev / 1e30).toFixed(1) + 'No/yr';
+  if (annualRev >= 1e27) return '$' + (annualRev / 1e27).toFixed(1) + 'Oc/yr';
+  if (annualRev >= 1e24) return '$' + (annualRev / 1e24).toFixed(1) + 'Sp/yr';
+  if (annualRev >= 1e21) return '$' + (annualRev / 1e21).toFixed(1) + 'Sx/yr';
   if (annualRev >= 1e18) return '$' + (annualRev / 1e18).toFixed(1) + 'Qi/yr';
   if (annualRev >= 1e15) return '$' + (annualRev / 1e15).toFixed(1) + 'Q/yr';
   if (annualRev >= 1e12) return '$' + (annualRev / 1e12).toFixed(1) + 'T/yr';
@@ -980,6 +990,11 @@ function formatRate(annualRev) {
 }
 
 function formatPerTick(perTick) {
+  if (perTick >= 1e33) return '$' + (perTick / 1e33).toFixed(1) + 'Dc';
+  if (perTick >= 1e30) return '$' + (perTick / 1e30).toFixed(1) + 'No';
+  if (perTick >= 1e27) return '$' + (perTick / 1e27).toFixed(1) + 'Oc';
+  if (perTick >= 1e24) return '$' + (perTick / 1e24).toFixed(1) + 'Sp';
+  if (perTick >= 1e21) return '$' + (perTick / 1e21).toFixed(1) + 'Sx';
   if (perTick >= 1e18) return '$' + (perTick / 1e18).toFixed(1) + 'Qi';
   if (perTick >= 1e15) return '$' + (perTick / 1e15).toFixed(1) + 'Q';
   if (perTick >= 1e12) return '$' + (perTick / 1e12).toFixed(1) + 'T';
@@ -4553,6 +4568,11 @@ function drawValuationChart() {
 function formatCompact(n) {
   const sign = n < 0 ? '-' : '';
   const a = Math.abs(n);
+  if (a >= 1e33) return sign + '$' + (a / 1e33).toFixed(1) + 'Dc';
+  if (a >= 1e30) return sign + '$' + (a / 1e30).toFixed(1) + 'No';
+  if (a >= 1e27) return sign + '$' + (a / 1e27).toFixed(1) + 'Oc';
+  if (a >= 1e24) return sign + '$' + (a / 1e24).toFixed(1) + 'Sp';
+  if (a >= 1e21) return sign + '$' + (a / 1e21).toFixed(1) + 'Sx';
   if (a >= 1e18) return sign + '$' + (a / 1e18).toFixed(1) + 'Qi';
   if (a >= 1e15) return sign + '$' + (a / 1e15).toFixed(1) + 'Q';
   if (a >= 1e12) return sign + '$' + (a / 1e12).toFixed(1) + 'T';
