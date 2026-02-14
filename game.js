@@ -3295,6 +3295,17 @@ function initToastDrag() {
     toastDragState = { startX: e.clientX, startY: e.clientY, origLeft: rect.left, origTop: rect.top };
   });
 
+  header.addEventListener('touchstart', (e) => {
+    if (e.target.id === 'toast-close') return;
+    const t = e.touches[0];
+    const toast = document.getElementById('event-toast');
+    const rect = toast.getBoundingClientRect();
+    toast.style.transform = 'none';
+    toast.style.left = rect.left + 'px';
+    toast.style.top = rect.top + 'px';
+    toastDragState = { startX: t.clientX, startY: t.clientY, origLeft: rect.left, origTop: rect.top };
+  }, { passive: true });
+
   document.addEventListener('mousemove', (e) => {
     if (!toastDragState) return;
     const dx = e.clientX - toastDragState.startX;
@@ -3304,7 +3315,26 @@ function initToastDrag() {
     toast.style.top = (toastDragState.origTop + dy) + 'px';
   });
 
+  document.addEventListener('touchmove', (e) => {
+    if (!toastDragState) return;
+    const t = e.touches[0];
+    const dx = t.clientX - toastDragState.startX;
+    const dy = t.clientY - toastDragState.startY;
+    const toast = document.getElementById('event-toast');
+    toast.style.left = (toastDragState.origLeft + dx) + 'px';
+    toast.style.top = (toastDragState.origTop + dy) + 'px';
+  }, { passive: true });
+
   document.addEventListener('mouseup', () => {
+    if (toastDragState) {
+      const toast = document.getElementById('event-toast');
+      const rect = toast.getBoundingClientRect();
+      localStorage.setItem('quarterClose_toastPos', JSON.stringify({ left: rect.left, top: rect.top }));
+      toastDragState = null;
+    }
+  });
+
+  document.addEventListener('touchend', () => {
     if (toastDragState) {
       const toast = document.getElementById('event-toast');
       const rect = toast.getBoundingClientRect();
@@ -3327,6 +3357,16 @@ function initToastDrag() {
     dealDragState = { startX: e.clientX, startY: e.clientY, origLeft: rect.left, origTop: rect.top };
   });
 
+  dealHeader.addEventListener('touchstart', (e) => {
+    const t = e.touches[0];
+    const popup = document.getElementById('deal-popup');
+    const rect = popup.getBoundingClientRect();
+    popup.style.transform = 'none';
+    popup.style.left = rect.left + 'px';
+    popup.style.top = rect.top + 'px';
+    dealDragState = { startX: t.clientX, startY: t.clientY, origLeft: rect.left, origTop: rect.top };
+  }, { passive: true });
+
   document.addEventListener('mousemove', (e) => {
     if (!dealDragState) return;
     const dx = e.clientX - dealDragState.startX;
@@ -3336,7 +3376,26 @@ function initToastDrag() {
     popup.style.top = (dealDragState.origTop + dy) + 'px';
   });
 
+  document.addEventListener('touchmove', (e) => {
+    if (!dealDragState) return;
+    const t = e.touches[0];
+    const dx = t.clientX - dealDragState.startX;
+    const dy = t.clientY - dealDragState.startY;
+    const popup = document.getElementById('deal-popup');
+    popup.style.left = (dealDragState.origLeft + dx) + 'px';
+    popup.style.top = (dealDragState.origTop + dy) + 'px';
+  }, { passive: true });
+
   document.addEventListener('mouseup', () => {
+    if (dealDragState) {
+      const popup = document.getElementById('deal-popup');
+      const rect = popup.getBoundingClientRect();
+      localStorage.setItem('quarterClose_dealPos', JSON.stringify({ left: rect.left, top: rect.top }));
+      dealDragState = null;
+    }
+  });
+
+  document.addEventListener('touchend', () => {
     if (dealDragState) {
       const popup = document.getElementById('deal-popup');
       const rect = popup.getBoundingClientRect();
@@ -4396,12 +4455,25 @@ function initChartDrag() {
     chartDragState = { type: 'move', startX: e.clientX, startY: e.clientY, origLeft: rect.left, origTop: rect.top };
   });
 
+  container.addEventListener('touchstart', (e) => {
+    if (e.target === handle) return;
+    const t = e.touches[0];
+    const rect = container.getBoundingClientRect();
+    chartDragState = { type: 'move', startX: t.clientX, startY: t.clientY, origLeft: rect.left, origTop: rect.top };
+  }, { passive: true });
+
   // Resize — on the handle
   handle.addEventListener('mousedown', (e) => {
     e.preventDefault();
     e.stopPropagation();
     chartDragState = { type: 'resize', startX: e.clientX, startY: e.clientY, origW: container.offsetWidth, origH: container.offsetHeight };
   });
+
+  handle.addEventListener('touchstart', (e) => {
+    e.stopPropagation();
+    const t = e.touches[0];
+    chartDragState = { type: 'resize', startX: t.clientX, startY: t.clientY, origW: container.offsetWidth, origH: container.offsetHeight };
+  }, { passive: true });
 
   document.addEventListener('mousemove', (e) => {
     if (!chartDragState) return;
@@ -4421,7 +4493,30 @@ function initChartDrag() {
     }
   });
 
+  document.addEventListener('touchmove', (e) => {
+    if (!chartDragState) return;
+    const t = e.touches[0];
+    if (chartDragState.type === 'move') {
+      const dx = t.clientX - chartDragState.startX;
+      const dy = t.clientY - chartDragState.startY;
+      container.style.left = (chartDragState.origLeft + dx) + 'px';
+      container.style.top = (chartDragState.origTop + dy) + 'px';
+      container.style.right = 'auto';
+    } else if (chartDragState.type === 'resize') {
+      const dx = t.clientX - chartDragState.startX;
+      const dy = t.clientY - chartDragState.startY;
+      const newW = Math.max(200, chartDragState.origW + dx);
+      const newH = Math.max(140, chartDragState.origH + dy);
+      container.style.width = newW + 'px';
+      container.style.height = newH + 'px';
+    }
+  }, { passive: true });
+
   document.addEventListener('mouseup', () => {
+    chartDragState = null;
+  });
+
+  document.addEventListener('touchend', () => {
     chartDragState = null;
   });
 }
