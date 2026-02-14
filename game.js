@@ -854,15 +854,13 @@ function ctoAutoUpgrade() {
   if (gameState.ctoQuarterBudget <= 0 && gameState.ctoBudgetPct > 0) {
     gameState.ctoQuarterBudget = (totalAnnualRev() / 4) * (gameState.ctoBudgetPct / 100);
     gameState.ctoSpentThisQuarter = 0;
-    console.log('[CTO] Bootstrap budget:', gameState.ctoQuarterBudget, 'from annual rev', totalAnnualRev(), 'at', gameState.ctoBudgetPct + '%');
   }
 
   // Budget check — don't exceed quarterly budget
-  if (gameState.ctoQuarterBudget > 0 && gameState.ctoSpentThisQuarter >= gameState.ctoQuarterBudget) {
-    console.log('[CTO] Budget exhausted:', gameState.ctoSpentThisQuarter, '>=', gameState.ctoQuarterBudget);
-    return;
-  }
-  const remainingBudget = gameState.ctoQuarterBudget - gameState.ctoSpentThisQuarter;
+  const budgetRemaining = gameState.ctoQuarterBudget > 0
+    ? gameState.ctoQuarterBudget - gameState.ctoSpentThisQuarter
+    : Infinity; // no budget set = unlimited (fallback)
+  if (budgetRemaining <= 0) return;
 
   // Build candidate list: all unlocked depts with affordable upgrades
   const candidates = [];
@@ -870,16 +868,12 @@ function ctoAutoUpgrade() {
     const state = gameState.sources[i];
     if (!state.unlocked || state.employees === 0) continue;
     const cost = upgradeCost(state);
-    if (cost > gameState.cash) continue;
-    if (cost > remainingBudget) continue; // budget constraint
-    const revGain = sourceRevPerTick(state) * 0.5; // upgrading adds 50% revenue
+    if (cost > gameState.cash || cost > budgetRemaining) continue;
+    const revGain = sourceRevPerTick(state) * 0.5;
     const roi = cost > 0 ? revGain / cost : 0;
     candidates.push({ index: i, cost, revGain, roi });
   }
-  if (candidates.length === 0) {
-    console.log('[CTO] No candidates. Cash:', gameState.cash, 'Budget remaining:', remainingBudget, 'Sources:', gameState.sources.length);
-    return;
-  }
+  if (candidates.length === 0) return;
 
   let pick = null;
 
@@ -910,6 +904,9 @@ function ctoAutoUpgrade() {
   if (pick) {
     gameState.ctoSpentThisQuarter += pick.cost;
     upgradeSource(pick.index);
+    // Show CTO activity in status bar
+    const deptName = SOURCE_STATS[gameState.sources[pick.index].id]?.name || 'Dept';
+    document.getElementById('status-text').textContent = `🔧 CTO: upgraded ${deptName} (${formatMoney(pick.cost)})`;
   }
 }
 
