@@ -1442,6 +1442,10 @@ body {
   animation: flash 0.3s ease-out;
 }
 
+.db-outage > .cell {
+  background: #fff0f0 !important;
+}
+
 @keyframes flash {
   0% { background-color: #c8e6c9; }
   100% { background-color: transparent; }

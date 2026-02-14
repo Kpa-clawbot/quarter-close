@@ -1444,10 +1444,19 @@ function updateGridValues() {
 
     // Rev/day (column C) — show focus bonus when active
     const rateCell = row.querySelector('[data-field="rate"]');
-    if (isFeatureEnabled('managementFocus') && focusLevel > 0) {
-      rateCell.innerHTML = `${formatPerTick(revPerDay)} <span class="focus-bonus">+${focusLevel * 5}%</span>`;
+    // DB outage visual
+    const isDbDown = gameState.dbOutage && Date.now() < gameState.dbOutage.until && gameState.dbOutage.sourceIndex === i;
+    if (isDbDown) {
+      row.classList.add('db-outage');
+      const secsLeft = Math.ceil((gameState.dbOutage.until - Date.now()) / 1000);
+      rateCell.innerHTML = `<span style="color:#c00;font-weight:600">💾 OFFLINE ${secsLeft}s</span>`;
     } else {
-      rateCell.textContent = formatPerTick(revPerDay);
+      row.classList.remove('db-outage');
+      if (isFeatureEnabled('managementFocus') && focusLevel > 0) {
+        rateCell.innerHTML = `${formatPerTick(revPerDay)} <span class="focus-bonus">+${focusLevel * 5}%</span>`;
+      } else {
+        rateCell.textContent = formatPerTick(revPerDay);
+      }
     }
 
     // Rev/yr (column G)
