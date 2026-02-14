@@ -99,7 +99,7 @@ Each revenue source has:
 
 ### Weighted Event System
 Events use weighted random selection. Global frequency adjustable via Settings slider (0×–3×).
-Both cooldown timer and roll chance scale with the multiplier (3× = actually 3× more events).
+Both cooldown timer and roll chance scale with the multiplier (10× = actually 10× more events).
 
 | Weight | Events |
 |--------|--------|
@@ -108,7 +108,7 @@ Both cooldown timer and roll chance scale with the multiplier (3× = actually 3�
 | 2 (regular) | Power Outage, Cloud Outage, Laptop Recall, TikTok, Reddit, News, Forbes, R&D Breakthrough |
 | 1 (rare) | College Buddy, Ransomware, DDoS, DB Corruption |
 
-At 1×: ~2.6 min real time between events. Breakthrough avg ~3.5 game years.
+At 1×: ~1 event per quarter. Base chance 2%/tick, cooldown 30-60s. Breakthrough avg ~3.5 game years.
 
 ### Standard Behavior
 - All rewards/costs scale with game state (% of cash or × per-tick revenue)

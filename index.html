@@ -408,7 +408,7 @@
         </div>
         <div class="options-section">
           <h4>Event Frequency</h4>
-          <p class="options-desc">How often random events (IT disasters, PR, breakthroughs, etc.) fire.</p>
+          <p class="options-desc">How often random events fire. Default: ~1 event per quarter.</p>
           <label class="option-toggle" style="align-items:center">
             <input type="range" id="event-freq-slider" min="0" max="1000" value="100" step="10" oninput="setEventFreqMult(this.value)" style="width:120px">
             <span class="option-name" id="event-freq-label">📬 Events: 1.0×</span>
@@ -510,7 +510,8 @@
               <p>Toast notifications with choices: Mom's investment, angry customers, viral moments, IT disasters, R&D breakthroughs, and more.</p>
               <p>Each has a <b>10-second timer</b> — the last option auto-fires if you don't choose.</p>
               <p>Events have different rarities — angry customers and password resets happen often, while ransomware and DDoS attacks are rare.</p>
-              <p><b>Event frequency</b> can be adjusted in Settings (0× = off, 3× = chaos mode).</p>
+              <p>At default frequency, expect roughly <b>1 event per quarter</b>.</p>
+              <p><b>Event frequency</b> can be adjusted in Settings (0× = off, 10× = absolute mayhem).</p>
               <p><b>Golden cells</b> occasionally glow in the grid — click them fast for a big bonus!</p>
             </div>
             <div class="help-section">

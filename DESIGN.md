@@ -112,7 +112,7 @@ Events use weighted random selection. Higher weight = more frequent. Global freq
 | 2 | Regular | Power Outage, Cloud Outage, Laptop Recall, TikTok, Reddit, Local News, Forbes, R&D Breakthrough |
 | 1 | Rare | College Buddy, Ransomware, DDoS, DB Corruption |
 
-At 1× frequency: ~2.6 min between events. At 3×: ~52s (chaos mode). Cooldown AND roll chance both scale.
+At 1× frequency: ~1 event per quarter (~95s between events). At 10×: ~10 events per quarter. Cooldown AND roll chance both scale.
 
 ### Positive Events
 - **Lucky Client** (Sales Team) — one-time cash bonus (5-10× daily revenue of random dept)

@@ -373,12 +373,13 @@ Events now use weighted random selection instead of uniform. Each event has a `w
 - **Weight 2** (regular): Power Outage, Cloud Outage, Laptop Recall, TikTok, Reddit, News, Forbes, R&D Breakthrough
 - **Weight 1** (rare): College Buddy, Ransomware, DDoS, DB Corruption
 
-Total weight: 40. At default 1× frequency, events fire every ~2.6 min real time.
+Total weight: 40. Base chance: 2% per tick. Cooldown: 30-60s (avg 45s). ~1 event per quarter at 1×.
 
 ### Event Frequency Multiplier
 `EVENT_FREQ_MULT` scales BOTH the random roll chance AND the cooldown timer.
-- Slider in Settings: 0× (off) to 3.0× (chaos mode)
-- 1× = ~2.6 min between events, 3× = ~52s between events
+- Slider in Settings: 0× (off) to 10× (absolute mayhem)
+- 1× = ~1 event/quarter, 10× = ~10 events/quarter
+- Intensity indicators: 1-3× 🔥, 3-6× 💀, 7-10× ☠️
 - Persists in save file, resets on new game
 
 ### Debug Mode
