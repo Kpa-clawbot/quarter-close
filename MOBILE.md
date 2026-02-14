@@ -1,8 +1,21 @@
 # Quarter Close — Mobile Support
 
-## Status: ✅ Fully Playable & Polished
+## Status: ✅ Phase 1 Complete
 
 The mobile version is available at `/mobile/` and includes all features from master.
+
+### Phase 1 Summary (Completed 2026-02-14)
+
+Phase 1 delivered a fully playable mobile port of Quarter Close with:
+
+- **Card-based mobile layout** replacing the desktop spreadsheet grid — each department rendered as a rounded card with action buttons
+- **Bottom navigation bar** with four tabs: Ops, P&L, Board, More — with Board tab auto-hidden pre-IPO
+- **All 15 core mechanics working on mobile** — verified and tested (see checklist below)
+- **Touch-friendly UI** with minimum 44px tap targets across all interactive elements
+- **Haptic feedback** on all major actions (hire, upgrade, automate, collect, unlock, tab switch, etc.)
+- **Animations and active states** — button press feedback, cash pulse, card unlock animations, toast slide-ups, mini-task pop-in
+- **Nav badges and collect highlights** — P&L tab alert badge for tax debts, green highlight on collect buttons with pending revenue
+- **Multiple polish passes** — disabled button styling, hidden scrollbars, modal backdrop blur, overtime card styling, toast vertical stacking, safe area insets for notched phones
 
 ## Architecture
 

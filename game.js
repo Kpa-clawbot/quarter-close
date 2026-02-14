@@ -4939,9 +4939,21 @@ function updateMobileNav() {
 function updateMobileCashHeader() {
   const amountEl = document.getElementById('mob-cash-amount');
   const perdayEl = document.getElementById('mob-cash-perday');
+  const revyrEl = document.getElementById('mob-cash-revyr');
+  const stockEl = document.getElementById('mob-cash-stock');
   if (!amountEl || !perdayEl || !gameState.arc) return;
   amountEl.textContent = formatMoney(gameState.cash);
   perdayEl.textContent = formatPerTick(totalRevPerTick()) + '/day';
+  if (revyrEl) {
+    revyrEl.textContent = formatRate(totalAnnualRev()) + '/yr';
+  }
+  if (stockEl) {
+    if (gameState.isPublic) {
+      stockEl.textContent = '📈 ' + formatMoney(getStockPrice());
+    } else {
+      stockEl.textContent = '';
+    }
+  }
 }
 
 function updateMobileSettings() {

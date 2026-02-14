@@ -2109,6 +2109,7 @@ body {
   /* Touch optimization */
   *, *::before, *::after {
     touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
   }
 
   html, body {
@@ -2159,6 +2160,9 @@ body {
     position: sticky;
     top: 0;
     z-index: 10;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    user-select: none;
   }
 
   #row-cash .row-num { display: none; }
@@ -2196,8 +2200,9 @@ body {
   /* Stock price */
   #row-cash #stock-price-cell {
     flex: 0 0 auto;
-    order: 3;
+    order: 4;
     justify-content: flex-end;
+    margin-left: 8px;
   }
   #row-cash #stock-price-cell span {
     color: rgba(255,255,255,0.9) !important;
@@ -2206,10 +2211,28 @@ body {
   /* Hide desktop-specific cells in cash row */
   #row-cash .cash-label,
   #row-cash .cell-d,
-  #row-cash .cell-e,
-  #row-cash .rev-label,
-  #row-cash .rev-value {
+  #row-cash .cell-e {
     display: none !important;
+  }
+
+  /* Total Rev/yr — show inline on row 2 */
+  #row-cash .rev-label {
+    display: none !important;
+  }
+  #row-cash .rev-value {
+    flex: 0 0 auto;
+    order: 3;
+    font-size: 11px !important;
+    color: rgba(255,255,255,0.7) !important;
+    justify-content: flex-end;
+    font-family: 'Consolas', 'Courier New', monospace;
+    margin-left: 6px;
+  }
+  #row-cash .rev-value::before {
+    content: "Rev/yr: ";
+    font-family: 'Segoe UI', sans-serif;
+    font-size: 10px;
+    color: rgba(255,255,255,0.55);
   }
 
   /* ===== GRID CONTAINER: Card-based vertical scroll ===== */
@@ -2579,6 +2602,11 @@ body {
     align-items: center;
     justify-content: space-between;
     order: -2;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    user-select: none;
+    flex-wrap: wrap;
+    gap: 2px 0;
   }
   #mobile-cash-header.visible {
     display: flex !important;
@@ -2587,6 +2615,12 @@ body {
     font-size: 18px;
     font-weight: 700;
     font-family: 'Consolas', 'Courier New', monospace;
+  }
+  #mob-cash-right {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 1px;
   }
   #mob-cash-perday {
     font-size: 12px;
