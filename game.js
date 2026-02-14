@@ -2917,6 +2917,28 @@ function updateToastButtons() {
   }
 }
 
+// ===== DEBUG MODE — tap cash label 7× quickly =====
+let debugTapCount = 0;
+let debugTapTimer = null;
+let debugMode = false;
+
+function initDebugTap() {
+  const cashLabel = document.querySelector('.cash-label');
+  if (!cashLabel) return;
+  cashLabel.style.cursor = 'default';
+  cashLabel.addEventListener('click', () => {
+    debugTapCount++;
+    clearTimeout(debugTapTimer);
+    debugTapTimer = setTimeout(() => { debugTapCount = 0; }, 2000);
+    if (debugTapCount >= 7) {
+      debugTapCount = 0;
+      debugMode = !debugMode;
+      document.getElementById('debug-tools').classList.toggle('hidden', !debugMode);
+      document.getElementById('status-text').textContent = debugMode ? '🧪 Debug mode enabled' : '🧪 Debug mode disabled';
+    }
+  });
+}
+
 // ===== DEBUG: TRIGGER EVENTS =====
 function toggleDebugEventDropdown() {
   const dd = document.getElementById('debug-event-dropdown');
@@ -4297,6 +4319,7 @@ function init() {
   generateBossGrid();
   initChartDrag();
   initToastDrag();
+  initDebugTap();
 
   // Delegated click handler for tax panel buttons (survives innerHTML rebuilds)
   document.getElementById('tax-panel').addEventListener('click', (e) => {
