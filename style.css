@@ -2770,7 +2770,17 @@ body {
     padding: 8px 12px;
     word-wrap: break-word;
     overflow-wrap: break-word;
-    white-space: pre-wrap;
+  }
+  #toast-body .er-row {
+    padding: 2px 0;
+    font-size: 13px;
+  }
+  #toast-body table {
+    width: 100%;
+    font-size: 13px;
+  }
+  #toast-body td {
+    padding: 2px 4px;
   }
   #toast-actions {
     padding: 8px 12px 12px;
