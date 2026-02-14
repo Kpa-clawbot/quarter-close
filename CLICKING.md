@@ -6,7 +6,7 @@ All mechanics have feature toggles (Data menu → Game Options).
 ---
 
 ## 0. Feature Toggle System
-**Status:** [ ] Not started
+**Status:** [x] Shipped (commit `fd5d0de`)
 
 - Data menu → "Game Options..." menu item
 - Modal dialog styled like Excel Options (list on left, settings on right)

@@ -1096,6 +1096,27 @@ function buildGrid() {
     container.appendChild(row);
   }
 
+  // Overtime row (below sources, hidden until feature enabled + has revenue)
+  const overtimeRow = document.createElement('div');
+  overtimeRow.className = 'grid-row source-row';
+  overtimeRow.id = 'overtime-row';
+  overtimeRow.style.display = 'none';
+  const otRowNum = SOURCE_STATS.length + 4;
+  overtimeRow.innerHTML = `
+    <div class="row-num">${otRowNum}</div>
+    <div class="cell cell-a" style="font-weight:600;color:#555">⏰ Overtime</div>
+    <div class="cell cell-b" id="overtime-clicks" style="font-size:11px;color:#888"></div>
+    <div class="cell cell-c" id="overtime-next" style="font-family:Consolas,monospace;font-size:11px;color:#217346;justify-content:flex-end"></div>
+    <div class="cell cell-d">
+      <button class="cell-btn btn-collect" id="overtime-btn" onclick="clickOvertime()">Push It</button>
+    </div>
+    <div class="cell cell-e" id="overtime-diminish" style="font-size:10px;color:#999"></div>
+    <div class="cell cell-f"></div>
+    <div class="cell cell-g"></div>
+    <div class="cell cell-h empty-cell"></div>
+  `;
+  container.appendChild(overtimeRow);
+
   // Filler rows
   buildFillerRows();
 
@@ -1337,6 +1358,9 @@ function updateDisplay() {
 
   // Update P&L section
   updateTaxPanel();
+
+  // Update overtime row
+  updateOvertimeRow();
 
   // Update Board Room tab visibility and content
   updateBoardRoomTab();
@@ -2288,6 +2312,7 @@ function gameTick() {
   if (currentDay - gameState.lastQuarterDay >= 90) {
     processQuarterlyTax();
     gameState.lastQuarterDay = currentDay;
+    gameState.overtimeClicks = 0; // reset overtime each quarter
   }
 
   // Tax debt processing (each tick = 1 day)
@@ -2556,6 +2581,7 @@ function saveGame() {
     revenueHistory: gameState.revenueHistory || [],
     lastQuarterRE: gameState.lastQuarterRE || 0,
     featureToggles: gameState.featureToggles || DEFAULT_FEATURES,
+    overtimeClicks: gameState.overtimeClicks || 0,
     savedAt: Date.now(),
   };
 
@@ -2631,6 +2657,7 @@ function loadGame() {
     gameState.revenueHistory = data.revenueHistory || [];
     gameState.lastQuarterRE = data.lastQuarterRE || 0;
     gameState.featureToggles = data.featureToggles || { ...DEFAULT_FEATURES };
+    gameState.overtimeClicks = data.overtimeClicks || 0;
     gameState.activeTab = 'operations';
 
     // Rebuild sources for selected arc
@@ -2744,6 +2771,7 @@ function resetGame() {
   gameState.revenueHistory = [];
   gameState.lastQuarterRE = 0;
   gameState.featureToggles = { ...DEFAULT_FEATURES };
+  gameState.overtimeClicks = 0;
   gameState.eventCooldown = 0;
   gameState.miniTaskCooldown = 0;
   gameState.miniTaskActive = false;
@@ -2953,6 +2981,59 @@ function showGameOptions() {
 
 function dismissOptions() {
   document.getElementById('options-modal').classList.add('hidden');
+}
+
+// ===== OVERTIME =====
+function clickOvertime() {
+  if (!isFeatureEnabled('overtime')) return;
+  const rev = totalRevPerTick();
+  if (rev <= 0) return;
+
+  if (!gameState.overtimeClicks) gameState.overtimeClicks = 0;
+
+  // Base = 5 seconds of revenue, diminishing returns
+  const diminish = 1 / (1 + gameState.overtimeClicks * 0.15);
+  const amount = rev * 5 * diminish;
+
+  gameState.cash += amount;
+  gameState.totalEarned += amount;
+  gameState.quarterRevenue += amount;
+  if (gameState.isPublic) gameState.earningsQuarterRevenue += amount;
+  gameState.overtimeClicks++;
+
+  // Status bar feedback
+  document.getElementById('status-text').textContent = `⏰ Overtime! +${formatMoney(amount)}`;
+  setTimeout(() => {
+    const st = document.getElementById('status-text');
+    if (st && st.textContent.startsWith('⏰')) st.textContent = 'Ready';
+  }, 2000);
+
+  updateOvertimeRow();
+  updateDisplay();
+}
+
+function updateOvertimeRow() {
+  const row = document.getElementById('overtime-row');
+  if (!row) return;
+
+  const enabled = isFeatureEnabled('overtime');
+  const hasRev = totalRevPerTick() > 0;
+
+  if (!enabled || !hasRev) {
+    row.style.display = 'none';
+    return;
+  }
+  row.style.display = '';
+
+  const clicks = gameState.overtimeClicks || 0;
+  const rev = totalRevPerTick();
+  const nextDiminish = 1 / (1 + clicks * 0.15);
+  const nextAmount = rev * 5 * nextDiminish;
+  const pct = Math.round(nextDiminish * 100);
+
+  document.getElementById('overtime-clicks').textContent = clicks > 0 ? `${clicks} this Q` : '';
+  document.getElementById('overtime-next').textContent = `+${formatMoney(nextAmount)}`;
+  document.getElementById('overtime-diminish').textContent = clicks > 0 ? `${pct}% efficiency` : '';
 }
 
 function showAbout() {
