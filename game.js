@@ -4758,12 +4758,21 @@ function mobileSwitchTab(tab) {
   const pnlView = document.getElementById('mobile-pnl-view');
   const brView = document.getElementById('mobile-boardroom-view');
   const settingsView = document.getElementById('mobile-settings-view');
+  const cashHeader = document.getElementById('mobile-cash-header');
 
   // Hide all
   gridContainer.style.display = 'none';
   pnlView.classList.add('hidden');
   brView.classList.add('hidden');
   settingsView.classList.add('hidden');
+
+  // Show mini cash header on non-ops tabs
+  if (tab !== 'operations' && cashHeader) {
+    cashHeader.classList.add('visible');
+    updateMobileCashHeader();
+  } else if (cashHeader) {
+    cashHeader.classList.remove('visible');
+  }
 
   switch (tab) {
     case 'operations':
@@ -4800,6 +4809,14 @@ function updateMobileNav() {
       brBtn.classList.add('hidden');
     }
   }
+}
+
+function updateMobileCashHeader() {
+  const amountEl = document.getElementById('mob-cash-amount');
+  const perdayEl = document.getElementById('mob-cash-perday');
+  if (!amountEl || !perdayEl || !gameState.arc) return;
+  amountEl.textContent = formatMoney(gameState.cash);
+  perdayEl.textContent = formatPerTick(totalRevPerTick()) + '/day';
 }
 
 function updateMobileSettings() {
@@ -5133,6 +5150,11 @@ function mobileTickUpdate() {
   if (!isMobile()) return;
 
   updateMobileNav();
+
+  // Always update cash header if visible
+  if (_mobileActiveTab !== 'operations') {
+    updateMobileCashHeader();
+  }
 
   // Update active mobile tab content
   if (_mobileActiveTab === 'pnl') {

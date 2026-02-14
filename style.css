@@ -2504,6 +2504,29 @@ body {
   .mob-nav-icon { font-size: 20px; line-height: 1; }
   .mob-nav-label { font-size: 10px; margin-top: 2px; font-weight: 600; }
 
+  /* ===== MOBILE CASH HEADER (non-ops tabs) ===== */
+  #mobile-cash-header {
+    display: none;
+    padding: 8px 12px;
+    background: linear-gradient(135deg, #217346, #1a5c38);
+    color: white;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: space-between;
+  }
+  #mobile-cash-header.visible {
+    display: flex !important;
+  }
+  #mob-cash-amount {
+    font-size: 18px;
+    font-weight: 700;
+    font-family: 'Consolas', 'Courier New', monospace;
+  }
+  #mob-cash-perday {
+    font-size: 12px;
+    color: rgba(255,255,255,0.8);
+  }
+
   /* ===== MOBILE P&L VIEW ===== */
   #mobile-pnl-view {
     flex: 1;
