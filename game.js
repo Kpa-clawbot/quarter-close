@@ -614,10 +614,12 @@ function automateCost(source) {
 
 // Prestige: restructure a department for 10× revenue, costs RE
 function prestigeCost(source) {
+  const tier = source.id;
   const level = source.prestigeLevel || 0;
-  // Flat 50 RE base, scales 3× per prestige level (50 → 150 → 450 → 1350...)
-  // No tier scaling — higher tiers are inherently more valuable (10× bigger base)
-  return Math.floor(50 * Math.pow(3, level));
+  // Mild tier scaling: lemonade stand is cheap, megacorp is expensive
+  // 50 × (1 + tier) × 3^level
+  // Tier 0: 50 → 150 → 450 | Tier 11: 600 → 1800 → 5400
+  return Math.floor(50 * (1 + tier) * Math.pow(3, level));
 }
 
 function restructureSource(index) {
