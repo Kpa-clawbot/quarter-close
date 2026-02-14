@@ -2575,6 +2575,8 @@ function saveGame() {
       upgradeLevel: s.upgradeLevel,
       automated: s.automated,
       pendingCollect: s.pendingCollect,
+      prestigeLevel: s.prestigeLevel || 0,
+      breakthroughMult: s.breakthroughMult || 1,
     })),
     seriesAShown: gameState.seriesAShown,
     totalPlayTime: gameState.totalPlayTime,
