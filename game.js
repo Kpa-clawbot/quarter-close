@@ -1587,8 +1587,10 @@ function updateGridValues() {
       const autoCell = row.querySelector('[data-field="annual"]');
       if (!state.automated) {
         autoCell.innerHTML = `<button class="cell-btn btn-automate" onclick="automateSource(${i})" ${gameState.cash >= aCost ? '' : 'disabled'} title="Revenue flows automatically">Automate ${formatMoney(aCost)}</button>`;
+        row.classList.remove('mob-automated');
       } else {
         autoCell.innerHTML = '<span class="auto-badge mob-auto-badge">⚡ AUTO</span>';
+        row.classList.add('mob-automated');
       }
     }
   }

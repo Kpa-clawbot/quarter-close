@@ -2329,11 +2329,12 @@ body {
     align-items: center;
     justify-content: center;
     width: 100%;
-    font-size: 12px;
+    font-size: 11px;
     color: #00897b;
     font-weight: 600;
-    padding: 6px 0;
-    min-height: 32px;
+    padding: 2px 0;
+    min-height: 20px;
+    opacity: 0.7;
   }
 
   /* Buttons inside cards: proper touch targets */
@@ -2365,9 +2366,13 @@ body {
 
   /* Prestige/Restructure button */
   .source-row .cell-btn.btn-prestige {
-    min-height: 36px;
-    font-size: 11px;
-    padding: 4px 8px;
+    min-height: 40px;
+    font-size: 12px;
+    padding: 6px 10px;
+    background: #fff8e1;
+    border: 1px solid #d4a017;
+    color: #8d6e0f;
+    font-weight: 600;
   }
 
   /* Auto badge - hide in action cells, show in dedicated Auto row */
@@ -2543,6 +2548,7 @@ body {
     -webkit-tap-highlight-color: transparent;
   }
   .mob-nav-btn.active { color: #217346; }
+  .mob-nav-btn:active { background: #f0f0f0; }
   .mob-nav-btn.hidden { display: none !important; }
   .mob-nav-icon { font-size: 20px; line-height: 1; }
   .mob-nav-label { font-size: 10px; margin-top: 2px; font-weight: 600; }
@@ -2957,6 +2963,11 @@ body {
   /* Focus bonus on mobile */
   .focus-bonus {
     font-size: 11px !important;
+  }
+
+  /* Automated department indicator */
+  .source-row.mob-automated {
+    border-left: 3px solid #00897b;
   }
 }
 
