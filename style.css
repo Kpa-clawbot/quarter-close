@@ -2325,14 +2325,15 @@ body {
 
   /* AUTO badge in cell-g when automated */
   .mob-auto-badge {
-    display: flex;
+    display: flex !important;
     align-items: center;
     justify-content: center;
     width: 100%;
     font-size: 12px;
     color: #00897b;
     font-weight: 600;
-    padding: 4px 0;
+    padding: 6px 0;
+    min-height: 32px;
   }
 
   /* Buttons inside cards: proper touch targets */
@@ -2369,8 +2370,8 @@ body {
     padding: 4px 8px;
   }
 
-  /* Auto badge - hide on mobile, automated status is obvious from button layout */
-  .source-row .auto-badge {
+  /* Auto badge - hide in action cells, show in dedicated Auto row */
+  .source-row .auto-badge:not(.mob-auto-badge) {
     display: none !important;
   }
 
@@ -2778,12 +2779,12 @@ body {
     max-width: 400px;
     left: 50% !important;
     top: auto !important;
-    bottom: 88px !important;
+    bottom: 100px !important;
     transform: translateX(-50%) !important;
     border-radius: 12px;
     box-shadow: 0 8px 32px rgba(0,0,0,0.25);
     font-size: 14px;
-    max-height: 70vh;
+    max-height: 60vh;
     overflow-y: auto;
   }
   #toast-header {
@@ -2839,7 +2840,7 @@ body {
     max-width: 380px !important;
     left: 50% !important;
     top: auto !important;
-    bottom: 88px !important;
+    bottom: 100px !important;
     transform: translateX(-50%) !important;
     border-radius: 12px !important;
     font-size: 14px;
