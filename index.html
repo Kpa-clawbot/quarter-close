@@ -20,7 +20,7 @@
   <meta name="description" content="An idle tycoon game disguised as a spreadsheet. Look busy. Get rich.">
   <title>Q4 Financials - Operations.xlsx - Quarter Close</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='4' fill='%23217346'/><rect x='4' y='4' width='7' height='5' rx='1' fill='white'/><rect x='13' y='4' width='7' height='5' rx='1' fill='white'/><rect x='22' y='4' width='7' height='5' rx='1' fill='white'/><rect x='4' y='11' width='7' height='5' rx='1' fill='white' opacity='0.8'/><rect x='13' y='11' width='7' height='5' rx='1' fill='white' opacity='0.8'/><rect x='22' y='11' width='7' height='5' rx='1' fill='white' opacity='0.8'/><rect x='4' y='18' width='7' height='5' rx='1' fill='white' opacity='0.6'/><rect x='13' y='18' width='7' height='5' rx='1' fill='white' opacity='0.6'/><rect x='22' y='18' width='7' height='5' rx='1' fill='white' opacity='0.6'/><rect x='4' y='25' width='7' height='5' rx='1' fill='white' opacity='0.4'/><rect x='13' y='25' width='7' height='5' rx='1' fill='white' opacity='0.4'/><rect x='22' y='25' width='7' height='5' rx='1' fill='white' opacity='0.4'/></svg>">
-  <link rel="stylesheet" href="style.css?v=46">
+  <link rel="stylesheet" href="style.css?v=52">
 </head>
 <body>
   <!-- ===== SPLASH SCREEN ===== -->
@@ -467,7 +467,7 @@
             </div>
             <div class="help-section">
               <h4>🤝 Close the Deal</h4>
-              <p>Random enterprise contracts pop up as toasts every 3–8 minutes.</p>
+              <p>Random enterprise contracts pop up as toasts every 1–4 minutes.</p>
               <p>Click <b>"✍️ Sign"</b> rapidly to collect enough signatures before the 12-second timer expires.</p>
               <p>Required clicks scale with company size. Reward = 30–60 seconds of revenue.</p>
               <p>Miss it? The client walks — no penalty, just missed money.</p>
@@ -517,10 +517,16 @@
             <div class="help-section">
               <h4>📊 CFO (Finance)</h4>
               <p>Auto-handles quarterly earnings guidance. Three levels:</p>
-              <p><b>Lv1 "The Intern"</b> — randomizes guidance (often wrong).</p>
-              <p><b>Lv2 "Competent CFO"</b> — analyzes trends, ~70% optimal.</p>
-              <p><b>Lv3 "Elite CFO"</b> — factors in everything, ~90% optimal.</p>
+              <p><b>Lv1 "The Intern"</b> — picks guidance randomly. Often wrong, but no more popups.</p>
+              <p><b>Lv2 "Competent CFO"</b> — reads context: plays safe after misses, gets bolder on beat streaks. ~70% optimal.</p>
+              <p><b>Lv3 "Elite CFO"</b> — factors in streaks, analyst pressure, bonuses, and penalties. Knows when to push and when to pull back. ~90% optimal.</p>
               <p>Switch between owned levels anytime in the IR section.</p>
+            </div>
+            <div class="help-section">
+              <h4>🔥 Earnings Streaks</h4>
+              <p>Consecutive beats earn bonus RE: <b>+10% per beat</b>, up to <b>2.0× at 10 beats</b>.</p>
+              <p>The current multiplier shows in the IR section and earnings report.</p>
+              <p>A miss resets your streak to zero. High streaks also make analysts ratchet up expectations faster — the CFO factors this in.</p>
             </div>
             <div class="help-section">
               <h4>💰 Revenue Boosts</h4>
