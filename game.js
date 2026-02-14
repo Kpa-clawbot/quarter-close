@@ -3282,6 +3282,16 @@ function dismissHelp() {
   document.getElementById('help-modal').classList.add('hidden');
 }
 
+function showHelpTab(tabId) {
+  document.querySelectorAll('.help-page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.help-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('help-' + tabId).classList.add('active');
+  // Find the tab button that matches
+  document.querySelectorAll('.help-tab').forEach(t => {
+    if (t.getAttribute('onclick').includes(tabId)) t.classList.add('active');
+  });
+}
+
 let pendingConfirmAction = null;
 
 function confirmNewGame() {

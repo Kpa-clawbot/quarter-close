@@ -20,7 +20,7 @@
   <meta name="description" content="An idle tycoon game disguised as a spreadsheet. Look busy. Get rich.">
   <title>Q4 Financials - Operations.xlsx - Quarter Close</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='4' fill='%23217346'/><rect x='4' y='4' width='7' height='5' rx='1' fill='white'/><rect x='13' y='4' width='7' height='5' rx='1' fill='white'/><rect x='22' y='4' width='7' height='5' rx='1' fill='white'/><rect x='4' y='11' width='7' height='5' rx='1' fill='white' opacity='0.8'/><rect x='13' y='11' width='7' height='5' rx='1' fill='white' opacity='0.8'/><rect x='22' y='11' width='7' height='5' rx='1' fill='white' opacity='0.8'/><rect x='4' y='18' width='7' height='5' rx='1' fill='white' opacity='0.6'/><rect x='13' y='18' width='7' height='5' rx='1' fill='white' opacity='0.6'/><rect x='22' y='18' width='7' height='5' rx='1' fill='white' opacity='0.6'/><rect x='4' y='25' width='7' height='5' rx='1' fill='white' opacity='0.4'/><rect x='13' y='25' width='7' height='5' rx='1' fill='white' opacity='0.4'/><rect x='22' y='25' width='7' height='5' rx='1' fill='white' opacity='0.4'/></svg>">
-  <link rel="stylesheet" href="style.css?v=40">
+  <link rel="stylesheet" href="style.css?v=41">
 </head>
 <body>
   <!-- ===== SPLASH SCREEN ===== -->
@@ -421,89 +421,182 @@
         <h3>📊 Quarter Close — Help</h3>
         <button class="help-close" onclick="dismissHelp()">✕</button>
       </div>
+      <div class="help-tabs">
+        <button class="help-tab active" onclick="showHelpTab('basics')">Basics</button>
+        <button class="help-tab" onclick="showHelpTab('active')">Active Play</button>
+        <button class="help-tab" onclick="showHelpTab('events')">Events & Taxes</button>
+        <button class="help-tab" onclick="showHelpTab('boardroom')">Board Room</button>
+        <button class="help-tab" onclick="showHelpTab('tips')">Tips</button>
+      </div>
       <div class="help-body">
-        <div class="help-section">
-          <h4>🎯 Goal</h4>
-          <p>Build a company from nothing. Start with a lemonade stand, end with a tech empire. The spreadsheet is your cover — it looks like you're working.</p>
+
+        <!-- BASICS TAB -->
+        <div class="help-page active" id="help-basics">
+          <div class="help-columns">
+            <div class="help-section">
+              <h4>🎯 Goal</h4>
+              <p>Build a company from nothing. Start with a blog, end with a tech empire. The spreadsheet is your cover — it looks like you're working.</p>
+            </div>
+            <div class="help-section">
+              <h4>🏗️ Departments</h4>
+              <p>Each department is a revenue source with employees. Higher tiers unlock as you earn more and produce exponentially more revenue.</p>
+            </div>
+            <div class="help-section">
+              <h4>👥 Hiring</h4>
+              <p><b>Hire</b> employees to increase revenue per day. The <b>Max(N)</b> button hires as many as you can afford at once.</p>
+            </div>
+            <div class="help-section">
+              <h4>⬆️ Upgrades</h4>
+              <p><b>Upgrade</b> a department to multiply each employee's output (2×, 4×, 8×...). Upgrades are the biggest revenue multiplier.</p>
+            </div>
+            <div class="help-section">
+              <h4>🤖 Automation</h4>
+              <p><b>Automate</b> a department so it collects revenue automatically — no more clicking "Collect". Essential for scaling.</p>
+            </div>
+            <div class="help-section">
+              <h4>📈 Earnings & IPO</h4>
+              <p>Once big enough, you'll <b>go public</b>. Each quarter you set earnings guidance, then try to beat it. Beating guidance earns <b>Retained Earnings (RE)</b> — the prestige currency for Board Room upgrades.</p>
+            </div>
+          </div>
         </div>
 
-        <div class="help-section">
-          <h4>💰 Making Money</h4>
-          <p><b>Click "Collect"</b> on a department to grab its pending revenue. Early on, clicking is your main income.</p>
-          <p><b>Hire employees</b> to increase a department's revenue per day. More staff = more money.</p>
-          <p><b>Upgrade</b> departments to multiply each employee's output (2×, 4×, 8×...).</p>
-          <p><b>Automate</b> a department so it collects revenue automatically — no clicking needed.</p>
-          <p><b>Unlock new departments</b> as you earn enough. Higher tiers earn exponentially more.</p>
+        <!-- ACTIVE PLAY TAB -->
+        <div class="help-page" id="help-active">
+          <p style="color:#888;margin-bottom:12px">All three mechanics are optional — toggle them in <b>Data → Game Options</b>.</p>
+          <div class="help-columns">
+            <div class="help-section">
+              <h4>🎯 Management Focus</h4>
+              <p><b>Click a department's name</b> (look for the 🎯 icon) to add focus points.</p>
+              <p>Each point = <b>+5% revenue</b> for that department, up to <b>+50%</b> at max focus.</p>
+              <p>Focus <b>decays</b> over time — 1 point lost every 10 seconds of not clicking. Keep rotating between departments for maximum benefit.</p>
+              <p>The bonus shows as a green percentage in the Rev/day column.</p>
+            </div>
+            <div class="help-section">
+              <h4>⏰ Overtime</h4>
+              <p>The <b>"Push It"</b> button below your departments gives instant cash equal to 5 seconds of revenue.</p>
+              <p><b>Diminishing returns:</b> each click in the same quarter gives less. Click 1 = 100%, click 5 ≈ 57%, click 10 ≈ 40%.</p>
+              <p>Resets every quarter — fresh energy each Q.</p>
+              <p>Shows your click count, next payout, and efficiency %.</p>
+            </div>
+            <div class="help-section">
+              <h4>🤝 Close the Deal</h4>
+              <p>Random enterprise contracts pop up as toasts every 3–8 minutes.</p>
+              <p>Click <b>"✍️ Sign"</b> rapidly to collect enough signatures before the 12-second timer expires.</p>
+              <p>Required clicks scale with company size. Reward = 30–60 seconds of revenue.</p>
+              <p>Miss it? The client walks — no penalty, just missed money.</p>
+            </div>
+            <div class="help-section">
+              <h4>📋 Mini-Tasks</h4>
+              <p>Desktop-style notifications pop up periodically. Click <b>✔ Approve</b> for bonus cash.</p>
+              <p>Auto-expire in 10 seconds — miss it and your streak resets.</p>
+              <p><b>Streaks:</b> 3 in a row = 1.5×, 5 = 2×, 10 = 3× reward.</p>
+            </div>
+          </div>
         </div>
 
-        <div class="help-section">
-          <h4>🎯 Active Play (Data → Game Options)</h4>
-          <p>Three optional mechanics that reward clicking. Toggle them on/off in Data → Game Options.</p>
-          <p><b>Management Focus:</b> Click a department's name to boost its revenue up to +50%. Focus decays over time — keep clicking to maintain the bonus.</p>
-          <p><b>Overtime:</b> The "Push It" button below your departments gives instant cash, but each click in the same quarter gives less. Resets every quarter.</p>
-          <p><b>Close the Deal:</b> Enterprise contracts pop up randomly. Click "Sign" rapidly to close before time runs out. Miss it and the client walks — no penalty, just missed money.</p>
+        <!-- EVENTS & TAXES TAB -->
+        <div class="help-page" id="help-events">
+          <div class="help-columns">
+            <div class="help-section">
+              <h4>📧 Random Events</h4>
+              <p>Toast notifications with choices: Mom's investment, angry customers, viral moments, power outages, and more.</p>
+              <p>Each has a <b>10-second timer</b> — the last option auto-fires if you don't choose.</p>
+              <p><b>Golden cells</b> occasionally glow in the grid — click them fast for a big bonus!</p>
+            </div>
+            <div class="help-section">
+              <h4>⚡ Power Outages</h4>
+              <p>Random power outages freeze all revenue for a short period. A countdown appears in the status bar.</p>
+              <p>Nothing you can do but wait — unless you have the right Board Room upgrade.</p>
+            </div>
+            <div class="help-section">
+              <h4>🏛️ Quarterly Taxes</h4>
+              <p>Every 90 game-days, the IRS sends a tax bill.</p>
+              <p><b>Regular tax:</b> 25% of (Revenue − Depreciation).</p>
+              <p><b>AMT floor:</b> You always pay at least 15% of gross revenue — can't deduct your way to zero.</p>
+            </div>
+            <div class="help-section">
+              <h4>⚠️ Tax Consequences</h4>
+              <p><b>Pay or ignore</b> — but ignored bills accrue <b>1% daily interest</b> and escalate:</p>
+              <p>Notice → 2nd Notice → <b>Garnishment</b> (−15% revenue) → <b>Asset Seizure</b>.</p>
+              <p><b>Depreciation:</b> Capital spending (hires, upgrades, automation) is deducted over 4 quarters, not immediately.</p>
+            </div>
+          </div>
         </div>
 
-        <div class="help-section">
-          <h4>📋 Mini-Tasks</h4>
-          <p>Desktop-style task notifications pop up periodically. Click <b>✔ Approve</b> for bonus cash. They auto-expire in 10 seconds — if you miss it, your streak resets.</p>
-          <p><b>Streaks:</b> 3 in a row = 1.5× reward, 5 = 2×, 10 = 3×.</p>
+        <!-- BOARD ROOM TAB -->
+        <div class="help-page" id="help-boardroom">
+          <p style="color:#888;margin-bottom:12px">Unlocks after <b>IPO</b>. Spend <b>Retained Earnings (RE)</b> on permanent upgrades.</p>
+          <div class="help-columns">
+            <div class="help-section">
+              <h4>📊 CFO (Finance)</h4>
+              <p>Auto-handles quarterly earnings guidance. Three levels:</p>
+              <p><b>Lv1 "The Intern"</b> — randomizes guidance (often wrong).</p>
+              <p><b>Lv2 "Competent CFO"</b> — analyzes trends, ~70% optimal.</p>
+              <p><b>Lv3 "Elite CFO"</b> — factors in everything, ~90% optimal.</p>
+              <p>Switch between owned levels anytime in the IR section.</p>
+            </div>
+            <div class="help-section">
+              <h4>💰 Revenue Boosts</h4>
+              <p><b>Revenue Multipliers</b> — permanent boosts that stack (1.1× → 1.25× → 1.5×).</p>
+              <p><b>Growth Initiative</b> — repeatable +2% per purchase. Cost scales 10% each time. Stacks multiplicatively — buy early, buy often.</p>
+            </div>
+            <div class="help-section">
+              <h4>🏛️ Tax & Protection</h4>
+              <p><b>Lobbyist / Tax Haven</b> — reduce tax rate (25% → 20% → 15%).</p>
+              <p><b>CPA on Retainer</b> — auto-pays taxes and settles debts. No more IRS toasts.</p>
+              <p><b>Golden Parachute</b> — blocks one IRS asset seizure (consumed, rebuyable).</p>
+              <p><b>Analyst Relations</b> — slows analyst expectation ratchet by 50%.</p>
+            </div>
+            <div class="help-section">
+              <h4>★ Restructure</h4>
+              <p>Each automated department gets a <b>★ Restructure</b> button post-IPO.</p>
+              <p>Each level = <b>10× revenue</b> for that department. Costs RE.</p>
+              <p>Stacks: ★2 = 100×, ★3 = 1,000×.</p>
+            </div>
+            <div class="help-section">
+              <h4>🔬 R&D Breakthroughs</h4>
+              <p>Random event: R&D discovers a breakthrough that <b>permanently doubles</b> a department's revenue.</p>
+              <p>Choose: implement (×2 revenue) or file patent (5% cash).</p>
+              <p>Stacks on same dept: ×4, ×8, ×16...</p>
+            </div>
+            <div class="help-section">
+              <h4>📈 Stock & Valuation</h4>
+              <p>Valuation = Cash + (Annual Revenue × market multiple).</p>
+              <p>The floating chart tracks it over time. Drag to move, resize from corner.</p>
+              <p>Stock price shown in column H of the stats row.</p>
+            </div>
+          </div>
         </div>
 
-        <div class="help-section">
-          <h4>📧 Events</h4>
-          <p>Random events pop up as desktop-style toasts (Mom's investment, angry customers, viral TikTok moments). Each has a 10-second timer — the last option auto-fires if you don't choose.</p>
-          <p><b>Golden cells</b> occasionally glow gold in the grid — click them fast for a big bonus!</p>
+        <!-- TIPS TAB -->
+        <div class="help-page" id="help-tips">
+          <div class="help-columns">
+            <div class="help-section">
+              <h4>⌨️ Keyboard Shortcuts</h4>
+              <p><b>Esc</b> — Boss key! Instantly switches to a fake empty spreadsheet.</p>
+              <p><b>Ctrl+S</b> — Manual save (auto-save is always on).</p>
+            </div>
+            <div class="help-section">
+              <h4>📊 Spreadsheet Details</h4>
+              <p><b>Click any cell</b> to see its reference in the formula bar, just like real Excel.</p>
+              <p><b>Column headers</b> (A, B, C...) are purely cosmetic — for immersion.</p>
+            </div>
+            <div class="help-section">
+              <h4>🎮 Game Management</h4>
+              <p><b>File → New Game</b> — start over with a fresh company.</p>
+              <p><b>Data → Game Options</b> — toggle active play mechanics on/off.</p>
+              <p><b>File → Save</b> — auto-save runs, but manual save works too.</p>
+            </div>
+            <div class="help-section">
+              <h4>💡 Strategy Tips</h4>
+              <p>Focus spending on the <b>highest tier you can afford</b> — lower tiers become irrelevant fast.</p>
+              <p><b>Automate early</b> — the sooner a dept runs itself, the sooner you can focus elsewhere.</p>
+              <p><b>Beat earnings guidance</b> to earn RE — conservative guidance is safer but earns less RE.</p>
+              <p><b>Growth Initiative</b> compounds — 10 purchases = +21.9% total revenue.</p>
+            </div>
+          </div>
         </div>
 
-        <div class="help-section">
-          <h4>🏛️ Taxes</h4>
-          <p>Every 90 game-days, the IRS sends a quarterly tax bill.</p>
-          <p><b>Regular tax:</b> 25% of (Revenue − Depreciation).</p>
-          <p><b>AMT floor:</b> You always pay at least 15% of gross revenue — no deducting your way to zero.</p>
-          <p><b>Pay or ignore</b> — but ignored bills accrue 1% daily interest and escalate: Notice → 2nd Notice → Garnishment (−15% revenue) → Asset Seizure.</p>
-          <p><b>Depreciation:</b> Capital spending (hires, upgrades, automation) is deducted over 4 quarters, not immediately.</p>
-        </div>
-
-        <div class="help-section">
-          <h4>📈 Valuation Chart</h4>
-          <p>The floating chart shows your company's valuation over time. Drag to move, resize from the corner. Valuation = Cash + (Annual Revenue × market multiple).</p>
-        </div>
-
-        <div class="help-section">
-          <h4>⌨️ Tips</h4>
-          <p><b>Esc</b> — Boss key! Switches to a fake empty spreadsheet instantly.</p>
-          <p><b>Ctrl+S</b> — Save game. Auto-save is on by default.</p>
-          <p><b>File → New Game</b> — Start over with a different career path.</p>
-          <p><b>Click any cell</b> to see its reference in the formula bar (just like Excel).</p>
-        </div>
-
-        <div class="help-section">
-          <h4>🔢 Max Buttons</h4>
-          <p>When you can afford 2+ hires or upgrades, a <b>Max(N)</b> link appears — click it to buy them all at once.</p>
-        </div>
-
-        <div class="help-section">
-          <h4>🏢 Board Room (Post-IPO)</h4>
-          <p>After going public, the <b>Board Room</b> tab unlocks. Spend <b>Retained Earnings (RE)</b> on permanent upgrades:</p>
-          <p><b>Finance Dept</b> — auto-handles quarterly earnings. Three levels with increasing intelligence:</p>
-          <p style="margin-left:16px"><b>Lv1 "The Intern"</b> — randomizes guidance (often wrong, but no more popups).</p>
-          <p style="margin-left:16px"><b>Lv2 "Competent CFO"</b> — analyzes revenue trends, picks smartly ~70% of the time.</p>
-          <p style="margin-left:16px"><b>Lv3 "Elite CFO"</b> — factors in streaks, bonuses, and analyst pressure. ~90% optimal.</p>
-          <p style="margin-left:16px">You can switch between owned levels anytime in the IR section.</p>
-          <p><b>Revenue Multipliers</b> — permanent boosts that stack (1.1× → 1.25× → 1.5×).</p>
-          <p><b>Growth Initiative</b> — repeatable +2% revenue multiplier for 50 RE. Stacks multiplicatively (1.02<sup>N</sup>). Cost scales 10% per purchase. Buy early, buy often — it snowballs.</p>
-          <p><b>Lobbyist / Tax Haven</b> — reduce your tax rate (25% → 20% → 15%).</p>
-          <p><b>CPA on Retainer</b> — auto-pays quarterly taxes when you can afford them, defers when you can't, and auto-settles outstanding debts as soon as cash is available. No more IRS toasts.</p>
-          <p><b>Analyst Relations</b> — slows the analyst expectation ratchet by 50%.</p>
-          <p><b>Golden Parachute</b> — protects against IRS asset seizure (consumed on use, rebuyable).</p>
-
-          <h4>★ Restructure (Post-IPO)</h4>
-          <p>After IPO, each automated department gets a <b>★ Restructure</b> button. Each restructure gives <b>10× revenue</b> to that department. Costs RE — cheap for small departments, expensive for big ones. Stacks: ★2 = 100×, ★3 = 1000×.</p>
-
-          <h4>🔬 R&D Breakthroughs</h4>
-          <p>Random event: your R&D team discovers a breakthrough that <b>permanently doubles</b> a department's revenue. You can choose to implement it (×2 revenue) or file a patent for cash instead. Multiple breakthroughs on the same dept stack (×4, ×8, etc.).</p>
-        </div>
       </div>
     </div>
   </div>

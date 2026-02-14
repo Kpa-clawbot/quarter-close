@@ -215,7 +215,8 @@ body {
   background: white;
   border: 1px solid #d0d0d0;
   border-radius: 6px;
-  max-width: 520px;
+  max-width: 720px;
+  width: 90vw;
   max-height: 80vh;
   box-shadow: 0 4px 16px rgba(0,0,0,0.15);
   display: flex;
@@ -226,8 +227,8 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px 20px 12px;
-  border-bottom: 1px solid #e0e0e0;
+  padding: 12px 20px 0;
+  border-bottom: none;
 }
 
 .help-header h3 {
@@ -249,12 +250,54 @@ body {
   color: #333;
 }
 
+/* Help tabs */
+.help-tabs {
+  display: flex;
+  gap: 0;
+  padding: 8px 20px 0;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.help-tab {
+  padding: 6px 14px;
+  font-size: 11px;
+  font-family: 'Segoe UI', Arial, sans-serif;
+  color: #666;
+  cursor: pointer;
+  border: 1px solid transparent;
+  border-bottom: none;
+  border-radius: 4px 4px 0 0;
+  background: none;
+  margin-bottom: -1px;
+  white-space: nowrap;
+}
+
+.help-tab:hover {
+  color: #333;
+  background: #f5f5f5;
+}
+
+.help-tab.active {
+  color: #217346;
+  font-weight: 600;
+  background: white;
+  border-color: #e0e0e0;
+}
+
 .help-body {
   padding: 16px 20px;
   overflow-y: auto;
   font-size: 12px;
-  line-height: 1.5;
+  line-height: 1.6;
   color: #444;
+}
+
+.help-page {
+  display: none;
+}
+
+.help-page.active {
+  display: block;
 }
 
 .help-section {
@@ -264,16 +307,26 @@ body {
 .help-section h4 {
   font-size: 13px;
   color: #217346;
-  margin: 0 0 4px;
+  margin: 0 0 6px;
 }
 
 .help-section p {
-  margin: 3px 0;
+  margin: 4px 0;
   color: #555;
 }
 
 .help-section b {
   color: #333;
+}
+
+.help-columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px 24px;
+}
+
+.help-columns .help-section {
+  margin-bottom: 8px;
 }
 
 /* Confirm Dialog */
