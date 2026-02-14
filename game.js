@@ -313,7 +313,7 @@ const BOARD_ROOM_UPGRADES = [
   {
     id: 'finance_dept_1',
     name: 'Finance Dept Lv1',
-    desc: 'Auto-earnings, random guidance.',
+    desc: 'The Intern — auto-earnings, randomizes guidance (often wrong).',
     cost: 500,
     requires: null,
     maxCount: 1,
@@ -322,7 +322,7 @@ const BOARD_ROOM_UPGRADES = [
   {
     id: 'finance_dept_2',
     name: 'Finance Dept Lv2',
-    desc: 'Smart guidance, ~70% optimal.',
+    desc: 'Competent CFO — analyzes trends, picks right ~70% of the time.',
     cost: 2500,
     requires: 'finance_dept_1',
     maxCount: 1,
@@ -331,7 +331,7 @@ const BOARD_ROOM_UPGRADES = [
   {
     id: 'finance_dept_3',
     name: 'Finance Dept Lv3',
-    desc: 'Best guidance, ~90% optimal.',
+    desc: 'Elite CFO — factors in streaks, bonuses, analyst pressure. ~90% optimal.',
     cost: 10000,
     requires: 'finance_dept_2',
     maxCount: 1,
@@ -394,7 +394,7 @@ const BOARD_ROOM_UPGRADES = [
   {
     id: 'cpa',
     name: 'CPA on Retainer',
-    desc: 'Auto-pays taxes & settles debts.',
+    desc: 'Auto-pays taxes when affordable, auto-settles debts. No more IRS toasts.',
     cost: 750,
     requires: null,
     maxCount: 1,
@@ -412,7 +412,7 @@ const BOARD_ROOM_UPGRADES = [
   {
     id: 'growth_initiative',
     name: 'Growth Initiative',
-    desc: '+2% revenue (stacks, cost +10%).',
+    desc: '+2% revenue multiplier (stacks). Cost scales 10% each.',
     cost: 50,
     requires: null,
     maxCount: Infinity,
@@ -3661,6 +3661,8 @@ function switchTab(tab) {
   const tabOps = document.getElementById('tab-operations');
   const tabBR = document.getElementById('tab-board-room');
 
+  const gridArea = document.getElementById('grid-container');
+
   if (tab === 'boardroom') {
     revenueRows.classList.add('hidden');
     taxPanel.classList.add('hidden');
@@ -3668,6 +3670,7 @@ function switchTab(tab) {
     boardRoom.classList.remove('hidden');
     tabOps.classList.remove('active');
     tabBR.classList.add('active');
+    gridArea.classList.add('boardroom-layout');
     buildBoardRoom();
   } else {
     revenueRows.classList.remove('hidden');
@@ -3676,6 +3679,7 @@ function switchTab(tab) {
     boardRoom.classList.add('hidden');
     tabOps.classList.add('active');
     tabBR.classList.remove('active');
+    gridArea.classList.remove('boardroom-layout');
     _lastTaxPanelHash = ''; // force rebuild
     updateTaxPanel();
     buildFillerRows();

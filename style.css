@@ -531,6 +531,10 @@ body {
   background: white;
   display: grid;
   grid-template-columns: 40px 200px 120px 100px 190px 160px 130px 120px 1fr;
+}
+
+#grid-container.boardroom-layout {
+  grid-template-columns: 40px 200px 120px 100px 120px 280px 130px 120px 1fr;
   align-content: start;
 }
 
