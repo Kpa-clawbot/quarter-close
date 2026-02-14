@@ -149,8 +149,13 @@ function miniTaskReward(task) {
 }
 
 // ===== EVENTS DEFINITIONS =====
+// Global event frequency multiplier — scales all event weights together
+// 1.0 = default, 2.0 = twice as frequent, 0.5 = half as frequent
+const EVENT_FREQ_MULT = 1.0;
+
 const EVENTS = [
   {
+    weight: 3,
     sender: 'Mom',
     subject: 'Quick investment opportunity',
     body: 'Honey, I believe in your little business! Here\'s a little something to help out.',
@@ -164,6 +169,7 @@ const EVENTS = [
     ]
   },
   {
+    weight: 4,
     sender: 'Angry Customer',
     subject: 'RE: TERRIBLE SERVICE!!!',
     body: 'I want a FULL REFUND or I\'m leaving a 1-star review everywhere!',
@@ -180,6 +186,7 @@ const EVENTS = [
     ]
   },
   {
+    weight: 1,
     sender: 'College Buddy',
     subject: 'Business proposal over beers? 🍺',
     body: 'Dude, I\'ve got this idea that could be huge. Let me pitch you — worst case we grab drinks and catch up.',
@@ -204,6 +211,7 @@ const EVENTS = [
     ]
   },
   {
+    weight: 2,
     sender: 'IT Department',
     subject: '⚠️ POWER OUTAGE - Building 3',
     body: 'Emergency maintenance required. All systems will be offline for approximately 15 seconds. This cannot be prevented.',
@@ -216,6 +224,7 @@ const EVENTS = [
     actions: []
   },
   {
+    weight: 1,
     sender: 'IT Security',
     subject: '🔒 RANSOMWARE DETECTED - All Systems',
     body: 'CryptoLocker variant detected on the network. All file shares encrypted. Pay the ransom or wait for IT to rebuild from backups.',
@@ -233,6 +242,7 @@ const EVENTS = [
     ]
   },
   {
+    weight: 1,
     sender: 'Network Operations',
     subject: '🌐 DDoS ATTACK IN PROGRESS',
     body: 'Massive distributed denial-of-service attack hitting all public-facing services. Mitigation in progress but performance is degraded.',
@@ -245,6 +255,7 @@ const EVENTS = [
     ]
   },
   {
+    weight: 1,
     sender: 'DBA Team',
     subject: '💾 CRITICAL: Database corruption detected',
     body: 'Primary database showing consistency errors. We can do an emergency restore ($$$) or let auto-recovery run (slower).',
@@ -270,6 +281,7 @@ const EVENTS = [
     ]
   },
   {
+    weight: 3,
     sender: 'IT Department',
     subject: '📧 Email server is DOWN',
     body: 'Exchange is unreachable. No one can send or receive email until it\'s fixed. Approval workflows are frozen.',
@@ -282,6 +294,7 @@ const EVENTS = [
     ]
   },
   {
+    weight: 4,
     sender: 'IT Security',
     subject: '🔑 MANDATORY PASSWORD RESET',
     body: 'Security audit requires all employees to reset passwords immediately. Productivity will be impacted.',
@@ -294,6 +307,7 @@ const EVENTS = [
     actions: []
   },
   {
+    weight: 2,
     sender: 'Status Page',
     subject: '☁️ CLOUD PROVIDER OUTAGE',
     body: 'Major incident at your cloud provider. Multiple availability zones affected. ETA for resolution: "We\'re working on it." Helpful.',
@@ -306,6 +320,7 @@ const EVENTS = [
     ]
   },
   {
+    weight: 3,
     sender: 'Engineering Lead',
     subject: '🐛 P0 BUG: Production is on fire',
     body: 'Critical bug in prod. Customers are seeing errors. We can hotfix now (costs money for the war room) or punt to next sprint and eat the churn.',
@@ -331,6 +346,7 @@ const EVENTS = [
     ]
   },
   {
+    weight: 2,
     sender: 'IT Asset Management',
     subject: '💻 LAPTOP RECALL - Security Vulnerability',
     body: 'Critical firmware vulnerability discovered. All company laptops must be collected for patching. Employees will work from their phones (poorly).',
@@ -343,6 +359,7 @@ const EVENTS = [
     ]
   },
   {
+    weight: 2,
     sender: 'Google Alerts',
     subject: '📈 Your company is trending on TikTok!',
     body: 'A customer posted a viral video about your product. 2.3M views and counting! Revenue is spiking.',
@@ -354,6 +371,7 @@ const EVENTS = [
     ]
   },
   {
+    weight: 2,
     sender: 'PR Team',
     subject: 'Forbes wants to feature us! 🎉',
     body: 'Forbes is running a "30 Under 30" style piece and wants to include us. This will be huge for brand awareness.',
@@ -366,6 +384,7 @@ const EVENTS = [
     ]
   },
   {
+    weight: 2,
     sender: 'Social Media',
     subject: '🚀 We hit the front page of Reddit!',
     body: 'Someone posted about us on r/technology and it exploded. Server traffic is through the roof!',
@@ -377,6 +396,7 @@ const EVENTS = [
     ]
   },
   {
+    weight: 2,
     sender: 'Marketing',
     subject: '📺 Local news wants to do a segment on us',
     body: 'Channel 7 heard about us and wants to do a feel-good local business story. Free advertising!',
@@ -389,6 +409,7 @@ const EVENTS = [
     ]
   },
   {
+    weight: 3,
     sender: 'Sales Team',
     subject: '🎉 Big client just signed!',
     body: null, // dynamic — set at trigger time
@@ -419,6 +440,7 @@ const EVENTS = [
   },
   // R&D Breakthrough — permanent 2× revenue for a random source
   {
+    weight: 2,
     debugLabel: 'R&D Breakthrough',
     generate: () => {
       const arc = ARCS[gameState.arc];
@@ -2695,7 +2717,7 @@ function gameTick() {
   } else if (!document.getElementById('event-toast').classList.contains('hidden')) {
     // Toast already visible
   } else {
-    if (Math.random() < 0.015 && gameState.totalPlayTime > 30) {
+    if (Math.random() < 0.015 * EVENT_FREQ_MULT && gameState.totalPlayTime > 30) {
       triggerRandomEvent();
       gameState.eventCooldown = 60 + Math.floor(Math.random() * 60);
     }
@@ -2735,8 +2757,13 @@ function gameTick() {
 
 // ===== EVENTS =====
 function triggerRandomEvent() {
-  const event = EVENTS[Math.floor(Math.random() * EVENTS.length)];
-  showEvent(event);
+  const totalWeight = EVENTS.reduce((sum, e) => sum + (e.weight || 1), 0);
+  let roll = Math.random() * totalWeight;
+  for (const event of EVENTS) {
+    roll -= (event.weight || 1);
+    if (roll <= 0) { showEvent(event); return; }
+  }
+  showEvent(EVENTS[EVENTS.length - 1]); // fallback
 }
 
 let eventToastTimer = null;
