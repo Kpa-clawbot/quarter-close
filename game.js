@@ -886,6 +886,7 @@ function restructureSource(index) {
   updateDisplay();
   updateGridValues();
   saveGame();
+  mobileHaptic('heavy');
 }
 
 function maxAffordable(source) {
@@ -1138,6 +1139,7 @@ function selectArc(arcKey) {
 
   document.getElementById('arc-select').classList.add('hidden');
   document.getElementById('game-view').classList.remove('hidden');
+  mobileHaptic('heavy');
 
   // Reset mobile state
   if (isMobile()) {
@@ -1171,9 +1173,11 @@ function showArcSelect() {
     div.onclick = () => selectArc(key);
     div.innerHTML = `
       <div class="arc-icon">${arc.icon}</div>
-      <div class="arc-name">${arc.name}</div>
-      <div class="arc-desc">${arc.desc}</div>
-      <div class="arc-first">${arc.sources[0].name} → ${arc.sources[arc.sources.length - 1].name}</div>
+      <div class="arc-text">
+        <div class="arc-name">${arc.name}</div>
+        <div class="arc-desc">${arc.desc}</div>
+        <div class="arc-first">${arc.sources[0].name} → ${arc.sources[arc.sources.length - 1].name}</div>
+      </div>
     `;
     container.appendChild(div);
   }
@@ -1258,6 +1262,8 @@ function completeMiniTask() {
 
   flashCash();
   updateDisplay();
+  mobileHaptic('success');
+  mobileCashPulse();
 }
 
 function skipMiniTask() {
@@ -1271,6 +1277,7 @@ function skipMiniTask() {
     setTimeout(() => { document.getElementById('status-text').textContent = 'Ready'; }, 2000);
   }
   gameState.miniTaskStreak = 0;
+  mobileHaptic('light');
 }
 
 // ===== TIME SCALE CHANGE NOTIFICATION =====
@@ -1343,6 +1350,8 @@ function clickGoldenCell(cell) {
   setTimeout(() => { document.getElementById('status-text').textContent = 'Ready'; }, 2000);
 
   flashCash();
+  mobileHaptic('heavy');
+  mobileCashPulse();
   updateDisplay();
   return true;
 }
@@ -1774,6 +1783,18 @@ function unlockSource(index) {
   buildGrid();
   updateDisplay();
   flashCash();
+  mobileHaptic('success');
+  // Animate newly unlocked card on mobile
+  if (isMobile()) {
+    mobileCashPulse();
+    const newRow = document.getElementById(`source-row-${index}`);
+    if (newRow) {
+      newRow.classList.add('mob-just-unlocked');
+      setTimeout(() => newRow.classList.remove('mob-just-unlocked'), 600);
+      // Scroll to the new card
+      setTimeout(() => newRow.scrollIntoView({ behavior: 'smooth', block: 'center' }), 100);
+    }
+  }
 }
 
 function hireEmployee(index) {
@@ -1790,6 +1811,7 @@ function hireEmployee(index) {
   updateGridValues();
   updateDisplay();
   flashCash();
+  mobileHaptic('light');
 }
 
 function hireMax(index) {
@@ -1851,6 +1873,7 @@ function upgradeSource(index) {
   updateGridValues();
   updateDisplay();
   flashCash();
+  mobileHaptic('medium');
 }
 
 function automateSource(index) {
@@ -1871,6 +1894,7 @@ function automateSource(index) {
   updateGridValues();
   updateDisplay();
   flashCash();
+  mobileHaptic('success');
 
   // Focus tip — show once per game after first automate
   if (isFeatureEnabled('managementFocus') && !gameState.focusTipShown) {
@@ -1908,6 +1932,8 @@ function collectSource(index) {
   updateGridValues();
   updateDisplay();
   flashCash();
+  mobileHaptic('light');
+  mobileCashPulse();
 }
 
 // ===== DEPRECIATION =====
@@ -2920,6 +2946,7 @@ function showEvent(event) {
         if (btn.disabled) return;
         if (eventToastTimer) { clearTimeout(eventToastTimer); eventToastTimer = null; }
         _eventToastActions = null;
+        mobileHaptic('medium');
         const result = action.effect(gameState);
         document.getElementById('status-text').textContent = result;
         setTimeout(() => {
@@ -3650,6 +3677,7 @@ function clickDeal() {
   if (!gameState.dealActive) return;
   const deal = gameState.dealActive;
   deal.clicksDone++;
+  mobileHaptic('light');
 
   // Update progress
   const progress = document.getElementById('deal-progress-text');
@@ -3674,6 +3702,8 @@ function clickDeal() {
     gameState.dealActive = null;
     document.getElementById('deal-popup').classList.add('hidden');
     updateDisplay();
+    mobileHaptic('success');
+    mobileCashPulse();
   }
 }
 
@@ -3719,6 +3749,8 @@ function clickOvertime() {
 
   updateOvertimeRow();
   updateDisplay();
+  mobileHaptic('medium');
+  mobileCashPulse();
 }
 
 function updateOvertimeRow() {
@@ -4776,6 +4808,38 @@ function isMobile() {
   return window.matchMedia('(max-width: 600px)').matches;
 }
 
+// Haptic feedback for mobile — light tap feel
+function mobileHaptic(style) {
+  if (!isMobile() || !navigator.vibrate) return;
+  switch (style) {
+    case 'light': navigator.vibrate(10); break;
+    case 'medium': navigator.vibrate(20); break;
+    case 'heavy': navigator.vibrate([15, 30, 15]); break;
+    case 'success': navigator.vibrate([10, 40, 20]); break;
+    case 'error': navigator.vibrate([30, 20, 30]); break;
+    default: navigator.vibrate(10);
+  }
+}
+
+// Cash header pulse animation on collection
+function mobileCashPulse() {
+  if (!isMobile()) return;
+  const header = document.getElementById('row-cash');
+  if (!header) return;
+  header.classList.remove('cash-pulse');
+  void header.offsetWidth; // force reflow
+  header.classList.add('cash-pulse');
+}
+
+// Mark collect buttons that have pending revenue
+function mobileUpdateCollectHighlights() {
+  if (!isMobile() || !gameState.arc) return;
+  document.querySelectorAll('.cell-btn.btn-collect').forEach(btn => {
+    const hasPending = btn.textContent.includes('$') && !btn.textContent.includes('$0');
+    btn.classList.toggle('has-pending', hasPending);
+  });
+}
+
 let _mobileActiveTab = 'operations';
 let _lastMobilePnlHash = '';
 let _lastMobileBRHash = '';
@@ -4812,25 +4876,30 @@ function mobileSwitchTab(tab) {
   switch (tab) {
     case 'operations':
       gridContainer.style.display = '';
+      gridContainer.scrollTo({ top: 0, behavior: 'smooth' });
       if (gameState.activeTab !== 'operations') {
         gameState.activeTab = 'operations';
       }
       break;
     case 'pnl':
       pnlView.classList.remove('hidden');
+      pnlView.scrollTo({ top: 0 });
       _lastMobilePnlHash = '';
       buildMobilePnL();
       break;
     case 'boardroom':
       brView.classList.remove('hidden');
+      brView.scrollTo({ top: 0 });
       _lastMobileBRHash = '';
       buildMobileBoardRoom();
       break;
     case 'settings':
       settingsView.classList.remove('hidden');
+      settingsView.scrollTo({ top: 0 });
       updateMobileSettings();
       break;
   }
+  mobileHaptic('light');
 }
 window.mobileSwitchTab = mobileSwitchTab;
 
@@ -5185,6 +5254,7 @@ function mobileTickUpdate() {
   if (!isMobile()) return;
 
   updateMobileNav();
+  mobileUpdateCollectHighlights();
 
   // Always update cash header if visible
   if (_mobileActiveTab !== 'operations') {

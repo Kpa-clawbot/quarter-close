@@ -1545,6 +1545,11 @@ body {
   margin-bottom: 6px;
 }
 
+.arc-text {
+  flex: 1;
+  min-width: 0;
+}
+
 .arc-name {
   font-size: 15px;
   font-weight: 600;
@@ -2369,10 +2374,16 @@ body {
     min-height: 40px;
     font-size: 12px;
     padding: 6px 10px;
-    background: #fff8e1;
+    background: linear-gradient(135deg, #fff8e1, #ffecb3);
     border: 1px solid #d4a017;
     color: #8d6e0f;
     font-weight: 600;
+    width: 100%;
+  }
+
+  /* When automated+public, cell-f has restructure button — give it full width */
+  .source-row.mob-automated > .cell-f {
+    flex: 1 1 100%;
   }
 
   /* Auto badge - hide in action cells, show in dedicated Auto row */
@@ -2487,15 +2498,18 @@ body {
     padding: 0 8px;
     flex-shrink: 0;
     overflow: hidden;
+    background: #f5f5f5;
+    border-top: 1px solid #e0e0e0;
   }
   #status-text {
-    max-width: 35vw;
+    max-width: 50vw;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
     display: inline-block;
     vertical-align: middle;
     font-size: 10px;
+    font-weight: 500;
   }
   #game-date {
     font-size: 10px;
@@ -2916,7 +2930,24 @@ body {
     font-size: 13px;
   }
   .option-toggle {
-    padding: 10px 0;
+    padding: 12px 0;
+    min-height: 44px;
+  }
+  .option-toggle input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    margin-top: 0;
+  }
+  .option-name {
+    font-size: 14px;
+  }
+  .option-info {
+    font-size: 12px;
+    line-height: 1.4;
+  }
+  .option-toggle input[type="range"] {
+    height: 28px;
+    accent-color: #217346;
   }
 
   /* Modal buttons */
@@ -2968,6 +2999,323 @@ body {
   /* Automated department indicator */
   .source-row.mob-automated {
     border-left: 4px solid #00897b;
+  }
+
+  /* ===== BUTTON ACTIVE/PRESSED STATES ===== */
+  .source-row .cell-btn:active:not(:disabled) {
+    transform: scale(0.96);
+    opacity: 0.85;
+    transition: transform 0.08s, opacity 0.08s;
+  }
+  .source-row .cell-btn {
+    transition: transform 0.12s ease-out, opacity 0.12s ease-out, background-color 0.15s;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .cell-btn.btn-hire:active:not(:disabled) {
+    background-color: #1976d2 !important;
+    color: white !important;
+  }
+  .cell-btn.btn-upgrade:active:not(:disabled) {
+    background-color: #388e3c !important;
+    color: white !important;
+  }
+  .cell-btn.btn-collect:active:not(:disabled) {
+    background-color: #217346 !important;
+    color: white !important;
+  }
+  .cell-btn.btn-automate:active:not(:disabled) {
+    background-color: #00897b !important;
+    color: white !important;
+  }
+  .cell-btn.btn-unlock:active:not(:disabled) {
+    background-color: #f57c00 !important;
+    color: white !important;
+  }
+  .cell-btn.btn-prestige:active:not(:disabled) {
+    background-color: #d4a017 !important;
+    color: white !important;
+  }
+
+  /* Mini-task button active states */
+  .mini-task-btn:active {
+    background-color: #217346 !important;
+    color: white !important;
+    transform: scale(0.96);
+  }
+  .mini-task-skip:active {
+    background-color: #c00 !important;
+    color: white !important;
+    transform: scale(0.96);
+  }
+
+  /* ===== TOAST SLIDE-UP ANIMATION ===== */
+  #event-toast {
+    animation: mobToastSlideUp 0.3s ease-out !important;
+  }
+  @keyframes mobToastSlideUp {
+    from {
+      opacity: 0;
+      transform: translateX(-50%) translateY(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+  }
+
+  /* Deal popup slide-up too */
+  #deal-popup {
+    animation: mobToastSlideUp 0.25s ease-out !important;
+  }
+
+  /* ===== CASH HEADER POLISH ===== */
+  #row-cash {
+    transition: background 0.3s;
+  }
+  @keyframes cashPulse {
+    0% { background: linear-gradient(135deg, #217346, #1a5c38); }
+    50% { background: linear-gradient(135deg, #2e9d5e, #217346); }
+    100% { background: linear-gradient(135deg, #217346, #1a5c38); }
+  }
+  #row-cash.cash-pulse {
+    animation: cashPulse 0.4s ease-out;
+  }
+
+  /* Stock price in cash header */
+  #row-cash #stock-price-cell {
+    font-size: 12px;
+    background: rgba(255,255,255,0.12);
+    padding: 2px 8px !important;
+    border-radius: 4px;
+  }
+
+  /* ===== ARC SELECTION POLISH ===== */
+  #arc-select {
+    height: 100dvh;
+    background: linear-gradient(135deg, #f0f4f0, #e8f0e8);
+  }
+  #arc-container {
+    max-height: 90dvh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .arc-option {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    transition: transform 0.1s, border-color 0.15s, background 0.15s;
+  }
+  .arc-option:active {
+    transform: scale(0.98);
+    border-color: #217346;
+    background: #f0faf3;
+  }
+  .arc-icon {
+    font-size: 32px;
+    flex-shrink: 0;
+    line-height: 1;
+    margin-top: 2px;
+  }
+  .arc-name {
+    font-size: 16px;
+  }
+  .arc-desc {
+    font-size: 13px;
+    line-height: 1.3;
+  }
+  #arc-footer {
+    font-size: 12px;
+    margin-top: 16px;
+  }
+
+  /* ===== IMPROVED MINI-TASK BAR ===== */
+  #mini-task-bar {
+    background: linear-gradient(135deg, #fffde7, #fff9c4) !important;
+    border-bottom: none !important;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+    border-radius: 0 0 8px 8px;
+    margin: 0 8px;
+    position: relative;
+    animation: miniTaskPop 0.3s ease-out;
+  }
+  @keyframes miniTaskPop {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  #mini-task-text {
+    font-weight: 500;
+    color: #333;
+  }
+  #mini-task-reward {
+    font-weight: 700;
+    color: #217346;
+  }
+  .mini-task-btn {
+    background: #217346 !important;
+    color: white !important;
+    border: none !important;
+    font-weight: 600;
+    box-shadow: 0 2px 4px rgba(33,115,70,0.3);
+  }
+  .mini-task-skip {
+    background: #f5f5f5 !important;
+    border: 1px solid #ddd !important;
+    color: #666 !important;
+  }
+
+  /* ===== CARD UNLOCK ANIMATION ===== */
+  .source-row.mob-just-unlocked {
+    animation: cardUnlock 0.5s ease-out;
+  }
+  @keyframes cardUnlock {
+    0% {
+      opacity: 0.5;
+      transform: scale(0.95);
+      background: #e8f5e9;
+    }
+    50% {
+      background: #c8e6c9;
+    }
+    100% {
+      opacity: 1;
+      transform: scale(1);
+      background: white;
+    }
+  }
+
+  /* ===== MODAL BACKDROPS ===== */
+  #offline-modal,
+  #series-a-modal,
+  #about-modal,
+  #confirm-modal,
+  #options-modal,
+  #help-modal {
+    -webkit-backdrop-filter: blur(4px);
+    backdrop-filter: blur(4px);
+  }
+
+  /* ===== SETTINGS TOGGLE IMPROVEMENTS ===== */
+  .mob-settings-btn {
+    transition: background 0.15s, transform 0.08s;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .mob-settings-btn:active {
+    transform: scale(0.98);
+    background: #e8e8e8;
+  }
+
+  /* ===== BOARD ROOM BUY BUTTON ACTIVE STATE ===== */
+  .mob-br-buy:active:not(:disabled) {
+    transform: scale(0.96);
+    background: #6a1b9a !important;
+  }
+  .mob-br-buy {
+    transition: transform 0.08s, background 0.15s;
+  }
+
+  /* Tax settle button active state */
+  .mob-tax-settle:active:not(:disabled) {
+    transform: scale(0.96);
+    background: #b71c1c !important;
+  }
+  .mob-tax-settle {
+    transition: transform 0.08s, background 0.15s;
+  }
+
+  /* ===== CFO BUTTON ACTIVE STATE ===== */
+  .mob-cfo-btn:active {
+    transform: scale(0.96);
+  }
+  .mob-cfo-btn {
+    transition: transform 0.08s, background 0.15s, color 0.15s;
+  }
+
+  /* ===== NAV BUTTON IMPROVEMENTS ===== */
+  .mob-nav-btn {
+    transition: color 0.15s, background 0.12s;
+    position: relative;
+  }
+  .mob-nav-btn.active::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 25%;
+    right: 25%;
+    height: 2px;
+    background: #217346;
+    border-radius: 0 0 2px 2px;
+  }
+
+  /* ===== SCROLLBAR HIDING ===== */
+  #grid-container::-webkit-scrollbar,
+  #mobile-pnl-view::-webkit-scrollbar,
+  #mobile-boardroom-view::-webkit-scrollbar,
+  #mobile-settings-view::-webkit-scrollbar {
+    display: none;
+  }
+  #grid-container,
+  #mobile-pnl-view,
+  #mobile-boardroom-view,
+  #mobile-settings-view {
+    scrollbar-width: none;
+  }
+
+  /* ===== DISABLED BUTTON STYLING ===== */
+  .source-row .cell-btn:disabled {
+    opacity: 0.45;
+    cursor: default;
+  }
+
+  /* ===== EARNINGS MODAL GUIDANCE BUTTONS ON MOBILE ===== */
+  #toast-actions {
+    display: flex !important;
+    flex-direction: column;
+  }
+  .toast-btn {
+    width: 100% !important;
+    flex: none !important;
+    margin-bottom: 4px;
+  }
+
+  /* ===== COLLECT BUTTON HIGHLIGHT WHEN PENDING ===== */
+  .cell-btn.btn-collect.has-pending {
+    background: #e8f5e9;
+    border-color: #4caf50;
+    font-weight: 600;
+    color: #1b5e20;
+  }
+
+  /* ===== OVERTIME CARD POLISH ===== */
+  #overtime-row {
+    border-radius: 8px;
+    transition: opacity 0.3s;
+  }
+  #overtime-row .cell-btn {
+    background: #fff3e0 !important;
+    border-color: #ff9800 !important;
+    color: #e65100 !important;
+    font-weight: 600;
+  }
+  #overtime-row .cell-btn:active:not(:disabled) {
+    background: #ff9800 !important;
+    color: white !important;
+  }
+
+  /* ===== DEPARTMENT LEVEL BADGE ===== */
+  .mob-level-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: #e8eaf6;
+    color: #3f51b5;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 1px 5px;
+    border-radius: 4px;
+    margin-left: 4px;
   }
 }
 
