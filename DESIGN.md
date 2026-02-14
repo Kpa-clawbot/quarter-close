@@ -159,6 +159,29 @@ The Finance Dept is the flagship Board Room upgrade. It auto-handles quarterly e
 | Growth Initiative | 50 RE (scales +10%) | +2% revenue, repeatable, stacks as 1.02^N |
 | CPA on Retainer | 750 RE | Auto-pays taxes, auto-settles debts, no IRS toasts |
 
+### ★ Restructure (Department Prestige)
+
+Post-IPO, each automated department can be restructured for **10× revenue**.
+
+| Prestige Level | Revenue Multiplier | Cost Formula |
+|---|---|---|
+| ★1 | 10× | 50 × (1 + tier) RE |
+| ★2 | 100× | 50 × (1 + tier) × 3 RE |
+| ★3 | 1000× | 50 × (1 + tier) × 9 RE |
+
+- Cost scales mildly with source tier (lemonade stand = 50 RE, trillion club = 600 RE)
+- Each subsequent prestige on same dept costs 3× more
+- Strategic choice: boost top dept for max impact, or boost cheap depts first
+
+### 🔬 R&D Breakthroughs
+
+Random event that permanently doubles a department's revenue.
+
+- Picks a random unlocked department
+- Player choice: Implement (×2 revenue) or File Patent (+5% cash)
+- Stacks multiplicatively (×2, ×4, ×8...)
+- Adds exciting late-game revenue spikes without player control
+
 ## Idle Mechanics
 
 - Revenue accumulates while tab is open
