@@ -2502,7 +2502,6 @@ function gameTick() {
     if (gameState.dealCooldown > 0) {
       gameState.dealCooldown--;
     } else if (totalRevPerTick() > 0 && !isPowerOut &&
-               document.getElementById('event-toast').classList.contains('hidden') &&
                gameState.totalPlayTime > 60) {
       spawnDeal();
       gameState.dealCooldown = 90 + Math.floor(Math.random() * 150); // 1.5-4 min
@@ -2653,8 +2652,6 @@ function showEvent(event) {
 
 function dismissEvent() {
   if (eventToastTimer) { clearTimeout(eventToastTimer); eventToastTimer = null; }
-  if (dealTimer) { clearTimeout(dealTimer); dealTimer = null; }
-  if (gameState.dealActive) gameState.dealActive = null;
   _eventToastActions = null;
   document.getElementById('event-toast').classList.add('hidden');
 }
@@ -2685,6 +2682,7 @@ function toggleBossMode() {
 
   if (gameState.bossMode) {
     document.getElementById('event-toast').classList.add('hidden');
+    document.getElementById('deal-popup').classList.add('hidden');
     document.getElementById('mini-task-bar').classList.add('hidden');
     document.title = 'Book1 - Excel';
   } else {
@@ -3218,63 +3216,25 @@ function spawnDeal() {
     startedAt: Date.now(),
   };
 
-  // Build the deal toast
-  const toast = document.getElementById('event-toast');
-  const savedPos = localStorage.getItem('quarterClose_toastPos');
-  if (savedPos) {
-    const pos = JSON.parse(savedPos);
-    toast.style.left = pos.left + 'px';
-    toast.style.top = pos.top + 'px';
-    toast.style.transform = 'none';
-  } else {
-    toast.style.left = '50%';
-    toast.style.top = '50%';
-    toast.style.transform = 'translate(-50%, -50%)';
-  }
+  // Use dedicated deal popup (not the event toast)
+  document.getElementById('deal-client').textContent = client;
+  document.getElementById('deal-body').textContent = `Enterprise contract worth ${formatMoney(amount)}. Click to get signatures before they walk!`;
+  document.getElementById('deal-progress-text').textContent = `Signatures: 0 / ${clicksNeeded}`;
+  document.getElementById('deal-bar').style.width = '0%';
 
-  document.getElementById('toast-sender').textContent = `🤝 ${client}`;
-  document.getElementById('toast-body').textContent = `Enterprise contract worth ${formatMoney(amount)}. Click to get signatures before they walk!`;
-  document.getElementById('toast-close').style.display = 'none';
+  const timerFill = document.getElementById('deal-timer-fill');
+  timerFill.style.animation = 'none';
+  timerFill.offsetHeight; // force reflow
+  timerFill.style.animationDuration = (timeLimit / 1000) + 's';
+  timerFill.style.animation = '';
+  timerFill.className = 'toast-btn-countdown';
 
-  const actionsDiv = document.getElementById('toast-actions');
-  actionsDiv.innerHTML = '';
-
-  // Progress text
-  const progress = document.createElement('div');
-  progress.id = 'deal-progress';
-  progress.style.cssText = 'font-size:11px;color:#666;margin-bottom:6px;text-align:center';
-  progress.textContent = `Signatures: 0 / ${clicksNeeded}`;
-  actionsDiv.appendChild(progress);
-
-  // Progress bar
-  const barWrap = document.createElement('div');
-  barWrap.style.cssText = 'height:4px;background:#e0e0e0;border-radius:2px;margin-bottom:8px;overflow:hidden';
-  const bar = document.createElement('div');
-  bar.id = 'deal-bar';
-  bar.style.cssText = 'height:100%;width:0%;background:#217346;transition:width 0.1s';
-  barWrap.appendChild(bar);
-  actionsDiv.appendChild(barWrap);
-
-  // Sign button
-  const btn = document.createElement('button');
-  btn.className = 'toast-btn toast-primary';
-  btn.textContent = '✍️ Sign';
-  btn.style.cssText = 'position:relative;overflow:hidden;min-width:120px';
-  btn.onclick = () => clickDeal();
-
-  // Timer fill on button
-  const fill = document.createElement('div');
-  fill.className = 'toast-btn-countdown';
-  fill.style.animationDuration = (timeLimit / 1000) + 's';
-  btn.appendChild(fill);
-  actionsDiv.appendChild(btn);
+  document.getElementById('deal-popup').classList.remove('hidden');
 
   // Timer — auto-fail
   dealTimer = setTimeout(() => {
     failDeal();
   }, timeLimit);
-
-  toast.classList.remove('hidden');
 }
 
 function clickDeal() {
@@ -3283,7 +3243,7 @@ function clickDeal() {
   deal.clicksDone++;
 
   // Update progress
-  const progress = document.getElementById('deal-progress');
+  const progress = document.getElementById('deal-progress-text');
   if (progress) progress.textContent = `Signatures: ${deal.clicksDone} / ${deal.clicksNeeded}`;
   const bar = document.getElementById('deal-bar');
   if (bar) bar.style.width = (deal.clicksDone / deal.clicksNeeded * 100) + '%';
@@ -3303,7 +3263,7 @@ function clickDeal() {
     }, 3000);
 
     gameState.dealActive = null;
-    dismissEvent();
+    document.getElementById('deal-popup').classList.add('hidden');
     updateDisplay();
   }
 }
@@ -3320,7 +3280,7 @@ function failDeal() {
   }, 3000);
 
   gameState.dealActive = null;
-  dismissEvent();
+  document.getElementById('deal-popup').classList.add('hidden');
 }
 
 // ===== OVERTIME =====

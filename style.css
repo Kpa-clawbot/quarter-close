@@ -1173,6 +1173,69 @@ body {
   gap: 6px;
 }
 
+/* Deal popup — separate from event toast */
+#deal-popup {
+  position: fixed;
+  bottom: 80px;
+  right: 20px;
+  width: 300px;
+  background: white;
+  border: 1px solid #d0d0d0;
+  border-radius: 4px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+  z-index: 900;
+  font-size: 12px;
+  padding: 10px 14px;
+  animation: slideUp 0.2s ease-out;
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+#deal-header {
+  font-weight: 600;
+  font-size: 13px;
+  color: #217346;
+  margin-bottom: 6px;
+}
+
+#deal-body {
+  color: #555;
+  margin-bottom: 8px;
+  line-height: 1.4;
+}
+
+#deal-progress-text {
+  font-size: 11px;
+  color: #666;
+  text-align: center;
+  margin-bottom: 4px;
+}
+
+#deal-bar-wrap {
+  height: 4px;
+  background: #e0e0e0;
+  border-radius: 2px;
+  margin-bottom: 8px;
+  overflow: hidden;
+}
+
+#deal-bar {
+  height: 100%;
+  width: 0%;
+  background: #217346;
+  transition: width 0.1s;
+}
+
+#deal-sign-btn {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  min-width: 0;
+}
+
 .toast-btn {
   padding: 4px 12px;
   border: 1px solid #c0c0c0;
