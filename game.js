@@ -258,11 +258,10 @@ const EVENTS = [
         const duration = 15000 + Math.floor(Math.random() * 5000); // 15-20s
         const unlocked = gs.sources.map((s, i) => ({ s, i })).filter(x => x.s.unlocked && x.s.employees > 0);
         if (unlocked.length > 0) {
-          const top = unlocked[unlocked.length - 1];
-          gs.dbOutage = { sourceIndex: top.i, until: Date.now() + duration };
-          console.log('DB outage set:', JSON.stringify(gs.dbOutage));
+          const pick = unlocked[Math.floor(Math.random() * unlocked.length)];
+          gs.dbOutage = { sourceIndex: pick.i, until: Date.now() + duration };
           const arc = ARCS[gs.arc];
-          const name = arc.sources[top.i].name || getSourceDef(top.i).name;
+          const name = arc.sources[pick.i].name || getSourceDef(pick.i).name;
           return `${name} offline for ${Math.round(duration/1000)}s while database recovers.`;
         }
         console.log('DB outage: no unlocked sources');
