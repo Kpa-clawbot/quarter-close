@@ -68,7 +68,7 @@ All three are optional — toggle off in Game Options for pure idle experience.
 
 **Overtime** — Click "Push It" for instant revenue bursts (5s of revenue per click). Diminishing returns per quarter (resets each Q). Creates strategic tension: spam overtime to hit guidance but analysts ratchet up.
 
-**Close the Deal** — Random enterprise contract toasts (every 3-8 min). Rapid-click "Sign" button to close before 12s timer expires. Clicks scale with company size. Reward = 30-60s of revenue. No penalty for missing — just missed money.
+**Close the Deal** — Random enterprise contract toasts (every 1-4 min). Rapid-click "Sign" button to close before 12s timer expires. Clicks scale with company size. Reward = 30-60s of revenue. No penalty for missing — just missed money.
 
 **Management Focus** — Click department names to add focus (max 10 = +50% rev). Decays 1 point every 10s idle. Rewards constant attention rotation across departments. Transient (resets on page load).
 
@@ -141,19 +141,26 @@ The Finance Dept is the flagship Board Room upgrade. It auto-handles quarterly e
 | Level | Cost | Guidance Algorithm | Personality |
 |-------|------|--------------------|-------------|
 | **Lv1 — The Intern** | 500 RE | Random: 25% conservative, 50% in-line, 25% ambitious | Clueless. Gets rid of the popup but often picks wrong. |
-| **Lv2 — Competent CFO** | 2,500 RE | Trend-based: looks at recent revenue trajectory. Growing → ambitious, flat → in-line, declining → conservative. Needs 20% safety margin to go aggressive. | Decent instincts, plays it safe when unsure. ~70% optimal. |
-| **Lv3 — Elite CFO** | 10,000 RE | Smart analysis: revenue trend + streak length + active bonuses/penalties + recent purchases. Needs only 5% safety margin. Plays tight but accurate. | Wall Street veteran. ~90% optimal picks. |
+| **Lv2 — Competent CFO** | 2,500 RE | Context-aware weighted random. After misses → conservative-heavy. On beat streaks → shifts ambitious. High analyst pressure → plays safer. ~70% optimal. | Smart enough to read the room. Sometimes cautious, sometimes bold. |
+| **Lv3 — Elite CFO** | 10,000 RE | Smarter weighted distribution. Also factors in active revenue bonuses/penalties, recognizes long-streak analyst danger. ~90% optimal. | Wall Street veteran. Knows when to push and when to pull back. |
 
-**The Algorithm (Lv2/Lv3):**
-1. Project quarterly revenue: `currentRevPerTick × 90 days`
-2. For each guidance level, calculate target: `projectedRev × guidancePct × analystBaseline`
-3. Pick the most aggressive guidance where `projectedRev > target × safetyMargin`
-   - Lv2 safety margin: 1.20 (needs 20% buffer)
-   - Lv3 safety margin: 1.05 (cuts it close)
-4. Lv3 also adjusts for:
-   - Long streaks (>5): one notch safer (analysts are ratcheting hard)
-   - Active revenue bonus: one notch more aggressive (temporary windfall)
-   - Active revenue penalty: one notch safer
+**The Algorithm (Lv2/Lv3) — Weighted Random:**
+Each pick is probabilistic, not deterministic. Weights shift based on context:
+
+| Context | Conservative | In-Line | Ambitious | Aggressive |
+|---------|-------------|---------|-----------|------------|
+| Lv2 after 2+ misses | 70% | 25% | 5% | 0% |
+| Lv2 fresh start | 20% | 50% | 25% | 5% |
+| Lv2 short streak (1-3 beats) | 10% | 35% | 40% | 15% |
+| Lv2 long streak (4+) | 5% | 20% | 45% | 30% |
+| Lv3 after 2+ misses | 50% | 40% | 10% | 0% |
+| Lv3 fresh start | 10% | 40% | 35% | 15% |
+| Lv3 short streak (1-3) | 5% | 20% | 45% | 30% |
+| Lv3 long streak (>6) | 10% | 35% | 35% | 20% |
+
+Additional modifiers: high analyst baseline (>1.15) shifts weights conservative; low baseline (<0.85, Lv3 only) shifts aggressive; active revenue penalty shifts conservative; active revenue bonus shifts aggressive.
+
+**Design principle:** CFOs should feel like people, not calculators. Sometimes they play it safe after a bad quarter, sometimes they swing for the fences on a hot streak. The randomness creates emergent narratives.
 
 ### Other Board Room Upgrades
 

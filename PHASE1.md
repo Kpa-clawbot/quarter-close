@@ -13,11 +13,14 @@ Reach $1M revenue → unlocks "Series A" teaser (end of phase 1 content, cliffha
 ## Core Mechanics
 
 ### The Grid
-- Looks like a real spreadsheet with columns: A (Department), B (Staff), C (Rev/day), D (Hire), E (Upgrade), F (Automate), G (Rev/yr), H (Max buttons)
-- Rows = revenue sources you've unlocked
+- Looks like a real spreadsheet with fixed-width columns
+- Row 1 = stats: Cash, $amount, $/day, Total Rev/yr, Stock price
+- Row 2 = headers: DEPARTMENT | Staff | Rev/day | Hire | Upgrade | Actions | Rev/yr
+- Rows 3+ = revenue sources (departments)
 - Cells update in real time (numbers tick up)
 - Formula bar shows cell reference + content when clicked (green outline on selected cell)
 - Clicking cells updates formula bar live each tick
+- Grid column widths resize dynamically between Operations and Board Room tabs
 
 ### Career Arcs (choose at start)
 - **Tech Startup** — Blog → Freelance → SaaS → Big Tech
@@ -133,8 +136,10 @@ Each revenue source has:
 - Backward-compatible format with fallback defaults
 
 ## Help Screen
-- Help menu bar item → scrollable modal with full game guide
-- Covers: goal, money, mini-tasks, events, taxes/AMT/depreciation, chart, shortcuts
+- Help menu bar item → tabbed modal (720px wide)
+- 5 tabs: Basics, Active Play, Events & Taxes, Board Room, Tips
+- Two-column grid layout within each tab
+- All interactive buttons have hover tooltips
 
 ## OG Preview / Social Embed
 - Office 2003 splash screen style overlay on spreadsheet background

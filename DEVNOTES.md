@@ -221,3 +221,80 @@
 - Row 2 = column headers: DEPARTMENT | Staff | Rev/day | Hire | Upgrade | Actions | Rev/yr.
 - Action columns (D/E/F) now labeled.
 - Stock price moved from B to H.
+
+### Help Screen Revamp
+- Tabbed layout with 5 tabs: Basics, Active Play, Events & Taxes, Board Room, Tips
+- Wider modal (720px vs 520px, was single-column 520px)
+- Two-column grid (`.help-columns`) within each tab for scannable layout
+- `showHelpTab(tabId)` JS function switches tabs, `.help-page.active` shows content
+- Board Room split by category (CFO, Revenue, Tax, Restructure, R&D, Stock)
+- Strategy tips added in Tips tab
+
+### Dynamic Grid Columns (Board Room vs Operations)
+- `#grid-container.boardroom-layout` CSS class applied by `switchTab()`
+- Operations: `40px 200px 120px 100px 190px 160px 130px 120px 1fr`
+- Board Room: `40px 200px 120px 100px 120px 280px 130px 120px 1fr` (column E wider for descriptions, D narrower)
+- Board Room descriptions stay in column E with full personality text
+- **Lesson:** Don't strip flavor text to fit layout — fix the layout instead
+
+### Row 3 Separator Removed
+- Invisible 4px separator row caused gap in numbering (1, 2, 4...)
+- Removed entirely — departments now start at row 3
+- All row number bases changed from 4 to 3
+
+### Earnings & IRS Toast Formatting
+- Toast system supports `html: true` option for formatted bodies
+- Earnings modal: structured label-value rows (`.er-row`, `.er-label`, `.er-value`)
+- IRS toast: same layout — Revenue, Depreciation, Taxable Income, Tax Rate, Tax Owed
+- Dividers (`.er-divider`) between sections
+- RE highlighted in blue (`.er-re`), tax owed in red, results bold (`.er-result`)
+- No more text crammed into `\n`-separated strings
+
+### Close the Deal Cooldown Fix
+- Old cooldown: 180-480s (3-8 min) — too long, most players never saw one
+- New: 60-180s initial, 90-240s subsequent
+- Still requires: feature enabled, toast hidden, `totalRevPerTick() > 0`, `totalPlayTime > 60`
+
+### Streak RE Bonus Visibility
+- Beat streak = +10% RE per consecutive beat, capped at 2.0×
+- Now shown in IR section: `🔥 3 beats (1.3× RE)`
+- And in earnings toast: `🔥 3 consecutive beats (1.3× RE)`
+
+### CFO Selector Layout
+- Manual button in column B, numbered level buttons (👶1 📊2 🎩3) in column C
+- Was all crammed in column B — didn't fit
+
+### Hover Tooltips on All Buttons
+- CFO Manual: "Set earnings guidance yourself each quarter"
+- CFO 1/2/3: personality descriptions
+- Push It: "Instant cash (5s of revenue). Diminishing returns per quarter."
+- Max(N): "Hire/Buy all N you can afford"
+- Collect: "Click to collect pending revenue"
+- (Existing: 🎯 focus, Hire, Auto, Upgrade, ★ Restructure)
+
+### CFO Logic Rework — Weighted Random Picks
+- **Old (broken):** Deterministic threshold math where `projectedRev` cancelled out on both sides. Lv2 was locked to conservative forever because `1 > 0.90 * 1.0 * 1.20` always failed. Bug was tautological math.
+- **New:** Context-aware weighted random selection based on streak, analyst baseline, revenue state.
+- **Lv2 weights by context:**
+  - After 2+ misses: 70% conservative, 25% in-line, 5% ambitious
+  - After 1 miss: 40/45/15/0
+  - Fresh (streak 0): 20/50/25/5
+  - Short beat streak (1-3): 10/35/40/15
+  - Long beat streak (4+): 5/20/45/30
+  - High analyst baseline (>1.15): +20 conservative, -15 ambitious/aggressive
+- **Lv3 weights:** Smarter base distribution + also factors in revenue bonuses/penalties and recognizes long-streak analyst danger
+- **Design principle:** CFOs should have personality — sometimes safe, sometimes bold, reacting to context. Not deterministic.
+
+### Revenue vs Target Column Split
+- Column C was overflowing with both percentage and dollar values
+- Split: C shows percentage (`+15.3%`), D shows raw values (`1.2B / 800M`)
+
+### Focus Icon (🎯)
+- Faded 🎯 before dept name on automated departments only
+- Tooltip explains the mechanic
+- Pulses via CSS animation when focus is active
+- Changed condition from `employees > 0` to `state.automated` — focus is a post-automation mechanic
+
+### Stock Price Label
+- Changed from `📈 $X` to `Stock: $X` in column H
+- Column H widened from 95px to 120px
