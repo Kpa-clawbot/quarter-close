@@ -3814,9 +3814,7 @@ function buildBoardRoom() {
       <div class="cell cell-c" style="font-family:Consolas,monospace;font-size:11px;color:${costColor};justify-content:flex-end">${costLabel}</div>
       <div class="cell cell-d" style="justify-content:flex-end">${statusCell}</div>
       <div class="cell cell-e"></div>
-      <div class="cell cell-f" style="font-size:10px;color:#888;white-space:normal;line-height:1.3">${desc}</div>
-      <div class="cell cell-g"></div>
-      <div class="cell cell-h"></div>
+      <div class="cell cell-f" style="font-size:10px;color:#888;white-space:normal;line-height:1.3;grid-column:span 3">${desc}</div>
     </div>`;
     totalUpgradeRows++;
     } // end upgrade loop
