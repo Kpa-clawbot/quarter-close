@@ -1799,6 +1799,138 @@ function updateTaxPanel() {
   let rowNum = sourceCount + 4;
   let html = '';
 
+  // ===== P&L SECTION (collapsible) =====
+  const pnlCollapsed = gameState.pnlCollapsed || false;
+  const pnlArrow = pnlCollapsed ? '▶' : '▼';
+
+  const currentDay = Math.floor(gameState.gameElapsedSecs / SECS_PER_DAY);
+  const daysIntoQuarter = currentDay - gameState.lastQuarterDay;
+  const daysToTax = Math.max(0, 90 - daysIntoQuarter);
+  const garnishActive = gameState.taxDebts && gameState.taxDebts.some(d => d.stage === 'garnish');
+
+  // Separator
+  html += `<div class="grid-row sep-row">
+    <div class="row-num">${rowNum++}</div>
+    <div class="cell cell-a sep-cell"></div><div class="cell cell-b sep-cell"></div>
+    <div class="cell cell-c sep-cell"></div><div class="cell cell-d sep-cell"></div>
+    <div class="cell cell-e sep-cell"></div><div class="cell cell-f sep-cell"></div>
+    <div class="cell cell-g sep-cell"></div><div class="cell cell-h sep-cell"></div>
+  </div>`;
+
+  // P&L Header (clickable to collapse)
+  html += `<div class="grid-row pnl-header">
+    <div class="row-num">${rowNum++}</div>
+    <div class="cell cell-a" style="font-weight:700;color:#333;cursor:pointer" data-toggle-pnl>${pnlArrow} PROFIT &amp; LOSS</div>
+    <div class="cell cell-b"></div>
+    <div class="cell cell-c" style="font-size:10px;color:#888;justify-content:flex-end">${pnlCollapsed ? '' : 'This Qtr'}</div>
+    <div class="cell cell-d" style="font-size:10px;color:#888;justify-content:flex-end">${pnlCollapsed ? '' : 'Lifetime'}</div>
+    <div class="cell cell-e"></div>
+    <div class="cell cell-f" style="font-size:10px;color:#888">${pnlCollapsed ? '' : `Tax due in ${daysToTax}d`}</div>
+    <div class="cell cell-g"></div>
+    <div class="cell cell-h"></div>
+  </div>`;
+
+  if (!pnlCollapsed) {
+    const totalExpenses = gameState.totalSpentHires + gameState.totalSpentUpgrades + gameState.totalSpentAuto;
+    const qDepreciation = getQuarterlyDepreciation();
+
+    // Revenue
+    html += `<div class="grid-row pnl-row">
+      <div class="row-num">${rowNum++}</div>
+      <div class="cell cell-a" style="padding-left:16px;color:#444">Revenue</div>
+      <div class="cell cell-b"></div>
+      <div class="cell cell-c" style="color:#217346;font-family:Consolas,monospace;font-size:11px;justify-content:flex-end">${formatMoney(gameState.quarterRevenue)}</div>
+      <div class="cell cell-d" style="color:#217346;font-family:Consolas,monospace;font-size:11px;justify-content:flex-end">${formatMoney(gameState.totalEarned)}</div>
+      <div class="cell cell-e"></div><div class="cell cell-f"></div>
+      <div class="cell cell-g"></div><div class="cell cell-h"></div>
+    </div>`;
+
+    // Garnishment (if active)
+    if (garnishActive) {
+      html += `<div class="grid-row pnl-row">
+        <div class="row-num">${rowNum++}</div>
+        <div class="cell cell-a" style="padding-left:16px;color:#c00">🔴 IRS Garnishment</div>
+        <div class="cell cell-b"></div>
+        <div class="cell cell-c" style="color:#c00;font-family:Consolas,monospace;font-size:11px;justify-content:flex-end">−15%</div>
+        <div class="cell cell-d"></div>
+        <div class="cell cell-e"></div><div class="cell cell-f" style="font-size:9px;color:#c00">settle debt to remove</div>
+        <div class="cell cell-g"></div><div class="cell cell-h"></div>
+      </div>`;
+    }
+
+    // Capital Spending
+    html += `<div class="grid-row pnl-row">
+      <div class="row-num">${rowNum++}</div>
+      <div class="cell cell-a" style="padding-left:16px;color:#444">Capital Spending</div>
+      <div class="cell cell-b"></div>
+      <div class="cell cell-c" style="color:#c00;font-family:Consolas,monospace;font-size:11px;justify-content:flex-end">(${formatMoney(gameState.quarterExpenses)})</div>
+      <div class="cell cell-d" style="color:#c00;font-family:Consolas,monospace;font-size:11px;justify-content:flex-end">(${formatMoney(totalExpenses)})</div>
+      <div class="cell cell-e"></div><div class="cell cell-f" style="font-size:9px;color:#999">not tax-deductible</div>
+      <div class="cell cell-g"></div><div class="cell cell-h"></div>
+    </div>`;
+
+    // Depreciation
+    const capCount = gameState.capitalExpenses ? gameState.capitalExpenses.length : 0;
+    html += `<div class="grid-row pnl-row">
+      <div class="row-num">${rowNum++}</div>
+      <div class="cell cell-a" style="padding-left:16px;color:#444">Depreciation</div>
+      <div class="cell cell-b"></div>
+      <div class="cell cell-c" style="color:#c00;font-family:Consolas,monospace;font-size:11px;justify-content:flex-end">(${formatMoney(qDepreciation)})</div>
+      <div class="cell cell-d"></div>
+      <div class="cell cell-e"></div><div class="cell cell-f" style="font-size:9px;color:#999">${capCount} assets depreciating</div>
+      <div class="cell cell-g"></div><div class="cell cell-h"></div>
+    </div>`;
+
+    // Taxes paid
+    html += `<div class="grid-row pnl-row">
+      <div class="row-num">${rowNum++}</div>
+      <div class="cell cell-a" style="padding-left:16px;color:#444">Taxes Paid</div>
+      <div class="cell cell-b"></div>
+      <div class="cell cell-c" style="color:#c00;font-family:Consolas,monospace;font-size:11px;justify-content:flex-end">(${formatMoney(gameState.quarterTaxPaid)})</div>
+      <div class="cell cell-d" style="color:#c00;font-family:Consolas,monospace;font-size:11px;justify-content:flex-end">(${formatMoney(gameState.totalTaxPaid)})</div>
+      <div class="cell cell-e"></div><div class="cell cell-f"></div>
+      <div class="cell cell-g"></div><div class="cell cell-h"></div>
+    </div>`;
+
+    // Taxable Income
+    const qTaxable = Math.max(0, gameState.quarterRevenue - qDepreciation);
+    const currentTaxRate = getBoardRoomTaxRate();
+    const currentAMTRate = getBoardRoomAMTRate();
+    const qRegularTax = Math.floor(qTaxable * currentTaxRate);
+    const qAMT = Math.floor(gameState.quarterRevenue * currentAMTRate);
+    const amtApplies = qAMT > qRegularTax && gameState.quarterRevenue > 0;
+    const effectiveTaxable = amtApplies ? gameState.quarterRevenue : qTaxable;
+    const taxRatePct = Math.round(currentTaxRate * 100);
+    const amtRatePct = Math.round(currentAMTRate * 100);
+    const taxableLabel = amtApplies ? 'AMT Taxable Income' : 'Taxable Income';
+    const taxableNote = amtApplies ? `⚠️ AMT floor (${amtRatePct}% of revenue)` : 'rev − depreciation';
+    html += `<div class="grid-row pnl-row">
+      <div class="row-num">${rowNum++}</div>
+      <div class="cell cell-a" style="padding-left:16px;color:${amtApplies ? '#c60' : '#888'};font-size:10px">${taxableLabel}</div>
+      <div class="cell cell-b"></div>
+      <div class="cell cell-c" style="color:${amtApplies ? '#c60' : '#888'};font-family:Consolas,monospace;font-size:10px;justify-content:flex-end">${formatMoney(effectiveTaxable)}</div>
+      <div class="cell cell-d"></div>
+      <div class="cell cell-e"></div><div class="cell cell-f" style="font-size:9px;color:${amtApplies ? '#c60' : '#999'}">${taxableNote}</div>
+      <div class="cell cell-g"></div><div class="cell cell-h"></div>
+    </div>`;
+
+    // Net Income
+    const qNet = gameState.quarterRevenue - gameState.quarterExpenses - gameState.quarterTaxPaid;
+    const ltNet = gameState.totalEarned - totalExpenses - gameState.totalTaxPaid;
+    const qColor = qNet >= 0 ? '#217346' : '#c00';
+    const ltColor = ltNet >= 0 ? '#217346' : '#c00';
+
+    html += `<div class="grid-row pnl-net">
+      <div class="row-num">${rowNum++}</div>
+      <div class="cell cell-a" style="font-weight:700;color:#333;padding-left:16px">Net Income</div>
+      <div class="cell cell-b"></div>
+      <div class="cell cell-c" style="color:${qColor};font-family:Consolas,monospace;font-size:11px;font-weight:700;justify-content:flex-end;border-top:1px solid #333;border-bottom:3px double #333">${qNet < 0 ? '(' + formatMoney(-qNet) + ')' : formatMoney(qNet)}</div>
+      <div class="cell cell-d" style="color:${ltColor};font-family:Consolas,monospace;font-size:11px;font-weight:700;justify-content:flex-end;border-top:1px solid #333;border-bottom:3px double #333">${ltNet < 0 ? '(' + formatMoney(-ltNet) + ')' : formatMoney(ltNet)}</div>
+      <div class="cell cell-e"></div><div class="cell cell-f"></div>
+      <div class="cell cell-g"></div><div class="cell cell-h"></div>
+    </div>`;
+  }
+
   // ===== INVESTOR RELATIONS SECTION (Phase 2.1) =====
   if (gameState.isPublic) {
     const currentDay = Math.floor(gameState.gameElapsedSecs / SECS_PER_DAY);
@@ -2057,11 +2189,6 @@ function updateTaxPanel() {
   }
 
   // Only rebuild DOM if content actually changed (prevents click-swallowing race)
-  const currentDay = Math.floor(gameState.gameElapsedSecs / SECS_PER_DAY);
-  const daysIntoQuarter = currentDay - gameState.lastQuarterDay;
-  const daysToTax = Math.max(0, 90 - daysIntoQuarter);
-  const garnishActive = gameState.taxDebts && gameState.taxDebts.some(d => d.stage === 'garnish');
-
   const hashParts = [
     gameState.quarterRevenue|0, gameState.totalEarned|0,
     gameState.quarterExpenses|0, gameState.quarterTaxPaid|0, gameState.totalTaxPaid|0,
@@ -2079,6 +2206,7 @@ function updateTaxPanel() {
     // Phase 2.2: Board Room effects on display
     getBoardRoomTaxRate(),
     getBoardRoomRevMultiplier(),
+    gameState.pnlCollapsed ? 1 : 0,
   ].join('|');
 
   if (hashParts !== _lastTaxPanelHash) {
@@ -3374,6 +3502,14 @@ function init() {
 
   // Delegated click handler for tax panel buttons (survives innerHTML rebuilds)
   document.getElementById('tax-panel').addEventListener('click', (e) => {
+    // P&L collapse toggle
+    const togglePnl = e.target.closest('[data-toggle-pnl]');
+    if (togglePnl) {
+      gameState.pnlCollapsed = !gameState.pnlCollapsed;
+      _lastTaxPanelHash = ''; // force rebuild
+      updateTaxPanel();
+      return;
+    }
     const settleBtn = e.target.closest('[data-settle]');
     if (settleBtn) {
       e.stopPropagation();
