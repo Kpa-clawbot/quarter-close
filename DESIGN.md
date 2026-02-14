@@ -101,13 +101,61 @@ Revenue accrues per tick → spend on upgrades → grow departments → hit quar
 
 | Tab | Function | Unlocked |
 |-----|----------|----------|
-| Overview | Dashboard, revenue summary, stock price | Start |
-| Sales | Revenue generation, client acquisition | Start |
-| R&D | Product upgrades, new revenue streams | Series A |
-| Marketing | Brand value, customer growth rate | Series A |
-| HR | Hiring, morale, productivity multiplier | Series B |
-| Legal | Risk management, SEC defense | IPO |
-| Finance | Buybacks, guidance, earnings reports | IPO |
+| Operations | Main grid, revenue sources, hiring, upgrades | Start |
+| Board Room | RE prestige shop — permanent upgrades | IPO |
+
+### Future Tabs (Phase 3+)
+| Tab | Function | Unlocked |
+|-----|----------|----------|
+| R&D | Product upgrades, new revenue streams | Board Room |
+| Marketing | Brand value, customer growth rate | Board Room |
+| HR | Hiring, morale, productivity multiplier | Board Room |
+| Legal | Risk management, SEC defense, cooking the books | Board Room |
+
+## Board Room (RE Prestige Shop)
+
+Post-IPO tab where players spend Retained Earnings on permanent upgrades. RE is earned by beating quarterly earnings targets.
+
+### RE Economy
+- Base RE per beat: `10 × log10(quarterRevenue)` — ~109 at $80B quarterly revenue
+- Multiplied by: guidance multiplier × margin bonus (up to 1.5×) × streak bonus (up to 2.0×)
+- Typical quarter: ~200 RE. Max possible: ~980 RE
+- RE resets to 0 at IPO (fresh start for prestige economy)
+
+### Finance Department (Smart CFO System)
+
+The Finance Dept is the flagship Board Room upgrade. It auto-handles quarterly earnings reports (eliminating the popup modal) but each level has a different "intelligence" for picking guidance.
+
+**Player can switch between owned levels at any time** via the IR section in the Operations tab. Downgrading to the intern for chaos is a valid choice.
+
+| Level | Cost | Guidance Algorithm | Personality |
+|-------|------|--------------------|-------------|
+| **Lv1 — The Intern** | 500 RE | Random: 25% conservative, 50% in-line, 25% ambitious | Clueless. Gets rid of the popup but often picks wrong. |
+| **Lv2 — Competent CFO** | 2,500 RE | Trend-based: looks at recent revenue trajectory. Growing → ambitious, flat → in-line, declining → conservative. Needs 20% safety margin to go aggressive. | Decent instincts, plays it safe when unsure. ~70% optimal. |
+| **Lv3 — Elite CFO** | 10,000 RE | Smart analysis: revenue trend + streak length + active bonuses/penalties + recent purchases. Needs only 5% safety margin. Plays tight but accurate. | Wall Street veteran. ~90% optimal picks. |
+
+**The Algorithm (Lv2/Lv3):**
+1. Project quarterly revenue: `currentRevPerTick × 90 days`
+2. For each guidance level, calculate target: `projectedRev × guidancePct × analystBaseline`
+3. Pick the most aggressive guidance where `projectedRev > target × safetyMargin`
+   - Lv2 safety margin: 1.20 (needs 20% buffer)
+   - Lv3 safety margin: 1.05 (cuts it close)
+4. Lv3 also adjusts for:
+   - Long streaks (>5): one notch safer (analysts are ratcheting hard)
+   - Active revenue bonus: one notch more aggressive (temporary windfall)
+   - Active revenue penalty: one notch safer
+
+### Other Board Room Upgrades
+
+| Item | Cost | Effect |
+|------|------|--------|
+| Revenue Multiplier I | 1,000 RE | Permanent 1.1× revenue |
+| Revenue Multiplier II | 5,000 RE | Permanent 1.25× revenue (requires I) |
+| Revenue Multiplier III | 25,000 RE | Permanent 1.5× revenue (requires II) |
+| Lobbyist | 1,500 RE | Tax rate 25% → 20% |
+| Tax Haven | 8,000 RE | Tax rate → 15% (requires Lobbyist) |
+| Analyst Relations | 2,000 RE | Analyst ratchet slowed 50% |
+| Golden Parachute | 3,000 RE | Survive one asset seizure (consumed, rebuyable) |
 
 ## Idle Mechanics
 

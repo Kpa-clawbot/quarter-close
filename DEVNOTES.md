@@ -53,7 +53,10 @@
 - **IRS escalation over random dice** — debt compounds with 1% daily interest, stages escalate over 180 game-days
 - **Depreciation for tax** — capital spending deducted over 4 quarters, not immediately (prevents gaming tax day)
 - **All event toasts auto-expire in 10s** — last button (worst option) gets red countdown fill, auto-fires
-- **IRS tax toasts never auto-expire** — too important to auto-fire (expiresMs: 0)
+- **IRS tax toasts not closable but auto-expire** — `closable: false` hides ✕ button, but no `expiresMs: 0` so the 10s countdown on Ignore still works. Earnings modal uses `expiresMs: 0` because game is paused during it.
+- **Finance Dept = Smart CFO, not guidance override** — Finance Dept doesn't let the player pick guidance mid-quarter (that's cheesing). Instead, each level has an AI algorithm that picks guidance automatically. Lv1 = random intern. Lv2 = trend-based CFO. Lv3 = elite analyst. Player can switch between owned levels anytime but can't manually set guidance when Finance Dept is active.
+- **RE economy: 10 × log10** — multiplier was briefly changed to 100000× (broken) then reverted. At $80B quarterly revenue: ~109 base RE, ~200 typical, ~980 max per quarter. Board Room prices: 500 to 25,000 RE.
+- **Old inflated RE capped on load** — saves with >100K RE get reset to 0 (from pre-nerf formula bug)
 - **Late-game tiers stay grounded** — no sci-fi/absurd names. Tech companies ARE the endgame.
 - **Fractal market noise** — volatility itself is a random walk (0.05-1.0), three noise frequencies (fast/slow/shock), creating realistic calm→chaotic chart patterns
 - **Earnings modals never auto-expire** — like IRS toasts, they use `expiresMs: 0` because guidance selection is an important decision

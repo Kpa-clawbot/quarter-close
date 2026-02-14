@@ -286,7 +286,7 @@ const BOARD_ROOM_UPGRADES = [
   {
     id: 'finance_dept_1',
     name: 'Finance Dept Lv1',
-    desc: 'Auto-handles earnings. Defaults to conservative guidance (0.5× RE).',
+    desc: 'The Intern — auto-earnings, but randomizes guidance (often wrong).',
     cost: 500,
     requires: null,
     maxCount: 1,
@@ -295,7 +295,7 @@ const BOARD_ROOM_UPGRADES = [
   {
     id: 'finance_dept_2',
     name: 'Finance Dept Lv2',
-    desc: 'Auto-earnings with in-line guidance (1× RE). Better returns.',
+    desc: 'Competent CFO — analyzes trends, picks right guidance ~70% of the time.',
     cost: 2500,
     requires: 'finance_dept_1',
     maxCount: 1,
@@ -304,7 +304,7 @@ const BOARD_ROOM_UPGRADES = [
   {
     id: 'finance_dept_3',
     name: 'Finance Dept Lv3',
-    desc: 'Auto-earnings with ambitious guidance (2× RE). Maximum yield.',
+    desc: 'Elite CFO — factors in streaks, bonuses, analyst pressure. ~90% optimal.',
     cost: 10000,
     requires: 'finance_dept_2',
     maxCount: 1,
