@@ -2405,14 +2405,14 @@ function gameTick() {
 
   // Close the Deal spawning
   if (isFeatureEnabled('closeTheDeals') && !gameState.dealActive) {
-    if (!gameState.dealCooldown) gameState.dealCooldown = 180 + Math.floor(Math.random() * 300);
+    if (!gameState.dealCooldown) gameState.dealCooldown = 60 + Math.floor(Math.random() * 120);
     if (gameState.dealCooldown > 0) {
       gameState.dealCooldown--;
     } else if (totalRevPerTick() > 0 && !isPowerOut &&
                document.getElementById('event-toast').classList.contains('hidden') &&
                gameState.totalPlayTime > 60) {
       spawnDeal();
-      gameState.dealCooldown = 180 + Math.floor(Math.random() * 300); // 3-8 min
+      gameState.dealCooldown = 90 + Math.floor(Math.random() * 150); // 1.5-4 min
     }
   }
 
