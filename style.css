@@ -1124,6 +1124,49 @@ body {
   line-height: 1.4;
 }
 
+/* Earnings & IRS report formatting */
+.earnings-report, .irs-report {
+  padding: 4px 0;
+}
+
+.er-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 3px 0;
+  font-size: 12px;
+}
+
+.er-label {
+  color: #888;
+  min-width: 100px;
+}
+
+.er-value {
+  font-family: 'Consolas', 'Courier New', monospace;
+  color: #333;
+  text-align: right;
+}
+
+.er-value.er-re {
+  color: #0078d4;
+  font-weight: 600;
+}
+
+.er-result {
+  font-weight: 600;
+}
+
+.er-divider {
+  border-top: 1px solid #e0e0e0;
+  margin: 6px 0;
+}
+
+.er-prompt {
+  font-size: 11px;
+  color: #888;
+  margin-top: 4px;
+}
+
 #toast-actions {
   padding: 6px 10px 10px;
   display: flex;

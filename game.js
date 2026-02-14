@@ -1647,14 +1647,29 @@ function processQuarterlyTax() {
 
   if (taxOwed <= 0) {
     showEventToast('IRS', `${qLabel} Quarterly Tax Assessment`,
-      `Revenue: ${formatMoney(qRev)}\nDepreciation: (${formatMoney(qDep)})\nTaxable income: ${formatMoney(Math.max(0, taxableIncome))}\n\nNo tax owed this quarter.`,
-      [{ label: 'OK', effect: () => `No tax liability for ${qLabel}. Keep investing!` }]);
+      `<div class="irs-report">
+        <div class="er-row"><span class="er-label">Revenue</span><span class="er-value">${formatMoney(qRev)}</span></div>
+        <div class="er-row"><span class="er-label">Depreciation</span><span class="er-value">(${formatMoney(qDep)})</span></div>
+        <div class="er-row"><span class="er-label">Taxable Income</span><span class="er-value">${formatMoney(Math.max(0, taxableIncome))}</span></div>
+        <div class="er-divider"></div>
+        <div class="er-row"><span class="er-label">Tax Owed</span><span class="er-value" style="color:#217346">$0 ✓</span></div>
+      </div>`,
+      [{ label: 'OK', effect: () => `No tax liability for ${qLabel}. Keep investing!` }],
+      { html: true });
     return;
   }
 
-  const amtNote = isAMT ? `\n⚠️ AMT applies (${Math.round(amtRate*100)}% of revenue > regular tax)` : '';
+  const amtNote = isAMT ? `<div class="er-row" style="color:#c7254e"><span class="er-label">⚠️ AMT</span><span class="er-value">${Math.round(amtRate*100)}% of revenue &gt; regular tax</span></div>` : '';
   showEventToast('IRS', `${qLabel} Quarterly Tax Assessment`,
-    `Revenue: ${formatMoney(qRev)}\nDepreciation: (${formatMoney(qDep)})\nTaxable income: ${formatMoney(taxableIncome)}\n\nTax owed (${isAMT ? 'AMT ' + Math.round(amtRate*100) + '%' : Math.round(taxRate*100) + '%'}): ${formatMoney(taxOwed)}${amtNote}`,
+    `<div class="irs-report">
+      <div class="er-row"><span class="er-label">Revenue</span><span class="er-value">${formatMoney(qRev)}</span></div>
+      <div class="er-row"><span class="er-label">Depreciation</span><span class="er-value">(${formatMoney(qDep)})</span></div>
+      <div class="er-row"><span class="er-label">Taxable Income</span><span class="er-value">${formatMoney(taxableIncome)}</span></div>
+      <div class="er-divider"></div>
+      <div class="er-row"><span class="er-label">Tax Rate</span><span class="er-value">${isAMT ? 'AMT ' + Math.round(amtRate*100) + '%' : Math.round(taxRate*100) + '%'}</span></div>
+      <div class="er-row er-result"><span class="er-label">Tax Owed</span><span class="er-value" style="color:#c7254e;font-weight:700">${formatMoney(taxOwed)}</span></div>
+      ${amtNote}
+    </div>`,
     [
       { label: `Pay ${formatMoney(taxOwed)}`,
         disabledLabel: 'Not enough cash',
@@ -1678,7 +1693,7 @@ function processQuarterlyTax() {
         updateTaxPanel();
         return `You ignored the ${qLabel} tax bill. ${formatMoney(taxOwed)} added to tax liability. Interest is accruing...`;
       }},
-    ], { closable: false });
+    ], { closable: false, html: true });
 }
 
 function processTaxDebts() {
@@ -2449,7 +2464,11 @@ function showEvent(event) {
   }
 
   document.getElementById('toast-sender').textContent = event.sender;
-  document.getElementById('toast-body').textContent = event.body;
+  if (event.html) {
+    document.getElementById('toast-body').innerHTML = event.body;
+  } else {
+    document.getElementById('toast-body').textContent = event.body;
+  }
 
   const actionsDiv = document.getElementById('toast-actions');
   actionsDiv.innerHTML = '';
@@ -3622,7 +3641,18 @@ function processEarnings() {
 
 function showEarningsModal(data) {
   const guidanceLabel = GUIDANCE_LEVELS[data.guidanceKey].label;
-  const body = `Revenue: ${formatMoney(data.revenue)}\nGuidance: ${formatMoney(data.target)} (${guidanceLabel})\nResult: ${data.result} (${data.marginPct > 0 ? '+' : ''}${data.marginPct}%) ${data.resultEmoji}\n\nStock: ${data.stockChange}\nRetained Earnings: +${data.reEarned} RE${data.streakText ? '\n' + data.streakText : ''}${data.analystText ? '\n' + data.analystText : ''}\n\nSet next quarter guidance:`;
+  const body = `<div class="earnings-report">
+    <div class="er-row"><span class="er-label">Revenue</span><span class="er-value">${formatMoney(data.revenue)}</span></div>
+    <div class="er-row"><span class="er-label">Guidance</span><span class="er-value">${formatMoney(data.target)} (${guidanceLabel})</span></div>
+    <div class="er-row er-result"><span class="er-label">Result</span><span class="er-value">${data.result} ${data.resultEmoji} (${data.marginPct > 0 ? '+' : ''}${data.marginPct}%)</span></div>
+    <div class="er-divider"></div>
+    <div class="er-row"><span class="er-label">Stock</span><span class="er-value">${data.stockChange}</span></div>
+    <div class="er-row"><span class="er-label">RE Earned</span><span class="er-value er-re">+${data.reEarned} RE</span></div>
+    ${data.streakText ? `<div class="er-row"><span class="er-label">Streak</span><span class="er-value">${data.streakText}</span></div>` : ''}
+    ${data.analystText ? `<div class="er-row"><span class="er-label">Analysts</span><span class="er-value">${data.analystText}</span></div>` : ''}
+    <div class="er-divider"></div>
+    <div class="er-prompt">Set next quarter guidance:</div>
+  </div>`;
 
   // Build actions — 4 guidance buttons + close
   const actions = Object.entries(GUIDANCE_LEVELS).map(([key, level]) => ({
@@ -3635,7 +3665,7 @@ function showEarningsModal(data) {
   }));
 
   showEventToast('Investor Relations', `${data.qLabel} EARNINGS REPORT`,
-    body, actions, { expiresMs: 0, closable: false });
+    body, actions, { expiresMs: 0, closable: false, html: true });
 }
 
 function trackEarningsRevenue(amount) {
