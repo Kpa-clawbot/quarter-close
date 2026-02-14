@@ -2101,3 +2101,88 @@ body {
   text-decoration: underline;
   text-decoration-color: #ccc;
 }
+
+/* ===== CTO BUDGET SLIDER ===== */
+.cto-budget-row .cell {
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+}
+
+.cto-budget-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 90px;
+  height: 4px;
+  background: #ccc;
+  border-radius: 2px;
+  outline: none;
+  cursor: pointer;
+}
+
+.cto-budget-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 12px;
+  height: 12px;
+  background: #666;
+  border-radius: 50%;
+  cursor: pointer;
+}
+.cto-budget-slider::-webkit-slider-thumb:hover,
+.cto-budget-slider::-webkit-slider-thumb:active {
+  background: #0078d4;
+}
+
+.cto-budget-slider::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  background: #666;
+  border-radius: 50%;
+  cursor: pointer;
+  border: none;
+}
+.cto-budget-slider::-moz-range-thumb:hover,
+.cto-budget-slider::-moz-range-thumb:active {
+  background: #0078d4;
+}
+
+.cto-budget-slider:disabled {
+  cursor: default;
+}
+.cto-budget-slider:disabled::-webkit-slider-thumb {
+  background: #aaa;
+  cursor: default;
+}
+.cto-budget-slider:disabled::-moz-range-thumb {
+  background: #aaa;
+  cursor: default;
+}
+
+.cto-budget-pct {
+  font-family: Consolas, monospace;
+  font-size: 10px;
+  color: #666;
+  min-width: 28px;
+  text-align: right;
+}
+
+.cto-auto-label {
+  font-size: 10px;
+  color: #666;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  white-space: nowrap;
+}
+.cto-auto-label:hover,
+.cto-auto-label:active {
+  color: #0078d4;
+}
+
+.cto-auto-label input[type="checkbox"] {
+  width: 12px;
+  height: 12px;
+  margin: 0;
+  cursor: pointer;
+}

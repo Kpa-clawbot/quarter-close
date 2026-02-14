@@ -607,6 +607,16 @@ const BOARD_ROOM_UPGRADES = [
     category: 'Revenue',
     scalingCost: 1.10, // each purchase costs 10% more
   },
+  {
+    id: 'capex_planning',
+    name: 'CapEx Planning',
+    desc: 'CFO automatically manages CTO upgrade budget each quarter.',
+    cost: 15000,
+    requires: null,
+    maxCount: 1,
+    category: 'Finance',
+    customRequires: () => getTechDeptLevel() >= 1 && getFinanceDeptLevel() >= 1,
+  },
 ];
 
 function hasBoardRoomUpgrade(id) {
@@ -811,10 +821,44 @@ function setActiveCTOLevel(level) {
   updateTaxPanel();
 }
 
+function setCtoBudgetPct(val) {
+  const oldPct = gameState.ctoBudgetPct || 15;
+  gameState.ctoBudgetPct = Math.max(0, Math.min(100, parseInt(val) || 0));
+  // Recalculate budget for current quarter proportionally
+  if (gameState.ctoQuarterBudget > 0 && oldPct > 0) {
+    const baseRevenue = gameState.ctoQuarterBudget / (oldPct / 100);
+    gameState.ctoQuarterBudget = baseRevenue * (gameState.ctoBudgetPct / 100);
+  } else if (gameState.ctoBudgetPct > 0) {
+    // Bootstrap: no budget set yet
+    gameState.ctoQuarterBudget = (totalAnnualRev() / 4) * (gameState.ctoBudgetPct / 100);
+  }
+  _lastTaxPanelHash = '';
+  updateTaxPanel();
+}
+
+function toggleCtoBudgetAuto(enabled) {
+  gameState.ctoBudgetAuto = enabled;
+  _lastTaxPanelHash = '';
+  updateTaxPanel();
+}
+
 // CTO auto-upgrade logic — buys ONE dept upgrade per tick
 function ctoAutoUpgrade() {
   const level = gameState.activeCTOLevel;
   if (!level || getTechDeptLevel() < level) return;
+
+  // Budget 0% = CTO paused
+  if (gameState.ctoBudgetPct === 0) return;
+
+  // Bootstrap budget for first quarter after CTO purchase (budget not yet set)
+  if (gameState.ctoQuarterBudget <= 0 && gameState.ctoBudgetPct > 0) {
+    gameState.ctoQuarterBudget = (totalAnnualRev() / 4) * (gameState.ctoBudgetPct / 100);
+    gameState.ctoSpentThisQuarter = 0;
+  }
+
+  // Budget check — don't exceed quarterly budget
+  if (gameState.ctoQuarterBudget > 0 && gameState.ctoSpentThisQuarter >= gameState.ctoQuarterBudget) return;
+  const remainingBudget = gameState.ctoQuarterBudget - gameState.ctoSpentThisQuarter;
 
   // Build candidate list: all unlocked depts with affordable upgrades
   const candidates = [];
@@ -823,6 +867,7 @@ function ctoAutoUpgrade() {
     if (!state.unlocked || state.employees === 0) continue;
     const cost = upgradeCost(state);
     if (cost > gameState.cash) continue;
+    if (cost > remainingBudget) continue; // budget constraint
     const revGain = sourceRevPerTick(state) * 0.5; // upgrading adds 50% revenue
     const roi = cost > 0 ? revGain / cost : 0;
     candidates.push({ index: i, cost, revGain, roi });
@@ -856,6 +901,7 @@ function ctoAutoUpgrade() {
 
   // Buy ONE upgrade per tick
   if (pick) {
+    gameState.ctoSpentThisQuarter += pick.cost;
     upgradeSource(pick.index);
   }
 }
@@ -915,6 +961,10 @@ let gameState = {
   activeTab: 'operations', // 'operations' | 'boardroom'
   activeCFOLevel: 0,       // 0 = manual, 1/2/3 = Finance Dept level in use
   activeCTOLevel: 0,       // 0 = manual, 1/2/3 = Tech Dept level in use
+  ctoBudgetPct: 15,        // 0-100, slider value for CTO quarterly budget
+  ctoSpentThisQuarter: 0,  // $ spent by CTO this quarter
+  ctoQuarterBudget: 0,     // calculated at quarter start from last quarter's revenue
+  ctoBudgetAuto: false,    // CapEx Planning upgrade — CFO manages budget automatically
   cfoRecords: {},          // { 1: {beats:0,total:0}, 2: {...}, 3: {...} }
   revenueHistory: [],      // last 3 quarterly revenues for trend analysis
   lastQuarterRE: 0,        // RE earned last quarter (for ETA display)
@@ -1211,6 +1261,10 @@ function selectArc(arcKey) {
   gameState.activeTab = 'operations';
   gameState.activeCFOLevel = 0;
   gameState.activeCTOLevel = 0;
+  gameState.ctoBudgetPct = 15;
+  gameState.ctoSpentThisQuarter = 0;
+  gameState.ctoQuarterBudget = 0;
+  gameState.ctoBudgetAuto = false;
   gameState.cfoRecords = {};
   gameState.revenueHistory = [];
   gameState.lastQuarterRE = 0;
@@ -2014,6 +2068,35 @@ function processQuarterlyTax() {
   // Tick depreciation (reduce remaining quarters on all assets)
   tickDepreciation();
 
+  // CTO Budget: calculate next quarter's budget from ending quarter's revenue
+  if (getTechDeptLevel() > 0) {
+    // CapEx Planning: CFO auto-sets budget percentage
+    if (gameState.ctoBudgetAuto) {
+      const cfoLevel = getFinanceDeptLevel();
+      if (cfoLevel === 1) {
+        gameState.ctoBudgetPct = 15;
+      } else if (cfoLevel >= 2) {
+        // Base on current guidance
+        const guidance = gameState.currentGuidance;
+        if (guidance === 'conservative') gameState.ctoBudgetPct = 20;
+        else if (guidance === 'ambitious' || guidance === 'aggressive') gameState.ctoBudgetPct = 10;
+        else gameState.ctoBudgetPct = 15; // in-line or null
+        if (cfoLevel >= 3) {
+          // Tax debt → halve budget
+          if (gameState.taxDebts && gameState.taxDebts.length > 0) {
+            gameState.ctoBudgetPct = Math.max(5, Math.floor(gameState.ctoBudgetPct / 2));
+          }
+          // High streak → reduce by 5% (analyst ratchet protection)
+          if (gameState.earningsStreak >= 5) {
+            gameState.ctoBudgetPct = Math.max(5, gameState.ctoBudgetPct - 5);
+          }
+        }
+      }
+    }
+    gameState.ctoQuarterBudget = gameState.quarterRevenue * (gameState.ctoBudgetPct / 100);
+    gameState.ctoSpentThisQuarter = 0;
+  }
+
   // Reset quarterly tracking
   gameState.quarterRevenue = 0;
   gameState.quarterExpenses = 0;
@@ -2672,6 +2755,38 @@ function updateTaxPanel() {
         <div class="cell cell-g"></div>
         <div class="cell cell-h"></div>
       </div>`;
+
+      // CTO Budget sub-row (only when CTO is active)
+      if (activeCTO > 0) {
+        const budgetPct = gameState.ctoBudgetPct;
+        const spent = gameState.ctoSpentThisQuarter;
+        const budget = gameState.ctoQuarterBudget;
+        const spentStr = formatCompact(spent);
+        const budgetStr = budget > 0 ? formatCompact(budget) : '—';
+        const pctUsed = budget > 0 ? Math.min(100, Math.round(spent / budget * 100)) : 0;
+        const barFilled = Math.round(pctUsed / 10);
+        const bar = '█'.repeat(barFilled) + '░'.repeat(10 - barFilled);
+        const barColor = pctUsed >= 90 ? '#c00' : pctUsed >= 70 ? '#b8860b' : '#666';
+        const hasCapEx = hasBoardRoomUpgrade('capex_planning');
+        const autoChecked = gameState.ctoBudgetAuto ? 'checked' : '';
+        const sliderDisabled = gameState.ctoBudgetAuto ? 'disabled style="opacity:0.5"' : '';
+        const autoLabel = hasCapEx ? `<label class="cto-auto-label" title="CFO manages budget automatically"><input type="checkbox" ${autoChecked} onchange="toggleCtoBudgetAuto(this.checked)"> Auto</label>` : '';
+
+        html += `<div class="grid-row ir-row cto-budget-row">
+          <div class="row-num">${rowNum++}</div>
+          <div class="cell cell-a" style="padding-left:28px;color:#666;font-size:10px">Budget</div>
+          <div class="cell cell-b" style="display:flex;align-items:center;gap:4px">
+            <input type="range" min="0" max="100" step="5" value="${budgetPct}" class="cto-budget-slider" ${sliderDisabled} oninput="setCtoBudgetPct(this.value)" title="CTO quarterly budget as % of last quarter revenue">
+            <span class="cto-budget-pct">${budgetPct}%</span>
+          </div>
+          <div class="cell cell-c" style="font-family:Consolas,monospace;font-size:10px;color:${barColor}" title="${pctUsed}% used">${bar}</div>
+          <div class="cell cell-d" style="font-size:10px;color:#666;white-space:nowrap">${spentStr} / ${budgetStr}</div>
+          <div class="cell cell-e" style="font-size:10px">${autoLabel}</div>
+          <div class="cell cell-f"></div>
+          <div class="cell cell-g"></div>
+          <div class="cell cell-h"></div>
+        </div>`;
+      }
     }
   }
 
@@ -2764,6 +2879,10 @@ function updateTaxPanel() {
     gameState.pnlCollapsed ? 1 : 0,
     gameState.activeCFOLevel || 0,
     gameState.activeCTOLevel || 0,
+    gameState.ctoBudgetPct || 0,
+    gameState.ctoSpentThisQuarter|0,
+    gameState.ctoQuarterBudget|0,
+    gameState.ctoBudgetAuto ? 1 : 0,
     getFinanceDeptLevel(),
     getTechDeptLevel(),
   ].join('|');
@@ -3201,6 +3320,10 @@ function saveGame() {
     boardRoomPurchases: gameState.boardRoomPurchases || {},
     activeCFOLevel: gameState.activeCFOLevel || 0,
     activeCTOLevel: gameState.activeCTOLevel || 0,
+    ctoBudgetPct: gameState.ctoBudgetPct != null ? gameState.ctoBudgetPct : 15,
+    ctoSpentThisQuarter: gameState.ctoSpentThisQuarter || 0,
+    ctoQuarterBudget: gameState.ctoQuarterBudget || 0,
+    ctoBudgetAuto: gameState.ctoBudgetAuto || false,
     cfoRecords: gameState.cfoRecords || {},
     revenueHistory: gameState.revenueHistory || [],
     lastQuarterRE: gameState.lastQuarterRE || 0,
@@ -3280,6 +3403,10 @@ function loadGame() {
     gameState.boardRoomPurchases = data.boardRoomPurchases || {};
     gameState.activeCFOLevel = data.activeCFOLevel || 0;
     gameState.activeCTOLevel = data.activeCTOLevel || 0;
+    gameState.ctoBudgetPct = data.ctoBudgetPct != null ? data.ctoBudgetPct : 15;
+    gameState.ctoSpentThisQuarter = data.ctoSpentThisQuarter || 0;
+    gameState.ctoQuarterBudget = data.ctoQuarterBudget || 0;
+    gameState.ctoBudgetAuto = data.ctoBudgetAuto || false;
     gameState.cfoRecords = data.cfoRecords || {};
     gameState.revenueHistory = data.revenueHistory || [];
     gameState.lastQuarterRE = data.lastQuarterRE || 0;
@@ -3402,6 +3529,10 @@ function resetGame() {
   gameState.activeTab = 'operations';
   gameState.activeCFOLevel = 0;
   gameState.activeCTOLevel = 0;
+  gameState.ctoBudgetPct = 15;
+  gameState.ctoSpentThisQuarter = 0;
+  gameState.ctoQuarterBudget = 0;
+  gameState.ctoBudgetAuto = false;
   gameState.cfoRecords = {};
   gameState.revenueHistory = [];
   gameState.lastQuarterRE = 0;
@@ -4079,6 +4210,10 @@ function resetBoardRoom() {
   gameState.retainedEarnings = 0;
   gameState.activeCFOLevel = 0;
   gameState.activeCTOLevel = 0;
+  gameState.ctoBudgetPct = 15;
+  gameState.ctoSpentThisQuarter = 0;
+  gameState.ctoQuarterBudget = 0;
+  gameState.ctoBudgetAuto = false;
   gameState.cfoRecords = {};
   gameState.revenueHistory = [];
   gameState.lastQuarterRE = 0;
@@ -4308,6 +4443,8 @@ window.forceIPO = forceIPO;
 window.resetBoardRoom = resetBoardRoom;
 window.setActiveCFOLevel = setActiveCFOLevel;
 window.setActiveCTOLevel = setActiveCTOLevel;
+window.setCtoBudgetPct = setCtoBudgetPct;
+window.toggleCtoBudgetAuto = toggleCtoBudgetAuto;
 window.setGuidance = setGuidance;
 
 // ===== BOARD ROOM (Phase 2.2) =====
@@ -4435,7 +4572,7 @@ function buildBoardRoom() {
     for (const upgrade of upgrades) {
     const owned = getBoardRoomUpgradeCount(upgrade.id);
     const isOwned = owned > 0 && upgrade.maxCount !== Infinity;
-    const requiresMet = !upgrade.requires || hasBoardRoomUpgrade(upgrade.requires);
+    const requiresMet = (!upgrade.requires || hasBoardRoomUpgrade(upgrade.requires)) && (!upgrade.customRequires || upgrade.customRequires());
     const cost = getUpgradeCost(upgrade);
     const canAfford = gameState.retainedEarnings >= cost;
     const isLocked = !requiresMet;
@@ -4449,9 +4586,13 @@ function buildBoardRoom() {
       statusCell = `<span class="br-owned-badge">${label}</span>`;
     } else if (isLocked) {
       rowClass += ' br-locked';
-      const reqUpgrade = BOARD_ROOM_UPGRADES.find(u => u.id === upgrade.requires);
-      const reqName = reqUpgrade ? reqUpgrade.name : upgrade.requires;
-      statusCell = `<span class="br-locked-badge">🔒 Requires ${reqName}</span>`;
+      if (upgrade.customRequires && !upgrade.customRequires()) {
+        statusCell = `<span class="br-locked-badge">🔒 Requires CFO + CTO</span>`;
+      } else {
+        const reqUpgrade = BOARD_ROOM_UPGRADES.find(u => u.id === upgrade.requires);
+        const reqName = reqUpgrade ? reqUpgrade.name : upgrade.requires;
+        statusCell = `<span class="br-locked-badge">🔒 Requires ${reqName}</span>`;
+      }
     } else {
       // Buyable
       const countLabel = upgrade.maxCount === Infinity && owned > 0 ? ` (have ${owned})` : '';
@@ -4519,6 +4660,7 @@ function purchaseBoardRoomUpgrade(id) {
   const owned = getBoardRoomUpgradeCount(id);
   if (owned >= upgrade.maxCount) return;
   if (upgrade.requires && !hasBoardRoomUpgrade(upgrade.requires)) return;
+  if (upgrade.customRequires && !upgrade.customRequires()) return;
   const cost = getUpgradeCost(upgrade);
   if (gameState.retainedEarnings < cost) return;
 
@@ -4541,6 +4683,11 @@ function purchaseBoardRoomUpgrade(id) {
     gameState.activeCTOLevel = 2;
   } else if (id === 'tech_dept_3' && gameState.activeCTOLevel <= 2) {
     gameState.activeCTOLevel = 3;
+  }
+
+  // CapEx Planning: enable CFO auto-budget for CTO
+  if (id === 'capex_planning') {
+    gameState.ctoBudgetAuto = true;
   }
 
   // Status bar feedback

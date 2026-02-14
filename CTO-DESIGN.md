@@ -124,13 +124,40 @@ function ctoAutoUpgrade(level):
     buy first one that passes threshold
 ```
 
-## Game State
+## Budget Mechanic
 
-New fields:
-- `gameState.activeCTOLevel` — 0 (Manual), 1, 2, or 3
-- `gameState.ctoPurchased` — array of purchased levels [1, 2, 3]
+### Manual Budget Slider (always present)
+- Slider in C-Suite section on the CTO row, range 0% to 100%, default 15%
+- Budget = slider % × last quarter's revenue (or projected quarterly revenue)
+- `gameState.ctoBudgetPct` — persisted in save, default 15
+- `gameState.ctoSpentThisQuarter` — tracks spending, resets each quarter start
+- `gameState.ctoQuarterBudget` — calculated at quarter start: `lastQuarterRevenue * ctoBudgetPct / 100`
+- CTO checks `ctoSpentThisQuarter < ctoQuarterBudget` before each purchase
+- Display in C-Suite: "CTO: 💻2 | Budget: $2.3M / $5M (46%) [===----] 15%"
+- Player can set to 0% to pause upgrades without switching to Manual
+- Player can set to 100% to let CTO spend everything — they're the CEO
 
-Saved/loaded with game state, reset on new game.
+### CapEx Planning Upgrade (Board Room, Finance category)
+- Cost: 15,000 RE
+- Requires: CTO Lv1+ and CFO Lv1+
+- Effect: Adds "Auto" toggle next to budget slider
+- When Auto ON: CFO sets budget % each quarter automatically, slider moves on its own
+  - CFO Lv1: fixed 15% always
+  - CFO Lv2: adjusts based on guidance — conservative guidance → higher budget, ambitious → tighter
+  - CFO Lv3: factors in streak, analyst baseline, tax debt. Slashes budget if unpaid taxes. Tightens proactively on long streaks.
+- When Auto OFF: player controls slider manually (default)
+- `gameState.ctoBudgetAuto` — boolean, persisted in save
+
+### CTO Tier Behavior (within budget)
+- Lv1: cheapest upgrade first, buys one per tick until budget exhausted
+- Lv2: best ROI first, skips ROI < 0.001, one per tick
+- Lv3: ROI-first + raises threshold near quarter end (protects margin)
+- All tiers respect the budget cap — never spend beyond `ctoQuarterBudget`
+
+### Player Progression
+1. Manual upgrades (no CTO)
+2. Buy CTO → auto-upgrades with manual budget slider (you're the CEO)
+3. Buy CapEx Planning → CFO auto-manages the budget (toggle Auto off to override anytime)
 
 ## What This Does NOT Do
 
