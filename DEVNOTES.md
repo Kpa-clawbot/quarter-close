@@ -365,3 +365,27 @@ The `!gameState.dealCooldown` guard was a classic JS falsy trap. When cooldown d
 3. Never reaches `spawnDeal()` because step 1 always fires first
 
 Fix: Check `=== undefined || === null` so that `0` falls through to the spawn branch. This was the documented gotcha in memory but it was actually live-broken the whole time.
+
+### Weighted Event System
+Events now use weighted random selection instead of uniform. Each event has a `weight` field:
+- **Weight 4** (very common): Angry Customer, Password Reset
+- **Weight 3** (common): Mom, Email Down, P0 Bug, Big Client
+- **Weight 2** (regular): Power Outage, Cloud Outage, Laptop Recall, TikTok, Reddit, News, Forbes, R&D Breakthrough
+- **Weight 1** (rare): College Buddy, Ransomware, DDoS, DB Corruption
+
+Total weight: 40. At default 1× frequency, events fire every ~2.6 min real time.
+
+### Event Frequency Multiplier
+`EVENT_FREQ_MULT` scales BOTH the random roll chance AND the cooldown timer.
+- Slider in Settings: 0× (off) to 3.0× (chaos mode)
+- 1× = ~2.6 min between events, 3× = ~52s between events
+- Persists in save file, resets on new game
+
+### Debug Mode
+Debug tools (🧪 buttons) hidden by default. Activate by tapping "💰 Cash" label 7× within 2 seconds. Session-only, resets on page load.
+
+### Number Formatting
+Added tiers up to Decillion: K, M, B, T, Q, Qi (1e18), Sx (1e21), Sp (1e24), Oc (1e27), No (1e30), Dc (1e33).
+
+### Department Column
+Level/prestige/breakthrough tags right-justified via flexbox. Name left, tags right.

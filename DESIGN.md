@@ -102,6 +102,18 @@ All three are optional — toggle off in Game Options for pure idle experience.
 
 Events appear as email-style toast notifications. Mix of positive (Lucky Client, R&D Breakthrough), neutral (Mom, College Buddy), and negative (IT disasters). Each has 1-2 action buttons; non-closable events auto-fire the last button after 10s.
 
+### Event Weights & Frequency
+Events use weighted random selection. Higher weight = more frequent. Global frequency adjustable via Settings slider (0×–3×).
+
+| Weight | Category | Events |
+|--------|----------|--------|
+| 4 | Very Common | Angry Customer, Password Reset |
+| 3 | Common | Mom, Email Server Down, P0 Bug, Big Client |
+| 2 | Regular | Power Outage, Cloud Outage, Laptop Recall, TikTok, Reddit, Local News, Forbes, R&D Breakthrough |
+| 1 | Rare | College Buddy, Ransomware, DDoS, DB Corruption |
+
+At 1× frequency: ~2.6 min between events. At 3×: ~52s (chaos mode). Cooldown AND roll chance both scale.
+
 ### Positive Events
 - **Lucky Client** (Sales Team) — one-time cash bonus (5-10× daily revenue of random dept)
 - **R&D Breakthrough** (R&D Department) — permanent 2× revenue for a random dept, or file patent for 5% cash

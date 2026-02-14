@@ -97,7 +97,20 @@ Each revenue source has:
 
 ## Events (Desktop notification toasts)
 
-### Standard Events (~2% chance per tick)
+### Weighted Event System
+Events use weighted random selection. Global frequency adjustable via Settings slider (0×–3×).
+Both cooldown timer and roll chance scale with the multiplier (3× = actually 3× more events).
+
+| Weight | Events |
+|--------|--------|
+| 4 (very common) | Angry Customer, Password Reset |
+| 3 (common) | Mom, Email Server Down, P0 Bug, Big Client |
+| 2 (regular) | Power Outage, Cloud Outage, Laptop Recall, TikTok, Reddit, News, Forbes, R&D Breakthrough |
+| 1 (rare) | College Buddy, Ransomware, DDoS, DB Corruption |
+
+At 1×: ~2.6 min real time between events. Breakthrough avg ~3.5 game years.
+
+### Standard Behavior
 - All rewards/costs scale with game state (% of cash or × per-tick revenue)
 - **Auto-expire in 10s** — last button gets red countdown fill, auto-fires
 - IRS/earnings toasts are NOT auto-expiring (closable: false)
