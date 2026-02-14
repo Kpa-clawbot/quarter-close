@@ -2717,9 +2717,9 @@ function gameTick() {
   } else if (!document.getElementById('event-toast').classList.contains('hidden')) {
     // Toast already visible
   } else {
-    if (Math.random() < 0.015 * EVENT_FREQ_MULT && gameState.totalPlayTime > 30) {
+    if (Math.random() < 0.02 * EVENT_FREQ_MULT && gameState.totalPlayTime > 30) {
       triggerRandomEvent();
-      gameState.eventCooldown = Math.floor((60 + Math.floor(Math.random() * 60)) / (EVENT_FREQ_MULT || 1));
+      gameState.eventCooldown = Math.floor((30 + Math.floor(Math.random() * 30)) / (EVENT_FREQ_MULT || 1));
     }
   }
 
