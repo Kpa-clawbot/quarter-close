@@ -2055,7 +2055,7 @@ function updateTaxPanel() {
       <div class="row-num">${rowNum++}</div>
       <div class="cell cell-a" style="padding-left:16px;color:#444">Revenue vs Target</div>
       <div class="cell cell-b" style="font-weight:700;color:${trackColor}">${trackLabel}</div>
-      <div class="cell cell-c" style="font-family:Consolas,monospace;font-size:11px;color:${trackColor}">${trackDetail}</div>
+      <div class="cell cell-c" style="font-family:Consolas,monospace;font-size:10px;color:${trackColor}">${trackPct >= 0 ? '+' : ''}${trackPct.toFixed(1)}%</div>
       <div class="cell cell-d" style="font-size:10px;color:#888">${formatCompact(qRev)} / ${formatCompact(target)}</div>
       <div class="cell cell-e"></div>
       <div class="cell cell-f"></div>
