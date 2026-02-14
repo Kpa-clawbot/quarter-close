@@ -56,12 +56,20 @@ The Finance Dept auto-handles quarterly earnings (no popup modal). Each level ha
 #### UI
 - IR section shows active CFO level with clickable selector (only owned levels shown)
 - Guidance row becomes read-only when Finance Dept is active (shows what CFO picked)
+- **CFO Record** row: "Record: 7/10 (70%)" — per-level tracking of beats vs total quarters handled
+- Each CFO level has its own independent record (reset on switch would be wrong — records persist per level)
+- Switching CFO shows that level's historical record
+
+#### gameState additions
+- `activeCFOLevel: 1` — which Finance Dept level is active (1/2/3)
+- `cfoRecords: { 1: { beats: 0, total: 0 }, 2: { beats: 0, total: 0 }, 3: { beats: 0, total: 0 } }` — per-level performance tracking
 
 #### TODO
 - [ ] Implement Lv1 random guidance algorithm
 - [ ] Implement Lv2 trend-based algorithm
 - [ ] Implement Lv3 smart analysis algorithm
 - [ ] CFO level selector in IR section
+- [ ] CFO Record display in IR section (per-level beats/total)
 - [ ] Track revenue history for trend analysis (last 3 quarters)
 
 ## Phase 2.3: Future Ideas
