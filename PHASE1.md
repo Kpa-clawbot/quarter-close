@@ -98,14 +98,41 @@ Each revenue source has:
 ## Events (Desktop notification toasts)
 
 ### Standard Events (~2% chance per tick)
-- Mom wants to invest, customer complaint, power outage, college buddy discount
 - All rewards/costs scale with game state (% of cash or × per-tick revenue)
 - **Auto-expire in 10s** — last button gets red countdown fill, auto-fires
+- IRS/earnings toasts are NOT auto-expiring (closable: false)
 
-### Dynamic Events
+### Positive Events
+- **Lucky Client** (Sales Team) — one-time bonus (5-10× dept daily revenue)
+- **R&D Breakthrough** — permanent 2× revenue for random dept
 - **Viral/media bonuses**: TikTok (3× 30s), Forbes (2× 60s), Reddit (5× 15s), Local news (2× 45s)
-- **Lucky client**: random unlocked source gets 5-10× burst
-- Revenue bonuses shown in status bar with countdown
+
+### Neutral Events
+- **Mom** — decline or lose 2% cash
+- **College Buddy** — risk 5% cash (40% side deal, 60% MLM), or ghost
+
+### IT Disaster Events
+- **Power Outage** — 15s full freeze (timed countdown, no choice)
+- **Ransomware** — 15% cash or 30-60s full freeze
+- **DDoS Attack** — 50% revenue 20-30s (no choice)
+- **DB Corruption** — 3% cash fix or random dept offline 15-20s (`dbOutage` state, red row indicator)
+- **Email Server Down** — mini-tasks blocked 45-60s (`miniTaskBlocked` state)
+- **Password Reset** — 10s full freeze (timed, no choice)
+- **Cloud Provider Outage** — 25% revenue 15-25s (no choice)
+- **P0 Bug** — 5% cash hotfix or 50% revenue 60s
+- **Laptop Recall** — 70% revenue 20s (no choice)
+
+### Business Events
+- **Angry Customer** — refund (cash) or ignore (20% penalty 30s + hiring frozen 15s)
+- **Google Alerts / PR Team / Social Media / Marketing** — various revenue penalties
+
+### Revenue Effect Indicators (Row 1)
+- $/day cell color-codes active effects: red ⚡ for outage, red ▼% for penalty, orange 💾 for DB, green ▲× for bonus
+- Affected department row gets red tint + `💾 OFFLINE Xs` countdown during DB outage
+
+### Close the Deal (Own Popup)
+- Separate `#deal-popup` element (not shared with event toast)
+- Draggable, position persisted, independent spawn timing
 
 ### Mini-Tasks (every 20-60s)
 - Approve/decline popups (expense reports, PTO, invoices)

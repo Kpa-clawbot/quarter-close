@@ -316,3 +316,43 @@
 ### Cache Buster Fix
 - `game.js` cache buster was stuck at `v=29` while `style.css` was at `v=53`. Previous `sed` commands targeted wrong version numbers and silently failed.
 - **Lesson:** Always verify the actual version string in the file before doing sed replacements. Or just use a broader pattern.
+
+### IT-Themed Negative Events (8 new)
+Added 8 new IT disaster events with varied mechanics:
+
+| Event | Sender | Effect | Player Choice |
+|-------|--------|--------|---------------|
+| Ransomware | IT Security | Full revenue freeze 30-60s or 15% cash | Pay vs rebuild |
+| DDoS Attack | Network Operations | 50% revenue 20-30s | No choice |
+| DB Corruption | DBA Team | Random dept offline 15-20s or 3% cash | Fix vs wait |
+| Email Server Down | IT Department | Mini-tasks blocked 45-60s | No choice |
+| Password Reset | IT Security | 10s full freeze (timed) | No choice |
+| Cloud Provider Outage | Status Page | 25% revenue 15-25s | No choice |
+| P0 Bug | Engineering Lead | 5% cash hotfix or 50% revenue 60s | Hotfix vs next sprint |
+| Laptop Recall | IT Asset Management | 70% revenue 20s | No choice |
+
+**New state fields:**
+- `dbOutage: { sourceIndex, until }` — tick-based, zeroes out one dept's revenue in `totalRevPerTick()`
+- `miniTaskBlocked: { until }` — checked in `trySpawnMiniTask()`
+- Both reset on new game, cleaned up automatically when expired
+
+**DB outage visual:** Affected row gets `.db-outage` class (red tint), rev/day cell shows `💾 OFFLINE 15s` countdown.
+
+### Row 1 Revenue Effect Indicators
+The $/day cell in row 1 now color-codes active effects:
+- **Power outage:** Red bold `⚡ $0.00/day`
+- **Revenue penalty:** Red `$X/day ▼30%` (shows penalty percentage)
+- **DB outage:** Orange `$X/day 💾`
+- **Revenue bonus:** Green bold `$X/day ▲×5` (shows multiplier)
+- Normal: plain text
+
+### Debug Event Trigger (🧪 Event ▾)
+- Dropdown button in status bar next to IRS/5×/IPO debug buttons
+- Lists all events, click to fire instantly
+- Handles dynamic events (generate/setup patterns) with fallback labels
+
+### Bug Fixes
+- `arc.names[]` doesn't exist — all 4 references fixed to `arc.sources[i].name`
+- R&D Breakthrough `generate()` pattern wasn't handled by `showEvent()` — added handler
+- DB Corruption always picked highest-tier dept — changed to random pick
+- Dynamic events crashed debug dropdown (no static sender/subject) — added fallbacks

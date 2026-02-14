@@ -100,12 +100,32 @@ All three are optional — toggle off in Game Options for pure idle experience.
 
 ## Random Events ("Emails")
 
-- "Jim from accounting wants a raise" (yes/no → morale)
-- "Marketing wants to sponsor a podcast" (spend cash → brand boost)
-- "Server outage! Revenue paused for 30 seconds"
-- "Competitor launched rival product" (temporary revenue hit)
-- "Meeting invite: All-Hands" (decline or lose productivity)
-- "HR complaint filed" (handle it or morale drops)
+Events appear as email-style toast notifications. Mix of positive (Lucky Client, R&D Breakthrough), neutral (Mom, College Buddy), and negative (IT disasters). Each has 1-2 action buttons; non-closable events auto-fire the last button after 10s.
+
+### Positive Events
+- **Lucky Client** (Sales Team) — one-time cash bonus (5-10× daily revenue of random dept)
+- **R&D Breakthrough** (R&D Department) — permanent 2× revenue for a random dept, or file patent for 5% cash
+
+### Neutral Events
+- **Mom** — decline or lose 2% cash
+- **College Buddy** — risk 5% cash (40% pays 1-3 min revenue, 60% MLM pitch), or ghost
+
+### Negative (IT Disasters)
+| Event | Effect | Choice |
+|-------|--------|--------|
+| Power Outage | Full freeze 15s (timed countdown) | No choice |
+| Ransomware | Full freeze 30-60s or 15% cash | Pay vs rebuild |
+| DDoS Attack | 50% revenue 20-30s | No choice |
+| DB Corruption | Random dept offline 15-20s or 3% cash | Fix vs wait |
+| Email Server Down | Mini-tasks blocked 45-60s | No choice |
+| Password Reset | 10s full freeze (timed) | No choice |
+| Cloud Provider Outage | 25% revenue 15-25s | No choice |
+| P0 Bug | 5% cash hotfix or 50% revenue 60s | Hotfix vs next sprint |
+| Laptop Recall | 70% revenue 20s | No choice |
+
+### Negative (Business)
+- **Angry Customer** — refund (lose cash) or ignore (20% revenue penalty 30s, hiring frozen 15s)
+- **Google Alerts / PR Team / Social Media / Marketing** — various revenue penalties
 
 ## Departments (Sheet Tabs)
 
