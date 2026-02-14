@@ -181,15 +181,26 @@ const EVENTS = [
   },
   {
     sender: 'College Buddy',
-    subject: 'Hey can I get a discount??',
-    body: 'Bro remember me from college?? Hook me up with a discount! For old times\' sake 🤙',
+    subject: 'Business proposal over beers? 🍺',
+    body: 'Dude, I\'ve got this idea that could be huge. Let me pitch you — worst case we grab drinks and catch up.',
     actions: [
-      { label: 'Give discount (-1% cash)', effect: (gs) => {
-        const cost = Math.max(5, Math.floor(gs.cash * 0.01));
+      { label: '🍺 Take the meeting (5% cash)', effect: (gs) => {
+        const cost = Math.max(50, Math.floor(gs.cash * 0.05));
         gs.cash -= cost;
-        return `Gave ${formatMoney(cost)} discount. Your friend is happy!`;
+        // 40% chance it's actually good
+        if (Math.random() < 0.4) {
+          const rev = totalRevPerTick();
+          const bonus = rev * (60 + Math.floor(Math.random() * 120)); // 1-3 min of revenue
+          gs.cash += bonus;
+          gs.totalEarned += bonus;
+          gs.quarterRevenue += bonus;
+          if (gs.isPublic) gs.earningsQuarterRevenue += bonus;
+          return `Spent ${formatMoney(cost)} on dinner... but the idea was legit! Closed a ${formatMoney(bonus)} side deal.`;
+        } else {
+          return `Spent ${formatMoney(cost)} on drinks. The pitch was an MLM. Classic.`;
+        }
       }},
-      { label: 'Full price (no effect)', effect: () => 'They understand. Business is business.' },
+      { label: '📱 "Super busy rn"', effect: () => 'Left on read. He\'ll try again in 6 months.' },
     ]
   },
   {
