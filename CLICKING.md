@@ -47,7 +47,7 @@ All mechanics have feature toggles (Data menu → Game Options).
 ---
 
 ## 2. Overtime
-**Status:** [ ] Not started
+**Status:** [x] Shipped (commit `cd42e6f`)
 
 **Concept:** Click a button to push employees into overtime for instant revenue bursts, with diminishing returns per quarter.
 

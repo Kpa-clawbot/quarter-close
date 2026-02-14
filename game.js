@@ -2355,6 +2355,19 @@ function gameTick() {
     showSeriesA();
   }
 
+  // Close the Deal spawning
+  if (isFeatureEnabled('closeTheDeals') && !gameState.dealActive) {
+    if (!gameState.dealCooldown) gameState.dealCooldown = 180 + Math.floor(Math.random() * 300);
+    if (gameState.dealCooldown > 0) {
+      gameState.dealCooldown--;
+    } else if (totalRevPerTick() > 0 && !isPowerOut &&
+               document.getElementById('event-toast').classList.contains('hidden') &&
+               gameState.totalPlayTime > 60) {
+      spawnDeal();
+      gameState.dealCooldown = 180 + Math.floor(Math.random() * 300); // 3-8 min
+    }
+  }
+
   // Valuation chart
   sampleValuation();
   drawValuationChart();
@@ -2492,6 +2505,8 @@ function showEvent(event) {
 
 function dismissEvent() {
   if (eventToastTimer) { clearTimeout(eventToastTimer); eventToastTimer = null; }
+  if (dealTimer) { clearTimeout(dealTimer); dealTimer = null; }
+  if (gameState.dealActive) gameState.dealActive = null;
   _eventToastActions = null;
   document.getElementById('event-toast').classList.add('hidden');
 }
@@ -2981,6 +2996,139 @@ function showGameOptions() {
 
 function dismissOptions() {
   document.getElementById('options-modal').classList.add('hidden');
+}
+
+// ===== CLOSE THE DEAL =====
+const DEAL_CLIENTS = [
+  'Acme Corp', 'Globex Industries', 'Initech', 'Umbrella Corp', 'Wayne Enterprises',
+  'Stark Industries', 'Cyberdyne Systems', 'Weyland-Yutani', 'Soylent Corp', 'Oscorp',
+  'Tyrell Corporation', 'Massive Dynamic', 'Pied Piper', 'Hooli', 'Vandelay Industries',
+];
+
+let dealTimer = null;
+
+function spawnDeal() {
+  const rev = totalRevPerTick();
+  if (rev <= 0) return;
+
+  const seconds = 30 + Math.floor(Math.random() * 31); // 30-60s of revenue
+  const amount = rev * seconds;
+  const client = DEAL_CLIENTS[Math.floor(Math.random() * DEAL_CLIENTS.length)];
+  const clicksNeeded = Math.max(10, Math.min(30, 15 + Math.floor(Math.log10(Math.max(1, totalAnnualRev())) * 2)));
+  const timeLimit = 12000; // 12 seconds
+
+  gameState.dealActive = {
+    client,
+    amount,
+    clicksNeeded,
+    clicksDone: 0,
+    timeLimit,
+    startedAt: Date.now(),
+  };
+
+  // Build the deal toast
+  const toast = document.getElementById('event-toast');
+  const savedPos = localStorage.getItem('quarterClose_toastPos');
+  if (savedPos) {
+    const pos = JSON.parse(savedPos);
+    toast.style.left = pos.left + 'px';
+    toast.style.top = pos.top + 'px';
+    toast.style.transform = 'none';
+  } else {
+    toast.style.left = '50%';
+    toast.style.top = '50%';
+    toast.style.transform = 'translate(-50%, -50%)';
+  }
+
+  document.getElementById('toast-sender').textContent = `🤝 ${client}`;
+  document.getElementById('toast-body').textContent = `Enterprise contract worth ${formatMoney(amount)}. Click to get signatures before they walk!`;
+  document.getElementById('toast-close').style.display = 'none';
+
+  const actionsDiv = document.getElementById('toast-actions');
+  actionsDiv.innerHTML = '';
+
+  // Progress text
+  const progress = document.createElement('div');
+  progress.id = 'deal-progress';
+  progress.style.cssText = 'font-size:11px;color:#666;margin-bottom:6px;text-align:center';
+  progress.textContent = `Signatures: 0 / ${clicksNeeded}`;
+  actionsDiv.appendChild(progress);
+
+  // Progress bar
+  const barWrap = document.createElement('div');
+  barWrap.style.cssText = 'height:4px;background:#e0e0e0;border-radius:2px;margin-bottom:8px;overflow:hidden';
+  const bar = document.createElement('div');
+  bar.id = 'deal-bar';
+  bar.style.cssText = 'height:100%;width:0%;background:#217346;transition:width 0.1s';
+  barWrap.appendChild(bar);
+  actionsDiv.appendChild(barWrap);
+
+  // Sign button
+  const btn = document.createElement('button');
+  btn.className = 'toast-btn toast-primary';
+  btn.textContent = '✍️ Sign';
+  btn.style.cssText = 'position:relative;overflow:hidden;min-width:120px';
+  btn.onclick = () => clickDeal();
+
+  // Timer fill on button
+  const fill = document.createElement('div');
+  fill.className = 'toast-btn-countdown';
+  fill.style.animationDuration = (timeLimit / 1000) + 's';
+  btn.appendChild(fill);
+  actionsDiv.appendChild(btn);
+
+  // Timer — auto-fail
+  dealTimer = setTimeout(() => {
+    failDeal();
+  }, timeLimit);
+
+  toast.classList.remove('hidden');
+}
+
+function clickDeal() {
+  if (!gameState.dealActive) return;
+  const deal = gameState.dealActive;
+  deal.clicksDone++;
+
+  // Update progress
+  const progress = document.getElementById('deal-progress');
+  if (progress) progress.textContent = `Signatures: ${deal.clicksDone} / ${deal.clicksNeeded}`;
+  const bar = document.getElementById('deal-bar');
+  if (bar) bar.style.width = (deal.clicksDone / deal.clicksNeeded * 100) + '%';
+
+  if (deal.clicksDone >= deal.clicksNeeded) {
+    // Success!
+    if (dealTimer) { clearTimeout(dealTimer); dealTimer = null; }
+    gameState.cash += deal.amount;
+    gameState.totalEarned += deal.amount;
+    gameState.quarterRevenue += deal.amount;
+    if (gameState.isPublic) gameState.earningsQuarterRevenue += deal.amount;
+
+    document.getElementById('status-text').textContent = `🤝 Closed ${formatMoney(deal.amount)} deal with ${deal.client}!`;
+    setTimeout(() => {
+      const st = document.getElementById('status-text');
+      if (st && st.textContent.startsWith('🤝')) st.textContent = 'Ready';
+    }, 3000);
+
+    gameState.dealActive = null;
+    dismissEvent();
+    updateDisplay();
+  }
+}
+
+function failDeal() {
+  if (!gameState.dealActive) return;
+  const deal = gameState.dealActive;
+  dealTimer = null;
+
+  document.getElementById('status-text').textContent = `😔 ${deal.client} walked — deal lost`;
+  setTimeout(() => {
+    const st = document.getElementById('status-text');
+    if (st && st.textContent.startsWith('😔')) st.textContent = 'Ready';
+  }, 3000);
+
+  gameState.dealActive = null;
+  dismissEvent();
 }
 
 // ===== OVERTIME =====
