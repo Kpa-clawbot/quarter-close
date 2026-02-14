@@ -1520,8 +1520,25 @@ function updateDisplay() {
   const perTick = totalRevPerTick();
   document.getElementById('total-rev').textContent = formatRate(totalRev);
 
-  // Per-tick display (= per day, prominent)
-  document.getElementById('per-tick-display').textContent = formatPerTick(perTick) + '/day';
+  // Per-tick display (= per day, prominent) — color-coded for active effects
+  const ptEl = document.getElementById('per-tick-display');
+  const hasOutage = gameState.powerOutage && Date.now() < gameState.powerOutage.until;
+  const hasPenalty = gameState.revPenalty && Date.now() < gameState.revPenalty.until;
+  const hasBonus = gameState.revBonus && Date.now() < gameState.revBonus.until;
+  const hasDbOut = gameState.dbOutage && Date.now() < gameState.dbOutage.until;
+
+  if (hasOutage) {
+    ptEl.innerHTML = `<span style="color:#c00;font-weight:700">⚡ $0.00/day</span>`;
+  } else if (hasPenalty) {
+    const pct = Math.round((1 - gameState.revPenalty.mult) * 100);
+    ptEl.innerHTML = `<span style="color:#c00">${formatPerTick(perTick)}/day</span> <span style="color:#c00;font-size:9px">▼${pct}%</span>`;
+  } else if (hasDbOut) {
+    ptEl.innerHTML = `<span style="color:#e65100">${formatPerTick(perTick)}/day</span> <span style="color:#e65100;font-size:9px">💾</span>`;
+  } else if (hasBonus) {
+    ptEl.innerHTML = `<span style="color:#217346;font-weight:600">${formatPerTick(perTick)}/day</span> <span style="color:#217346;font-size:9px">▲×${gameState.revBonus.mult}</span>`;
+  } else {
+    ptEl.textContent = formatPerTick(perTick) + '/day';
+  }
 
   // Stock price in header (Phase 2.1)
   const stockCell = document.getElementById('stock-price-cell');
