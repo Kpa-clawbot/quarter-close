@@ -1193,22 +1193,27 @@ function updateGridValues() {
     const prestigeTag = (state.prestigeLevel || 0) > 0 ? ` <span style="color:#d4a017;font-size:10px">★${state.prestigeLevel}</span>` : '';
     const breakthroughTag = (state.breakthroughMult || 1) > 1 ? ` <span style="color:#2e7d32;font-size:10px">🔬×${state.breakthroughMult}</span>` : '';
     const focusLevel = state.focus || 0;
-    const focusTag = (isFeatureEnabled('managementFocus') && focusLevel > 0) ?
-      ` <span class="focus-tag focus-${focusLevel > 7 ? 'high' : focusLevel > 3 ? 'mid' : 'low'}" title="Focus: +${focusLevel * 5}% revenue">🎯${focusLevel}</span>` : '';
-    nameCell.innerHTML = src.name + (state.upgradeLevel > 0 ? ` <span style="color:#999;font-size:10px">Lv${state.upgradeLevel}</span>` : '') + prestigeTag + breakthroughTag + focusTag;
+    nameCell.innerHTML = src.name + (state.upgradeLevel > 0 ? ` <span style="color:#999;font-size:10px">Lv${state.upgradeLevel}</span>` : '') + prestigeTag + breakthroughTag;
     if (isFeatureEnabled('managementFocus') && state.employees > 0) {
       nameCell.style.cursor = 'pointer';
+      nameCell.classList.add('focusable');
       nameCell.onclick = () => clickFocus(i);
     } else {
       nameCell.style.cursor = '';
+      nameCell.classList.remove('focusable');
       nameCell.onclick = null;
     }
 
     // Employees
     row.querySelector('[data-field="emp"]').textContent = state.employees;
 
-    // Rev/day (column C)
-    row.querySelector('[data-field="rate"]').textContent = formatPerTick(revPerDay);
+    // Rev/day (column C) — show focus bonus when active
+    const rateCell = row.querySelector('[data-field="rate"]');
+    if (isFeatureEnabled('managementFocus') && focusLevel > 0) {
+      rateCell.innerHTML = `${formatPerTick(revPerDay)} <span class="focus-bonus">+${focusLevel * 5}%</span>`;
+    } else {
+      rateCell.textContent = formatPerTick(revPerDay);
+    }
 
     // Rev/yr (column G)
     row.querySelector('[data-field="annual"]').textContent = formatRate(rev);

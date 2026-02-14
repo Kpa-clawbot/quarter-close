@@ -1888,3 +1888,17 @@ body {
   color: #1b5e20;
   text-shadow: 0 0 4px rgba(76, 175, 80, 0.4);
 }
+
+/* Focus bonus in rev/day column */
+.focus-bonus {
+  font-size: 9px;
+  color: #217346;
+  font-weight: 600;
+}
+
+/* Clickable source name hint */
+.source-name.focusable:hover {
+  background: #f0f7f0 !important;
+  text-decoration: underline;
+  text-decoration-color: #ccc;
+}
