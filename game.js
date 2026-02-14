@@ -3297,6 +3297,13 @@ function buildBoardRoom() {
       ? `${cost.toLocaleString()} RE (×${owned})`
       : `${cost.toLocaleString()} RE`;
 
+    // Dynamic description for Growth Initiative — show total bonus
+    let desc = upgrade.desc;
+    if (upgrade.id === 'growth_initiative' && owned > 0) {
+      const totalBonus = ((Math.pow(1.02, owned) - 1) * 100).toFixed(1);
+      desc = `+2% revenue per purchase (stacks). Current: +${totalBonus}% total (×${owned})`;
+    }
+
     html += `<div class="${rowClass}">
       <div class="row-num">${rowNum++}</div>
       <div class="cell cell-a" style="font-weight:500;${isLocked ? 'color:#bbb' : ''}">${upgrade.name}</div>
@@ -3304,7 +3311,7 @@ function buildBoardRoom() {
       <div class="cell cell-c" style="font-family:Consolas,monospace;font-size:11px;color:${costColor};justify-content:flex-end">${costLabel}</div>
       <div class="cell cell-d" style="justify-content:flex-end">${statusCell}</div>
       <div class="cell cell-e"></div>
-      <div class="cell cell-f" style="font-size:10px;color:#888;white-space:normal;line-height:1.3">${upgrade.desc}</div>
+      <div class="cell cell-f" style="font-size:10px;color:#888;white-space:normal;line-height:1.3">${desc}</div>
       <div class="cell cell-g"></div>
       <div class="cell cell-h"></div>
     </div>`;
