@@ -20,7 +20,7 @@
   <meta name="description" content="An idle tycoon game disguised as a spreadsheet. Look busy. Get rich.">
   <title>Q4 Financials - Operations.xlsx - Quarter Close</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='4' fill='%23217346'/><rect x='4' y='4' width='7' height='5' rx='1' fill='white'/><rect x='13' y='4' width='7' height='5' rx='1' fill='white'/><rect x='22' y='4' width='7' height='5' rx='1' fill='white'/><rect x='4' y='11' width='7' height='5' rx='1' fill='white' opacity='0.8'/><rect x='13' y='11' width='7' height='5' rx='1' fill='white' opacity='0.8'/><rect x='22' y='11' width='7' height='5' rx='1' fill='white' opacity='0.8'/><rect x='4' y='18' width='7' height='5' rx='1' fill='white' opacity='0.6'/><rect x='13' y='18' width='7' height='5' rx='1' fill='white' opacity='0.6'/><rect x='22' y='18' width='7' height='5' rx='1' fill='white' opacity='0.6'/><rect x='4' y='25' width='7' height='5' rx='1' fill='white' opacity='0.4'/><rect x='13' y='25' width='7' height='5' rx='1' fill='white' opacity='0.4'/><rect x='22' y='25' width='7' height='5' rx='1' fill='white' opacity='0.4'/></svg>">
-  <link rel="stylesheet" href="style.css?v=55">
+  <link rel="stylesheet" href="style.css?v=56">
 </head>
 <body>
   <!-- ===== SPLASH SCREEN ===== -->
@@ -406,6 +406,15 @@
             <span class="option-info">Click departments to temporarily boost their output.</span>
           </label>
         </div>
+        <div class="options-section">
+          <h4>Event Frequency</h4>
+          <p class="options-desc">How often random events (IT disasters, PR, breakthroughs, etc.) fire.</p>
+          <label class="option-toggle" style="align-items:center">
+            <input type="range" id="event-freq-slider" min="0" max="300" value="100" step="10" oninput="setEventFreqMult(this.value)" style="width:120px">
+            <span class="option-name" id="event-freq-label">📬 Events: 1.0×</span>
+            <span class="option-info">0 = off, 1× = default, 3× = chaos mode</span>
+          </label>
+        </div>
       </div>
       <div class="options-footer">
         <button onclick="dismissOptions()">OK</button>
@@ -617,7 +626,7 @@
     </div>
   </div>
 
-  <script src="game.js?v=73"></script>
+  <script src="game.js?v=74"></script>
   <script>
     if (location.hostname === 'kpa-clawbot.github.io') {
       var s = document.createElement('script');

@@ -150,8 +150,8 @@ function miniTaskReward(task) {
 
 // ===== EVENTS DEFINITIONS =====
 // Global event frequency multiplier — scales all event weights together
-// 1.0 = default, 2.0 = twice as frequent, 0.5 = half as frequent
-const EVENT_FREQ_MULT = 1.0;
+// 1.0 = default, 2.0 = twice as frequent, 0.5 = half as frequent, 0 = off
+let EVENT_FREQ_MULT = 1.0;
 
 const EVENTS = [
   {
@@ -3016,6 +3016,7 @@ function saveGame() {
     revenueHistory: gameState.revenueHistory || [],
     lastQuarterRE: gameState.lastQuarterRE || 0,
     featureToggles: gameState.featureToggles || DEFAULT_FEATURES,
+    eventFreqMult: EVENT_FREQ_MULT,
     overtimeClicks: gameState.overtimeClicks || 0,
     focusTipShown: gameState.focusTipShown || false,
     savedAt: Date.now(),
@@ -3093,6 +3094,7 @@ function loadGame() {
     gameState.revenueHistory = data.revenueHistory || [];
     gameState.lastQuarterRE = data.lastQuarterRE || 0;
     gameState.featureToggles = data.featureToggles || { ...DEFAULT_FEATURES };
+    EVENT_FREQ_MULT = data.eventFreqMult != null ? data.eventFreqMult : 1.0;
     gameState.overtimeClicks = data.overtimeClicks || 0;
     gameState.focusTipShown = data.focusTipShown || false;
     gameState.activeTab = 'operations';
@@ -3213,6 +3215,7 @@ function resetGame() {
   gameState.revenueHistory = [];
   gameState.lastQuarterRE = 0;
   gameState.featureToggles = { ...DEFAULT_FEATURES };
+  EVENT_FREQ_MULT = 1.0;
   gameState.overtimeClicks = 0;
   gameState.focusTipShown = false;
   gameState.eventCooldown = 0;
@@ -3451,6 +3454,8 @@ function showGameOptions() {
   document.getElementById('toggle-deals').checked = toggles.closeTheDeals !== false;
   document.getElementById('toggle-overtime').checked = toggles.overtime !== false;
   document.getElementById('toggle-focus').checked = toggles.managementFocus !== false;
+  document.getElementById('event-freq-slider').value = Math.round(EVENT_FREQ_MULT * 100);
+  document.getElementById('event-freq-label').textContent = `📬 Events: ${EVENT_FREQ_MULT.toFixed(1)}×`;
   document.getElementById('options-modal').classList.remove('hidden');
 }
 
@@ -4611,6 +4616,13 @@ function formatCompact(n) {
   return sign + '$' + Math.floor(a);
 }
 
+function setEventFreqMult(val) {
+  EVENT_FREQ_MULT = parseInt(val) / 100;
+  document.getElementById('event-freq-label').textContent = `📬 Events: ${EVENT_FREQ_MULT.toFixed(1)}×`;
+  saveGame();
+}
+
+window.setEventFreqMult = setEventFreqMult;
 window.unlockSource = unlockSource;
 window.hireEmployee = hireEmployee;
 window.upgradeSource = upgradeSource;
