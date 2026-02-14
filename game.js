@@ -216,6 +216,140 @@ const EVENTS = [
     actions: []
   },
   {
+    sender: 'IT Security',
+    subject: '🔒 RANSOMWARE DETECTED - All Systems',
+    body: 'CryptoLocker variant detected on the network. All file shares encrypted. Pay the ransom or wait for IT to rebuild from backups.',
+    actions: [
+      { label: '💰 Pay ransom (15% cash)', effect: (gs) => {
+        const cost = Math.max(100, Math.floor(gs.cash * 0.15));
+        gs.cash -= cost;
+        return `Paid ${formatMoney(cost)} ransom. Systems restored. IT is "looking into it."`;
+      }},
+      { label: '🛡️ Refuse — rebuild from backups', effect: (gs) => {
+        const duration = 30000 + Math.floor(Math.random() * 30000); // 30-60s
+        gs.powerOutage = { until: Date.now() + duration };
+        return `Revenue frozen for ${Math.round(duration/1000)}s while IT rebuilds. Should\'ve had better backups.`;
+      }},
+    ]
+  },
+  {
+    sender: 'Network Operations',
+    subject: '🌐 DDoS ATTACK IN PROGRESS',
+    body: 'Massive distributed denial-of-service attack hitting all public-facing services. Mitigation in progress but performance is degraded.',
+    actions: [
+      { label: 'Nothing we can do', effect: (gs) => {
+        const duration = 20000 + Math.floor(Math.random() * 10000); // 20-30s
+        gs.revPenalty = { mult: 0.5, until: Date.now() + duration };
+        return `⚠️ DDoS — revenue at 50% for ${Math.round(duration/1000)}s while CloudFlare mitigates.`;
+      }},
+    ]
+  },
+  {
+    sender: 'DBA Team',
+    subject: '💾 CRITICAL: Database corruption detected',
+    body: 'Primary database showing consistency errors. We can do an emergency restore ($$$) or let auto-recovery run (slower).',
+    actions: [
+      { label: '💰 Emergency restore (3% cash)', effect: (gs) => {
+        const cost = Math.max(50, Math.floor(gs.cash * 0.03));
+        gs.cash -= cost;
+        return `Paid ${formatMoney(cost)} for emergency DB restore. Crisis averted.`;
+      }},
+      { label: '⏳ Wait for auto-recovery', effect: (gs) => {
+        const duration = 15000 + Math.floor(Math.random() * 5000); // 15-20s
+        // Hit the highest-tier unlocked department
+        const unlocked = gs.sources.map((s, i) => ({ s, i })).filter(x => x.s.unlocked && x.s.employees > 0);
+        if (unlocked.length > 0) {
+          const top = unlocked[unlocked.length - 1];
+          top.s._dbOutage = { until: Date.now() + duration, origEmployees: top.s.employees };
+          top.s.employees = 0; // temporarily zero out
+          setTimeout(() => {
+            if (top.s._dbOutage) {
+              top.s.employees = top.s._dbOutage.origEmployees;
+              delete top.s._dbOutage;
+            }
+          }, duration);
+          const arc = ARCS[gs.arc];
+          const name = arc.names[top.i] || getSourceDef(top.i).name;
+          return `${name} offline for ${Math.round(duration/1000)}s while database recovers.`;
+        }
+        return 'Auto-recovery running... minimal impact.';
+      }},
+    ]
+  },
+  {
+    sender: 'IT Department',
+    subject: '📧 Email server is DOWN',
+    body: 'Exchange is unreachable. No one can send or receive email until it\'s fixed. Approval workflows are frozen.',
+    actions: [
+      { label: 'Wait it out', effect: (gs) => {
+        const duration = 45000 + Math.floor(Math.random() * 15000); // 45-60s
+        gs.miniTaskBlocked = { until: Date.now() + duration };
+        return `📧 Email down — no approvals for ${Math.round(duration/1000)}s. Your streak is in danger.`;
+      }},
+    ]
+  },
+  {
+    sender: 'IT Security',
+    subject: '🔑 MANDATORY PASSWORD RESET',
+    body: 'Security audit requires all employees to reset passwords immediately. Productivity will be impacted.',
+    timed: true,
+    timedDelay: 3000,
+    timedEffect: (gs) => {
+      gs.powerOutage = { until: Date.now() + 10000 };
+      return '🔑 Company-wide password reset. Revenue paused for 10 seconds.';
+    },
+    actions: []
+  },
+  {
+    sender: 'Status Page',
+    subject: '☁️ CLOUD PROVIDER OUTAGE',
+    body: 'Major incident at your cloud provider. Multiple availability zones affected. ETA for resolution: "We\'re working on it." Helpful.',
+    actions: [
+      { label: 'Welcome to the cloud', effect: (gs) => {
+        const duration = 15000 + Math.floor(Math.random() * 10000); // 15-25s
+        gs.revPenalty = { mult: 0.25, until: Date.now() + duration };
+        return `☁️ Cloud outage — revenue at 25% for ${Math.round(duration/1000)}s. Nothing you can do.`;
+      }},
+    ]
+  },
+  {
+    sender: 'Engineering Lead',
+    subject: '🐛 P0 BUG: Production is on fire',
+    body: 'Critical bug in prod. Customers are seeing errors. We can hotfix now (costs money for the war room) or punt to next sprint and eat the churn.',
+    actions: [
+      { label: '🚨 Hotfix now (5% cash)', effect: (gs) => {
+        const cost = Math.max(100, Math.floor(gs.cash * 0.05));
+        gs.cash -= cost;
+        return `Spent ${formatMoney(cost)} on an emergency war room. Bug squashed. Engineers need therapy.`;
+      }},
+      { label: '📋 Next sprint', effect: (gs) => {
+        // Random department loses 50% revenue for 60s
+        const unlocked = gs.sources.map((s, i) => ({ s, i })).filter(x => x.s.unlocked && x.s.employees > 0);
+        if (unlocked.length > 0) {
+          const pick = unlocked[Math.floor(Math.random() * unlocked.length)];
+          const duration = 60000;
+          gs.revPenalty = { mult: 0.5, until: Date.now() + duration };
+          const arc = ARCS[gs.arc];
+          const name = arc.names[pick.i] || getSourceDef(pick.i).name;
+          return `Customers churning — revenue at 50% for 60s. "${name}" taking the biggest hit.`;
+        }
+        return 'Customers aren\'t happy but they\'ll survive... probably.';
+      }},
+    ]
+  },
+  {
+    sender: 'IT Asset Management',
+    subject: '💻 LAPTOP RECALL - Security Vulnerability',
+    body: 'Critical firmware vulnerability discovered. All company laptops must be collected for patching. Employees will work from their phones (poorly).',
+    actions: [
+      { label: 'Comply with recall', effect: (gs) => {
+        const duration = 20000;
+        gs.revPenalty = { mult: 0.7, until: Date.now() + duration };
+        return '💻 Laptop recall — revenue at 70% for 20s while everyone works from phones.';
+      }},
+    ]
+  },
+  {
     sender: 'Google Alerts',
     subject: '📈 Your company is trending on TikTok!',
     body: 'A customer posted a viral video about your product. 2.3M views and counting! Revenue is spiking.',
@@ -638,6 +772,7 @@ let gameState = {
   totalPlayTime: 0,
   miniTaskCooldown: 0,
   miniTaskActive: false,
+  miniTaskBlocked: null,
   miniTaskStreak: 0,
   goldenCellActive: false,
   goldenCellCooldown: 60,  // don't spawn for first 60s
@@ -906,6 +1041,7 @@ function selectArc(arcKey) {
   gameState.eventCooldown = 30;
   gameState.miniTaskCooldown = 10;
   gameState.miniTaskActive = false;
+  gameState.miniTaskBlocked = null;
   gameState.miniTaskStreak = 0;
   gameState.goldenCellActive = false;
   gameState.goldenCellCooldown = 60;
@@ -991,6 +1127,7 @@ function showArcSelect() {
 // ===== MINI-TASKS =====
 function trySpawnMiniTask() {
   if (gameState.miniTaskActive) return;
+  if (gameState.miniTaskBlocked && Date.now() < gameState.miniTaskBlocked.until) return; // email server down
   if (gameState.miniTaskCooldown > 0) { gameState.miniTaskCooldown--; return; }
 
   // Frequency decreases as passive income grows
@@ -1469,8 +1606,12 @@ function updateDisplay() {
   } else if (gameState.hireFrozen && Date.now() < gameState.hireFrozen) {
     const secsLeft = Math.ceil((gameState.hireFrozen - Date.now()) / 1000);
     document.getElementById('status-text').textContent = `🚫 Hiring frozen — ${secsLeft}s remaining`;
+  } else if (gameState.miniTaskBlocked && Date.now() < gameState.miniTaskBlocked.until) {
+    const secsLeft = Math.ceil((gameState.miniTaskBlocked.until - Date.now()) / 1000);
+    document.getElementById('status-text').textContent = `📧 Email down — no approvals for ${secsLeft}s`;
   } else {
     if (gameState.hireFrozen) gameState.hireFrozen = null;
+    if (gameState.miniTaskBlocked) gameState.miniTaskBlocked = null;
   }
   // Don't overwrite mini-task feedback messages
 
