@@ -857,32 +857,28 @@ function ctoAutoUpgrade() {
       gameState.ctoSpentThisQuarter = 0;
     }
 
-    // Budget check — don't exceed quarterly budget (Lv2+ only, Lv1 ignores budget)
-    const budgetRemaining = (level >= 2 && gameState.ctoQuarterBudget > 0)
+    // Budget check — don't exceed quarterly budget
+    const budgetRemaining = gameState.ctoQuarterBudget > 0
       ? gameState.ctoQuarterBudget - gameState.ctoSpentThisQuarter
       : Infinity;
     if (budgetRemaining <= 0) return;
 
     // Build candidate list: all unlocked depts with affordable upgrades
     const candidates = [];
-    let _dbgSkipBudget = 0, _dbgSkipCash = 0, _dbgSkipLocked = 0, _dbgMinCost = Infinity;
     for (let i = 0; i < gameState.sources.length; i++) {
       const state = gameState.sources[i];
-      if (!state.unlocked || state.employees === 0) { _dbgSkipLocked++; continue; }
+      if (!state.unlocked || state.employees === 0) continue;
       const stats = SOURCE_STATS[state.id];
       if (!stats) continue;
       const cost = upgradeCost(state);
-      if (cost < _dbgMinCost) _dbgMinCost = cost;
-      if (cost > gameState.cash) { _dbgSkipCash++; continue; }
-      if (level >= 2 && cost > budgetRemaining) { _dbgSkipBudget++; continue; }
+      if (cost > gameState.cash || cost > budgetRemaining) continue;
       // ROI = annual revenue gain / cost (how many years to pay back)
       const annualRevGain = sourceRevPerTick(state) * 365.25 * 0.5;
       const roi = cost > 0 ? annualRevGain / cost : 0;
       candidates.push({ index: i, cost, revGain: annualRevGain, roi, name: stats.name });
     }
     if (candidates.length === 0) {
-      gameState._ctoDebug = `0 cand | cash=${gameState.cash} (${typeof gameState.cash}) | cheapest=${_dbgMinCost} | ${_dbgSkipCash}$/12`;
-      return;
+    if (candidates.length === 0) return;
     }
 
     let pick = null;
@@ -2769,7 +2765,7 @@ function updateTaxPanel() {
         <div class="cell cell-e"></div>
         <div class="cell cell-f" style="font-size:9px;color:#888">${activeCTO > 0 ? `Upgrades: ${gameState.ctoUpgradeCount || 0}` : ''}</div>
         <div class="cell cell-g"></div>
-        <div class="cell cell-h" style="font-size:8px;color:#999;overflow:visible;white-space:nowrap">${activeCTO > 0 && gameState._ctoDebug ? gameState._ctoDebug : ''}</div>
+        <div class="cell cell-h"></div>
       </div>`;
 
       // CTO Budget sub-row (only when CTO is active)
