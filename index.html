@@ -20,9 +20,46 @@
   <meta name="description" content="An idle tycoon game disguised as a spreadsheet. Look busy. Get rich.">
   <title>Q4 Financials - Operations.xlsx - Quarter Close</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='4' fill='%23217346'/><rect x='4' y='4' width='7' height='5' rx='1' fill='white'/><rect x='13' y='4' width='7' height='5' rx='1' fill='white'/><rect x='22' y='4' width='7' height='5' rx='1' fill='white'/><rect x='4' y='11' width='7' height='5' rx='1' fill='white' opacity='0.8'/><rect x='13' y='11' width='7' height='5' rx='1' fill='white' opacity='0.8'/><rect x='22' y='11' width='7' height='5' rx='1' fill='white' opacity='0.8'/><rect x='4' y='18' width='7' height='5' rx='1' fill='white' opacity='0.6'/><rect x='13' y='18' width='7' height='5' rx='1' fill='white' opacity='0.6'/><rect x='22' y='18' width='7' height='5' rx='1' fill='white' opacity='0.6'/><rect x='4' y='25' width='7' height='5' rx='1' fill='white' opacity='0.4'/><rect x='13' y='25' width='7' height='5' rx='1' fill='white' opacity='0.4'/><rect x='22' y='25' width='7' height='5' rx='1' fill='white' opacity='0.4'/></svg>">
-  <link rel="stylesheet" href="style.css?v=20">
+  <link rel="stylesheet" href="style.css?v=23">
 </head>
 <body>
+  <!-- ===== SPLASH SCREEN ===== -->
+  <div id="splash-screen">
+    <div id="splash-overlay"></div>
+    <div id="splash-dialog">
+      <div id="splash-waves">
+        <svg viewBox="0 0 500 200" preserveAspectRatio="none">
+          <path d="M0,120 C80,180 160,100 240,140 C320,180 400,80 500,120 L500,200 L0,200 Z" fill="#217346" opacity="0.3"/>
+          <path d="M0,150 C100,190 180,120 280,160 C380,200 440,130 500,160 L500,200 L0,200 Z" fill="#217346" opacity="0.5"/>
+          <path d="M0,170 C60,200 150,150 250,180 C350,210 420,160 500,180 L500,200 L0,200 Z" fill="#217346" opacity="0.8"/>
+        </svg>
+      </div>
+      <div id="splash-version">v0.2.0</div>
+      <div id="splash-content">
+        <div id="splash-icon">
+          <svg width="36" height="36" viewBox="0 0 36 36">
+            <rect width="36" height="36" rx="4" fill="#217346"/>
+            <g fill="white" font-family="Segoe UI,Arial,sans-serif" font-weight="700" font-size="9">
+              <line x1="12" y1="8" x2="12" y2="28" stroke="white" stroke-width="0.5" opacity="0.5"/>
+              <line x1="20" y1="8" x2="20" y2="28" stroke="white" stroke-width="0.5" opacity="0.5"/>
+              <line x1="28" y1="8" x2="28" y2="28" stroke="white" stroke-width="0.5" opacity="0.5"/>
+              <line x1="6" y1="12" x2="32" y2="12" stroke="white" stroke-width="0.5" opacity="0.5"/>
+              <line x1="6" y1="18" x2="32" y2="18" stroke="white" stroke-width="0.5" opacity="0.5"/>
+              <line x1="6" y1="24" x2="32" y2="24" stroke="white" stroke-width="0.5" opacity="0.5"/>
+            </g>
+          </svg>
+          <span id="splash-filename">Q4 Financials.xlsx</span>
+        </div>
+        <h1 id="splash-title">Quarter <em>Close</em></h1>
+        <p id="splash-tagline">LOOK BUSY. GET RICH.</p>
+      </div>
+      <div id="splash-progress-track">
+        <div id="splash-progress-bar"></div>
+      </div>
+      <p id="splash-subtitle"><em>An idle tycoon game disguised as a spreadsheet</em></p>
+    </div>
+  </div>
+
   <!-- ===== ARC SELECTION ===== -->
   <div id="arc-select" class="hidden">
     <div id="arc-container">
@@ -435,7 +472,7 @@
     </div>
   </div>
 
-  <script src="game.js?v=22"></script>
+  <script src="game.js?v=23"></script>
   <script>
     if (location.hostname === 'kpa-clawbot.github.io') {
       var s = document.createElement('script');
