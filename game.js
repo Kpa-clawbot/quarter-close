@@ -3051,6 +3051,7 @@ function triggerRandomEvent() {
 
 let eventToastTimer = null;
 let _eventToastActions = null; // track actions with cashRequired for live updates
+let _eventToastQueue = []; // queue for toasts that arrive while one is visible
 
 function showEvent(event) {
   // Handle dynamic events that generate content at trigger time
@@ -3062,6 +3063,13 @@ function showEvent(event) {
     const result = event.setup(gameState);
     if (!result) return; // couldn't generate (e.g., no unlocked sources)
     event = { ...event, body: result.body, actions: result.actions };
+  }
+
+  // If a toast is already visible, queue this one and return
+  const existingToast = document.getElementById('event-toast');
+  if (existingToast && !existingToast.classList.contains('hidden')) {
+    _eventToastQueue.push(event);
+    return;
   }
 
   // Clear any existing timer
@@ -3181,6 +3189,12 @@ function dismissEvent() {
   if (eventToastTimer) { clearTimeout(eventToastTimer); eventToastTimer = null; }
   _eventToastActions = null;
   document.getElementById('event-toast').classList.add('hidden');
+
+  // Show next queued toast if any
+  if (_eventToastQueue.length > 0) {
+    const next = _eventToastQueue.shift();
+    setTimeout(() => showEvent(next), 300); // brief delay so player sees the transition
+  }
 }
 
 // Update toast buttons with cashRequired (called each tick)
@@ -3547,6 +3561,7 @@ function resetGame() {
   gameState.goldenCellActive = false;
   gameState.goldenCellCooldown = 60;
   _lastTaxPanelHash = ''; // force rebuild
+  _eventToastQueue = []; // clear queued toasts
   showArcSelect();
 }
 
