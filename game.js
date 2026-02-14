@@ -854,10 +854,14 @@ function ctoAutoUpgrade() {
   if (gameState.ctoQuarterBudget <= 0 && gameState.ctoBudgetPct > 0) {
     gameState.ctoQuarterBudget = (totalAnnualRev() / 4) * (gameState.ctoBudgetPct / 100);
     gameState.ctoSpentThisQuarter = 0;
+    console.log('[CTO] Bootstrap budget:', gameState.ctoQuarterBudget, 'from annual rev', totalAnnualRev(), 'at', gameState.ctoBudgetPct + '%');
   }
 
   // Budget check — don't exceed quarterly budget
-  if (gameState.ctoQuarterBudget > 0 && gameState.ctoSpentThisQuarter >= gameState.ctoQuarterBudget) return;
+  if (gameState.ctoQuarterBudget > 0 && gameState.ctoSpentThisQuarter >= gameState.ctoQuarterBudget) {
+    console.log('[CTO] Budget exhausted:', gameState.ctoSpentThisQuarter, '>=', gameState.ctoQuarterBudget);
+    return;
+  }
   const remainingBudget = gameState.ctoQuarterBudget - gameState.ctoSpentThisQuarter;
 
   // Build candidate list: all unlocked depts with affordable upgrades
@@ -872,7 +876,10 @@ function ctoAutoUpgrade() {
     const roi = cost > 0 ? revGain / cost : 0;
     candidates.push({ index: i, cost, revGain, roi });
   }
-  if (candidates.length === 0) return;
+  if (candidates.length === 0) {
+    console.log('[CTO] No candidates. Cash:', gameState.cash, 'Budget remaining:', remainingBudget, 'Sources:', gameState.sources.length);
+    return;
+  }
 
   let pick = null;
 
