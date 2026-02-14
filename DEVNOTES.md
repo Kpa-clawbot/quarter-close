@@ -208,3 +208,16 @@
 ### Bug: Prestige/Breakthrough Not Persisting
 - `prestigeLevel` and `breakthroughMult` were being loaded from save but never written to the save object's `sources.map()`.
 - Fix: added both fields to serialization in `saveGame()`. Commit `72ac758`.
+
+### Column Width Stabilization (#54)
+- Old `max-content` grid columns shifted with content changes ($1K→$1B, button labels).
+- `fr` units filled entire screen — wrong approach.
+- Fixed pixel widths + `1fr` on last column = stable like real Excel.
+- `grid-template-columns: 40px 200px 120px 100px 190px 160px 130px 95px 1fr`
+- Added `min-width: 0` to `.cell` for flex overflow handling.
+
+### Rows 1-2 Revamp
+- Row 1 = stats dashboard: Cash, $amount, $/day, Total Rev/yr label+value, stock price in H.
+- Row 2 = column headers: DEPARTMENT | Staff | Rev/day | Hire | Upgrade | Actions | Rev/yr.
+- Action columns (D/E/F) now labeled.
+- Stock price moved from B to H.
