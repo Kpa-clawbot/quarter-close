@@ -2706,7 +2706,11 @@ let _eventToastActions = null; // track actions with cashRequired for live updat
 
 function showEvent(event) {
   // Handle dynamic events that generate content at trigger time
-  if (event.dynamic && event.setup) {
+  if (event.generate) {
+    const result = event.generate();
+    if (!result) return;
+    event = result;
+  } else if (event.dynamic && event.setup) {
     const result = event.setup(gameState);
     if (!result) return; // couldn't generate (e.g., no unlocked sources)
     event = { ...event, body: result.body, actions: result.actions };
