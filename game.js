@@ -872,9 +872,10 @@ function ctoAutoUpgrade() {
       if (!stats) continue; // safety: skip unknown sources
       const cost = upgradeCost(state);
       if (cost > gameState.cash || cost > budgetRemaining) continue;
-      const revGain = sourceRevPerTick(state) * 0.5;
-      const roi = cost > 0 ? revGain / cost : 0;
-      candidates.push({ index: i, cost, revGain, roi, name: stats.name });
+      // ROI = annual revenue gain / cost (how many years to pay back)
+      const annualRevGain = sourceRevPerTick(state) * 365.25 * 0.5;
+      const roi = cost > 0 ? annualRevGain / cost : 0;
+      candidates.push({ index: i, cost, revGain: annualRevGain, roi, name: stats.name });
     }
     if (candidates.length === 0) return;
 
@@ -885,7 +886,7 @@ function ctoAutoUpgrade() {
       candidates.sort((a, b) => a.cost - b.cost);
       pick = candidates[0];
     } else if (level === 2) {
-      // Competent CTO: best ROI first, skip very low ROI
+      // Competent CTO: best ROI first, skip truly worthless upgrades
       candidates.sort((a, b) => b.roi - a.roi);
       pick = candidates.find(c => c.roi >= 0.001) || null;
     } else if (level === 3) {
@@ -894,6 +895,7 @@ function ctoAutoUpgrade() {
       const currentDay = Math.floor(gameState.gameElapsedSecs / SECS_PER_DAY);
       const earningsDaysSince = currentDay - gameState.lastEarningsDay;
       const daysLeft = Math.max(0, EARNINGS_QUARTER_DAYS - earningsDaysSince);
+      // Near earnings: tighten up; otherwise very permissive
       let threshold = 0.001;
       if (daysLeft < 5) {
         threshold = 0.05;
