@@ -1499,6 +1499,18 @@ function automateSource(index) {
   updateGridValues();
   updateDisplay();
   flashCash();
+
+  // Focus tip — show once per game after first automate
+  if (isFeatureEnabled('managementFocus') && !gameState.focusTipShown) {
+    gameState.focusTipShown = true;
+    setTimeout(() => {
+      document.getElementById('status-text').textContent = '💡 Tip: Click department names to boost their revenue';
+      setTimeout(() => {
+        const st = document.getElementById('status-text');
+        if (st && st.textContent.startsWith('💡')) st.textContent = 'Ready';
+      }, 5000);
+    }, 2000);
+  }
 }
 
 function collectSource(index) {
@@ -2621,6 +2633,7 @@ function saveGame() {
     lastQuarterRE: gameState.lastQuarterRE || 0,
     featureToggles: gameState.featureToggles || DEFAULT_FEATURES,
     overtimeClicks: gameState.overtimeClicks || 0,
+    focusTipShown: gameState.focusTipShown || false,
     savedAt: Date.now(),
   };
 
@@ -2697,6 +2710,7 @@ function loadGame() {
     gameState.lastQuarterRE = data.lastQuarterRE || 0;
     gameState.featureToggles = data.featureToggles || { ...DEFAULT_FEATURES };
     gameState.overtimeClicks = data.overtimeClicks || 0;
+    gameState.focusTipShown = data.focusTipShown || false;
     gameState.activeTab = 'operations';
 
     // Rebuild sources for selected arc
@@ -2814,6 +2828,7 @@ function resetGame() {
   gameState.lastQuarterRE = 0;
   gameState.featureToggles = { ...DEFAULT_FEATURES };
   gameState.overtimeClicks = 0;
+  gameState.focusTipShown = false;
   gameState.eventCooldown = 0;
   gameState.miniTaskCooldown = 0;
   gameState.miniTaskActive = false;
