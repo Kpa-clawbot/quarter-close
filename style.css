@@ -1054,6 +1054,7 @@ body {
   padding: 4px 10px 8px;
   color: #555;
   line-height: 1.4;
+  white-space: pre-wrap;
 }
 
 #toast-actions {
