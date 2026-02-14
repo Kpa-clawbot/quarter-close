@@ -1061,7 +1061,7 @@ function buildGrid() {
   for (let i = 0; i < SOURCE_STATS.length; i++) {
     const src = getSourceDef(i);
     const state = gameState.sources[i];
-    const rowNum = i + 4;
+    const rowNum = i + 3;
 
     const row = document.createElement('div');
     row.className = 'grid-row source-row';
@@ -1147,7 +1147,7 @@ function buildFillerRows() {
   const available = viewportHeight - gridBottom - bottomChrome;
   const fillerCount = Math.max(3, Math.ceil(available / ROW_HEIGHT) + 1);
 
-  const startRow = SOURCE_STATS.length + 4 + taxRowCount;
+  const startRow = SOURCE_STATS.length + 3 + taxRowCount;
   for (let i = 0; i < fillerCount; i++) {
     const row = document.createElement('div');
     row.className = 'filler-row';
@@ -1853,7 +1853,7 @@ function updateTaxPanel() {
   panel.classList.remove('hidden');
 
   const sourceCount = SOURCE_STATS.length;
-  let rowNum = sourceCount + 4;
+  let rowNum = sourceCount + 3;
   let html = '';
 
   // ===== P&L SECTION (collapsible) =====
@@ -3710,7 +3710,7 @@ function buildBoardRoom() {
   _lastBoardRoomHash = hashParts;
 
   let html = '';
-  let rowNum = 4; // starts after the header rows (1-3)
+  let rowNum = 3; // starts after the header rows (1-2)
 
   // Board Room header
   html += `<div class="grid-row br-header-row">
