@@ -2826,45 +2826,32 @@ function updateToastButtons() {
 }
 
 // ===== DEBUG: TRIGGER EVENTS =====
-// Console: debugEvent() — lists all events with index
-// Console: debugEvent(5) — triggers event #5
-// Console: debugEvent('ransomware') — triggers first event matching keyword
-function debugEvent(query) {
-  if (query === undefined) {
-    console.table(EVENTS.map((e, i) => ({ '#': i, sender: e.sender, subject: e.subject })));
-    console.log('Usage: debugEvent(index) or debugEvent("keyword")');
+function toggleDebugEventDropdown() {
+  const dd = document.getElementById('debug-event-dropdown');
+  if (!dd.classList.contains('hidden')) {
+    dd.classList.add('hidden');
     return;
   }
-  let event;
-  if (typeof query === 'number') {
-    event = EVENTS[query];
-  } else {
-    const q = query.toLowerCase();
-    event = EVENTS.find(e => e.sender.toLowerCase().includes(q) || e.subject.toLowerCase().includes(q));
-  }
-  if (!event) { console.error('Event not found'); return; }
-  console.log(`Triggering: ${event.sender} — ${event.subject}`);
-  showEvent(event);
-}
-
-function showDebugEvents() {
-  closeDataMenu();
-  const list = document.getElementById('debug-events-list');
-  list.innerHTML = '';
-  EVENTS.forEach((event, i) => {
-    const btn = document.createElement('button');
-    btn.className = 'toast-btn';
-    btn.style.cssText = 'display:block;width:100%;text-align:left;margin-bottom:4px;padding:6px 10px;font-size:12px';
-    btn.textContent = `${event.sender} — ${event.subject}`;
-    btn.onclick = () => { dismissDebugEvents(); showEvent(event); };
-    list.appendChild(btn);
+  dd.innerHTML = '';
+  EVENTS.forEach((event) => {
+    const btn = document.createElement('div');
+    btn.style.cssText = 'padding:5px 10px;cursor:pointer;font-size:11px;border-bottom:1px solid #eee;white-space:nowrap;overflow:hidden;text-overflow:ellipsis';
+    btn.textContent = `${event.sender} — ${event.subject.replace(/[\u{1F300}-\u{1FAFF}]/gu, '').trim()}`;
+    btn.onmouseenter = () => btn.style.background = '#e8f0fe';
+    btn.onmouseleave = () => btn.style.background = '';
+    btn.onclick = () => { dd.classList.add('hidden'); showEvent(event); };
+    dd.appendChild(btn);
   });
-  document.getElementById('debug-events-modal').classList.remove('hidden');
+  dd.classList.remove('hidden');
 }
 
-function dismissDebugEvents() {
-  document.getElementById('debug-events-modal').classList.add('hidden');
-}
+// Close dropdown on outside click
+document.addEventListener('click', (e) => {
+  const dd = document.getElementById('debug-event-dropdown');
+  if (dd && !dd.classList.contains('hidden') && !e.target.closest('#debug-event-dropdown') && !e.target.textContent.includes('Event ▾')) {
+    dd.classList.add('hidden');
+  }
+});
 
 // ===== BOSS KEY =====
 function toggleBossMode() {

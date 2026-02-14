@@ -109,7 +109,6 @@
       <span class="menu-item" id="data-menu" onclick="toggleDataMenu(event)">Data
         <div class="menu-dropdown" id="data-dropdown">
           <div class="menu-dropdown-item" onclick="showGameOptions()">Game Options...</div>
-          <div class="menu-dropdown-item" onclick="showDebugEvents()">Trigger Event...</div>
         </div>
       </span>
       <span class="menu-item">Review</span>
@@ -234,7 +233,7 @@
       <span class="rb-val" id="stat-hr"></span>
       <span class="rb-sep">│</span>
       <span class="rb-val" id="stat-day"></span>
-      <span style="margin-left:auto"><button class="cell-btn btn-max" onclick="triggerIRS()" style="color:#c00">🧪 IRS</button> <button class="cell-btn btn-max" onclick="triggerBonus()" style="color:#217346">🧪 5×</button> <button class="cell-btn btn-max" onclick="forceIPO()" style="color:#0078d4">🧪 IPO</button> <button class="cell-btn btn-max" onclick="resetBoardRoom()" style="color:#7b1fa2">🧪 Reset BR</button></span>
+      <span style="margin-left:auto"><button class="cell-btn btn-max" onclick="triggerIRS()" style="color:#c00">🧪 IRS</button> <button class="cell-btn btn-max" onclick="triggerBonus()" style="color:#217346">🧪 5×</button> <button class="cell-btn btn-max" onclick="forceIPO()" style="color:#0078d4">🧪 IPO</button> <button class="cell-btn btn-max" onclick="resetBoardRoom()" style="color:#7b1fa2">🧪 Reset BR</button> <span style="position:relative;display:inline-block"><button class="cell-btn btn-max" onclick="toggleDebugEventDropdown()" style="color:#e65100">🧪 Event ▾</button><div id="debug-event-dropdown" class="hidden" style="position:absolute;bottom:100%;right:0;background:#fff;border:1px solid #ccc;border-radius:4px;box-shadow:0 2px 8px rgba(0,0,0,.2);max-height:300px;overflow-y:auto;z-index:999;width:320px;margin-bottom:2px"></div></span></span>
     </div>
 
     <!-- Sheet Tabs -->
@@ -411,17 +410,6 @@
       <div class="options-footer">
         <button onclick="dismissOptions()">OK</button>
       </div>
-    </div>
-  </div>
-
-  <!-- ===== DEBUG: TRIGGER EVENT ===== -->
-  <div id="debug-events-modal" class="hidden">
-    <div id="options-content">
-      <div class="help-header">
-        <h3>🐛 Trigger Event</h3>
-        <button class="help-close" onclick="dismissDebugEvents()">✕</button>
-      </div>
-      <div class="options-body" id="debug-events-list"></div>
     </div>
   </div>
 
@@ -629,7 +617,7 @@
     </div>
   </div>
 
-  <script src="game.js?v=58"></script>
+  <script src="game.js?v=59"></script>
   <script>
     if (location.hostname === 'kpa-clawbot.github.io') {
       var s = document.createElement('script');
