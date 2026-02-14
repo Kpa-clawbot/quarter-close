@@ -1269,7 +1269,7 @@ function processQuarterlyTax() {
         updateTaxPanel();
         return `You ignored the ${qLabel} tax bill. ${formatMoney(taxOwed)} added to tax liability. Interest is accruing...`;
       }},
-    ]);
+    ], { expiresMs: 0, closable: false });
 }
 
 function processTaxDebts() {
@@ -1316,7 +1316,8 @@ function processTaxDebts() {
            disabledLabel: 'Not enough cash',
            cashRequired: debt.current,
            effect: (gs) => { const idx = gs.taxDebts.indexOf(debtRef); if (idx >= 0) settleTaxDebt(idx); return 'Debt settled.'; }},
-         { label: 'Ignore', effect: () => 'The IRS does not forget.' }]);
+         { label: 'Ignore', effect: () => 'The IRS does not forget.' }],
+        { expiresMs: 0, closable: false });
     } else if (debt.stage === 'garnish' && oldStage === 'notice2') {
       const debtRef = debt; // capture reference for closure
       showEventToast('IRS', '⚠ Revenue Garnishment Order',
@@ -1325,7 +1326,8 @@ function processTaxDebts() {
            disabledLabel: 'Not enough cash',
            cashRequired: debt.current,
            effect: (gs) => { const idx = gs.taxDebts.indexOf(debtRef); if (idx >= 0) settleTaxDebt(idx); return 'Debt settled. Garnishment lifted.'; }},
-         { label: 'Ignore', effect: () => 'Asset seizure in 90 days.' }]);
+         { label: 'Ignore', effect: () => 'Asset seizure in 90 days.' }],
+        { expiresMs: 0, closable: false });
     }
   }
 
@@ -1947,7 +1949,8 @@ function showEvent(event) {
       updateDisplay();
     }, event.timedDelay);
   } else {
-    document.getElementById('toast-close').style.display = '';
+    // Hide close button for non-closable toasts (earnings, IRS decisions)
+    document.getElementById('toast-close').style.display = event.closable === false ? 'none' : '';
     // Default auto-expire: 10s for all events unless explicitly set
     const expiry = event.expiresMs !== undefined ? event.expiresMs : 10000;
     _eventToastActions = []; // reset tracked actions
@@ -2704,7 +2707,7 @@ function showEarningsModal(data) {
   }));
 
   showEventToast('Investor Relations', `${data.qLabel} EARNINGS REPORT`,
-    body, actions, { expiresMs: 0 });
+    body, actions, { expiresMs: 0, closable: false });
 }
 
 function trackEarningsRevenue(amount) {
