@@ -1706,6 +1706,7 @@ body {
     height: 100dvh;
     width: 100vw;
     overflow: hidden;
+    padding-top: env(safe-area-inset-top, 0);
   }
 
   /* ===== MOBILE CASH HEADER (Row 2 repurposed) ===== */
