@@ -373,6 +373,16 @@ const BOARD_ROOM_UPGRADES = [
     maxCount: Infinity,
     category: 'Protection',
   },
+  {
+    id: 'growth_initiative',
+    name: 'Growth Initiative',
+    desc: '+2% revenue multiplier (stacks). Cost scales 10% each.',
+    cost: 50,
+    requires: null,
+    maxCount: Infinity,
+    category: 'Revenue',
+    scalingCost: 1.10, // each purchase costs 10% more
+  },
 ];
 
 function hasBoardRoomUpgrade(id) {
@@ -383,11 +393,22 @@ function getBoardRoomUpgradeCount(id) {
   return gameState.boardRoomPurchases[id] || 0;
 }
 
+function getUpgradeCost(upgrade) {
+  if (upgrade.scalingCost) {
+    const owned = getBoardRoomUpgradeCount(upgrade.id);
+    return Math.floor(upgrade.cost * Math.pow(upgrade.scalingCost, owned));
+  }
+  return upgrade.cost;
+}
+
 function getBoardRoomRevMultiplier() {
   let mult = 1.0;
   if (hasBoardRoomUpgrade('rev_mult_1')) mult *= 1.1;
   if (hasBoardRoomUpgrade('rev_mult_2')) mult *= 1.25;
   if (hasBoardRoomUpgrade('rev_mult_3')) mult *= 1.5;
+  // Growth Initiative: +2% per purchase, stacks multiplicatively
+  const gi = getBoardRoomUpgradeCount('growth_initiative');
+  if (gi > 0) mult *= Math.pow(1.02, gi);
   return mult;
 }
 
@@ -1929,17 +1950,19 @@ function updateTaxPanel() {
     // Retained Earnings
     const lastQRE = gameState.lastQuarterRE || 0;
     const lastQStr = lastQRE > 0 ? `Last Q: +${lastQRE}` : '';
-    // ETA: find cheapest unpurchased upgrade, estimate quarters to afford
+    // ETA: find cheapest purchasable upgrade, estimate quarters to afford
     let etaStr = '';
     if (lastQRE > 0) {
-      const nextUpgrade = BOARD_ROOM_UPGRADES.find(u => {
+      const available = BOARD_ROOM_UPGRADES.filter(u => {
         const owned = getBoardRoomUpgradeCount(u.id);
         if (owned >= u.maxCount) return false;
         if (u.requires && !hasBoardRoomUpgrade(u.requires)) return false;
         return true;
       });
+      const nextUpgrade = available.sort((a, b) => getUpgradeCost(a) - getUpgradeCost(b))[0];
       if (nextUpgrade) {
-        const remaining = nextUpgrade.cost - gameState.retainedEarnings;
+        const cost = getUpgradeCost(nextUpgrade);
+        const remaining = cost - gameState.retainedEarnings;
         if (remaining > 0) {
           const quartersNeeded = Math.ceil(remaining / lastQRE);
           const etaSecs = quartersNeeded * 90;
@@ -3184,7 +3207,8 @@ function buildBoardRoom() {
     const owned = getBoardRoomUpgradeCount(upgrade.id);
     const isOwned = owned > 0 && upgrade.maxCount !== Infinity;
     const requiresMet = !upgrade.requires || hasBoardRoomUpgrade(upgrade.requires);
-    const canAfford = gameState.retainedEarnings >= upgrade.cost;
+    const cost = getUpgradeCost(upgrade);
+    const canAfford = gameState.retainedEarnings >= cost;
     const isLocked = !requiresMet;
 
     let statusCell = '';
@@ -3207,11 +3231,15 @@ function buildBoardRoom() {
 
     const costColor = isOwned ? '#999' : isLocked ? '#ccc' : canAfford ? '#7b1fa2' : '#c00';
 
+    const costLabel = upgrade.maxCount === Infinity && owned > 0
+      ? `${cost.toLocaleString()} RE (×${owned})`
+      : `${cost.toLocaleString()} RE`;
+
     html += `<div class="${rowClass}">
       <div class="row-num">${rowNum++}</div>
       <div class="cell cell-a" style="font-weight:500;${isLocked ? 'color:#bbb' : ''}">${upgrade.name}</div>
       <div class="cell cell-b" style="font-size:10px;color:#888">${upgrade.category}</div>
-      <div class="cell cell-c" style="font-family:Consolas,monospace;font-size:11px;color:${costColor};justify-content:flex-end">${upgrade.cost.toLocaleString()} RE</div>
+      <div class="cell cell-c" style="font-family:Consolas,monospace;font-size:11px;color:${costColor};justify-content:flex-end">${costLabel}</div>
       <div class="cell cell-d" style="justify-content:flex-end">${statusCell}</div>
       <div class="cell cell-e"></div>
       <div class="cell cell-f" style="font-size:10px;color:#888;white-space:normal;line-height:1.3">${upgrade.desc}</div>
@@ -3253,9 +3281,10 @@ function purchaseBoardRoomUpgrade(id) {
   const owned = getBoardRoomUpgradeCount(id);
   if (owned >= upgrade.maxCount) return;
   if (upgrade.requires && !hasBoardRoomUpgrade(upgrade.requires)) return;
-  if (gameState.retainedEarnings < upgrade.cost) return;
+  const cost = getUpgradeCost(upgrade);
+  if (gameState.retainedEarnings < cost) return;
 
-  gameState.retainedEarnings -= upgrade.cost;
+  gameState.retainedEarnings -= cost;
   gameState.boardRoomPurchases[id] = (gameState.boardRoomPurchases[id] || 0) + 1;
 
   // Auto-activate Finance Dept when first purchased
