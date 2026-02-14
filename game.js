@@ -3539,6 +3539,19 @@ function init() {
     showArcSelect();
   }
   setInterval(gameTick, 1000);
+
+  // Splash screen animation
+  const splash = document.getElementById('splash-screen');
+  if (splash) {
+    requestAnimationFrame(() => {
+      const bar = document.getElementById('splash-progress-bar');
+      if (bar) bar.style.width = '100%';
+    });
+    setTimeout(() => {
+      splash.classList.add('fade-out');
+      setTimeout(() => splash.remove(), 500);
+    }, 2500);
+  }
 }
 
 // Expose for inline onclick
