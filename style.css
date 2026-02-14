@@ -1870,3 +1870,21 @@ body {
 .options-footer button:hover {
   background: #1a5c38;
 }
+
+/* ===== MANAGEMENT FOCUS ===== */
+.focus-tag {
+  font-size: 10px;
+  padding: 0 3px;
+  border-radius: 2px;
+  font-weight: 600;
+}
+.focus-low {
+  color: #81c784;
+}
+.focus-mid {
+  color: #43a047;
+}
+.focus-high {
+  color: #1b5e20;
+  text-shadow: 0 0 4px rgba(76, 175, 80, 0.4);
+}

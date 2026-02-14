@@ -677,7 +677,8 @@ function sourceRevPerTick(source) {
   const upgradeMult = 1 + source.upgradeLevel * 0.5;
   const prestigeMult = Math.pow(10, source.prestigeLevel || 0);
   const breakthroughMult = source.breakthroughMult || 1;
-  return source.employees * stats.baseRate * upgradeMult * prestigeMult * breakthroughMult / 365.25;
+  const focusMult = isFeatureEnabled('managementFocus') ? 1 + (source.focus || 0) * 0.05 : 1;
+  return source.employees * stats.baseRate * upgradeMult * prestigeMult * breakthroughMult * focusMult / 365.25;
 }
 
 function totalRevPerTick() {
@@ -710,7 +711,8 @@ function sourceAnnualRev(source) {
   const upgradeMult = 1 + source.upgradeLevel * 0.5;
   const prestigeMult = Math.pow(10, source.prestigeLevel || 0);
   const breakthroughMult = source.breakthroughMult || 1;
-  return source.employees * stats.baseRate * upgradeMult * prestigeMult * breakthroughMult;
+  const focusMult = isFeatureEnabled('managementFocus') ? 1 + (source.focus || 0) * 0.05 : 1;
+  return source.employees * stats.baseRate * upgradeMult * prestigeMult * breakthroughMult * focusMult;
 }
 
 function totalAnnualRev() {
@@ -798,6 +800,8 @@ function selectArc(arcKey) {
     pendingCollect: 0,
     prestigeLevel: 0,
     breakthroughMult: 1,
+    focus: 0,
+    lastFocusClick: 0,
   }));
   gameState.seriesAShown = false;
   gameState.totalPlayTime = 0;
@@ -1184,11 +1188,21 @@ function updateGridValues() {
     const uCost = upgradeCost(state);
     const aCost = automateCost(state);
 
-    // Name
+    // Name (clickable for focus)
     const nameCell = row.querySelector('[data-field="name"]');
     const prestigeTag = (state.prestigeLevel || 0) > 0 ? ` <span style="color:#d4a017;font-size:10px">★${state.prestigeLevel}</span>` : '';
     const breakthroughTag = (state.breakthroughMult || 1) > 1 ? ` <span style="color:#2e7d32;font-size:10px">🔬×${state.breakthroughMult}</span>` : '';
-    nameCell.innerHTML = src.name + (state.upgradeLevel > 0 ? ` <span style="color:#999;font-size:10px">Lv${state.upgradeLevel}</span>` : '') + prestigeTag + breakthroughTag;
+    const focusLevel = state.focus || 0;
+    const focusTag = (isFeatureEnabled('managementFocus') && focusLevel > 0) ?
+      ` <span class="focus-tag focus-${focusLevel > 7 ? 'high' : focusLevel > 3 ? 'mid' : 'low'}" title="Focus: +${focusLevel * 5}% revenue">🎯${focusLevel}</span>` : '';
+    nameCell.innerHTML = src.name + (state.upgradeLevel > 0 ? ` <span style="color:#999;font-size:10px">Lv${state.upgradeLevel}</span>` : '') + prestigeTag + breakthroughTag + focusTag;
+    if (isFeatureEnabled('managementFocus') && state.employees > 0) {
+      nameCell.style.cursor = 'pointer';
+      nameCell.onclick = () => clickFocus(i);
+    } else {
+      nameCell.style.cursor = '';
+      nameCell.onclick = null;
+    }
 
     // Employees
     row.querySelector('[data-field="emp"]').textContent = state.employees;
@@ -2372,6 +2386,9 @@ function gameTick() {
   sampleValuation();
   drawValuationChart();
 
+  // Management focus decay
+  decayFocus();
+
   updateToastButtons();
   updateGridValues();
   updateDisplay();
@@ -2685,6 +2702,8 @@ function loadGame() {
       pendingCollect: 0,
       prestigeLevel: 0,
       breakthroughMult: 1,
+      focus: 0,
+      lastFocusClick: 0,
     }));
 
     if (data.sources) {
@@ -2697,6 +2716,7 @@ function loadGame() {
           gameState.sources[i].pendingCollect = saved.pendingCollect || 0;
           gameState.sources[i].prestigeLevel = saved.prestigeLevel || 0;
           gameState.sources[i].breakthroughMult = saved.breakthroughMult || 1;
+          // Focus is transient — don't load from save (resets on load)
         }
       });
     }
@@ -2996,6 +3016,42 @@ function showGameOptions() {
 
 function dismissOptions() {
   document.getElementById('options-modal').classList.add('hidden');
+}
+
+// ===== MANAGEMENT FOCUS =====
+function clickFocus(sourceIndex) {
+  if (!isFeatureEnabled('managementFocus')) return;
+  const state = gameState.sources[sourceIndex];
+  if (!state || !state.unlocked || state.employees === 0) return;
+
+  if (!state.focus) state.focus = 0;
+  state.focus = Math.min(10, state.focus + 1);
+  state.lastFocusClick = Date.now();
+
+  // Brief cell flash
+  const row = document.getElementById(`source-row-${sourceIndex}`);
+  if (row) {
+    const nameCell = row.querySelector('[data-field="name"]');
+    if (nameCell) {
+      nameCell.style.transition = 'background 0.15s';
+      nameCell.style.background = '#e8f5e9';
+      setTimeout(() => { nameCell.style.background = ''; }, 300);
+    }
+  }
+}
+
+function decayFocus() {
+  if (!isFeatureEnabled('managementFocus')) return;
+  const now = Date.now();
+  for (const state of gameState.sources) {
+    if (!state.focus || state.focus <= 0) continue;
+    const elapsed = now - (state.lastFocusClick || 0);
+    // Lose 1 focus point every 10 seconds since last click
+    const shouldHave = Math.max(0, (state.focus || 0) - Math.floor(elapsed / 10000));
+    if (shouldHave < state.focus) {
+      state.focus = shouldHave;
+    }
+  }
 }
 
 // ===== CLOSE THE DEAL =====

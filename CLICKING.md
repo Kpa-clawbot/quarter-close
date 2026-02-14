@@ -21,7 +21,7 @@ All mechanics have feature toggles (Data menu → Game Options).
 ---
 
 ## 1. Close the Deal
-**Status:** [ ] Not started
+**Status:** [x] Shipped (commit `10d5ce1`)
 
 **Concept:** Random high-value contracts appear as toasts. Click rapidly to close the deal before time runs out.
 
