@@ -2719,7 +2719,7 @@ function gameTick() {
   } else {
     if (Math.random() < 0.015 * EVENT_FREQ_MULT && gameState.totalPlayTime > 30) {
       triggerRandomEvent();
-      gameState.eventCooldown = 60 + Math.floor(Math.random() * 60);
+      gameState.eventCooldown = Math.floor((60 + Math.floor(Math.random() * 60)) / (EVENT_FREQ_MULT || 1));
     }
   }
 
