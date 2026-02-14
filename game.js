@@ -519,6 +519,7 @@ let gameState = {
   activeCFOLevel: 0,       // 0 = manual, 1/2/3 = Finance Dept level in use
   cfoRecords: {},          // { 1: {beats:0,total:0}, 2: {...}, 3: {...} }
   revenueHistory: [],      // last 3 quarterly revenues for trend analysis
+  lastQuarterRE: 0,        // RE earned last quarter (for ETA display)
 };
 
 let gridBuilt = false;
@@ -753,6 +754,7 @@ function selectArc(arcKey) {
   gameState.activeCFOLevel = 0;
   gameState.cfoRecords = {};
   gameState.revenueHistory = [];
+  gameState.lastQuarterRE = 0;
 
   // Clear stale panels
   const taxPanel = document.getElementById('tax-panel');
@@ -1925,14 +1927,35 @@ function updateTaxPanel() {
     </div>`;
 
     // Retained Earnings
+    const lastQRE = gameState.lastQuarterRE || 0;
+    const lastQStr = lastQRE > 0 ? `Last Q: +${lastQRE}` : '';
+    // ETA: find cheapest unpurchased upgrade, estimate quarters to afford
+    let etaStr = '';
+    if (lastQRE > 0) {
+      const nextUpgrade = BOARD_ROOM_UPGRADES.find(u => {
+        const owned = getBoardRoomUpgradeCount(u.id);
+        if (owned >= u.maxCount) return false;
+        if (u.requires && !hasBoardRoomUpgrade(u.requires)) return false;
+        return true;
+      });
+      if (nextUpgrade) {
+        const remaining = nextUpgrade.cost - gameState.retainedEarnings;
+        if (remaining > 0) {
+          const quartersNeeded = Math.ceil(remaining / lastQRE);
+          etaStr = `${nextUpgrade.name} in ~${quartersNeeded}Q`;
+        } else {
+          etaStr = `${nextUpgrade.name} — affordable!`;
+        }
+      }
+    }
     html += `<div class="grid-row ir-row">
       <div class="row-num">${rowNum++}</div>
       <div class="cell cell-a" style="padding-left:16px;color:#444">Retained Earnings</div>
       <div class="cell cell-b" style="font-weight:700;color:#7b1fa2;font-family:Consolas,monospace;font-size:12px">${gameState.retainedEarnings.toLocaleString()} RE</div>
-      <div class="cell cell-c"></div>
+      <div class="cell cell-c" style="font-size:10px;color:#7b1fa2">${lastQStr}</div>
       <div class="cell cell-d"></div>
       <div class="cell cell-e"></div>
-      <div class="cell cell-f" style="font-size:9px;color:#7b1fa2">Spend in Board Room tab</div>
+      <div class="cell cell-f" style="font-size:9px;color:#888;white-space:nowrap">${etaStr}</div>
       <div class="cell cell-g"></div>
       <div class="cell cell-h"></div>
     </div>`;
@@ -2372,6 +2395,7 @@ function saveGame() {
     activeCFOLevel: gameState.activeCFOLevel || 0,
     cfoRecords: gameState.cfoRecords || {},
     revenueHistory: gameState.revenueHistory || [],
+    lastQuarterRE: gameState.lastQuarterRE || 0,
     savedAt: Date.now(),
   };
 
@@ -2442,6 +2466,7 @@ function loadGame() {
     gameState.activeCFOLevel = data.activeCFOLevel || 0;
     gameState.cfoRecords = data.cfoRecords || {};
     gameState.revenueHistory = data.revenueHistory || [];
+    gameState.lastQuarterRE = data.lastQuarterRE || 0;
     gameState.activeTab = 'operations';
 
     // Rebuild sources for selected arc
@@ -2545,6 +2570,7 @@ function resetGame() {
   gameState.activeCFOLevel = 0;
   gameState.cfoRecords = {};
   gameState.revenueHistory = [];
+  gameState.lastQuarterRE = 0;
   gameState.eventCooldown = 0;
   gameState.miniTaskCooldown = 0;
   gameState.miniTaskActive = false;
@@ -2861,6 +2887,7 @@ function resetBoardRoom() {
   gameState.activeCFOLevel = 0;
   gameState.cfoRecords = {};
   gameState.revenueHistory = [];
+  gameState.lastQuarterRE = 0;
   if (gameState.activeTab === 'boardroom') renderBoardRoom();
   _lastTaxPanelHash = '';
   updateTaxPanel();
@@ -2977,6 +3004,7 @@ function processEarnings() {
   // Reset for next quarter
   const oldQuarterRev = gameState.earningsQuarterRevenue;
   gameState.earningsQuarterRevenue = 0;
+  gameState.lastQuarterRE = reEarned;
 
   // Show earnings modal with next quarter guidance selection
   const marginPct = (margin * 100).toFixed(1);
