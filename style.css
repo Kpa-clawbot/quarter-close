@@ -3371,6 +3371,36 @@ body {
     border-radius: 4px;
     margin-left: 4px;
   }
+
+  /* ===== MANAGEMENT FOCUS TOUCH FEEDBACK (Bug 4) ===== */
+  .source-name.focusable {
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: background 0.15s, transform 0.1s;
+    border-radius: 4px;
+    padding: 2px 4px;
+    margin: -2px -4px;
+  }
+  .source-name.focusable:active {
+    background: #e0f2e9 !important;
+    transform: scale(0.97);
+  }
+  /* Subtle tappable indicator for automated departments */
+  .source-name.focusable::after {
+    content: ' 👆';
+    font-size: 10px;
+    opacity: 0.4;
+  }
+
+  /* ===== BOARD ROOM CATEGORY HEADERS (Bug 2) ===== */
+  .mob-br-category {
+    font-size: 13px;
+    font-weight: 700;
+    color: #555;
+    padding: 12px 4px 4px 4px;
+    border-bottom: 1px solid #ddd;
+    margin-bottom: 4px;
+  }
 }
 
 /* ============================================

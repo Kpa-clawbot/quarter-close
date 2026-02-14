@@ -4972,6 +4972,7 @@ function updateMobileSettings() {
     <div><strong>Clicks:</strong> ${gameState.totalClicks.toLocaleString()}</div>
     <div><strong>Play Time:</strong> ${formatDuration(gameState.totalPlayTime)}</div>
     ${gameState.isPublic ? `<div><strong>Stock Price:</strong> ${formatMoney(getStockPrice())}</div>
+    <div><strong>Valuation:</strong> ${formatCompact(getCompanyValuation())}</div>
     <div><strong>Retained Earnings:</strong> ${gameState.retainedEarnings.toLocaleString()} RE</div>` : ''}
   `;
 
@@ -5210,6 +5211,16 @@ function buildMobilePnL() {
       const d = gameState.taxDebts[i];
       const interest = d.current - d.original;
       const qLabel = d.quarter || '';
+
+      // Next escalation countdown (matching desktop updateTaxPanel)
+      const daysToNext = d.stage === 'notice1' ? (30 - d.daysOverdue) :
+                         d.stage === 'notice2' ? (90 - d.daysOverdue) :
+                         d.stage === 'garnish' ? (180 - d.daysOverdue) : 0;
+      const nextLabel = d.stage === 'notice1' ? '2nd Notice' :
+                        d.stage === 'notice2' ? 'Garnish' :
+                        d.stage === 'garnish' ? 'Seizure' : '—';
+      const nextText = daysToNext > 0 ? `${nextLabel} in ${daysToNext}d` : '';
+
       html += `<div class="mob-tax-card">
         <div class="mob-tax-header">${qLabel} Assessment</div>
         <div class="mob-card-row">
@@ -5228,6 +5239,10 @@ function buildMobilePnL() {
           <span class="mob-card-label">Status</span>
           <span class="mob-card-value">${stageLabels[d.stage]} (${d.daysOverdue}d)</span>
         </div>
+        ${nextText ? `<div class="mob-card-row">
+          <span class="mob-card-label">Next Escalation</span>
+          <span class="mob-card-value" style="color:#c60;font-weight:600">⏳ ${nextText}</span>
+        </div>` : ''}
         <button class="mob-tax-settle" onclick="settleTaxDebt(${i})" ${gameState.cash >= d.current ? '' : 'disabled'}>Settle ${formatMoney(d.current)}</button>
       </div>`;
     }
@@ -5267,12 +5282,37 @@ function buildMobileBoardRoom() {
     </div>
   </div>`;
 
-  // Upgrade cards
+  // Group upgrades by category (matching desktop buildBoardRoom)
+  const categoryOrder = ['Finance', 'Revenue', 'Tax', 'Investor', 'Protection'];
+  const categoryLabels = {
+    Finance: '📊 Finance',
+    Revenue: '💰 Revenue',
+    Tax: '🏛️ Tax',
+    Investor: '📈 Investor Relations',
+    Protection: '🛡️ Protection',
+  };
+  const grouped = {};
   for (const upgrade of BOARD_ROOM_UPGRADES) {
+    if (!grouped[upgrade.category]) grouped[upgrade.category] = [];
+    grouped[upgrade.category].push(upgrade);
+  }
+  for (const cat of Object.keys(grouped)) {
+    grouped[cat].sort((a, b) => getUpgradeCost(a) - getUpgradeCost(b));
+  }
+
+  for (const cat of categoryOrder) {
+    const upgrades = grouped[cat];
+    if (!upgrades || upgrades.length === 0) continue;
+
+    // Category header
+    html += `<div class="mob-br-category">${categoryLabels[cat] || cat}</div>`;
+
+    for (const upgrade of upgrades) {
     const owned = getBoardRoomUpgradeCount(upgrade.id);
     const isOwned = owned > 0 && upgrade.maxCount !== Infinity;
     const requiresMet = !upgrade.requires || hasBoardRoomUpgrade(upgrade.requires);
-    const canAfford = gameState.retainedEarnings >= upgrade.cost;
+    const cost = getUpgradeCost(upgrade);
+    const canAfford = gameState.retainedEarnings >= cost;
     const isLocked = !requiresMet;
 
     let cardClass = 'mob-br-card';
@@ -5292,15 +5332,27 @@ function buildMobileBoardRoom() {
       statusHtml = `<button class="mob-br-buy" data-buy-upgrade="${upgrade.id}" ${canAfford ? '' : 'disabled'}>Buy${countLabel}</button>`;
     }
 
+    // Dynamic description for Growth Initiative — show total bonus
+    let desc = upgrade.desc;
+    if (upgrade.id === 'growth_initiative' && owned > 0) {
+      const totalBonus = ((Math.pow(1.02, owned) - 1) * 100).toFixed(1);
+      desc = `+2% revenue per purchase (stacks). Current: +${totalBonus}% total (×${owned})`;
+    }
+
+    const costLabel = upgrade.maxCount === Infinity && owned > 0
+      ? `${cost.toLocaleString()} RE (×${owned})`
+      : `${cost.toLocaleString()} RE`;
+
     html += `<div class="${cardClass}">
       <div class="mob-br-name">${upgrade.name}</div>
-      <div class="mob-br-desc">${upgrade.desc}</div>
+      <div class="mob-br-desc">${desc}</div>
       <div class="mob-br-footer">
-        <span class="mob-br-cost" style="color:${isOwned ? '#999' : isLocked ? '#ccc' : canAfford ? '#7b1fa2' : '#c00'}">${upgrade.cost.toLocaleString()} RE</span>
+        <span class="mob-br-cost" style="color:${isOwned ? '#999' : isLocked ? '#ccc' : canAfford ? '#7b1fa2' : '#c00'}">${costLabel}</span>
         ${statusHtml}
       </div>
     </div>`;
-  }
+    } // end upgrade loop
+  } // end category loop
 
   container.innerHTML = html;
 
