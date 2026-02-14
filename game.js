@@ -4963,6 +4963,38 @@ function updateMobileSettings() {
     <div><strong>Retained Earnings:</strong> ${gameState.retainedEarnings.toLocaleString()} RE</div>` : ''}
   `;
 
+  // Active effects
+  const now = Date.now();
+  const effects = [];
+  if (gameState.powerOutage && now < gameState.powerOutage.until) {
+    const secs = Math.ceil((gameState.powerOutage.until - now) / 1000);
+    effects.push(`⚡ Power Outage (${secs}s)`);
+  }
+  if (gameState.revPenalty && now < gameState.revPenalty.until) {
+    const secs = Math.ceil((gameState.revPenalty.until - now) / 1000);
+    const pct = Math.round((1 - gameState.revPenalty.mult) * 100);
+    effects.push(`📉 Revenue -${pct}% (${secs}s)`);
+  }
+  if (gameState.revBonus && now < gameState.revBonus.until) {
+    const secs = Math.ceil((gameState.revBonus.until - now) / 1000);
+    effects.push(`📈 Revenue ×${gameState.revBonus.mult} (${secs}s)`);
+  }
+  if (gameState.dbOutage && now < gameState.dbOutage.until) {
+    const secs = Math.ceil((gameState.dbOutage.until - now) / 1000);
+    effects.push(`💾 DB Outage (${secs}s)`);
+  }
+  if (gameState.hireFrozen && now < gameState.hireFrozen) {
+    const secs = Math.ceil((gameState.hireFrozen - now) / 1000);
+    effects.push(`🚫 Hiring Frozen (${secs}s)`);
+  }
+  const garnishActive = gameState.taxDebts && gameState.taxDebts.some(d => d.stage === 'garnish');
+  if (garnishActive) effects.push('🔴 IRS Garnishment (-15%)');
+
+  if (effects.length > 0) {
+    statsEl.innerHTML += `<div style="margin-top:8px;padding-top:8px;border-top:1px solid #eee"><strong>Active Effects:</strong></div>`;
+    effects.forEach(e => { statsEl.innerHTML += `<div style="color:#c00">${e}</div>`; });
+  }
+
   // Update autosave button text
   const btn = document.getElementById('mob-autosave-btn');
   if (btn) {
