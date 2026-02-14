@@ -1730,6 +1730,7 @@ body {
     border: none; 
     padding: 0;
     min-height: auto;
+    height: auto !important;
     color: white;
     font-family: 'Segoe UI', sans-serif;
   }
@@ -1812,7 +1813,9 @@ body {
     border: none !important;
     padding: 0;
     min-height: auto !important;
+    height: auto !important;
     white-space: normal;
+    overflow: visible;
   }
 
   /* Card row 1: Name (left) + Staff + Rev/day (right) */
