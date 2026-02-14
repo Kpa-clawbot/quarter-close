@@ -1882,6 +1882,10 @@ function automateSource(index) {
   const cost = automateCost(state);
   if (gameState.cash < cost) return;
 
+  // Prevent double-tap on mobile
+  if (isMobile() && automateSource._lastTap && Date.now() - automateSource._lastTap < 400) return;
+  automateSource._lastTap = Date.now();
+
   gameState.cash -= cost;
   state.automated = true;
   addCapitalExpense(cost);
@@ -4835,7 +4839,9 @@ function mobileCashPulse() {
 function mobileUpdateCollectHighlights() {
   if (!isMobile() || !gameState.arc) return;
   document.querySelectorAll('.cell-btn.btn-collect').forEach(btn => {
-    const hasPending = btn.textContent.includes('$') && !btn.textContent.includes('$0');
+    // Collect buttons show "💰 Collect" (no pending) or "💰 Collect $X" (has pending)
+    const text = btn.textContent;
+    const hasPending = text.includes('$') && !text.includes('$0.00');
     btn.classList.toggle('has-pending', hasPending);
   });
 }
@@ -4911,6 +4917,21 @@ function updateMobileNav() {
       brBtn.classList.remove('hidden');
     } else {
       brBtn.classList.add('hidden');
+    }
+  }
+
+  // Show tax alert badge on P&L tab when debts exist
+  const pnlBtn = document.querySelector('.mob-nav-btn[data-tab="pnl"]');
+  if (pnlBtn) {
+    const hasTaxDebt = gameState.taxDebts && gameState.taxDebts.length > 0;
+    let badge = pnlBtn.querySelector('.mob-nav-badge');
+    if (hasTaxDebt && !badge) {
+      badge = document.createElement('span');
+      badge.className = 'mob-nav-badge';
+      badge.textContent = '!';
+      pnlBtn.appendChild(badge);
+    } else if (!hasTaxDebt && badge) {
+      badge.remove();
     }
   }
 }
