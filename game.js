@@ -256,15 +256,16 @@ const EVENTS = [
       }},
       { label: '⏳ Wait for auto-recovery', effect: (gs) => {
         const duration = 15000 + Math.floor(Math.random() * 5000); // 15-20s
-        // Hit the highest-tier unlocked department
         const unlocked = gs.sources.map((s, i) => ({ s, i })).filter(x => x.s.unlocked && x.s.employees > 0);
         if (unlocked.length > 0) {
           const top = unlocked[unlocked.length - 1];
           gs.dbOutage = { sourceIndex: top.i, until: Date.now() + duration };
+          console.log('DB outage set:', JSON.stringify(gs.dbOutage));
           const arc = ARCS[gs.arc];
           const name = arc.names[top.i] || getSourceDef(top.i).name;
           return `${name} offline for ${Math.round(duration/1000)}s while database recovers.`;
         }
+        console.log('DB outage: no unlocked sources');
         return 'Auto-recovery running... minimal impact.';
       }},
     ]
