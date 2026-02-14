@@ -279,6 +279,33 @@ const EVENTS = [
       };
     },
   },
+  // R&D Breakthrough — permanent 2× revenue for a random source
+  {
+    generate: () => {
+      const arc = ARCS[gameState.arc];
+      const unlocked = gameState.sources.map((s, i) => ({ s, i })).filter(x => x.s.unlocked && x.s.employees > 0);
+      if (unlocked.length === 0) return null;
+      const pick = unlocked[Math.floor(Math.random() * unlocked.length)];
+      const name = arc.sources[pick.i].name;
+      const currentMult = pick.s.breakthroughMult || 1;
+      return {
+        sender: 'R&D Department',
+        subject: '🔬 Breakthrough Innovation!',
+        body: `Your ${name} team has made a major breakthrough! They've developed a revolutionary new process that will permanently double their revenue output.\n\nCurrent multiplier: ×${currentMult}\nNew multiplier: ×${currentMult * 2}`,
+        actions: [
+          { label: `Implement (+×2 ${name})`, effect: (gs) => {
+            gs.sources[pick.i].breakthroughMult = (gs.sources[pick.i].breakthroughMult || 1) * 2;
+            return `🔬 Breakthrough! ${name} revenue permanently doubled (now ×${gs.sources[pick.i].breakthroughMult})`;
+          }},
+          { label: 'File patent (5% cash)', effect: (gs) => {
+            const patent = Math.max(10, Math.floor(gs.cash * 0.05));
+            gs.cash += patent;
+            return `Filed patent for ${formatMoney(patent)} instead. Your lawyers are happy.`;
+          }},
+        ]
+      };
+    },
+  },
 ];
 
 // ===== BOARD ROOM UPGRADES (Phase 2.2) =====
@@ -585,6 +612,34 @@ function automateCost(source) {
   return Math.floor(Math.max(50, stats.unlockCost) * stats.autoCostMult);
 }
 
+// Prestige: restructure a department for 10× revenue, costs RE
+function prestigeCost(source) {
+  const tier = source.id; // source tier (0-11)
+  const level = source.prestigeLevel || 0;
+  // Base: 100 RE for tier 0, scales up with tier and prestige level
+  // Tier scaling: higher tiers cost more (they're more valuable)
+  // Prestige scaling: each level costs 3× the previous
+  const baseCost = Math.floor(100 * Math.pow(2, tier) * Math.pow(3, level));
+  return Math.min(baseCost, 1000000); // safety cap
+}
+
+function restructureSource(index) {
+  if (!gameState.isPublic) return; // requires IPO
+  const state = gameState.sources[index];
+  if (!state.unlocked || state.employees === 0) return;
+  const cost = prestigeCost(state);
+  if (gameState.retainedEarnings < cost) return;
+  gameState.retainedEarnings -= cost;
+  state.prestigeLevel = (state.prestigeLevel || 0) + 1;
+  const src = getSourceDef(index);
+  document.getElementById('status-text').textContent = `★ ${src.name} restructured! Revenue ×10 (Prestige ${state.prestigeLevel})`;
+  setTimeout(() => { document.getElementById('status-text').textContent = 'Ready'; }, 4000);
+  _lastTaxPanelHash = ''; // force IR rebuild (RE changed)
+  updateDisplay();
+  updateGridValues();
+  saveGame();
+}
+
 function maxAffordable(source) {
   let cash = gameState.cash;
   let emps = source.employees;
@@ -621,7 +676,9 @@ function sourceRevPerTick(source) {
   if (!source.unlocked || source.employees === 0) return 0;
   const stats = SOURCE_STATS[source.id];
   const upgradeMult = 1 + source.upgradeLevel * 0.5;
-  return source.employees * stats.baseRate * upgradeMult / 365.25;
+  const prestigeMult = Math.pow(10, source.prestigeLevel || 0);
+  const breakthroughMult = source.breakthroughMult || 1;
+  return source.employees * stats.baseRate * upgradeMult * prestigeMult * breakthroughMult / 365.25;
 }
 
 function totalRevPerTick() {
@@ -652,7 +709,9 @@ function sourceAnnualRev(source) {
   if (!source.unlocked || source.employees === 0) return 0;
   const stats = SOURCE_STATS[source.id];
   const upgradeMult = 1 + source.upgradeLevel * 0.5;
-  return source.employees * stats.baseRate * upgradeMult;
+  const prestigeMult = Math.pow(10, source.prestigeLevel || 0);
+  const breakthroughMult = source.breakthroughMult || 1;
+  return source.employees * stats.baseRate * upgradeMult * prestigeMult * breakthroughMult;
 }
 
 function totalAnnualRev() {
@@ -738,6 +797,8 @@ function selectArc(arcKey) {
     upgradeLevel: 0,
     automated: false,
     pendingCollect: 0,
+    prestigeLevel: 0,
+    breakthroughMult: 1,
   }));
   gameState.seriesAShown = false;
   gameState.totalPlayTime = 0;
@@ -1105,7 +1166,9 @@ function updateGridValues() {
 
     // Name
     const nameCell = row.querySelector('[data-field="name"]');
-    nameCell.innerHTML = src.name + (state.upgradeLevel > 0 ? ` <span style="color:#999;font-size:10px">Lv${state.upgradeLevel}</span>` : '');
+    const prestigeTag = (state.prestigeLevel || 0) > 0 ? ` <span style="color:#d4a017;font-size:10px">★${state.prestigeLevel}</span>` : '';
+    const breakthroughTag = (state.breakthroughMult || 1) > 1 ? ` <span style="color:#2e7d32;font-size:10px">🔬×${state.breakthroughMult}</span>` : '';
+    nameCell.innerHTML = src.name + (state.upgradeLevel > 0 ? ` <span style="color:#999;font-size:10px">Lv${state.upgradeLevel}</span>` : '') + prestigeTag + breakthroughTag;
 
     // Employees
     row.querySelector('[data-field="emp"]').textContent = state.employees;
@@ -1141,13 +1204,17 @@ function updateGridValues() {
         `<button class="cell-btn btn-upgrade" onclick="upgradeSource(${i})" ${gameState.cash >= uCost ? '' : 'disabled'} title="+50% efficiency per employee — adds ${formatPerTick(revGainPerDay)}/day">⬆ ${formatMoney(uCost)} (+${formatPerTick(revGainPerDay)}/d)</button>`;
     }
 
-    // Action 3: Collect (click) or AUTO badge
+    // Action 3: Collect (click) or AUTO badge + Restructure
     const a3 = row.querySelector('[data-field="action3"]');
     if (!state.automated) {
       const pending = state.pendingCollect;
       const clickVal = src.clickValue;
       const hasPending = pending > 0.005;
       a3.innerHTML = `<button class="cell-btn btn-collect" onclick="collectSource(${i})">Collect${hasPending ? ' ' + formatMoney(pending) : ''} (+${formatMoney(clickVal)})</button>`;
+    } else if (gameState.isPublic) {
+      const pCost = prestigeCost(state);
+      const canPrestige = gameState.retainedEarnings >= pCost;
+      a3.innerHTML = `<span class="auto-badge">⚡</span> <button class="cell-btn btn-prestige" onclick="restructureSource(${i})" ${canPrestige ? '' : 'disabled'} title="10× revenue for this dept (${pCost.toLocaleString()} RE)">★ ${pCost.toLocaleString()} RE</button>`;
     } else {
       a3.innerHTML = '<span class="auto-badge">⚡ AUTO</span>';
     }
@@ -2566,6 +2633,8 @@ function loadGame() {
       upgradeLevel: 0,
       automated: false,
       pendingCollect: 0,
+      prestigeLevel: 0,
+      breakthroughMult: 1,
     }));
 
     if (data.sources) {
@@ -2576,6 +2645,8 @@ function loadGame() {
           gameState.sources[i].upgradeLevel = saved.upgradeLevel;
           gameState.sources[i].automated = saved.automated;
           gameState.sources[i].pendingCollect = saved.pendingCollect || 0;
+          gameState.sources[i].prestigeLevel = saved.prestigeLevel || 0;
+          gameState.sources[i].breakthroughMult = saved.breakthroughMult || 1;
         }
       });
     }
@@ -3718,6 +3789,7 @@ window.hireEmployee = hireEmployee;
 window.upgradeSource = upgradeSource;
 window.automateSource = automateSource;
 window.collectSource = collectSource;
+window.restructureSource = restructureSource;
 window.dismissEvent = dismissEvent;
 window.dismissOffline = dismissOffline;
 window.dismissSeriesA = dismissSeriesA;
