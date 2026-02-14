@@ -3639,7 +3639,6 @@ function mobileSwitchTab(tab) {
   const pnlView = document.getElementById('mobile-pnl-view');
   const brView = document.getElementById('mobile-boardroom-view');
   const settingsView = document.getElementById('mobile-settings-view');
-  const miniTaskBar = document.getElementById('mini-task-bar');
 
   // Hide all
   gridContainer.style.display = 'none';
@@ -3650,26 +3649,22 @@ function mobileSwitchTab(tab) {
   switch (tab) {
     case 'operations':
       gridContainer.style.display = '';
-      // Sync with internal game state
       if (gameState.activeTab !== 'operations') {
         gameState.activeTab = 'operations';
       }
       break;
     case 'pnl':
       pnlView.classList.remove('hidden');
-      pnlView.style.display = 'block';
       _lastMobilePnlHash = '';
       buildMobilePnL();
       break;
     case 'boardroom':
       brView.classList.remove('hidden');
-      brView.style.display = 'block';
       _lastMobileBRHash = '';
       buildMobileBoardRoom();
       break;
     case 'settings':
       settingsView.classList.remove('hidden');
-      settingsView.style.display = 'block';
       updateMobileSettings();
       break;
   }
@@ -3709,14 +3704,21 @@ function updateMobileSettings() {
   // Update autosave button text
   const btn = document.getElementById('mob-autosave-btn');
   if (btn) {
-    btn.textContent = `Auto-save: ${gameState.autosave === false ? 'OFF' : 'ON'}`;
+    btn.textContent = `Auto-save: ${autosaveEnabled ? 'ON' : 'OFF'}`;
   }
 }
 
 function toggleAutosaveMobile() {
-  gameState.autosave = gameState.autosave === false ? true : false;
-  updateAutosaveToggle();
+  autosaveEnabled = !autosaveEnabled;
+  if (autosaveEnabled) {
+    autosaveInterval = setInterval(() => { saveGame(); }, 30000);
+    document.getElementById('status-text').textContent = 'Auto-save enabled';
+  } else {
+    clearInterval(autosaveInterval);
+    document.getElementById('status-text').textContent = 'Auto-save disabled';
+  }
   updateMobileSettings();
+  setTimeout(() => { document.getElementById('status-text').textContent = 'Ready'; }, 2000);
 }
 window.toggleAutosaveMobile = toggleAutosaveMobile;
 

@@ -1781,7 +1781,7 @@ body {
     overflow-x: hidden;
     -webkit-overflow-scrolling: touch;
     flex: 1;
-    padding: 8px;
+    padding: 0 0 8px 0;
     gap: 8px;
     background: #f0f0f0;
     /* Override the grid template */
@@ -1801,6 +1801,7 @@ body {
     gap: 8px;
     align-items: center;
     min-height: auto !important;
+    margin: 0 8px;
   }
 
   .source-row > .row-num { display: none; }

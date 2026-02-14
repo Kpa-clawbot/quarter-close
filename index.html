@@ -207,6 +207,34 @@
       <span style="margin-left:auto"><button class="cell-btn btn-max" onclick="triggerIRS()" style="color:#c00">🧪 IRS</button> <button class="cell-btn btn-max" onclick="triggerBonus()" style="color:#217346">🧪 5×</button> <button class="cell-btn btn-max" onclick="forceIPO()" style="color:#0078d4">🧪 IPO</button> <button class="cell-btn btn-max" onclick="resetBoardRoom()" style="color:#7b1fa2">🧪 Reset BR</button></span>
     </div>
 
+    <!-- ===== MOBILE P&L VIEW ===== -->
+    <div id="mobile-pnl-view" class="mobile-only hidden">
+      <div id="mobile-pnl-content"></div>
+    </div>
+
+    <!-- ===== MOBILE BOARD ROOM VIEW ===== -->
+    <div id="mobile-boardroom-view" class="mobile-only hidden">
+      <div id="mobile-boardroom-content"></div>
+    </div>
+
+    <!-- ===== MOBILE SETTINGS VIEW ===== -->
+    <div id="mobile-settings-view" class="mobile-only hidden">
+      <div class="mob-settings-section">
+        <h3>📊 Quarter Close</h3>
+        <p class="mob-settings-version">v0.3.0 — Phase 2.2</p>
+      </div>
+      <div class="mob-settings-section">
+        <button class="mob-settings-btn" onclick="saveGame()">💾 Save Game</button>
+        <button class="mob-settings-btn" id="mob-autosave-btn" onclick="toggleAutosaveMobile()">Auto-save: ON</button>
+        <button class="mob-settings-btn" onclick="toggleBossMode()">🕶️ Boss Mode</button>
+        <button class="mob-settings-btn" onclick="showHelp()">❓ Help</button>
+        <button class="mob-settings-btn mob-danger" onclick="confirmNewGame()">🗑️ New Game</button>
+      </div>
+      <div class="mob-settings-section">
+        <div class="mob-settings-stats" id="mob-stats"></div>
+      </div>
+    </div>
+
     <!-- Sheet Tabs -->
     <div id="sheet-tabs">
       <div class="sheet-tab active" id="tab-operations" onclick="switchTab('operations')">Operations</div>
@@ -258,34 +286,6 @@
         <span class="mob-nav-icon">⚙️</span>
         <span class="mob-nav-label">More</span>
       </button>
-    </div>
-
-    <!-- ===== MOBILE P&L VIEW ===== -->
-    <div id="mobile-pnl-view" class="mobile-only hidden">
-      <div id="mobile-pnl-content"></div>
-    </div>
-
-    <!-- ===== MOBILE BOARD ROOM VIEW ===== -->
-    <div id="mobile-boardroom-view" class="mobile-only hidden">
-      <div id="mobile-boardroom-content"></div>
-    </div>
-
-    <!-- ===== MOBILE SETTINGS VIEW ===== -->
-    <div id="mobile-settings-view" class="mobile-only hidden">
-      <div class="mob-settings-section">
-        <h3>📊 Quarter Close</h3>
-        <p class="mob-settings-version">v0.3.0 — Phase 2.2</p>
-      </div>
-      <div class="mob-settings-section">
-        <button class="mob-settings-btn" onclick="saveGame()">💾 Save Game</button>
-        <button class="mob-settings-btn" id="mob-autosave-btn" onclick="toggleAutosaveMobile()">Auto-save: ON</button>
-        <button class="mob-settings-btn" onclick="toggleBossMode()">🕶️ Boss Mode</button>
-        <button class="mob-settings-btn" onclick="showHelp()">❓ Help</button>
-        <button class="mob-settings-btn mob-danger" onclick="confirmNewGame()">🗑️ New Game</button>
-      </div>
-      <div class="mob-settings-section">
-        <div class="mob-settings-stats" id="mob-stats"></div>
-      </div>
     </div>
   </div>
 
