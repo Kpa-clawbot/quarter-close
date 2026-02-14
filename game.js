@@ -636,6 +636,7 @@ function totalAnnualRev() {
 
 // ===== FORMATTING =====
 function formatMoney(n) {
+  if (n >= 1e12) return '$' + (n / 1e12).toFixed(2) + 'T';
   if (n >= 1e9) return '$' + (n / 1e9).toFixed(2) + 'B';
   if (n >= 1e6) return '$' + (n / 1e6).toFixed(2) + 'M';
   if (n >= 1e4) return '$' + (n / 1e3).toFixed(1) + 'K';
@@ -648,6 +649,7 @@ function formatNum(n) {
 
 function formatRate(annualRev) {
   // Show rate in the most readable unit
+  if (annualRev >= 1e12) return '$' + (annualRev / 1e12).toFixed(1) + 'T/yr';
   if (annualRev >= 1e9) return '$' + (annualRev / 1e9).toFixed(1) + 'B/yr';
   if (annualRev >= 1e6) return '$' + (annualRev / 1e6).toFixed(1) + 'M/yr';
   if (annualRev >= 1e3) return '$' + (annualRev / 1e3).toFixed(0) + 'K/yr';
@@ -655,6 +657,7 @@ function formatRate(annualRev) {
 }
 
 function formatPerTick(perTick) {
+  if (perTick >= 1e9) return '$' + (perTick / 1e9).toFixed(1) + 'B';
   if (perTick >= 1e6) return '$' + (perTick / 1e6).toFixed(1) + 'M';
   if (perTick >= 1e3) return '$' + (perTick / 1e3).toFixed(1) + 'K';
   if (perTick >= 1) return '$' + perTick.toFixed(2);
