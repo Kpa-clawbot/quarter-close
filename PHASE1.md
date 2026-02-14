@@ -176,8 +176,6 @@ Post-IPO prestige shop where players spend Retained Earnings on permanent upgrad
 ### Completed
 - [x] Board Room sheet tab (visible after IPO)
 - [x] Tab switching between Operations and Board Room
-- [x] 10 purchasable upgrades with RE currency
-- [x] Finance Dept Lv1-3 (auto-earnings with escalating guidance)
 - [x] Revenue Multipliers I-III (stacking permanent boosts)
 - [x] Lobbyist + Tax Haven (reduced tax rates)
 - [x] Analyst Relations (slower ratchet)
@@ -185,6 +183,13 @@ Post-IPO prestige shop where players spend Retained Earnings on permanent upgrad
 - [x] All effects integrated (tax, revenue, earnings, seizure)
 - [x] Save/load/reset support
 - [x] Help screen updated
+
+### In Progress — Finance Dept Rework
+- [ ] **Lv1 — The Intern** (500 RE): Auto-earnings, random guidance (25% conservative, 50% in-line, 25% ambitious)
+- [ ] **Lv2 — Competent CFO** (2,500 RE): Trend-based guidance algorithm, 20% safety margin, ~70% optimal
+- [ ] **Lv3 — Elite CFO** (10,000 RE): Smart analysis (trend + streak + bonuses), 5% safety margin, ~90% optimal
+- [ ] Player can switch active CFO level anytime in IR section (only shows owned levels)
+- [ ] CFO level selector row in IR section below guidance row
 
 ---
 
