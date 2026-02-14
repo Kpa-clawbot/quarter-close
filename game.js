@@ -287,7 +287,7 @@ const BOARD_ROOM_UPGRADES = [
     id: 'finance_dept_1',
     name: 'Finance Dept Lv1',
     desc: 'Auto-handles earnings — no more popup. Uses conservative guidance.',
-    cost: 5000000,
+    cost: 500,
     requires: null,
     maxCount: 1,
     category: 'Finance',
@@ -296,7 +296,7 @@ const BOARD_ROOM_UPGRADES = [
     id: 'finance_dept_2',
     name: 'Finance Dept Lv2',
     desc: 'Smarter auto-earnings — uses in-line guidance.',
-    cost: 25000000,
+    cost: 2500,
     requires: 'finance_dept_1',
     maxCount: 1,
     category: 'Finance',
@@ -305,7 +305,7 @@ const BOARD_ROOM_UPGRADES = [
     id: 'finance_dept_3',
     name: 'Finance Dept Lv3',
     desc: 'Uses ambitious guidance, optimizes timing.',
-    cost: 100000000,
+    cost: 10000,
     requires: 'finance_dept_2',
     maxCount: 1,
     category: 'Finance',
@@ -314,7 +314,7 @@ const BOARD_ROOM_UPGRADES = [
     id: 'rev_mult_1',
     name: 'Revenue Multiplier I',
     desc: 'Permanent 1.1× revenue multiplier.',
-    cost: 10000000,
+    cost: 1000,
     requires: null,
     maxCount: 1,
     category: 'Revenue',
@@ -323,7 +323,7 @@ const BOARD_ROOM_UPGRADES = [
     id: 'rev_mult_2',
     name: 'Revenue Multiplier II',
     desc: 'Permanent 1.25× revenue multiplier.',
-    cost: 50000000,
+    cost: 5000,
     requires: 'rev_mult_1',
     maxCount: 1,
     category: 'Revenue',
@@ -332,7 +332,7 @@ const BOARD_ROOM_UPGRADES = [
     id: 'rev_mult_3',
     name: 'Revenue Multiplier III',
     desc: 'Permanent 1.5× revenue multiplier.',
-    cost: 200000000,
+    cost: 25000,
     requires: 'rev_mult_2',
     maxCount: 1,
     category: 'Revenue',
@@ -341,7 +341,7 @@ const BOARD_ROOM_UPGRADES = [
     id: 'lobbyist',
     name: 'Lobbyist',
     desc: 'Tax rate reduced from 25% to 20%.',
-    cost: 15000000,
+    cost: 1500,
     requires: null,
     maxCount: 1,
     category: 'Tax',
@@ -350,7 +350,7 @@ const BOARD_ROOM_UPGRADES = [
     id: 'tax_haven',
     name: 'Tax Haven',
     desc: 'Tax rate reduced to 15%.',
-    cost: 75000000,
+    cost: 8000,
     requires: 'lobbyist',
     maxCount: 1,
     category: 'Tax',
@@ -359,7 +359,7 @@ const BOARD_ROOM_UPGRADES = [
     id: 'analyst_relations',
     name: 'Analyst Relations',
     desc: 'Analyst expectation ratchet slowed by 50%.',
-    cost: 20000000,
+    cost: 2000,
     requires: null,
     maxCount: 1,
     category: 'Investor',
@@ -368,7 +368,7 @@ const BOARD_ROOM_UPGRADES = [
     id: 'golden_parachute',
     name: 'Golden Parachute',
     desc: 'Survive one asset seizure event (consumed on use).',
-    cost: 50000000,
+    cost: 3000,
     requires: null,
     maxCount: Infinity,
     category: 'Protection',
@@ -2318,6 +2318,8 @@ function loadGame() {
     gameState.ipoDay = data.ipoDay || 0;
     gameState.sharesOutstanding = data.sharesOutstanding || 1000000000;
     gameState.retainedEarnings = data.retainedEarnings || 0;
+    // Cap RE from pre-fix saves with inflated balances
+    if (gameState.retainedEarnings > 100000) gameState.retainedEarnings = 0;
     gameState.analystBaseline = data.analystBaseline || 1.0;
     gameState.earningsStreak = data.earningsStreak || 0;
     gameState.currentGuidance = data.currentGuidance || null;
@@ -2791,8 +2793,8 @@ function processEarnings() {
     const marginBonusMult = 1 + Math.min(margin, 0.5); // up to 1.5× for blowout
     const streakMult = gameState.earningsStreak >= 0 ?
       Math.min(2.0, 1 + gameState.earningsStreak * 0.1) : 1;
-    // Base RE = 100000 × log10(quarterRevenue) — scales with board room prices
-    const baseRE = qRevenue > 0 ? Math.floor(100000 * Math.log10(qRevenue)) : 0;
+    // Base RE = 10 × log10(quarterRevenue) — e.g. $80B → ~109 base RE
+    const baseRE = qRevenue > 0 ? Math.floor(10 * Math.log10(qRevenue)) : 0;
     reEarned = Math.floor(baseRE * guidanceLevel.reMult * marginBonusMult * streakMult);
 
     gameState.retainedEarnings += reEarned;
