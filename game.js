@@ -460,10 +460,7 @@ function setActiveCFOLevel(level) {
   const maxLevel = getFinanceDeptLevel();
   if (level < 0 || level > maxLevel) return;
   gameState.activeCFOLevel = level;
-  // When switching to a CFO, immediately pick guidance for current quarter
-  if (level > 0) {
-    setGuidance(pickCFOGuidance(level));
-  }
+  // Don't re-pick guidance mid-quarter — CFO picks at next earnings
   _lastTaxPanelHash = '';
   updateTaxPanel();
 }
