@@ -313,7 +313,7 @@ const BOARD_ROOM_UPGRADES = [
   {
     id: 'finance_dept_1',
     name: 'Finance Dept Lv1',
-    desc: 'The Intern — auto-earnings, but randomizes guidance (often wrong).',
+    desc: 'Auto-earnings, random guidance.',
     cost: 500,
     requires: null,
     maxCount: 1,
@@ -322,7 +322,7 @@ const BOARD_ROOM_UPGRADES = [
   {
     id: 'finance_dept_2',
     name: 'Finance Dept Lv2',
-    desc: 'Competent CFO — analyzes trends, picks right guidance ~70% of the time.',
+    desc: 'Smart guidance, ~70% optimal.',
     cost: 2500,
     requires: 'finance_dept_1',
     maxCount: 1,
@@ -331,7 +331,7 @@ const BOARD_ROOM_UPGRADES = [
   {
     id: 'finance_dept_3',
     name: 'Finance Dept Lv3',
-    desc: 'Elite CFO — factors in streaks, bonuses, analyst pressure. ~90% optimal.',
+    desc: 'Best guidance, ~90% optimal.',
     cost: 10000,
     requires: 'finance_dept_2',
     maxCount: 1,
@@ -394,7 +394,7 @@ const BOARD_ROOM_UPGRADES = [
   {
     id: 'cpa',
     name: 'CPA on Retainer',
-    desc: 'Auto-pays taxes when affordable, auto-settles debts. No more IRS toasts.',
+    desc: 'Auto-pays taxes & settles debts.',
     cost: 750,
     requires: null,
     maxCount: 1,
@@ -412,7 +412,7 @@ const BOARD_ROOM_UPGRADES = [
   {
     id: 'growth_initiative',
     name: 'Growth Initiative',
-    desc: '+2% revenue multiplier (stacks). Cost scales 10% each.',
+    desc: '+2% revenue (stacks, cost +10%).',
     cost: 50,
     requires: null,
     maxCount: Infinity,
@@ -3813,8 +3813,10 @@ function buildBoardRoom() {
       <div class="cell cell-b" style="font-size:10px;color:#888">${upgrade.category}</div>
       <div class="cell cell-c" style="font-family:Consolas,monospace;font-size:11px;color:${costColor};justify-content:flex-end">${costLabel}</div>
       <div class="cell cell-d" style="justify-content:flex-end">${statusCell}</div>
-      <div class="cell cell-e"></div>
-      <div class="cell cell-f" style="font-size:10px;color:#888;white-space:normal;line-height:1.3;grid-column:span 3">${desc}</div>
+      <div class="cell cell-e" style="font-size:10px;color:#888;white-space:normal;line-height:1.3">${desc}</div>
+      <div class="cell cell-f"></div>
+      <div class="cell cell-g"></div>
+      <div class="cell cell-h"></div>
     </div>`;
     totalUpgradeRows++;
     } // end upgrade loop
