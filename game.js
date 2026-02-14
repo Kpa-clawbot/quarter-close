@@ -5041,13 +5041,15 @@ function buildMobilePnL() {
   const hashParts = [
     gameState.quarterRevenue|0, gameState.totalEarned|0,
     gameState.quarterExpenses|0, gameState.quarterTaxPaid|0,
-    daysToTax, gameState.taxDebts ? gameState.taxDebts.length : 0,
+    daysToTax,
+    gameState.taxDebts ? gameState.taxDebts.map(d => `${d.current|0}:${d.stage}`).join(',') : '',
     gameState.isPublic ? 1 : 0,
     gameState.earningsQuarterRevenue|0,
     gameState.retainedEarnings|0,
     gameState.earningsStreak|0,
     gameState.currentGuidance || '',
     gameState.activeCFOLevel,
+    gameState.cash|0,
   ].join('|');
 
   if (hashParts === _lastMobilePnlHash) return;
