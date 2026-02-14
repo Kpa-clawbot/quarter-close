@@ -1139,6 +1139,24 @@ function selectArc(arcKey) {
   document.getElementById('arc-select').classList.add('hidden');
   document.getElementById('game-view').classList.remove('hidden');
 
+  // Reset mobile state
+  if (isMobile()) {
+    _mobileActiveTab = 'operations';
+    const cashHeader = document.getElementById('mobile-cash-header');
+    if (cashHeader) cashHeader.classList.remove('visible');
+    document.querySelectorAll('.mob-nav-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.tab === 'operations');
+    });
+    const gridContainer = document.getElementById('grid-container');
+    if (gridContainer) gridContainer.style.display = '';
+    const pnlView = document.getElementById('mobile-pnl-view');
+    const brView = document.getElementById('mobile-boardroom-view');
+    const settingsView = document.getElementById('mobile-settings-view');
+    if (pnlView) pnlView.classList.add('hidden');
+    if (brView) brView.classList.add('hidden');
+    if (settingsView) settingsView.classList.add('hidden');
+  }
+
   buildGrid();
   updateDisplay();
   saveGame();
