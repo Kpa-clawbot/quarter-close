@@ -142,3 +142,17 @@
 - `03a48cd` — Phase 2 restructured into sub-phases
 - `20348f8` — **Phase 2.1: IPO + Manual Earnings System** (v0.2.0)
 - `20348f8` — Phase 2.1: IPO + Manual Earnings System
+
+### Phase 2.2: Board Room (RE Prestige Shop)
+- **Board Room tab**: New sheet tab (post-IPO only) that replaces the Operations grid with a purchasable upgrades grid. Uses `switchTab()` to toggle between views.
+- **Tab switching**: `gameState.activeTab` tracks current view. Operations shows revenue-rows/tax-panel/filler-rows, Board Room shows board-room-rows. Both use `display: contents` wrapper pattern.
+- **10 upgrades**: Finance Dept (3 levels), Revenue Multiplier (3 tiers), Lobbyist, Tax Haven, Analyst Relations, Golden Parachute. Defined in `BOARD_ROOM_UPGRADES` array.
+- **Upgrade effects**: 
+  - `getBoardRoomRevMultiplier()` — applied in `totalRevPerTick()`, `totalAnnualRev()`, and `gameTick()` per-source loop
+  - `getBoardRoomTaxRate()` — applied in `processQuarterlyTax()` and P&L display
+  - `getFinanceDeptLevel()` — checked in `processEarnings()` to skip modal and auto-set guidance
+  - Analyst Relations — halves the ratchet multiplier in `processEarnings()` beat path
+  - Golden Parachute — consumed in seizure handler, blocks asset seizure
+- **Board Room rendering**: `buildBoardRoom()` with hash-based change detection (`_lastBoardRoomHash`). Buy buttons use event delegation on `#board-room-rows`.
+- **Save/load**: `boardRoomPurchases` persisted as a map of upgrade IDs to counts. Loaded with `|| {}` fallback.
+- **Debug note**: Revenue multiplier applies at tick level (per-source in gameTick loop) AND in totalRevPerTick/totalAnnualRev. This is intentional — both paths need it for consistency.

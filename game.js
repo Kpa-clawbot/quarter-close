@@ -281,6 +281,134 @@ const EVENTS = [
   },
 ];
 
+// ===== BOARD ROOM UPGRADES (Phase 2.2) =====
+const BOARD_ROOM_UPGRADES = [
+  {
+    id: 'finance_dept_1',
+    name: 'Finance Dept Lv1',
+    desc: 'Auto-handles earnings — no more popup. Uses conservative guidance.',
+    cost: 5000,
+    requires: null,
+    maxCount: 1,
+    category: 'Finance',
+  },
+  {
+    id: 'finance_dept_2',
+    name: 'Finance Dept Lv2',
+    desc: 'Smarter auto-earnings — uses in-line guidance.',
+    cost: 25000,
+    requires: 'finance_dept_1',
+    maxCount: 1,
+    category: 'Finance',
+  },
+  {
+    id: 'finance_dept_3',
+    name: 'Finance Dept Lv3',
+    desc: 'Uses ambitious guidance, optimizes timing.',
+    cost: 100000,
+    requires: 'finance_dept_2',
+    maxCount: 1,
+    category: 'Finance',
+  },
+  {
+    id: 'rev_mult_1',
+    name: 'Revenue Multiplier I',
+    desc: 'Permanent 1.1× revenue multiplier.',
+    cost: 10000,
+    requires: null,
+    maxCount: 1,
+    category: 'Revenue',
+  },
+  {
+    id: 'rev_mult_2',
+    name: 'Revenue Multiplier II',
+    desc: 'Permanent 1.25× revenue multiplier.',
+    cost: 50000,
+    requires: 'rev_mult_1',
+    maxCount: 1,
+    category: 'Revenue',
+  },
+  {
+    id: 'rev_mult_3',
+    name: 'Revenue Multiplier III',
+    desc: 'Permanent 1.5× revenue multiplier.',
+    cost: 200000,
+    requires: 'rev_mult_2',
+    maxCount: 1,
+    category: 'Revenue',
+  },
+  {
+    id: 'lobbyist',
+    name: 'Lobbyist',
+    desc: 'Tax rate reduced from 25% to 20%.',
+    cost: 15000,
+    requires: null,
+    maxCount: 1,
+    category: 'Tax',
+  },
+  {
+    id: 'tax_haven',
+    name: 'Tax Haven',
+    desc: 'Tax rate reduced to 15%.',
+    cost: 75000,
+    requires: 'lobbyist',
+    maxCount: 1,
+    category: 'Tax',
+  },
+  {
+    id: 'analyst_relations',
+    name: 'Analyst Relations',
+    desc: 'Analyst expectation ratchet slowed by 50%.',
+    cost: 20000,
+    requires: null,
+    maxCount: 1,
+    category: 'Investor',
+  },
+  {
+    id: 'golden_parachute',
+    name: 'Golden Parachute',
+    desc: 'Survive one asset seizure event (consumed on use).',
+    cost: 50000,
+    requires: null,
+    maxCount: Infinity,
+    category: 'Protection',
+  },
+];
+
+function hasBoardRoomUpgrade(id) {
+  return (gameState.boardRoomPurchases[id] || 0) > 0;
+}
+
+function getBoardRoomUpgradeCount(id) {
+  return gameState.boardRoomPurchases[id] || 0;
+}
+
+function getBoardRoomRevMultiplier() {
+  let mult = 1.0;
+  if (hasBoardRoomUpgrade('rev_mult_1')) mult *= 1.1;
+  if (hasBoardRoomUpgrade('rev_mult_2')) mult *= 1.25;
+  if (hasBoardRoomUpgrade('rev_mult_3')) mult *= 1.5;
+  return mult;
+}
+
+function getBoardRoomTaxRate() {
+  if (hasBoardRoomUpgrade('tax_haven')) return 0.15;
+  if (hasBoardRoomUpgrade('lobbyist')) return 0.20;
+  return 0.25;
+}
+
+function getBoardRoomAMTRate() {
+  // AMT is always 15%, unchanged by upgrades
+  return 0.15;
+}
+
+function getFinanceDeptLevel() {
+  if (hasBoardRoomUpgrade('finance_dept_3')) return 3;
+  if (hasBoardRoomUpgrade('finance_dept_2')) return 2;
+  if (hasBoardRoomUpgrade('finance_dept_1')) return 1;
+  return 0;
+}
+
 // ===== GAME STATE =====
 let gameState = {
   arc: null,  // selected arc key
@@ -329,6 +457,9 @@ let gameState = {
   lastEarningsDay: 0,      // game-day of last earnings report
   earningsQuarterRevenue: 0, // revenue tracked for earnings (separate from tax quarter)
   ipoStockPriceStart: 0,  // stock price at start of current earnings quarter
+  // Phase 2.2: Board Room
+  boardRoomPurchases: {},  // map of upgrade IDs to purchase count/level
+  activeTab: 'operations', // 'operations' | 'boardroom'
 };
 
 let gridBuilt = false;
@@ -408,6 +539,8 @@ function totalRevPerTick() {
   for (const s of gameState.sources) {
     total += sourceRevPerTick(s);
   }
+  // Board Room revenue multiplier
+  total *= getBoardRoomRevMultiplier();
   if (gameState.revPenalty && Date.now() < gameState.revPenalty.until) {
     total *= gameState.revPenalty.mult;
   } else {
@@ -437,6 +570,8 @@ function totalAnnualRev() {
   for (const s of gameState.sources) {
     total += sourceAnnualRev(s);
   }
+  // Board Room revenue multiplier
+  total *= getBoardRoomRevMultiplier();
   return total;
 }
 
@@ -544,6 +679,9 @@ function selectArc(arcKey) {
   gameState.earningsQuarterRevenue = 0;
   gameState.ipoStockPriceStart = 0;
   gameState._earningsMultiplier = 1.0;
+  // Phase 2.2: Board Room
+  gameState.boardRoomPurchases = {};
+  gameState.activeTab = 'operations';
 
   // Clear stale panels
   const taxPanel = document.getElementById('tax-panel');
@@ -551,6 +689,13 @@ function selectArc(arcKey) {
   taxPanel.classList.add('hidden');
   document.getElementById('valuation-chart-container').classList.add('hidden');
   chartPositioned = false;
+
+  // Reset Board Room state
+  document.getElementById('board-room-rows').innerHTML = '';
+  document.getElementById('board-room-rows').classList.add('hidden');
+  _lastBoardRoomHash = '';
+  switchTab('operations');
+  updateBoardRoomTab();
 
   document.getElementById('arc-select').classList.add('hidden');
   document.getElementById('game-view').classList.remove('hidden');
@@ -1023,6 +1168,12 @@ function updateDisplay() {
 
   // Update P&L section
   updateTaxPanel();
+
+  // Update Board Room tab visibility and content
+  updateBoardRoomTab();
+  if (gameState.activeTab === 'boardroom') {
+    buildBoardRoom();
+  }
 }
 
 // ===== GAME ACTIONS =====
@@ -1208,11 +1359,11 @@ function flashCash() {
 function processQuarterlyTax() {
   const depreciation = getQuarterlyDepreciation();
   const taxableIncome = gameState.quarterRevenue - depreciation;
-  const taxRate = 0.25; // 25% corporate tax
+  const taxRate = getBoardRoomTaxRate();
   const regularTax = Math.max(0, Math.floor(taxableIncome * taxRate));
 
   // AMT: minimum 15% of gross revenue (can't deduct your way to zero)
-  const amtRate = 0.15;
+  const amtRate = getBoardRoomAMTRate();
   const amtTax = Math.floor(gameState.quarterRevenue * amtRate);
   const isAMT = amtTax > regularTax;
   const taxOwed = Math.max(regularTax, amtTax);
@@ -1243,9 +1394,9 @@ function processQuarterlyTax() {
   const quarter = Math.floor(currentDay / 90);
   const qLabel = `Q${(quarter % 4) + 1}`;
 
-  const amtNote = isAMT ? `\n⚠️ AMT applies (15% of revenue > regular tax)` : '';
+  const amtNote = isAMT ? `\n⚠️ AMT applies (${Math.round(amtRate*100)}% of revenue > regular tax)` : '';
   showEventToast('IRS', `${qLabel} Quarterly Tax Assessment`,
-    `Revenue: ${formatMoney(qRev)}\nDepreciation: (${formatMoney(qDep)})\nTaxable income: ${formatMoney(taxableIncome)}\n\nTax owed (${isAMT ? 'AMT 15%' : '25%'}): ${formatMoney(taxOwed)}${amtNote}`,
+    `Revenue: ${formatMoney(qRev)}\nDepreciation: (${formatMoney(qDep)})\nTaxable income: ${formatMoney(taxableIncome)}\n\nTax owed (${isAMT ? 'AMT ' + Math.round(amtRate*100) + '%' : Math.round(taxRate*100) + '%'}): ${formatMoney(taxOwed)}${amtNote}`,
     [
       { label: `Pay ${formatMoney(taxOwed)}`,
         disabledLabel: 'Not enough cash',
@@ -1293,18 +1444,31 @@ function processTaxDebts() {
 
     if (debt.stage !== oldStage) needsUpdate = true;
 
-    // Seizure: IRS just takes it
+    // Seizure: IRS just takes it (unless Golden Parachute)
     if (debt.stage === 'seizure') {
-      const penalty = Math.floor(debt.current * 1.25); // 25% penalty on top
-      const seized = Math.min(penalty, gameState.cash);
-      gameState.cash -= seized;
-      gameState.quarterTaxPaid += seized;
-      gameState.totalTaxPaid += seized;
-      showEventToast('IRS', 'Asset Seizure Notice',
-        `The IRS has seized ${formatMoney(penalty)} from your accounts. Tax debt of ${formatMoney(debt.current)} plus 25% penalty. This was avoidable.`,
-        [{ label: 'OK', effect: () => 'Assets seized. Consider paying next time.' }]);
-      debt.settled = true;
-      needsUpdate = true;
+      if (hasBoardRoomUpgrade('golden_parachute')) {
+        // Consume one Golden Parachute
+        gameState.boardRoomPurchases['golden_parachute']--;
+        if (gameState.boardRoomPurchases['golden_parachute'] <= 0) {
+          delete gameState.boardRoomPurchases['golden_parachute'];
+        }
+        showEventToast('Legal Department', '🪂 Golden Parachute Activated',
+          `Your Golden Parachute protected you from an IRS Asset Seizure! The tax debt of ${formatMoney(debt.current)} has been settled by your legal team. One Golden Parachute consumed.`,
+          [{ label: 'Thank the lawyers', effect: () => '🪂 Golden Parachute saved you from asset seizure!' }]);
+        debt.settled = true;
+        needsUpdate = true;
+      } else {
+        const penalty = Math.floor(debt.current * 1.25); // 25% penalty on top
+        const seized = Math.min(penalty, gameState.cash);
+        gameState.cash -= seized;
+        gameState.quarterTaxPaid += seized;
+        gameState.totalTaxPaid += seized;
+        showEventToast('IRS', 'Asset Seizure Notice',
+          `The IRS has seized ${formatMoney(penalty)} from your accounts. Tax debt of ${formatMoney(debt.current)} plus 25% penalty. This was avoidable.`,
+          [{ label: 'OK', effect: () => 'Assets seized. Consider paying next time.' }]);
+        debt.settled = true;
+        needsUpdate = true;
+      }
     }
 
     // Stage change notifications
@@ -1505,12 +1669,16 @@ function updateTaxPanel() {
 
   // Taxable Income (revenue - depreciation, what IRS taxes — or AMT if higher)
   const qTaxable = Math.max(0, gameState.quarterRevenue - qDepreciation);
-  const qRegularTax = Math.floor(qTaxable * 0.25);
-  const qAMT = Math.floor(gameState.quarterRevenue * 0.15);
+  const currentTaxRate = getBoardRoomTaxRate();
+  const currentAMTRate = getBoardRoomAMTRate();
+  const qRegularTax = Math.floor(qTaxable * currentTaxRate);
+  const qAMT = Math.floor(gameState.quarterRevenue * currentAMTRate);
   const amtApplies = qAMT > qRegularTax && gameState.quarterRevenue > 0;
   const effectiveTaxable = amtApplies ? gameState.quarterRevenue : qTaxable;
+  const taxRatePct = Math.round(currentTaxRate * 100);
+  const amtRatePct = Math.round(currentAMTRate * 100);
   const taxableLabel = amtApplies ? 'AMT Taxable Income' : 'Taxable Income';
-  const taxableNote = amtApplies ? '⚠️ AMT floor (15% of revenue)' : 'rev − depreciation';
+  const taxableNote = amtApplies ? `⚠️ AMT floor (${amtRatePct}% of revenue)` : 'rev − depreciation';
   html += `<div class="grid-row pnl-row">
     <div class="row-num">${rowNum++}</div>
     <div class="cell cell-a" style="padding-left:16px;color:${amtApplies ? '#c60' : '#888'};font-size:10px">${taxableLabel}</div>
@@ -1659,7 +1827,7 @@ function updateTaxPanel() {
       <div class="cell cell-c"></div>
       <div class="cell cell-d"></div>
       <div class="cell cell-e"></div>
-      <div class="cell cell-f" style="font-size:9px;color:#999">Phase 2.2: Board Room</div>
+      <div class="cell cell-f" style="font-size:9px;color:#7b1fa2">Spend in Board Room tab</div>
       <div class="cell cell-g"></div>
       <div class="cell cell-h"></div>
     </div>`;
@@ -1749,6 +1917,9 @@ function updateTaxPanel() {
     gameState.retainedEarnings|0,
     gameState.earningsStreak|0,
     gameState.isPublic ? (Math.floor(getStockPrice() * 100)|0) : 0,
+    // Phase 2.2: Board Room effects on display
+    getBoardRoomTaxRate(),
+    getBoardRoomRevMultiplier(),
   ].join('|');
 
   if (hashParts !== _lastTaxPanelHash) {
@@ -1798,9 +1969,12 @@ function gameTick() {
     const garnishActive = gameState.taxDebts && gameState.taxDebts.some(d => d.stage === 'garnish');
     if (garnishActive) penaltyMult *= 0.85;
 
+    // Board Room revenue multiplier
+    const brRevMult = getBoardRoomRevMultiplier();
+
     for (const state of gameState.sources) {
       if (!state.unlocked || state.employees === 0) continue;
-      const fullRev = sourceRevPerTick(state);
+      const fullRev = sourceRevPerTick(state) * brRevMult;
       const rev = fullRev * penaltyMult * bonusMult;
       const garnished = garnishActive ? Math.floor(fullRev * 0.15) : 0;
 
@@ -2088,6 +2262,8 @@ function saveGame() {
     earningsQuarterRevenue: gameState.earningsQuarterRevenue || 0,
     ipoStockPriceStart: gameState.ipoStockPriceStart || 0,
     _earningsMultiplier: gameState._earningsMultiplier || 1.0,
+    // Phase 2.2: Board Room
+    boardRoomPurchases: gameState.boardRoomPurchases || {},
     savedAt: Date.now(),
   };
 
@@ -2150,6 +2326,9 @@ function loadGame() {
     gameState.earningsQuarterRevenue = data.earningsQuarterRevenue || 0;
     gameState.ipoStockPriceStart = data.ipoStockPriceStart || 0;
     gameState._earningsMultiplier = data._earningsMultiplier || 1.0;
+    // Phase 2.2: Board Room
+    gameState.boardRoomPurchases = data.boardRoomPurchases || {};
+    gameState.activeTab = 'operations';
 
     // Rebuild sources for selected arc
     gameState.sources = SOURCE_STATS.map((s, i) => ({
@@ -2198,6 +2377,7 @@ function loadGame() {
     buildGrid();
     updateDisplay();
     updateTaxPanel();
+    updateBoardRoomTab();
 
     return true;
   } catch (e) {
@@ -2245,6 +2425,9 @@ function resetGame() {
   gameState.earningsQuarterRevenue = 0;
   gameState.ipoStockPriceStart = 0;
   gameState._earningsMultiplier = 1.0;
+  // Phase 2.2: Board Room
+  gameState.boardRoomPurchases = {};
+  gameState.activeTab = 'operations';
   gameState.eventCooldown = 0;
   gameState.miniTaskCooldown = 0;
   gameState.miniTaskActive = false;
@@ -2545,6 +2728,7 @@ function executeIPO() {
   _lastTaxPanelHash = '';
   updateTaxPanel();
   buildFillerRows();
+  updateBoardRoomTab();
 }
 
 function forceIPO() {
@@ -2614,11 +2798,12 @@ function processEarnings() {
     gameState.retainedEarnings += reEarned;
     gameState.earningsStreak = Math.max(0, gameState.earningsStreak) + 1;
 
-    // Analyst ratchet
+    // Analyst ratchet (slowed by Analyst Relations upgrade)
+    const hasAnalystRelations = hasBoardRoomUpgrade('analyst_relations');
     if (gameState.earningsStreak >= 3) {
-      gameState.analystBaseline *= 1.15; // analyst upgrade
+      gameState.analystBaseline *= hasAnalystRelations ? 1.075 : 1.15; // analyst upgrade
     } else {
-      gameState.analystBaseline *= 1.05;
+      gameState.analystBaseline *= hasAnalystRelations ? 1.025 : 1.05;
     }
   } else {
     // Miss
@@ -2637,7 +2822,7 @@ function processEarnings() {
 
       gameState.earningsStreak = Math.min(0, gameState.earningsStreak) - 1;
 
-      // Analyst ratchet
+      // Analyst ratchet (downgrade not affected by Analyst Relations)
       if (gameState.earningsStreak <= -2) {
         gameState.analystBaseline *= 0.90; // analyst downgrade
       } else {
@@ -2670,6 +2855,24 @@ function processEarnings() {
                       gameState.earningsStreak <= -2 ? 'Analyst Downgrade ⬇️' : '';
 
   const stockPctStr = (stockChange >= 0 ? '+' : '') + (stockChange * 100).toFixed(1) + '%';
+
+  // Finance Dept: auto-process earnings without modal
+  const financeDeptLvl = getFinanceDeptLevel();
+  if (financeDeptLvl > 0) {
+    // Auto-set guidance for next quarter based on Finance Dept level
+    const autoGuidance = financeDeptLvl >= 3 ? 'ambitious' :
+                         financeDeptLvl >= 2 ? 'in-line' : 'conservative';
+    setGuidance(autoGuidance);
+
+    // Status bar notification instead of modal
+    const reStr = reEarned > 0 ? ` +${reEarned} RE` : '';
+    document.getElementById('status-text').textContent = `${resultEmoji} ${qLabel} ${result} (${marginPct > 0 ? '+' : ''}${marginPct}%) | Stock ${stockPctStr}${reStr}`;
+    setTimeout(() => { document.getElementById('status-text').textContent = 'Ready'; }, 5000);
+
+    // Record stock price at start of new quarter
+    gameState.ipoStockPriceStart = getStockPrice();
+    return;
+  }
 
   showEarningsModal({
     qLabel,
@@ -2720,6 +2923,175 @@ function trackEarningsRevenue(amount) {
 window.forceIPO = forceIPO;
 window.setGuidance = setGuidance;
 
+// ===== BOARD ROOM (Phase 2.2) =====
+function switchTab(tab) {
+  gameState.activeTab = tab;
+
+  const revenueRows = document.getElementById('revenue-rows');
+  const taxPanel = document.getElementById('tax-panel');
+  const fillerRows = document.getElementById('filler-rows');
+  const boardRoom = document.getElementById('board-room-rows');
+  const tabOps = document.getElementById('tab-operations');
+  const tabBR = document.getElementById('tab-board-room');
+
+  if (tab === 'boardroom') {
+    revenueRows.classList.add('hidden');
+    taxPanel.classList.add('hidden');
+    fillerRows.classList.add('hidden');
+    boardRoom.classList.remove('hidden');
+    tabOps.classList.remove('active');
+    tabBR.classList.add('active');
+    buildBoardRoom();
+  } else {
+    revenueRows.classList.remove('hidden');
+    taxPanel.classList.remove('hidden');
+    fillerRows.classList.remove('hidden');
+    boardRoom.classList.add('hidden');
+    tabOps.classList.add('active');
+    tabBR.classList.remove('active');
+    _lastTaxPanelHash = ''; // force rebuild
+    updateTaxPanel();
+    buildFillerRows();
+  }
+}
+
+function updateBoardRoomTab() {
+  const tabBR = document.getElementById('tab-board-room');
+  if (gameState.isPublic) {
+    tabBR.classList.remove('hidden');
+  } else {
+    tabBR.classList.add('hidden');
+  }
+}
+
+let _lastBoardRoomHash = '';
+
+function buildBoardRoom() {
+  const container = document.getElementById('board-room-rows');
+  if (!container) return;
+
+  // Hash for change detection
+  const hashParts = [
+    gameState.retainedEarnings,
+    JSON.stringify(gameState.boardRoomPurchases),
+  ].join('|');
+  if (hashParts === _lastBoardRoomHash && container.innerHTML !== '') return;
+  _lastBoardRoomHash = hashParts;
+
+  let html = '';
+  let rowNum = 4; // starts after the header rows (1-3)
+
+  // Board Room header
+  html += `<div class="grid-row br-header-row">
+    <div class="row-num">${rowNum++}</div>
+    <div class="cell cell-a" style="font-weight:700;color:#7b1fa2">BOARD ROOM</div>
+    <div class="cell cell-b" style="font-weight:600;color:#666;font-size:10px">Category</div>
+    <div class="cell cell-c" style="font-weight:600;color:#666;font-size:10px;justify-content:flex-end">Cost</div>
+    <div class="cell cell-d" style="font-weight:600;color:#666;font-size:10px;justify-content:flex-end">Status</div>
+    <div class="cell cell-e"></div>
+    <div class="cell cell-f" style="font-weight:700;color:#7b1fa2;font-family:Consolas,monospace;font-size:12px">${gameState.retainedEarnings.toLocaleString()} RE</div>
+    <div class="cell cell-g"></div>
+    <div class="cell cell-h"></div>
+  </div>`;
+
+  // Separator
+  html += `<div class="grid-row">
+    <div class="row-num">${rowNum++}</div>
+    <div class="cell cell-a sep-cell"></div><div class="cell cell-b sep-cell"></div>
+    <div class="cell cell-c sep-cell"></div><div class="cell cell-d sep-cell"></div>
+    <div class="cell cell-e sep-cell"></div><div class="cell cell-f sep-cell"></div>
+    <div class="cell cell-g sep-cell"></div><div class="cell cell-h sep-cell"></div>
+  </div>`;
+
+  for (const upgrade of BOARD_ROOM_UPGRADES) {
+    const owned = getBoardRoomUpgradeCount(upgrade.id);
+    const isOwned = owned > 0 && upgrade.maxCount !== Infinity;
+    const requiresMet = !upgrade.requires || hasBoardRoomUpgrade(upgrade.requires);
+    const canAfford = gameState.retainedEarnings >= upgrade.cost;
+    const isLocked = !requiresMet;
+
+    let statusCell = '';
+    let rowClass = 'grid-row br-upgrade-row';
+
+    if (isOwned) {
+      rowClass += ' br-owned';
+      const label = upgrade.maxCount === 1 ? '✅ Owned' : `✅ Owned (×${owned})`;
+      statusCell = `<span class="br-owned-badge">${label}</span>`;
+    } else if (isLocked) {
+      rowClass += ' br-locked';
+      const reqUpgrade = BOARD_ROOM_UPGRADES.find(u => u.id === upgrade.requires);
+      const reqName = reqUpgrade ? reqUpgrade.name : upgrade.requires;
+      statusCell = `<span class="br-locked-badge">🔒 Requires ${reqName}</span>`;
+    } else {
+      // Buyable
+      const countLabel = upgrade.maxCount === Infinity && owned > 0 ? ` (have ${owned})` : '';
+      statusCell = `<button class="cell-btn btn-buy-re" data-buy-upgrade="${upgrade.id}" ${canAfford ? '' : 'disabled'}>Buy${countLabel}</button>`;
+    }
+
+    const costColor = isOwned ? '#999' : isLocked ? '#ccc' : canAfford ? '#7b1fa2' : '#c00';
+
+    html += `<div class="${rowClass}">
+      <div class="row-num">${rowNum++}</div>
+      <div class="cell cell-a" style="font-weight:500;${isLocked ? 'color:#bbb' : ''}">${upgrade.name}</div>
+      <div class="cell cell-b" style="font-size:10px;color:#888">${upgrade.category}</div>
+      <div class="cell cell-c" style="font-family:Consolas,monospace;font-size:11px;color:${costColor};justify-content:flex-end">${upgrade.cost.toLocaleString()} RE</div>
+      <div class="cell cell-d" style="justify-content:flex-end">${statusCell}</div>
+      <div class="cell cell-e"></div>
+      <div class="cell cell-f" style="font-size:10px;color:#888;white-space:normal;line-height:1.3">${upgrade.desc}</div>
+      <div class="cell cell-g"></div>
+      <div class="cell cell-h"></div>
+    </div>`;
+  }
+
+  // Filler rows for the board room view
+  const ROW_HEIGHT = 28;
+  const gridBottom = container.getBoundingClientRect().top || 300;
+  const viewportHeight = window.innerHeight;
+  const revBar = document.getElementById('revenue-breakdown');
+  const sheetTabs = document.getElementById('sheet-tabs');
+  const statusBar = document.getElementById('status-bar');
+  const bottomChrome = (revBar ? revBar.offsetHeight : 0) +
+                        (sheetTabs ? sheetTabs.offsetHeight : 0) +
+                        (statusBar ? statusBar.offsetHeight : 0);
+  const usedRows = BOARD_ROOM_UPGRADES.length + 3; // header + sep + upgrades
+  const available = viewportHeight - gridBottom - bottomChrome - (usedRows * ROW_HEIGHT);
+  const fillerCount = Math.max(3, Math.ceil(available / ROW_HEIGHT) + 1);
+
+  for (let i = 0; i < fillerCount; i++) {
+    html += `<div class="filler-row">
+      <div class="row-num">${rowNum + i}</div>
+      <div class="cell"></div><div class="cell"></div><div class="cell"></div>
+      <div class="cell"></div><div class="cell"></div><div class="cell"></div>
+      <div class="cell"></div><div class="cell"></div>
+    </div>`;
+  }
+
+  container.innerHTML = html;
+}
+
+function purchaseBoardRoomUpgrade(id) {
+  const upgrade = BOARD_ROOM_UPGRADES.find(u => u.id === id);
+  if (!upgrade) return;
+
+  const owned = getBoardRoomUpgradeCount(id);
+  if (owned >= upgrade.maxCount) return;
+  if (upgrade.requires && !hasBoardRoomUpgrade(upgrade.requires)) return;
+  if (gameState.retainedEarnings < upgrade.cost) return;
+
+  gameState.retainedEarnings -= upgrade.cost;
+  gameState.boardRoomPurchases[id] = (gameState.boardRoomPurchases[id] || 0) + 1;
+
+  // Status bar feedback
+  document.getElementById('status-text').textContent = `🏢 Purchased: ${upgrade.name}`;
+  setTimeout(() => { document.getElementById('status-text').textContent = 'Ready'; }, 3000);
+
+  _lastBoardRoomHash = ''; // force rebuild
+  buildBoardRoom();
+  _lastTaxPanelHash = ''; // force IR section rebuild (RE changed)
+  updateDisplay();
+  saveGame();
+}
+
 // ===== INITIALIZATION =====
 function init() {
   generateBossGrid();
@@ -2738,6 +3110,16 @@ function init() {
     if (settleAllBtn) {
       e.stopPropagation();
       settleAllTax();
+      return;
+    }
+  });
+
+  // Delegated click handler for Board Room buy buttons
+  document.getElementById('board-room-rows').addEventListener('click', (e) => {
+    const buyBtn = e.target.closest('[data-buy-upgrade]');
+    if (buyBtn) {
+      e.stopPropagation();
+      purchaseBoardRoomUpgrade(buyBtn.dataset.buyUpgrade);
       return;
     }
   });
@@ -3027,6 +3409,7 @@ window.confirmAction = confirmAction;
 window.dismissConfirm = dismissConfirm;
 window.showHelp = showHelp;
 window.dismissHelp = dismissHelp;
+window.switchTab = switchTab;
 
 document.addEventListener('DOMContentLoaded', init);
 window.addEventListener('resize', () => { if (gridBuilt) buildFillerRows(); });

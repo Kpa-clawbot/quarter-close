@@ -1590,3 +1590,64 @@ body {
   border-color: #005a9e;
   font-weight: 600;
 }
+
+/* ============================================
+   Phase 2.2: Board Room (RE Prestige Shop)
+   ============================================ */
+#board-room-rows {
+  display: contents;
+}
+
+.br-header-row > * {
+  background: #f5f0ff !important;
+}
+
+.br-upgrade-row > * {
+  transition: background 0.1s;
+}
+
+.br-upgrade-row:hover > * {
+  background: #f8f5ff !important;
+}
+
+.br-upgrade-row.br-owned > * {
+  background: #f0fff0 !important;
+}
+
+.br-upgrade-row.br-locked > * {
+  background: #fafafa !important;
+}
+
+.br-upgrade-row.br-locked .cell {
+  color: #bbb;
+}
+
+.btn-buy-re {
+  background: #7b1fa2 !important;
+  color: white !important;
+  border-color: #6a1b9a !important;
+  font-weight: 600;
+}
+
+.btn-buy-re:hover {
+  background: #6a1b9a !important;
+}
+
+.btn-buy-re:disabled {
+  background: #e0d0f0 !important;
+  color: #999 !important;
+  border-color: #ccc !important;
+  cursor: not-allowed;
+}
+
+.br-owned-badge {
+  color: #217346;
+  font-weight: 600;
+  font-size: 11px;
+}
+
+.br-locked-badge {
+  color: #bbb;
+  font-size: 10px;
+  font-style: italic;
+}

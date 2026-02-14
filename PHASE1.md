@@ -164,8 +164,27 @@ Each revenue source has:
 - [x] Help screen
 - [x] Formula bar updates with clicked cell
 - [x] OG preview image for social embeds
-- [ ] Reaching $1M shows "Series A" teaser
-- [ ] Revenue breakdown bar polish
+- [x] Reaching $1M shows "Series A" teaser
+- [x] Revenue breakdown bar polish
+
+---
+
+## Phase 2.2: Board Room (RE Prestige Shop)
+
+Post-IPO prestige shop where players spend Retained Earnings on permanent upgrades.
+
+### Completed
+- [x] Board Room sheet tab (visible after IPO)
+- [x] Tab switching between Operations and Board Room
+- [x] 10 purchasable upgrades with RE currency
+- [x] Finance Dept Lv1-3 (auto-earnings with escalating guidance)
+- [x] Revenue Multipliers I-III (stacking permanent boosts)
+- [x] Lobbyist + Tax Haven (reduced tax rates)
+- [x] Analyst Relations (slower ratchet)
+- [x] Golden Parachute (seizure protection, consumable)
+- [x] All effects integrated (tax, revenue, earnings, seizure)
+- [x] Save/load/reset support
+- [x] Help screen updated
 
 ---
 
