@@ -2841,15 +2841,17 @@ body {
   #toast-actions {
     padding: 8px 12px 12px;
     flex-wrap: wrap;
-    gap: 6px;
+    flex-direction: column;
+    gap: 4px;
   }
   .toast-btn {
     min-height: 44px;
     padding: 10px 16px;
     font-size: 13px;
     border-radius: 6px;
-    flex: 1 1 auto;
     text-align: center;
+    width: 100%;
+    margin-bottom: 2px;
   }
   .toast-countdown-wrapper {
     height: 44px;
@@ -2892,7 +2894,9 @@ body {
   }
   .help-tab {
     font-size: 12px;
-    padding: 6px 10px;
+    padding: 8px 12px;
+    min-height: 36px;
+    border-radius: 6px;
   }
   .help-columns {
     grid-template-columns: 1fr !important;
@@ -3294,17 +3298,6 @@ body {
   .source-row .cell-btn:disabled {
     opacity: 0.45;
     cursor: default;
-  }
-
-  /* ===== EARNINGS MODAL GUIDANCE BUTTONS ON MOBILE ===== */
-  #toast-actions {
-    display: flex !important;
-    flex-direction: column;
-  }
-  .toast-btn {
-    width: 100% !important;
-    flex: none !important;
-    margin-bottom: 4px;
   }
 
   /* ===== COLLECT BUTTON HIGHLIGHT WHEN PENDING ===== */
