@@ -1547,14 +1547,19 @@ function updateGridValues() {
 
     // Action 2: Upgrade or Automate
     const a2 = row.querySelector('[data-field="action2"]');
-    if (!state.automated) {
+    if (_mob) {
+      // Mobile: Always show Upgrade in cell-e (action2)
+      const maxUpgrades = maxAffordableUpgrades(state);
+      const revGainPerDay = state.employees * src.baseRate * 0.5 / 365.25;
+      const upgLbl = `⬆ ${formatMoney(uCost)}`;
+      a2.innerHTML = (maxUpgrades > 1 ? `<button class="cell-btn btn-max" onclick="upgradeMax(${i})" title="Buy all ${maxUpgrades} upgrades you can afford">Max(${maxUpgrades})</button>` : '') +
+        `<button class="cell-btn btn-upgrade" onclick="upgradeSource(${i})" ${gameState.cash >= uCost ? '' : 'disabled'} title="+50% efficiency per employee — adds ${formatPerTick(revGainPerDay)}/day">${upgLbl}</button>`;
+    } else if (!state.automated) {
       a2.innerHTML = `<button class="cell-btn btn-automate" onclick="automateSource(${i})" ${gameState.cash >= aCost ? '' : 'disabled'} title="Revenue flows automatically">Auto ${formatMoney(aCost)}</button>`;
     } else {
       const maxUpgrades = maxAffordableUpgrades(state);
       const revGainPerDay = state.employees * src.baseRate * 0.5 / 365.25;
-      const upgLbl = _mob
-        ? `⬆ ${formatMoney(uCost)}`
-        : `⬆ ${formatMoney(uCost)} (+${formatPerTick(revGainPerDay)}/d)`;
+      const upgLbl = `⬆ ${formatMoney(uCost)} (+${formatPerTick(revGainPerDay)}/d)`;
       a2.innerHTML = (maxUpgrades > 1 ? `<button class="cell-btn btn-max" onclick="upgradeMax(${i})" title="Buy all ${maxUpgrades} upgrades you can afford">Max(${maxUpgrades})</button>` : '') +
         `<button class="cell-btn btn-upgrade" onclick="upgradeSource(${i})" ${gameState.cash >= uCost ? '' : 'disabled'} title="+50% efficiency per employee — adds ${formatPerTick(revGainPerDay)}/day">${upgLbl}</button>`;
     }
@@ -1566,7 +1571,7 @@ function updateGridValues() {
       const clickVal = src.clickValue;
       const hasPending = pending > 0.005;
       const collectLbl = _mob
-        ? `💰${hasPending ? ' ' + formatMoney(pending) : ''}`
+        ? `💰 Collect${hasPending ? ' ' + formatMoney(pending) : ''}`
         : `Collect${hasPending ? ' ' + formatMoney(pending) : ''} (+${formatMoney(clickVal)})`;
       a3.innerHTML = `<button class="cell-btn btn-collect" onclick="collectSource(${i})" title="Click to collect pending revenue">${collectLbl}</button>`;
     } else if (gameState.isPublic) {
@@ -1575,6 +1580,16 @@ function updateGridValues() {
       a3.innerHTML = `<span class="auto-badge">⚡</span> <button class="cell-btn btn-prestige" onclick="restructureSource(${i})" ${canPrestige ? '' : 'disabled'} title="10× revenue for this dept (${pCost.toLocaleString()} RE)">★ ${pCost.toLocaleString()} RE</button>`;
     } else {
       a3.innerHTML = '<span class="auto-badge">⚡ AUTO</span>';
+    }
+
+    // Mobile: Auto button in separate row (cell-g repurposed, shown via CSS)
+    if (_mob) {
+      const autoCell = row.querySelector('[data-field="annual"]');
+      if (!state.automated) {
+        autoCell.innerHTML = `<button class="cell-btn btn-automate" onclick="automateSource(${i})" ${gameState.cash >= aCost ? '' : 'disabled'} title="Revenue flows automatically">🤖 Auto ${formatMoney(aCost)}</button>`;
+      } else {
+        autoCell.innerHTML = '<span class="auto-badge mob-auto-badge">⚡ AUTO</span>';
+      }
     }
   }
 }

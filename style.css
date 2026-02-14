@@ -2301,10 +2301,38 @@ body {
     align-items: center;
   }
 
-  /* Hide G and H columns on mobile */
-  .source-row > .cell-g,
+  /* Hide G and H columns on mobile — G repurposed for Auto button row */
+  .source-row > .cell-g {
+    flex: 1 1 100%;
+    order: 13;
+    display: flex !important;
+    justify-content: stretch;
+  }
   .source-row > .cell-h {
     display: none !important;
+  }
+
+  /* Auto button row styling */
+  .source-row > .cell-g .cell-btn.btn-automate {
+    width: 100%;
+    min-height: 40px;
+    font-size: 13px;
+    border-radius: 6px;
+    background: #e0f2f1;
+    border-color: #80cbc4;
+    color: #00695c;
+  }
+
+  /* AUTO badge in cell-g when automated */
+  .mob-auto-badge {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    font-size: 12px;
+    color: #00897b;
+    font-weight: 600;
+    padding: 4px 0;
   }
 
   /* Buttons inside cards: proper touch targets */
@@ -2380,7 +2408,8 @@ body {
   .source-row.source-locked .cell-b,
   .source-row.source-locked .cell-c,
   .source-row.source-locked .cell-e,
-  .source-row.source-locked .cell-f {
+  .source-row.source-locked .cell-f,
+  .source-row.source-locked .cell-g {
     display: none !important;
   }
   .source-row.source-locked .cell-d {
@@ -2454,12 +2483,17 @@ body {
     overflow: hidden;
   }
   #status-text {
-    max-width: 45vw;
+    max-width: 35vw;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
     display: inline-block;
     vertical-align: middle;
+    font-size: 10px;
+  }
+  #game-date {
+    font-size: 10px;
+    white-space: nowrap;
   }
   #status-center,
   #status-clicks,
@@ -2469,7 +2503,13 @@ body {
   #status-timescale {
     display: none;
   }
-  #status-left { flex: 1; }
+  #status-left {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    overflow: hidden;
+  }
   #status-right { flex: 0 0 auto; gap: 4px; }
 
   /* ===== MOBILE BOTTOM NAV ===== */
