@@ -356,3 +356,12 @@ The $/day cell in row 1 now color-codes active effects:
 - R&D Breakthrough `generate()` pattern wasn't handled by `showEvent()` — added handler
 - DB Corruption always picked highest-tier dept — changed to random pick
 - Dynamic events crashed debug dropdown (no static sender/subject) — added fallbacks
+- `dealCooldown=0` caught by `!gameState.dealCooldown` (falsy) — re-initialized cooldown every time it hit zero, preventing deals from ever spawning after the first. Fixed with explicit `=== undefined || === null` check.
+
+### Close the Deal — Spawn Fix
+The `!gameState.dealCooldown` guard was a classic JS falsy trap. When cooldown decremented to 0:
+1. `!0` → `true` → re-initialize cooldown to 60-180
+2. `cooldown > 0` → `true` → decrement
+3. Never reaches `spawnDeal()` because step 1 always fires first
+
+Fix: Check `=== undefined || === null` so that `0` falls through to the spawn branch. This was the documented gotcha in memory but it was actually live-broken the whole time.
