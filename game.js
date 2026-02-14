@@ -262,7 +262,7 @@ const EVENTS = [
           gs.dbOutage = { sourceIndex: top.i, until: Date.now() + duration };
           console.log('DB outage set:', JSON.stringify(gs.dbOutage));
           const arc = ARCS[gs.arc];
-          const name = arc.names[top.i] || getSourceDef(top.i).name;
+          const name = arc.sources[top.i].name || getSourceDef(top.i).name;
           return `${name} offline for ${Math.round(duration/1000)}s while database recovers.`;
         }
         console.log('DB outage: no unlocked sources');
@@ -324,7 +324,7 @@ const EVENTS = [
           const duration = 60000;
           gs.revPenalty = { mult: 0.5, until: Date.now() + duration };
           const arc = ARCS[gs.arc];
-          const name = arc.names[pick.i] || getSourceDef(pick.i).name;
+          const name = arc.sources[pick.i].name || getSourceDef(pick.i).name;
           return `Customers churning — revenue at 50% for 60s. "${name}" taking the biggest hit.`;
         }
         return 'Customers aren\'t happy but they\'ll survive... probably.';
@@ -400,7 +400,7 @@ const EVENTS = [
       const pick = unlocked[Math.floor(Math.random() * unlocked.length)];
       const src = getSourceDef(pick.i);
       const arc = ARCS[gs.arc];
-      const name = arc.names[pick.i] || src.name;
+      const name = arc.sources[pick.i].name || src.name;
       const mult = 5 + Math.floor(Math.random() * 6); // 5-10×
       const bonus = Math.floor(sourceRevPerTick(pick.s) * mult);
       if (bonus <= 0) return null;
@@ -1593,7 +1593,7 @@ function updateDisplay() {
   } else if (gameState.dbOutage && Date.now() < gameState.dbOutage.until) {
     const secsLeft = Math.ceil((gameState.dbOutage.until - Date.now()) / 1000);
     const arc = ARCS[gameState.arc];
-    const name = arc ? arc.names[gameState.dbOutage.sourceIndex] || 'Department' : 'Department';
+    const name = arc ? arc.sources[gameState.dbOutage.sourceIndex].name || 'Department' : 'Department';
     document.getElementById('status-text').textContent = `💾 ${name} offline — DB recovering ${secsLeft}s`;
   } else if (gameState.dbOutage) {
     gameState.dbOutage = null;
