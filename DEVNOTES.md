@@ -298,3 +298,21 @@
 ### Stock Price Label
 - Changed from `📈 $X` to `Stock: $X` in column H
 - Column H widened from 95px to 120px
+
+### Close the Deal — Own Popup (Not a Toast)
+- **Problem:** Deals shared the event toast element. If any IRS/earnings/event toast was showing, deals couldn't spawn. With 10s auto-expire on events + IRS toasts that stay until dismissed, deals were starved.
+- **Fix:** `#deal-popup` — completely separate UI element with its own HTML, CSS, and drag state.
+- Centered on screen (same as event toast), draggable by header, remembers position (`quarterClose_dealPos` in localStorage).
+- Red countdown fill on Sign button via `toast-btn-fill` animation.
+- Spawn condition no longer checks `event-toast.hidden` — deals fire independently.
+- Boss key hides deal popup too.
+- `dismissEvent()` no longer clears deal state (they're independent now).
+
+### College Buddy Event Revamp
+- **Old:** Lose 1% cash for nothing, or say no for nothing. No decision.
+- **New:** Risk 5% cash on a meeting. 40% chance it's a legit side deal (1-3 min of revenue). 60% chance it's an MLM pitch (money gone). Or ghost them for free.
+- Actual risk/reward gambling mechanic now.
+
+### Cache Buster Fix
+- `game.js` cache buster was stuck at `v=29` while `style.css` was at `v=53`. Previous `sed` commands targeted wrong version numbers and silently failed.
+- **Lesson:** Always verify the actual version string in the file before doing sed replacements. Or just use a broader pattern.
