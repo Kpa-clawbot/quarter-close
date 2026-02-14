@@ -865,20 +865,24 @@ function ctoAutoUpgrade() {
 
     // Build candidate list: all unlocked depts with affordable upgrades
     const candidates = [];
+    let _dbgSkipBudget = 0, _dbgSkipCash = 0, _dbgSkipLocked = 0;
     for (let i = 0; i < gameState.sources.length; i++) {
       const state = gameState.sources[i];
-      if (!state.unlocked || state.employees === 0) continue;
+      if (!state.unlocked || state.employees === 0) { _dbgSkipLocked++; continue; }
       const stats = SOURCE_STATS[state.id];
-      if (!stats) continue; // safety: skip unknown sources
+      if (!stats) continue;
       const cost = upgradeCost(state);
-      if (cost > gameState.cash) continue;
-      if (level >= 2 && cost > budgetRemaining) continue;
+      if (cost > gameState.cash) { _dbgSkipCash++; continue; }
+      if (level >= 2 && cost > budgetRemaining) { _dbgSkipBudget++; continue; }
       // ROI = annual revenue gain / cost (how many years to pay back)
       const annualRevGain = sourceRevPerTick(state) * 365.25 * 0.5;
       const roi = cost > 0 ? annualRevGain / cost : 0;
       candidates.push({ index: i, cost, revGain: annualRevGain, roi, name: stats.name });
     }
-    if (candidates.length === 0) return;
+    if (candidates.length === 0) {
+      gameState._ctoDebug = `0 candidates (${_dbgSkipLocked} locked, ${_dbgSkipCash} $, ${_dbgSkipBudget} budget) lvl=${level} rem=${budgetRemaining}`;
+      return;
+    }
 
     let pick = null;
 
@@ -2762,7 +2766,7 @@ function updateTaxPanel() {
         <div class="cell cell-c" style="display:flex;align-items:center">${ctoLevels}</div>
         <div class="cell cell-d"></div>
         <div class="cell cell-e"></div>
-        <div class="cell cell-f" style="font-size:9px;color:#888">${activeCTO > 0 ? `Upgrades: ${gameState.ctoUpgradeCount || 0}` : ''}</div>
+        <div class="cell cell-f" style="font-size:9px;color:#888">${activeCTO > 0 ? `Upgrades: ${gameState.ctoUpgradeCount || 0}${gameState._ctoDebug ? ' | ' + gameState._ctoDebug : ''}` : ''}</div>
         <div class="cell cell-g"></div>
         <div class="cell cell-h"></div>
       </div>`;
