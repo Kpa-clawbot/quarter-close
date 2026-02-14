@@ -1105,6 +1105,7 @@ function updateGridValues() {
     // Action 1: Hire + Max
     const a1 = row.querySelector('[data-field="action1"]');
     const frozen = gameState.hireFrozen && Date.now() < gameState.hireFrozen;
+    const _mob = isMobile();
     if (frozen) {
       const sLeft = Math.ceil((gameState.hireFrozen - Date.now()) / 1000);
       a1.innerHTML = `<button class="cell-btn btn-hire" disabled>🚫 Frozen (${sLeft}s)</button>`;
@@ -1112,8 +1113,11 @@ function updateGridValues() {
       const maxHires = maxAffordable(state);
       const upgradeMult = 1 + state.upgradeLevel * 0.5;
       const hireGainPerDay = src.baseRate * upgradeMult / 365.25;
+      const hireLbl = _mob
+        ? `Hire ${formatMoney(hCost)}`
+        : `Hire ${formatMoney(hCost)} (+${formatPerTick(hireGainPerDay)}/d)`;
       a1.innerHTML = (maxHires > 1 ? `<button class="cell-btn btn-max" onclick="hireMax(${i})">Max(${maxHires})</button>` : '') +
-        `<button class="cell-btn btn-hire" onclick="hireEmployee(${i})" ${gameState.cash >= hCost ? '' : 'disabled'} title="Hire 1 employee — adds ${formatPerTick(hireGainPerDay)}/day">Hire ${formatMoney(hCost)} (+${formatPerTick(hireGainPerDay)}/d)</button>`;
+        `<button class="cell-btn btn-hire" onclick="hireEmployee(${i})" ${gameState.cash >= hCost ? '' : 'disabled'} title="Hire 1 employee — adds ${formatPerTick(hireGainPerDay)}/day">${hireLbl}</button>`;
     }
 
     // Action 2: Upgrade or Automate
@@ -1123,8 +1127,11 @@ function updateGridValues() {
     } else {
       const maxUpgrades = maxAffordableUpgrades(state);
       const revGainPerDay = state.employees * src.baseRate * 0.5 / 365.25;
+      const upgLbl = _mob
+        ? `⬆ ${formatMoney(uCost)}`
+        : `⬆ ${formatMoney(uCost)} (+${formatPerTick(revGainPerDay)}/d)`;
       a2.innerHTML = (maxUpgrades > 1 ? `<button class="cell-btn btn-max" onclick="upgradeMax(${i})">Max(${maxUpgrades})</button>` : '') +
-        `<button class="cell-btn btn-upgrade" onclick="upgradeSource(${i})" ${gameState.cash >= uCost ? '' : 'disabled'} title="+50% efficiency per employee — adds ${formatPerTick(revGainPerDay)}/day">⬆ ${formatMoney(uCost)} (+${formatPerTick(revGainPerDay)}/d)</button>`;
+        `<button class="cell-btn btn-upgrade" onclick="upgradeSource(${i})" ${gameState.cash >= uCost ? '' : 'disabled'} title="+50% efficiency per employee — adds ${formatPerTick(revGainPerDay)}/day">${upgLbl}</button>`;
     }
 
     // Action 3: Collect (click) or AUTO badge
@@ -1133,7 +1140,10 @@ function updateGridValues() {
       const pending = state.pendingCollect;
       const clickVal = src.clickValue;
       const hasPending = pending > 0.005;
-      a3.innerHTML = `<button class="cell-btn btn-collect" onclick="collectSource(${i})">Collect${hasPending ? ' ' + formatMoney(pending) : ''} (+${formatMoney(clickVal)})</button>`;
+      const collectLbl = _mob
+        ? `💰${hasPending ? ' ' + formatMoney(pending) : ''}`
+        : `Collect${hasPending ? ' ' + formatMoney(pending) : ''} (+${formatMoney(clickVal)})`;
+      a3.innerHTML = `<button class="cell-btn btn-collect" onclick="collectSource(${i})">${collectLbl}</button>`;
     } else {
       a3.innerHTML = '<span class="auto-badge">⚡ AUTO</span>';
     }
