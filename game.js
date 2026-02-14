@@ -1780,25 +1780,14 @@ function updateTaxPanel() {
       <div class="cell cell-h"></div>
     </div>`;
 
-    // Guidance row with buttons
-    const guidanceKeys = Object.keys(GUIDANCE_LEVELS);
-    const guidanceButtons = guidanceKeys.map(key => {
-      const lv = GUIDANCE_LEVELS[key];
-      const active = key === guidanceKey;
-      const style = active
-        ? 'font-weight:700;color:#0078d4;text-decoration:underline;cursor:pointer'
-        : 'color:#888;cursor:pointer;font-size:10px';
-      return `<span style="${style}" onclick="setGuidance('${key}')">${lv.emoji}${active ? ' ' + lv.label : ''}</span>`;
-    }).join(' ');
-
-    html += `<div class="grid-row ir-row" id="ir-guidance-row">
+        html += `<div class="grid-row ir-row" id="ir-guidance-row">
       <div class="row-num">${rowNum++}</div>
       <div class="cell cell-a" style="padding-left:16px;color:#444">Guidance</div>
-      <div class="cell cell-b">${guidanceButtons}</div>
+      <div class="cell cell-b" style="font-weight:600;color:#333">${guidanceLevel.emoji} ${guidanceLevel.label}</div>
       <div class="cell cell-c" style="font-size:10px;color:#888;justify-content:flex-end">${guidanceLevel.reMult}× RE</div>
       <div class="cell cell-d" style="font-size:10px;color:#888">Target: ${formatCompact(gameState.guidanceTarget)}</div>
       <div class="cell cell-e"></div>
-      <div class="cell cell-f"></div>
+      <div class="cell cell-f" style="font-size:10px;color:#999">Set at earnings</div>
       <div class="cell cell-g"></div>
       <div class="cell cell-h"></div>
     </div>`;
