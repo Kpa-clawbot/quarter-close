@@ -409,6 +409,65 @@ function getFinanceDeptLevel() {
   return 0;
 }
 
+// CFO guidance algorithm — picks guidance based on Finance Dept level
+function pickCFOGuidance(level) {
+  const keys = Object.keys(GUIDANCE_LEVELS); // conservative, in-line, ambitious, aggressive
+
+  if (level === 1) {
+    // The Intern: weighted random — 25% conservative, 50% in-line, 25% ambitious
+    const roll = Math.random();
+    if (roll < 0.25) return 'conservative';
+    if (roll < 0.75) return 'in-line';
+    return 'ambitious';
+  }
+
+  // Lv2 and Lv3: project revenue vs each guidance target
+  const projectedRev = totalRevPerTick() * EARNINGS_QUARTER_DAYS;
+  const safetyMargin = level >= 3 ? 1.05 : 1.20;
+
+  // Find the most aggressive guidance we can safely beat
+  let bestPick = 'conservative'; // fallback
+  for (const key of keys) {
+    const gl = GUIDANCE_LEVELS[key];
+    const target = projectedRev * gl.pct * gameState.analystBaseline;
+    if (projectedRev > target * safetyMargin) {
+      bestPick = key;
+    }
+  }
+
+  if (level >= 3) {
+    // Elite CFO adjustments
+    const keyIdx = keys.indexOf(bestPick);
+
+    // Long streak (>5): one notch safer — analysts are ratcheting hard
+    if (gameState.earningsStreak > 5 && keyIdx > 0) {
+      bestPick = keys[keyIdx - 1];
+    }
+    // Active revenue bonus: one notch more aggressive
+    else if (gameState.revBonus && Date.now() < gameState.revBonus.until && keyIdx < keys.length - 1) {
+      bestPick = keys[keyIdx + 1];
+    }
+    // Active revenue penalty: one notch safer
+    else if (gameState.revPenalty && Date.now() < gameState.revPenalty.until && keyIdx > 0) {
+      bestPick = keys[keyIdx - 1];
+    }
+  }
+
+  return bestPick;
+}
+
+function setActiveCFOLevel(level) {
+  const maxLevel = getFinanceDeptLevel();
+  if (level < 0 || level > maxLevel) return;
+  gameState.activeCFOLevel = level;
+  // When switching to a CFO, immediately pick guidance for current quarter
+  if (level > 0) {
+    setGuidance(pickCFOGuidance(level));
+  }
+  _lastTaxPanelHash = '';
+  updateTaxPanel();
+}
+
 // ===== GAME STATE =====
 let gameState = {
   arc: null,  // selected arc key
@@ -460,6 +519,9 @@ let gameState = {
   // Phase 2.2: Board Room
   boardRoomPurchases: {},  // map of upgrade IDs to purchase count/level
   activeTab: 'operations', // 'operations' | 'boardroom'
+  activeCFOLevel: 0,       // 0 = manual, 1/2/3 = Finance Dept level in use
+  cfoRecords: {},          // { 1: {beats:0,total:0}, 2: {...}, 3: {...} }
+  revenueHistory: [],      // last 3 quarterly revenues for trend analysis
 };
 
 let gridBuilt = false;
@@ -682,6 +744,9 @@ function selectArc(arcKey) {
   // Phase 2.2: Board Room
   gameState.boardRoomPurchases = {};
   gameState.activeTab = 'operations';
+  gameState.activeCFOLevel = 0;
+  gameState.cfoRecords = {};
+  gameState.revenueHistory = [];
 
   // Clear stale panels
   const taxPanel = document.getElementById('tax-panel');
@@ -1787,10 +1852,44 @@ function updateTaxPanel() {
       <div class="cell cell-c" style="font-size:10px;color:#888;justify-content:flex-end">${guidanceLevel.reMult}× RE</div>
       <div class="cell cell-d" style="font-size:10px;color:#888">Target: ${formatCompact(gameState.guidanceTarget)}</div>
       <div class="cell cell-e"></div>
-      <div class="cell cell-f" style="font-size:10px;color:#999">Set at earnings</div>
+      <div class="cell cell-f" style="font-size:10px;color:#999">${gameState.activeCFOLevel > 0 ? 'Set by CFO' : 'Set at earnings'}</div>
       <div class="cell cell-g"></div>
       <div class="cell cell-h"></div>
     </div>`;
+
+    // CFO row (only if Finance Dept owned)
+    const maxCFOLevel = getFinanceDeptLevel();
+    if (maxCFOLevel > 0) {
+      const cfoNames = { 0: 'Manual', 1: '👶 Intern', 2: '📊 Competent', 3: '🎩 Elite' };
+      const activeCFO = gameState.activeCFOLevel;
+      // Build level selector buttons
+      let cfoButtons = `<span style="cursor:pointer;${activeCFO === 0 ? 'font-weight:700;color:#0078d4;text-decoration:underline' : 'color:#888;font-size:10px'}" onclick="setActiveCFOLevel(0)">Manual</span>`;
+      for (let lvl = 1; lvl <= maxCFOLevel; lvl++) {
+        const active = activeCFO === lvl;
+        const style = active
+          ? 'font-weight:700;color:#0078d4;text-decoration:underline;cursor:pointer'
+          : 'color:#888;cursor:pointer;font-size:10px';
+        const label = lvl === 1 ? '👶 Lv1' : lvl === 2 ? '📊 Lv2' : '🎩 Lv3';
+        cfoButtons += ` <span style="${style}" onclick="setActiveCFOLevel(${lvl})">${label}</span>`;
+      }
+      // Record for active CFO
+      const record = gameState.cfoRecords[activeCFO];
+      const recordStr = activeCFO > 0 && record && record.total > 0
+        ? `${record.beats}/${record.total} (${Math.round(record.beats / record.total * 100)}%)`
+        : activeCFO > 0 ? 'No data' : '';
+
+      html += `<div class="grid-row ir-row">
+        <div class="row-num">${rowNum++}</div>
+        <div class="cell cell-a" style="padding-left:16px;color:#444">Finance Dept</div>
+        <div class="cell cell-b">${cfoButtons}</div>
+        <div class="cell cell-c"></div>
+        <div class="cell cell-d" style="font-size:10px;color:#888">${activeCFO > 0 ? 'Record' : ''}</div>
+        <div class="cell cell-e" style="font-family:Consolas,monospace;font-size:11px;color:${activeCFO > 0 && record && record.total > 0 ? (record.beats / record.total >= 0.7 ? '#217346' : record.beats / record.total >= 0.4 ? '#b8860b' : '#c00') : '#333'}">${recordStr}</div>
+        <div class="cell cell-f"></div>
+        <div class="cell cell-g"></div>
+        <div class="cell cell-h"></div>
+      </div>`;
+    }
 
     // Streak
     html += `<div class="grid-row ir-row">
@@ -2263,6 +2362,9 @@ function saveGame() {
     _earningsMultiplier: gameState._earningsMultiplier || 1.0,
     // Phase 2.2: Board Room
     boardRoomPurchases: gameState.boardRoomPurchases || {},
+    activeCFOLevel: gameState.activeCFOLevel || 0,
+    cfoRecords: gameState.cfoRecords || {},
+    revenueHistory: gameState.revenueHistory || [],
     savedAt: Date.now(),
   };
 
@@ -2329,6 +2431,9 @@ function loadGame() {
     gameState._earningsMultiplier = data._earningsMultiplier || 1.0;
     // Phase 2.2: Board Room
     gameState.boardRoomPurchases = data.boardRoomPurchases || {};
+    gameState.activeCFOLevel = data.activeCFOLevel || 0;
+    gameState.cfoRecords = data.cfoRecords || {};
+    gameState.revenueHistory = data.revenueHistory || [];
     gameState.activeTab = 'operations';
 
     // Rebuild sources for selected arc
@@ -2429,6 +2534,9 @@ function resetGame() {
   // Phase 2.2: Board Room
   gameState.boardRoomPurchases = {};
   gameState.activeTab = 'operations';
+  gameState.activeCFOLevel = 0;
+  gameState.cfoRecords = {};
+  gameState.revenueHistory = [];
   gameState.eventCooldown = 0;
   gameState.miniTaskCooldown = 0;
   gameState.miniTaskActive = false;
@@ -2742,7 +2850,12 @@ function forceIPO() {
 function resetBoardRoom() {
   gameState.boardRoomPurchases = {};
   gameState.retainedEarnings = 0;
+  gameState.activeCFOLevel = 0;
+  gameState.cfoRecords = {};
+  gameState.revenueHistory = [];
   if (gameState.activeTab === 'boardroom') renderBoardRoom();
+  _lastTaxPanelHash = '';
+  updateTaxPanel();
   document.getElementById('status-text').textContent = '🧪 Board Room reset — all upgrades cleared, RE set to 0.';
   setTimeout(() => { document.getElementById('status-text').textContent = 'Ready'; }, 3000);
 }
@@ -2865,17 +2978,28 @@ function processEarnings() {
 
   const stockPctStr = (stockChange >= 0 ? '+' : '') + (stockChange * 100).toFixed(1) + '%';
 
+  // Track revenue history for CFO trend analysis (keep last 3)
+  gameState.revenueHistory.push(oldQuarterRev);
+  if (gameState.revenueHistory.length > 3) gameState.revenueHistory.shift();
+
   // Finance Dept: auto-process earnings without modal
-  const financeDeptLvl = getFinanceDeptLevel();
-  if (financeDeptLvl > 0) {
-    // Auto-set guidance based on Finance Dept level (player can override via IR row)
-    const autoGuidance = financeDeptLvl >= 3 ? 'ambitious' :
-                         financeDeptLvl >= 2 ? 'in-line' : 'conservative';
-    setGuidance(autoGuidance);
+  const activeCFO = gameState.activeCFOLevel;
+  if (activeCFO > 0 && getFinanceDeptLevel() >= activeCFO) {
+    // Record CFO performance
+    if (!gameState.cfoRecords[activeCFO]) gameState.cfoRecords[activeCFO] = { beats: 0, total: 0 };
+    gameState.cfoRecords[activeCFO].total++;
+    if (result === 'BEAT' || result === 'IN-LINE') {
+      gameState.cfoRecords[activeCFO].beats++;
+    }
+
+    // Pick guidance for NEXT quarter using CFO algorithm
+    const nextGuidance = pickCFOGuidance(activeCFO);
+    setGuidance(nextGuidance);
 
     // Status bar notification instead of modal
     const reStr = reEarned > 0 ? ` +${reEarned} RE` : '';
-    document.getElementById('status-text').textContent = `${resultEmoji} ${qLabel} ${result} (${marginPct > 0 ? '+' : ''}${marginPct}%) | Stock ${stockPctStr}${reStr}`;
+    const cfoLabel = activeCFO === 1 ? 'Intern' : activeCFO === 2 ? 'CFO' : 'Elite CFO';
+    document.getElementById('status-text').textContent = `${resultEmoji} ${qLabel} ${result} (${marginPct > 0 ? '+' : ''}${marginPct}%) | Stock ${stockPctStr}${reStr} [${cfoLabel}]`;
     setTimeout(() => { document.getElementById('status-text').textContent = 'Ready'; }, 5000);
 
     // Record stock price at start of new quarter
@@ -2931,6 +3055,7 @@ function trackEarningsRevenue(amount) {
 // Expose
 window.forceIPO = forceIPO;
 window.resetBoardRoom = resetBoardRoom;
+window.setActiveCFOLevel = setActiveCFOLevel;
 window.setGuidance = setGuidance;
 
 // ===== BOARD ROOM (Phase 2.2) =====
@@ -3090,6 +3215,15 @@ function purchaseBoardRoomUpgrade(id) {
 
   gameState.retainedEarnings -= upgrade.cost;
   gameState.boardRoomPurchases[id] = (gameState.boardRoomPurchases[id] || 0) + 1;
+
+  // Auto-activate Finance Dept when first purchased
+  if (id === 'finance_dept_1' && gameState.activeCFOLevel === 0) {
+    gameState.activeCFOLevel = 1;
+  } else if (id === 'finance_dept_2' && gameState.activeCFOLevel <= 1) {
+    gameState.activeCFOLevel = 2;
+  } else if (id === 'finance_dept_3' && gameState.activeCFOLevel <= 2) {
+    gameState.activeCFOLevel = 3;
+  }
 
   // Status bar feedback
   document.getElementById('status-text').textContent = `🏢 Purchased: ${upgrade.name}`;
