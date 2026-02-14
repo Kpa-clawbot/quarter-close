@@ -2836,7 +2836,7 @@ function toggleDebugEventDropdown() {
   EVENTS.forEach((event) => {
     const btn = document.createElement('div');
     btn.style.cssText = 'padding:5px 10px;cursor:pointer;font-size:11px;border-bottom:1px solid #eee;white-space:nowrap;overflow:hidden;text-overflow:ellipsis';
-    btn.textContent = `${event.sender} — ${event.subject.replace(/[\u{1F300}-\u{1FAFF}]/gu, '').trim()}`;
+    btn.textContent = `${event.sender || 'Dynamic'} — ${(event.subject || '(dynamic event)').replace(/[\u{1F300}-\u{1FAFF}]/gu, '').trim()}`;
     btn.onmouseenter = () => btn.style.background = '#e8f0fe';
     btn.onmouseleave = () => btn.style.background = '';
     btn.onclick = () => { dd.classList.add('hidden'); showEvent(event); };
