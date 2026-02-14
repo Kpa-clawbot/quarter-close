@@ -2967,7 +2967,7 @@ body {
 
   /* Automated department indicator */
   .source-row.mob-automated {
-    border-left: 3px solid #00897b;
+    border-left: 4px solid #00897b;
   }
 }
 
