@@ -865,13 +865,14 @@ function ctoAutoUpgrade() {
 
     // Build candidate list: all unlocked depts with affordable upgrades
     const candidates = [];
-    let _dbgSkipBudget = 0, _dbgSkipCash = 0, _dbgSkipLocked = 0;
+    let _dbgSkipBudget = 0, _dbgSkipCash = 0, _dbgSkipLocked = 0, _dbgMinCost = Infinity;
     for (let i = 0; i < gameState.sources.length; i++) {
       const state = gameState.sources[i];
       if (!state.unlocked || state.employees === 0) { _dbgSkipLocked++; continue; }
       const stats = SOURCE_STATS[state.id];
       if (!stats) continue;
       const cost = upgradeCost(state);
+      if (cost < _dbgMinCost) _dbgMinCost = cost;
       if (cost > gameState.cash) { _dbgSkipCash++; continue; }
       if (level >= 2 && cost > budgetRemaining) { _dbgSkipBudget++; continue; }
       // ROI = annual revenue gain / cost (how many years to pay back)
@@ -880,7 +881,7 @@ function ctoAutoUpgrade() {
       candidates.push({ index: i, cost, revGain: annualRevGain, roi, name: stats.name });
     }
     if (candidates.length === 0) {
-      gameState._ctoDebug = `0 candidates (${_dbgSkipLocked} locked, ${_dbgSkipCash} $, ${_dbgSkipBudget} budget) lvl=${level} rem=${budgetRemaining}`;
+      gameState._ctoDebug = `0 cand | cash=${gameState.cash} (${typeof gameState.cash}) | cheapest=${_dbgMinCost} | ${_dbgSkipCash}$/12`;
       return;
     }
 
