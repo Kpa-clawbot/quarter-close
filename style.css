@@ -2276,7 +2276,7 @@ body {
     justify-content: flex-end;
   }
 
-  /* Card row 2: Action buttons (full width) */
+  /* Card row 2: Hire buttons (full width) */
   .source-row > .cell-d {
     flex: 1 1 100%;
     order: 10;
@@ -2285,18 +2285,20 @@ body {
     justify-content: stretch;
   }
 
+  /* Card row 3: Upgrade + Collect/Auto (full width) */
   .source-row > .cell-e {
-    flex: 1 1 48%;
+    flex: 1 1 auto;
     order: 11;
     display: flex !important;
     gap: 6px;
   }
 
   .source-row > .cell-f {
-    flex: 1 1 48%;
+    flex: 0 0 auto;
     order: 12;
     display: flex !important;
     gap: 6px;
+    align-items: center;
   }
 
   /* Hide G and H columns on mobile */
@@ -2341,16 +2343,7 @@ body {
 
   /* Auto badge */
   .source-row .auto-badge {
-    font-size: 14px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-height: 44px;
-    background: #e0f2f1;
-    border-radius: 6px;
-    color: #00695c;
-    font-weight: 600;
-    padding: 4px 8px;
+    display: none !important;
   }
 
   /* ===== OVERTIME ROW ===== */
