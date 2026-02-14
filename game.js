@@ -1286,7 +1286,7 @@ function updateDisplay() {
   if (stockCell) {
     if (gameState.isPublic) {
       const sp = getStockPrice();
-      stockCell.innerHTML = `<span style="font-size:10px;color:#888">📈 </span><span style="font-weight:700;color:#0078d4;font-family:Consolas,monospace;font-size:12px">${formatMoney(sp)}</span>`;
+      stockCell.innerHTML = `<span style="font-size:9px;color:#888">Stock: </span><span style="font-weight:700;color:#0078d4;font-family:Consolas,monospace;font-size:12px">${formatMoney(sp)}</span>`;
     } else {
       stockCell.innerHTML = '';
     }
