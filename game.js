@@ -1274,7 +1274,7 @@ function updateDisplay() {
 
   const totalRev = totalAnnualRev();
   const perTick = totalRevPerTick();
-  document.getElementById('total-rev').textContent = formatRate(totalRev) + '/yr';
+  document.getElementById('total-rev').textContent = formatRate(totalRev);
 
   // Per-tick display (= per day, prominent)
   document.getElementById('per-tick-display').textContent = formatPerTick(perTick) + '/day';
