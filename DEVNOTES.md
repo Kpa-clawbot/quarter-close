@@ -171,3 +171,29 @@
 - **processQuarterlyTax()**: CPA check runs before any toast logic. If can afford → auto-pay + status bar message + return. If can't afford → auto-defer (create debt silently) + return. If taxOwed ≤ 0 → silent return (no zero-tax toast either).
 - **processTaxDebts()**: CPA auto-settle runs before escalation loop. Iterates debts in reverse (safe splice), pays any affordable debt. Status bar shows "📋 CPA settled Q2 tax debt ($X)".
 - **Status bar feedback**: 4-second messages: "📋 CPA paid Q3 taxes ($2.4B)" or "📋 CPA deferred Q3 taxes — insufficient funds" or "📋 CPA settled Q2 tax debt ($1.8B)".
+
+### Prestige Tiers (★ Restructure)
+- Post-IPO only, automated sources only. Button appears in action3 column (replaces plain AUTO badge with ⚡ + ★ button).
+- `prestigeLevel` on source state — each level multiplies baseRate by `Math.pow(10, prestigeLevel)`.
+- `prestigeCost(source)` = `50 × (1 + tier) × 3^level`. Tier 0 starts at 50 RE, tier 11 at 600 RE. Each subsequent prestige on same source costs 3×.
+- `restructureSource(index)` — deducts RE, increments `prestigeLevel`, forces tax panel hash reset (RE changed), updates display.
+- Gold ★N tag in name cell. Gold-styled button (`btn-prestige` CSS).
+- **Design rationale**: Low tiers are cheap to restructure (a lemonade stand is simpler to restructure than a megacorp). But 10× on a megacorp is worth more, so players prioritize high tiers — then fill in low tiers when they have spare RE.
+
+### R&D Breakthroughs
+- Random event added to EVENTS array (generate-style). Picks random unlocked source with employees.
+- `breakthroughMult` on source state (default 1). Each breakthrough doubles it.
+- Two choices: Implement (×2 to that dept) or File Patent (+5% cash).
+- Green 🔬×N tag in name cell when breakthroughMult > 1.
+- Both `sourceRevPerTick()` and `sourceAnnualRev()` multiply by `breakthroughMult`.
+
+### Board Room Category Grouping
+- `buildBoardRoom()` now groups `BOARD_ROOM_UPGRADES` by category, renders category header rows with emoji + underline.
+- `categoryOrder` array controls display order: Finance, Revenue, Tax, Investor, Protection.
+- Upgrades sorted by `getUpgradeCost()` ascending within each group.
+- `totalUpgradeRows` counter used for accurate filler row calculation.
+
+### P&L Section Removed
+- Entire P&L section (Revenue, Expenses, Depreciation, Taxes Paid, Taxable Income, Net Income) removed from `updateTaxPanel()`.
+- Was redundant with tax panel and revenue breakdown bar.
+- IR section now starts immediately after panel unhide.
