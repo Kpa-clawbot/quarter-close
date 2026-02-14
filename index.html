@@ -20,7 +20,7 @@
   <meta name="description" content="An idle tycoon game disguised as a spreadsheet. Look busy. Get rich.">
   <title>Q4 Financials - Operations.xlsx - Quarter Close</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='4' fill='%23217346'/><rect x='4' y='4' width='7' height='5' rx='1' fill='white'/><rect x='13' y='4' width='7' height='5' rx='1' fill='white'/><rect x='22' y='4' width='7' height='5' rx='1' fill='white'/><rect x='4' y='11' width='7' height='5' rx='1' fill='white' opacity='0.8'/><rect x='13' y='11' width='7' height='5' rx='1' fill='white' opacity='0.8'/><rect x='22' y='11' width='7' height='5' rx='1' fill='white' opacity='0.8'/><rect x='4' y='18' width='7' height='5' rx='1' fill='white' opacity='0.6'/><rect x='13' y='18' width='7' height='5' rx='1' fill='white' opacity='0.6'/><rect x='22' y='18' width='7' height='5' rx='1' fill='white' opacity='0.6'/><rect x='4' y='25' width='7' height='5' rx='1' fill='white' opacity='0.4'/><rect x='13' y='25' width='7' height='5' rx='1' fill='white' opacity='0.4'/><rect x='22' y='25' width='7' height='5' rx='1' fill='white' opacity='0.4'/></svg>">
-  <link rel="stylesheet" href="style.css?v=58">
+  <link rel="stylesheet" href="style.css?v=59">
 </head>
 <body>
   <!-- ===== SPLASH SCREEN ===== -->
@@ -551,7 +551,15 @@
               <p><b>Lv1 "The Intern"</b> — picks guidance randomly. Often wrong, but no more popups.</p>
               <p><b>Lv2 "Competent CFO"</b> — reads context: plays safe after misses, gets bolder on beat streaks. ~70% optimal.</p>
               <p><b>Lv3 "Elite CFO"</b> — factors in streaks, analyst pressure, bonuses, and penalties. Knows when to push and when to pull back. ~90% optimal.</p>
-              <p>Switch between owned levels anytime in the IR section.</p>
+              <p>Switch between owned levels anytime in the C-Suite section.</p>
+            </div>
+            <div class="help-section">
+              <h4>🔧 CTO (Technology)</h4>
+              <p>Auto-upgrades department efficiency (⬆ Upgrade). Three levels:</p>
+              <p><b>Lv1 "The Intern"</b> — upgrades cheapest department first. No intelligence, just spending.</p>
+              <p><b>Lv2 "Competent CTO"</b> — prioritizes by ROI (revenue gain per dollar spent). Skips low-value upgrades.</p>
+              <p><b>Lv3 "Elite CTO"</b> — ROI-optimized with timing awareness. Tightens spending near quarter end to preserve cash for earnings.</p>
+              <p>CTO buys one upgrade per tick and will spend all your cash — that's by design. Switch in C-Suite section.</p>
             </div>
             <div class="help-section">
               <h4>🔥 Earnings Streaks</h4>
@@ -636,7 +644,7 @@
     </div>
   </div>
 
-  <script src="game.js?v=80"></script>
+  <script src="game.js?v=81"></script>
   <script>
     if (location.hostname === 'kpa-clawbot.github.io') {
       var s = document.createElement('script');

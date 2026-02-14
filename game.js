@@ -499,6 +499,33 @@ const BOARD_ROOM_UPGRADES = [
     category: 'Finance',
   },
   {
+    id: 'tech_dept_1',
+    name: 'CTO Lv1',
+    desc: 'The Intern — auto-upgrades departments, cheapest first.',
+    cost: 2500,
+    requires: null,
+    maxCount: 1,
+    category: 'Finance',
+  },
+  {
+    id: 'tech_dept_2',
+    name: 'CTO Lv2',
+    desc: 'Competent CTO — prioritizes upgrades by ROI.',
+    cost: 10000,
+    requires: 'tech_dept_1',
+    maxCount: 1,
+    category: 'Finance',
+  },
+  {
+    id: 'tech_dept_3',
+    name: 'CTO Lv3',
+    desc: 'Elite CTO — ROI-optimized with earnings timing awareness.',
+    cost: 50000,
+    requires: 'tech_dept_2',
+    maxCount: 1,
+    category: 'Finance',
+  },
+  {
     id: 'rev_mult_1',
     name: 'Revenue Multiplier I',
     desc: 'Permanent 1.1× revenue multiplier.',
@@ -624,6 +651,13 @@ function getFinanceDeptLevel() {
   if (hasBoardRoomUpgrade('finance_dept_3')) return 3;
   if (hasBoardRoomUpgrade('finance_dept_2')) return 2;
   if (hasBoardRoomUpgrade('finance_dept_1')) return 1;
+  return 0;
+}
+
+function getTechDeptLevel() {
+  if (hasBoardRoomUpgrade('tech_dept_3')) return 3;
+  if (hasBoardRoomUpgrade('tech_dept_2')) return 2;
+  if (hasBoardRoomUpgrade('tech_dept_1')) return 1;
   return 0;
 }
 
@@ -769,6 +803,63 @@ function setActiveCFOLevel(level) {
   updateTaxPanel();
 }
 
+function setActiveCTOLevel(level) {
+  const maxLevel = getTechDeptLevel();
+  if (level < 0 || level > maxLevel) return;
+  gameState.activeCTOLevel = level;
+  _lastTaxPanelHash = '';
+  updateTaxPanel();
+}
+
+// CTO auto-upgrade logic — buys ONE dept upgrade per tick
+function ctoAutoUpgrade() {
+  const level = gameState.activeCTOLevel;
+  if (!level || getTechDeptLevel() < level) return;
+
+  // Build candidate list: all unlocked depts with affordable upgrades
+  const candidates = [];
+  for (let i = 0; i < gameState.sources.length; i++) {
+    const state = gameState.sources[i];
+    if (!state.unlocked || state.employees === 0) continue;
+    const cost = upgradeCost(state);
+    if (cost > gameState.cash) continue;
+    const revGain = sourceRevPerTick(state) * 0.5; // upgrading adds 50% revenue
+    const roi = cost > 0 ? revGain / cost : 0;
+    candidates.push({ index: i, cost, revGain, roi });
+  }
+  if (candidates.length === 0) return;
+
+  let pick = null;
+
+  if (level === 1) {
+    // The Intern: cheapest first
+    candidates.sort((a, b) => a.cost - b.cost);
+    pick = candidates[0];
+  } else if (level === 2) {
+    // Competent CTO: best ROI first, skip very low ROI
+    candidates.sort((a, b) => b.roi - a.roi);
+    pick = candidates.find(c => c.roi >= 0.001) || null;
+  } else if (level === 3) {
+    // Elite CTO: ROI + timing awareness
+    candidates.sort((a, b) => b.roi - a.roi);
+    const currentDay = Math.floor(gameState.gameElapsedSecs / SECS_PER_DAY);
+    const earningsDaysSince = currentDay - gameState.lastEarningsDay;
+    const daysLeft = Math.max(0, EARNINGS_QUARTER_DAYS - earningsDaysSince);
+    let threshold = 0.001;
+    if (daysLeft < 5) {
+      threshold = 0.05;
+    } else if (daysLeft < 20) {
+      threshold = 0.01;
+    }
+    pick = candidates.find(c => c.roi >= threshold) || null;
+  }
+
+  // Buy ONE upgrade per tick
+  if (pick) {
+    upgradeSource(pick.index);
+  }
+}
+
 // ===== GAME STATE =====
 let gameState = {
   arc: null,  // selected arc key
@@ -823,6 +914,7 @@ let gameState = {
   boardRoomPurchases: {},  // map of upgrade IDs to purchase count/level
   activeTab: 'operations', // 'operations' | 'boardroom'
   activeCFOLevel: 0,       // 0 = manual, 1/2/3 = Finance Dept level in use
+  activeCTOLevel: 0,       // 0 = manual, 1/2/3 = Tech Dept level in use
   cfoRecords: {},          // { 1: {beats:0,total:0}, 2: {...}, 3: {...} }
   revenueHistory: [],      // last 3 quarterly revenues for trend analysis
   lastQuarterRE: 0,        // RE earned last quarter (for ETA display)
@@ -1118,6 +1210,7 @@ function selectArc(arcKey) {
   gameState.boardRoomPurchases = {};
   gameState.activeTab = 'operations';
   gameState.activeCFOLevel = 0;
+  gameState.activeCTOLevel = 0;
   gameState.cfoRecords = {};
   gameState.revenueHistory = [];
   gameState.lastQuarterRE = 0;
@@ -2410,47 +2503,6 @@ function updateTaxPanel() {
       <div class="cell cell-h"></div>
     </div>`;
 
-    // CFO row (only if Finance Dept owned)
-    const maxCFOLevel = getFinanceDeptLevel();
-    if (maxCFOLevel > 0) {
-      const activeCFO = gameState.activeCFOLevel;
-      // Build level selector as bracket-style buttons: [Manual] [👶1] [📊2] [🎩3]
-      const btnStyle = (active) => active
-        ? 'cursor:pointer;font-weight:700;color:#fff;background:#0078d4;padding:1px 6px;border-radius:2px;font-size:11px;margin-right:3px'
-        : 'cursor:pointer;color:#0078d4;border:1px solid #0078d4;padding:1px 5px;border-radius:2px;font-size:10px;margin-right:3px;background:transparent';
-      let cfoManual = `<span style="${btnStyle(activeCFO === 0)}" onclick="setActiveCFOLevel(0)" title="Set earnings guidance yourself each quarter">Manual</span>`;
-      const labels = { 1: '👶 1', 2: '📊 2', 3: '🎩 3' };
-      const tooltips = {
-        1: 'The Intern — auto-sets guidance randomly (often wrong)',
-        2: 'Competent CFO — analyzes trends, ~70% optimal',
-        3: 'Elite CFO — factors in everything, ~90% optimal'
-      };
-      let cfoLevels = '';
-      for (let lvl = 1; lvl <= maxCFOLevel; lvl++) {
-        cfoLevels += `<span style="${btnStyle(activeCFO === lvl)}" onclick="setActiveCFOLevel(${lvl})" title="${tooltips[lvl]}">${labels[lvl]}</span>`;
-      }
-      // Record for active CFO
-      const record = gameState.cfoRecords[activeCFO];
-      const recordStr = activeCFO > 0 && record && record.total > 0
-        ? `${record.beats}/${record.total} (${Math.round(record.beats / record.total * 100)}%)`
-        : activeCFO > 0 ? 'No data' : '';
-      const recordColor = activeCFO > 0 && record && record.total > 0
-        ? (record.beats / record.total >= 0.7 ? '#217346' : record.beats / record.total >= 0.4 ? '#b8860b' : '#c00')
-        : '#333';
-
-      html += `<div class="grid-row ir-row">
-        <div class="row-num">${rowNum++}</div>
-        <div class="cell cell-a" style="padding-left:16px;color:#444">Finance Dept</div>
-        <div class="cell cell-b" style="display:flex;align-items:center">${cfoManual}</div>
-        <div class="cell cell-c" style="display:flex;align-items:center">${cfoLevels}</div>
-        <div class="cell cell-d" style="font-size:10px;color:#888">${activeCFO > 0 ? 'Record' : ''}</div>
-        <div class="cell cell-e" style="font-family:Consolas,monospace;font-size:11px;color:${recordColor}">${recordStr}</div>
-        <div class="cell cell-f"></div>
-        <div class="cell cell-g"></div>
-        <div class="cell cell-h"></div>
-      </div>`;
-    }
-
     // Streak
     html += `<div class="grid-row ir-row">
       <div class="row-num">${rowNum++}</div>
@@ -2516,6 +2568,111 @@ function updateTaxPanel() {
       <div class="cell cell-g"></div>
       <div class="cell cell-h"></div>
     </div>`;
+  }
+
+  // ===== C-SUITE SECTION (CFO + CTO selectors) =====
+  if (gameState.isPublic && (getFinanceDeptLevel() > 0 || getTechDeptLevel() > 0)) {
+    // Separator
+    html += `<div class="grid-row sep-row">
+      <div class="row-num">${rowNum++}</div>
+      <div class="cell cell-a sep-cell"></div><div class="cell cell-b sep-cell"></div>
+      <div class="cell cell-c sep-cell"></div><div class="cell cell-d sep-cell"></div>
+      <div class="cell cell-e sep-cell"></div><div class="cell cell-f sep-cell"></div>
+      <div class="cell cell-g sep-cell"></div><div class="cell cell-h sep-cell"></div>
+    </div>`;
+
+    // C-Suite Header
+    html += `<div class="grid-row ir-header">
+      <div class="row-num">${rowNum++}</div>
+      <div class="cell cell-a" style="font-weight:700;color:#555">👔 C-SUITE</div>
+      <div class="cell cell-b"></div>
+      <div class="cell cell-c"></div>
+      <div class="cell cell-d"></div>
+      <div class="cell cell-e"></div>
+      <div class="cell cell-f"></div>
+      <div class="cell cell-g"></div>
+      <div class="cell cell-h"></div>
+    </div>`;
+
+    // Shared button style
+    const csBtnStyle = (active) => active
+      ? 'cursor:pointer;font-weight:700;color:#fff;background:#0078d4;padding:1px 6px;border-radius:2px;font-size:11px;margin-right:3px;touch-action:manipulation'
+      : 'cursor:pointer;color:#0078d4;border:1px solid #0078d4;padding:1px 5px;border-radius:2px;font-size:10px;margin-right:3px;background:transparent;touch-action:manipulation';
+    const csLockedStyle = 'color:#aaa;border:1px solid #ddd;padding:1px 5px;border-radius:2px;font-size:10px;margin-right:3px;background:#f5f5f5;cursor:default';
+
+    // CFO row (if Finance Dept owned)
+    const maxCFOLevel = getFinanceDeptLevel();
+    if (maxCFOLevel > 0) {
+      const activeCFO = gameState.activeCFOLevel;
+      let cfoManual = `<span style="${csBtnStyle(activeCFO === 0)}" onclick="setActiveCFOLevel(0)" title="Set earnings guidance yourself each quarter">Manual</span>`;
+      const cfoLabels = { 1: '👶 1', 2: '📊 2', 3: '🎩 3' };
+      const cfoTooltips = {
+        1: 'The Intern — auto-sets guidance randomly (often wrong)',
+        2: 'Competent CFO — analyzes trends, ~70% optimal',
+        3: 'Elite CFO — factors in everything, ~90% optimal'
+      };
+      let cfoLevels = '';
+      for (let lvl = 1; lvl <= 3; lvl++) {
+        if (lvl <= maxCFOLevel) {
+          cfoLevels += `<span style="${csBtnStyle(activeCFO === lvl)}" onclick="setActiveCFOLevel(${lvl})" title="${cfoTooltips[lvl]}">${cfoLabels[lvl]}</span>`;
+        } else {
+          cfoLevels += `<span style="${csLockedStyle}" title="Purchase CFO Lv${lvl} in Board Room">🔒${lvl}</span>`;
+        }
+      }
+      // Record for active CFO
+      const record = gameState.cfoRecords[activeCFO];
+      const recordStr = activeCFO > 0 && record && record.total > 0
+        ? `${record.beats}/${record.total} (${Math.round(record.beats / record.total * 100)}%)`
+        : activeCFO > 0 ? 'No data' : '';
+      const recordColor = activeCFO > 0 && record && record.total > 0
+        ? (record.beats / record.total >= 0.7 ? '#217346' : record.beats / record.total >= 0.4 ? '#b8860b' : '#c00')
+        : '#333';
+
+      html += `<div class="grid-row ir-row">
+        <div class="row-num">${rowNum++}</div>
+        <div class="cell cell-a" style="padding-left:16px;color:#444">CFO</div>
+        <div class="cell cell-b" style="display:flex;align-items:center">${cfoManual}</div>
+        <div class="cell cell-c" style="display:flex;align-items:center">${cfoLevels}</div>
+        <div class="cell cell-d" style="font-size:10px;color:#888">${activeCFO > 0 ? 'Record' : ''}</div>
+        <div class="cell cell-e" style="font-family:Consolas,monospace;font-size:11px;color:${recordColor}">${recordStr}</div>
+        <div class="cell cell-f"></div>
+        <div class="cell cell-g"></div>
+        <div class="cell cell-h"></div>
+      </div>`;
+    }
+
+    // CTO row (if Tech Dept owned)
+    const maxCTOLevel = getTechDeptLevel();
+    if (maxCTOLevel > 0) {
+      const activeCTO = gameState.activeCTOLevel;
+      let ctoManual = `<span style="${csBtnStyle(activeCTO === 0)}" onclick="setActiveCTOLevel(0)" title="Upgrade departments yourself">Manual</span>`;
+      const ctoLabels = { 1: '🔧 1', 2: '💻 2', 3: '🧠 3' };
+      const ctoTooltips = {
+        1: 'The Intern — auto-upgrades cheapest department first',
+        2: 'Competent CTO — prioritizes upgrades by ROI',
+        3: 'Elite CTO — ROI-optimized with earnings timing awareness'
+      };
+      let ctoLevels = '';
+      for (let lvl = 1; lvl <= 3; lvl++) {
+        if (lvl <= maxCTOLevel) {
+          ctoLevels += `<span style="${csBtnStyle(activeCTO === lvl)}" onclick="setActiveCTOLevel(${lvl})" title="${ctoTooltips[lvl]}">${ctoLabels[lvl]}</span>`;
+        } else {
+          ctoLevels += `<span style="${csLockedStyle}" title="Purchase CTO Lv${lvl} in Board Room">🔒${lvl}</span>`;
+        }
+      }
+
+      html += `<div class="grid-row ir-row">
+        <div class="row-num">${rowNum++}</div>
+        <div class="cell cell-a" style="padding-left:16px;color:#444">CTO</div>
+        <div class="cell cell-b" style="display:flex;align-items:center">${ctoManual}</div>
+        <div class="cell cell-c" style="display:flex;align-items:center">${ctoLevels}</div>
+        <div class="cell cell-d"></div>
+        <div class="cell cell-e"></div>
+        <div class="cell cell-f" style="font-size:9px;color:#888">${activeCTO > 0 ? 'Auto-upgrading depts' : ''}</div>
+        <div class="cell cell-g"></div>
+        <div class="cell cell-h"></div>
+      </div>`;
+    }
   }
 
   // ===== TAX LIABILITY (if any debts) =====
@@ -2605,6 +2762,10 @@ function updateTaxPanel() {
     getBoardRoomTaxRate(),
     getBoardRoomRevMultiplier(),
     gameState.pnlCollapsed ? 1 : 0,
+    gameState.activeCFOLevel || 0,
+    gameState.activeCTOLevel || 0,
+    getFinanceDeptLevel(),
+    getTechDeptLevel(),
   ].join('|');
 
   if (hashParts !== _lastTaxPanelHash) {
@@ -2710,6 +2871,9 @@ function gameTick() {
   // Mini-task system
   trySpawnMiniTask();
   trySpawnGoldenCell();
+
+  // CTO auto-upgrade
+  ctoAutoUpgrade();
 
   // Event system
   if (gameState.eventCooldown > 0) {
@@ -3036,6 +3200,7 @@ function saveGame() {
     // Phase 2.2: Board Room
     boardRoomPurchases: gameState.boardRoomPurchases || {},
     activeCFOLevel: gameState.activeCFOLevel || 0,
+    activeCTOLevel: gameState.activeCTOLevel || 0,
     cfoRecords: gameState.cfoRecords || {},
     revenueHistory: gameState.revenueHistory || [],
     lastQuarterRE: gameState.lastQuarterRE || 0,
@@ -3114,6 +3279,7 @@ function loadGame() {
     // Phase 2.2: Board Room
     gameState.boardRoomPurchases = data.boardRoomPurchases || {};
     gameState.activeCFOLevel = data.activeCFOLevel || 0;
+    gameState.activeCTOLevel = data.activeCTOLevel || 0;
     gameState.cfoRecords = data.cfoRecords || {};
     gameState.revenueHistory = data.revenueHistory || [];
     gameState.lastQuarterRE = data.lastQuarterRE || 0;
@@ -3235,6 +3401,7 @@ function resetGame() {
   gameState.boardRoomPurchases = {};
   gameState.activeTab = 'operations';
   gameState.activeCFOLevel = 0;
+  gameState.activeCTOLevel = 0;
   gameState.cfoRecords = {};
   gameState.revenueHistory = [];
   gameState.lastQuarterRE = 0;
@@ -3911,6 +4078,7 @@ function resetBoardRoom() {
   gameState.boardRoomPurchases = {};
   gameState.retainedEarnings = 0;
   gameState.activeCFOLevel = 0;
+  gameState.activeCTOLevel = 0;
   gameState.cfoRecords = {};
   gameState.revenueHistory = [];
   gameState.lastQuarterRE = 0;
@@ -4139,6 +4307,7 @@ function trackEarningsRevenue(amount) {
 window.forceIPO = forceIPO;
 window.resetBoardRoom = resetBoardRoom;
 window.setActiveCFOLevel = setActiveCFOLevel;
+window.setActiveCTOLevel = setActiveCTOLevel;
 window.setGuidance = setGuidance;
 
 // ===== BOARD ROOM (Phase 2.2) =====
@@ -4363,6 +4532,15 @@ function purchaseBoardRoomUpgrade(id) {
     gameState.activeCFOLevel = 2;
   } else if (id === 'finance_dept_3' && gameState.activeCFOLevel <= 2) {
     gameState.activeCFOLevel = 3;
+  }
+
+  // Auto-activate Tech Dept when first purchased
+  if (id === 'tech_dept_1' && gameState.activeCTOLevel === 0) {
+    gameState.activeCTOLevel = 1;
+  } else if (id === 'tech_dept_2' && gameState.activeCTOLevel <= 1) {
+    gameState.activeCTOLevel = 2;
+  } else if (id === 'tech_dept_3' && gameState.activeCTOLevel <= 2) {
+    gameState.activeCTOLevel = 3;
   }
 
   // Status bar feedback
