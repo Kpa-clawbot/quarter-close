@@ -2953,6 +2953,8 @@ function toggleDebugEventDropdown() {
     btn.textContent = event.debugLabel || `${event.sender || 'Dynamic'} — ${(event.subject || '(dynamic event)').replace(/[\u{1F300}-\u{1FAFF}]/gu, '').trim()}`;
     btn.onmouseenter = () => btn.style.background = '#e8f0fe';
     btn.onmouseleave = () => btn.style.background = '';
+    btn.ontouchstart = () => btn.style.background = '#e8f0fe';
+    btn.ontouchend = () => btn.style.background = '';
     btn.onclick = () => { dd.classList.add('hidden'); showEvent(event); };
     dd.appendChild(btn);
   });

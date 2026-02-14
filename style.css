@@ -19,6 +19,8 @@ body {
   width: 100vw;
   user-select: none;
   -webkit-user-select: none;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .hidden { display: none !important; }
@@ -733,7 +735,8 @@ body {
   color: #2e7d32;
 }
 
-.cell-btn.btn-collect:hover {
+.cell-btn.btn-collect:hover,
+.cell-btn.btn-collect:active {
   background: #c8e6c9;
 }
 
@@ -743,7 +746,8 @@ body {
   color: #1565c0;
 }
 
-.cell-btn.btn-hire:hover {
+.cell-btn.btn-hire:hover,
+.cell-btn.btn-hire:active {
   background: #bbdefb;
 }
 
@@ -758,7 +762,8 @@ body {
   cursor: pointer;
 }
 
-.cell-btn.btn-max:hover {
+.cell-btn.btn-max:hover,
+.cell-btn.btn-max:active {
   color: #1565c0;
 }
 
@@ -784,7 +789,8 @@ body {
   color: #e65100;
 }
 
-.cell-btn.btn-upgrade:hover {
+.cell-btn.btn-upgrade:hover,
+.cell-btn.btn-upgrade:active {
   background: #ffe0b2;
 }
 
@@ -794,7 +800,8 @@ body {
   color: #7b1fa2;
 }
 
-.cell-btn.btn-unlock:hover {
+.cell-btn.btn-unlock:hover,
+.cell-btn.btn-unlock:active {
   background: #e1bee7;
 }
 
@@ -804,7 +811,8 @@ body {
   color: #00695c;
 }
 
-.cell-btn.btn-automate:hover {
+.cell-btn.btn-automate:hover,
+.cell-btn.btn-automate:active {
   background: #b2dfdb;
 }
 
@@ -815,7 +823,8 @@ body {
   font-size: 9px;
 }
 
-.cell-btn.btn-prestige:hover {
+.cell-btn.btn-prestige:hover,
+.cell-btn.btn-prestige:active {
   background: #ffecb3;
 }
 
@@ -1243,7 +1252,8 @@ body {
   color: #333;
 }
 
-.toast-btn:hover {
+.toast-btn:hover,
+.toast-btn:active {
   background: #e8e8e8;
 }
 
@@ -1253,7 +1263,8 @@ body {
   border-color: #0078d4;
 }
 
-.toast-btn.toast-primary:hover {
+.toast-btn.toast-primary:hover,
+.toast-btn.toast-primary:active {
   background: #106ebe;
 }
 
@@ -2084,7 +2095,8 @@ body {
 }
 
 /* Clickable source name hint */
-.source-name.focusable:hover {
+.source-name.focusable:hover,
+.source-name.focusable:active {
   background: #f0f7f0 !important;
   text-decoration: underline;
   text-decoration-color: #ccc;
