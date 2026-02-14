@@ -98,6 +98,11 @@ All three are optional — toggle off in Game Options for pure idle experience.
 - Recession = survival mode, layoffs, cost cutting
 - Cycle between them over long gameplay
 
+### Late-Game Economy (Phase 2)
+- At $Q+ revenue, CapEx ROI goes negative — hires/upgrades cost more than the revenue they generate
+- RE upgrades run dry — need more meaningful late-game sinks
+- Potential solutions: acquisitions (buy competitor companies), mega-projects, new prestige layers, expanded Board Room tier
+
 ## Random Events ("Emails")
 
 Events appear as email-style toast notifications. Mix of positive (Lucky Client, R&D Breakthrough), neutral (Mom, College Buddy), and negative (IT disasters). Each has 1-2 action buttons; non-closable events auto-fire the last button after 10s.
@@ -297,7 +302,7 @@ Lemonade Stand → Food Cart → Food Truck → Small Restaurant → Catering Co
 ### 📦 E-Commerce Hustler
 *From garage sales to retail empire*
 
-Garage Sale → eBay Reselling → Dropshipping Store → Amazon FBA → Warehouse & Distro → Private Label Brand → Retail Chain → Consumer Empire → Marketplace Platform → Logistics Network → Retail Monopoly → Everything Store
+Garage Sale → eBay Reselling → Dropshipping Store → Drop Shipping → Warehouse & Distro → Private Label Brand → Retail Chain → Consumer Empire → Marketplace Platform → Logistics Network → Retail Monopoly → Everything Store
 
 ### 📈 Entrepreneur
 *From side hustle to conglomerate*

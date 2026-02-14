@@ -390,3 +390,10 @@ Added tiers up to Decillion: K, M, B, T, Q, Qi (1e18), Sx (1e21), Sp (1e24), Oc 
 
 ### Department Column
 Level/prestige/breakthrough tags right-justified via flexbox. Name left, tags right.
+
+### Known Issues / Phase 2 Candidates
+
+**Late-game stall (post-$Q revenue)**
+- CapEx (hires/upgrades) costs more than the revenue it adds at high tiers, reducing valuation
+- RE upgrade options run dry — not enough meaningful late-game sinks
+- Potential solutions: acquisitions, mega-projects, new prestige layers, expanded Board Room
