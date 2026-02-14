@@ -1658,260 +1658,729 @@ body {
 }
 
 /* ============================================
-   MOBILE RESPONSIVE — Issue #34 & #35
+   MOBILE-ONLY UTILITY
+   ============================================ */
+.mobile-only {
+  display: none;
+}
+
+/* ============================================
+   MOBILE RESPONSIVE — Card-Based Layout
+   Complete overhaul for phone-sized screens
    ============================================ */
 @media (max-width: 600px) {
-  /* --- #34: Grid columns E-H off-screen --- */
-
-  /* Hide non-essential columns G (Rev/yr) and H (empty) */
-  .cell-g, .cell-h, .col-g, .col-h {
-    display: none !important;
+  /* Touch optimization */
+  *, *::before, *::after {
+    touch-action: manipulation;
   }
 
-  /* Filler rows: hide 8th and 9th child (G and H columns) */
-  .filler-row > :nth-child(8),
-  .filler-row > :nth-child(9) {
-    display: none !important;
+  html, body {
+    overscroll-behavior: none;
   }
 
-  /* Reduce grid to 7 columns */
-  #grid-container {
-    grid-template-columns: 28px minmax(60px, 1.2fr) 32px 50px minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr);
-    overflow-x: auto;
+  .mobile-only {
+    display: block;
   }
 
-  /* Hide toolbar to save vertical space (it's decorative) */
-  #toolbar {
-    display: none;
-  }
-
-  /* Hide decorative menu items (keep only File and Help) */
-  .menu-item:not(#file-menu):not([onclick="showHelp()"]) {
-    display: none;
-  }
-
-  /* Compact title bar */
-  #title-bar {
-    height: 26px;
-    padding: 0 4px;
-  }
-
-  #title-text {
-    font-size: 11px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    max-width: 200px;
-  }
-
-  /* Compact menu bar */
-  #menu-bar {
-    height: 36px;
-  }
-
-  /* Compact formula bar */
-  #formula-bar {
-    height: 22px;
-    font-size: 10px;
-  }
-
-  #cell-ref {
-    width: 40px;
-    font-size: 10px;
-  }
-
-  /* Smaller row numbers */
-  .row-num {
-    font-size: 9px;
-  }
-
-  /* Allow button text to wrap on narrow screens */
-  .cell-btn {
-    white-space: normal;
-    text-align: center;
-    line-height: 1.2;
-    font-size: 10px;
-  }
-
-  /* Compact cell padding */
-  .cell {
-    padding: 2px 3px;
-    font-size: 11px;
-  }
-
-  /* Ensure source names don't overflow */
-  .cell-a {
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  /* Revenue breakdown: show only $/sec and $/min on mobile (#39) */
-  #revenue-breakdown {
-    font-size: 12px;
-    padding: 4px 8px;
-    gap: 6px;
-    flex-wrap: nowrap;
-    overflow: hidden;
-  }
-
-  /* Hide $/hr and $/day stats and their preceding separators on mobile */
-  #stat-hr,
-  #stat-day {
-    display: none;
-  }
-
-  /* Hide the 2nd and 3rd separators (after $/min and $/hr) */
-  #revenue-breakdown .rb-sep:nth-of-type(2),
-  #revenue-breakdown .rb-sep:nth-of-type(3) {
-    display: none;
-  }
-
-  /* Hide debug buttons on mobile */
-  #revenue-breakdown > span:last-child {
-    display: none;
-  }
-
-  /* Sheet tabs: scrollable */
-  #sheet-tabs {
-    overflow-x: auto;
-    padding: 0 4px;
-  }
-
-  .sheet-tab {
-    font-size: 10px;
-    padding: 3px 10px;
-  }
-
-  /* Status bar compact */
-  #status-bar {
-    height: 22px;
-    font-size: 10px;
-    padding: 0 6px;
-  }
-
-  /* Toast: fit mobile width */
-  #event-toast {
-    width: 90vw;
-    max-width: 360px;
-  }
-
-  /* Modals: fit mobile width */
-  #help-content {
-    max-width: 95vw;
-    max-height: 85vh;
-  }
-
-  #about-content {
-    max-width: 90vw;
-    padding: 20px;
-  }
-
-  #offline-content {
-    max-width: 90vw;
-    padding: 20px;
-  }
-
-  #series-a-content {
-    max-width: 95vw;
-  }
-
-  #confirm-content {
-    max-width: 90vw;
-    padding: 20px;
-  }
-
-  /* Arc selection: single column on mobile */
-  #arc-options {
-    grid-template-columns: 1fr;
-    gap: 8px;
-  }
-
-  #arc-container {
-    padding: 20px;
-    width: 95%;
-  }
-
-  #arc-title {
-    font-size: 20px;
-  }
-
-  /* Valuation chart: hide on mobile (covers grid, hard to drag on touch) */
+  /* ===== HIDE DESKTOP-ONLY CHROME ===== */
+  #title-bar,
+  #menu-bar,
+  #toolbar,
+  #formula-bar,
+  #col-headers,
+  #row-1,
+  #row-sep,
+  #revenue-breakdown,
+  #sheet-tabs,
+  #filler-rows,
   #valuation-chart-container {
     display: none !important;
   }
 
-  /* Mini-task bar: compact */
-  #mini-task-bar {
-    padding: 4px 8px 4px 12px;
-    font-size: 11px;
-    max-width: 100%;
+  /* ===== GAME VIEW: Vertical stack with bottom nav ===== */
+  #game-view {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    height: 100dvh;
+    width: 100vw;
+    overflow: hidden;
+  }
+
+  /* ===== MOBILE CASH HEADER (Row 2 repurposed) ===== */
+  #row-cash {
+    display: flex !important;
     flex-wrap: wrap;
+    align-items: center;
+    padding: 10px 12px;
+    background: linear-gradient(135deg, #217346, #1a5c38);
+    color: white;
+    gap: 0;
+    border-bottom: none;
+    min-height: auto;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+
+  #row-cash .row-num { display: none; }
+  #row-cash .cell { 
+    border: none; 
+    padding: 0;
+    min-height: auto;
+    color: white;
+    font-family: 'Segoe UI', sans-serif;
+  }
+
+  /* Cash amount - big and prominent */
+  #row-cash #cash-display {
+    font-size: 24px !important;
+    font-weight: 700;
+    color: white !important;
+    flex: 0 0 100%;
+    order: 1;
+    justify-content: flex-start;
+    font-family: 'Consolas', 'Courier New', monospace;
+  }
+
+  /* Per-day display */
+  #row-cash #per-tick-display {
+    font-size: 13px !important;
+    color: rgba(255,255,255,0.85) !important;
+    flex: 1 1 auto;
+    order: 2;
+    justify-content: flex-start;
+    animation: none;
+  }
+
+  /* Stock price */
+  #row-cash #stock-price-cell {
+    flex: 0 0 auto;
+    order: 3;
+    justify-content: flex-end;
+  }
+
+  #row-cash #stock-price-cell span {
+    color: rgba(255,255,255,0.9) !important;
+  }
+
+  /* Hide desktop-specific cells in cash row */
+  #row-cash .cash-label,
+  #row-cash .cell-c,
+  #row-cash .rev-label,
+  #row-cash .rev-value,
+  #row-cash .cell-h {
+    display: none !important;
+  }
+
+  /* ===== GRID CONTAINER: Card-based vertical scroll ===== */
+  #grid-container {
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    flex: 1;
+    padding: 8px;
+    gap: 8px;
+    background: #f0f0f0;
+    /* Override the grid template */
+    grid-template-columns: none;
+    align-content: normal;
+  }
+
+  /* ===== DEPARTMENT CARDS ===== */
+  .grid-row.source-row {
+    display: flex !important;
+    flex-wrap: wrap;
+    background: white;
+    border-radius: 8px;
+    padding: 12px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    border: 1px solid #e0e0e0;
+    gap: 8px;
+    align-items: center;
+    min-height: auto !important;
+  }
+
+  .source-row > .row-num { display: none; }
+
+  .source-row > .cell {
+    border: none !important;
+    padding: 0;
+    min-height: auto !important;
+    white-space: normal;
+  }
+
+  /* Card row 1: Name (left) + Staff + Rev/day (right) */
+  .source-row > .cell-a {
+    flex: 1 1 auto;
+    font-size: 15px;
+    font-weight: 600;
+    color: #333 !important;
+    order: 1;
+  }
+
+  .source-row > .cell-b {
+    flex: 0 0 auto;
+    font-size: 13px;
+    color: #666 !important;
+    order: 2;
+    justify-content: flex-end;
+  }
+
+  .source-row > .cell-b::before {
+    content: '👥 ';
+  }
+
+  .source-row > .cell-c {
+    flex: 0 0 auto;
+    font-size: 13px;
+    order: 3;
+    justify-content: flex-end;
+  }
+
+  /* Card row 2: Action buttons (full width) */
+  .source-row > .cell-d {
+    flex: 1 1 100%;
+    order: 10;
+    display: flex !important;
     gap: 6px;
+    justify-content: stretch;
   }
 
-  /* --- #35: Touch targets too small --- */
-
-  /* All game buttons: minimum 44px touch target */
-  .cell-btn {
-    min-height: 44px;
-    min-width: 44px;
-    padding: 8px 10px;
-    font-size: 12px;
+  .source-row > .cell-e {
+    flex: 1 1 48%;
+    order: 11;
   }
 
-  /* Max(N) links: 44px touch target */
-  .cell-btn.btn-max {
+  .source-row > .cell-f {
+    flex: 1 1 48%;
+    order: 12;
+  }
+
+  /* Hide G and H columns */
+  .source-row > .cell-g,
+  .source-row > .cell-h {
+    display: none !important;
+  }
+
+  /* Buttons inside cards: full width, proper sizing */
+  .source-row .cell-btn {
+    width: 100%;
     min-height: 44px;
-    min-width: 36px;
-    padding: 8px 6px;
-    font-size: 11px;
-    display: inline-flex;
+    padding: 8px 12px;
+    font-size: 13px;
+    border-radius: 6px;
+    display: flex;
     align-items: center;
     justify-content: center;
+    white-space: nowrap;
+    text-align: center;
   }
 
-  /* Grid rows: taller to accommodate buttons */
-  .grid-row > * {
-    min-height: 48px;
+  .source-row .cell-btn.btn-max {
+    min-height: 36px;
+    min-width: auto;
+    font-size: 12px;
+    padding: 6px 10px;
+    background: #e3f2fd;
+    border: 1px solid #90caf9;
+    color: #1565c0;
+    text-decoration: none;
+    border-radius: 4px;
+    flex: 0 0 auto;
   }
 
-  /* Header row can stay compact */
-  .header-row > * {
-    min-height: 28px;
-  }
-
-  /* Separator row stays compact */
-  .sep-cell {
-    min-height: 4px !important;
-    height: 4px !important;
-  }
-
-  #row-sep > * {
-    min-height: 4px !important;
-  }
-
-  /* Filler rows stay compact */
-  .filler-row > * {
-    min-height: 24px;
-  }
-
-  /* Menu items: 44px touch targets */
-  .menu-item {
-    min-height: 44px;
-    display: inline-flex;
+  /* Auto badge */
+  .source-row .auto-badge {
+    font-size: 14px;
+    display: flex;
     align-items: center;
-    padding: 8px 16px;
-    font-size: 13px;
+    justify-content: center;
+    width: 100%;
+    min-height: 44px;
+    background: #e0f2f1;
+    border-radius: 6px;
+    color: #00695c;
+    font-weight: 600;
   }
 
-  /* Dropdown menu items: 44px touch targets */
-  .menu-dropdown-item {
+  /* ===== LOCKED DEPARTMENT CARDS ===== */
+  .source-row.source-locked {
+    background: #f8f8f8;
+    border-color: #e8e8e8;
+    opacity: 0.85;
+    gap: 6px;
+    padding: 10px 12px;
+  }
+
+  .source-row.source-locked .cell {
+    color: #999 !important;
+  }
+
+  .source-row.source-locked .cell-a {
+    font-size: 14px;
+    font-weight: 500;
+    flex: 1 1 auto;
+  }
+
+  .source-row.source-locked .cell-btn.btn-unlock {
+    width: 100%;
+    min-height: 44px;
+    font-size: 13px;
+    border-radius: 6px;
+  }
+
+  /* ===== HEADER ROW: Hide on mobile ===== */
+  .header-row {
+    display: none !important;
+  }
+
+  /* ===== SEP ROW: Hide on mobile ===== */
+  #row-sep, .sep-row {
+    display: none !important;
+  }
+
+  /* ===== TAX PANEL: Hide on mobile (shown in P&L tab) ===== */
+  #tax-panel {
+    display: none !important;
+  }
+
+  /* ===== BOARD ROOM ROWS: Hide on mobile (shown in Board tab) ===== */
+  #board-room-rows {
+    display: none !important;
+  }
+
+  /* ===== MINI-TASK BAR ===== */
+  #mini-task-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 10px 12px;
+    background: #fffde7;
+    border-bottom: 2px solid #f0e68c;
+    font-size: 14px;
+    max-width: 100%;
+    width: 100%;
+  }
+
+  #mini-task-text {
+    flex: 1 1 100%;
+    word-wrap: break-word;
+  }
+
+  #mini-task-reward {
+    font-size: 14px;
+  }
+
+  .mini-task-btn {
+    flex: 1 1 auto;
     min-height: 44px;
     padding: 10px 16px;
+    font-size: 14px;
+    border-radius: 6px;
+  }
+
+  .mini-task-skip {
+    min-height: 44px;
+    min-width: 44px;
+    padding: 10px;
+    font-size: 14px;
+    border-radius: 6px;
+  }
+
+  /* ===== STATUS BAR: Compact ===== */
+  #status-bar {
+    height: 24px;
+    font-size: 11px;
+    padding: 0 8px;
+    flex-shrink: 0;
+  }
+
+  #status-center,
+  #status-clicks,
+  #status-zoom,
+  #stock-sep,
+  #status-left .status-sep,
+  #status-timescale {
+    display: none;
+  }
+
+  #status-left { flex: 1; }
+  #status-right { flex: 0 0 auto; gap: 4px; }
+
+  /* ===== MOBILE BOTTOM NAV ===== */
+  #mobile-nav {
+    display: flex !important;
+    justify-content: space-around;
+    align-items: stretch;
+    background: white;
+    border-top: 1px solid #d0d0d0;
+    box-shadow: 0 -2px 8px rgba(0,0,0,0.08);
+    flex-shrink: 0;
+    padding: 0;
+    padding-bottom: env(safe-area-inset-bottom, 0);
+    z-index: 20;
+  }
+
+  .mob-nav-btn {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: none;
+    padding: 6px 4px;
+    min-height: 52px;
+    cursor: pointer;
+    color: #888;
+    font-family: inherit;
+    transition: color 0.15s;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .mob-nav-btn.active {
+    color: #217346;
+  }
+
+  .mob-nav-btn.hidden {
+    display: none !important;
+  }
+
+  .mob-nav-icon {
+    font-size: 20px;
+    line-height: 1;
+  }
+
+  .mob-nav-label {
+    font-size: 10px;
+    margin-top: 2px;
+    font-weight: 600;
+  }
+
+  /* ===== MOBILE P&L VIEW ===== */
+  #mobile-pnl-view {
+    flex: 1;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 8px;
+    background: #f0f0f0;
+  }
+
+  #mobile-pnl-content {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  /* ===== MOBILE BOARD ROOM VIEW ===== */
+  #mobile-boardroom-view {
+    flex: 1;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 8px;
+    background: #f0f0f0;
+  }
+
+  #mobile-boardroom-content {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  /* ===== MOBILE SETTINGS VIEW ===== */
+  #mobile-settings-view {
+    flex: 1;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 16px;
+    background: #f0f0f0;
+  }
+
+  .mob-settings-section {
+    background: white;
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 12px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  }
+
+  .mob-settings-section h3 {
+    font-size: 18px;
+    color: #217346;
+    margin-bottom: 4px;
+  }
+
+  .mob-settings-version {
+    font-size: 12px;
+    color: #888;
+  }
+
+  .mob-settings-btn {
+    display: block;
+    width: 100%;
+    padding: 14px 16px;
+    margin-bottom: 8px;
+    border: 1px solid #e0e0e0;
+    background: white;
+    border-radius: 8px;
+    font-size: 15px;
+    text-align: left;
+    cursor: pointer;
+    color: #333;
+    font-family: inherit;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .mob-settings-btn:active {
+    background: #f0f0f0;
+  }
+
+  .mob-settings-btn.mob-danger {
+    color: #d32f2f;
+    border-color: #ffcdd2;
+  }
+
+  .mob-settings-stats {
+    font-size: 13px;
+    color: #666;
+    line-height: 1.8;
+  }
+
+  /* ===== MOBILE CARD COMPONENTS ===== */
+  .mob-card {
+    background: white;
+    border-radius: 8px;
+    padding: 12px 14px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    border: 1px solid #e8e8e8;
+  }
+
+  .mob-card-header {
+    font-size: 14px;
+    font-weight: 700;
+    color: #333;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .mob-card-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 0;
+    border-bottom: 1px solid #f0f0f0;
     font-size: 13px;
   }
 
-  /* Toast close button: 44px touch target */
+  .mob-card-row:last-child {
+    border-bottom: none;
+  }
+
+  .mob-card-label {
+    color: #666;
+  }
+
+  .mob-card-value {
+    font-weight: 600;
+    color: #333;
+    font-family: 'Consolas', 'Courier New', monospace;
+  }
+
+  .mob-card-value.positive { color: #217346; }
+  .mob-card-value.negative { color: #c00; }
+  .mob-card-value.purple { color: #7b1fa2; }
+  .mob-card-value.blue { color: #0078d4; }
+
+  /* Board Room upgrade cards */
+  .mob-br-card {
+    background: white;
+    border-radius: 8px;
+    padding: 12px 14px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    border: 1px solid #e8e8e8;
+  }
+
+  .mob-br-card.owned {
+    border-left: 3px solid #217346;
+    background: #f9fff9;
+  }
+
+  .mob-br-card.locked {
+    opacity: 0.6;
+    background: #fafafa;
+  }
+
+  .mob-br-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 2px;
+  }
+
+  .mob-br-desc {
+    font-size: 12px;
+    color: #888;
+    margin-bottom: 8px;
+  }
+
+  .mob-br-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .mob-br-cost {
+    font-size: 13px;
+    font-weight: 600;
+    color: #7b1fa2;
+    font-family: 'Consolas', monospace;
+  }
+
+  .mob-br-status {
+    font-size: 12px;
+    font-weight: 600;
+    color: #217346;
+  }
+
+  .mob-br-buy {
+    background: #7b1fa2;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    min-height: 44px;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .mob-br-buy:disabled {
+    background: #d0d0d0;
+    color: #999;
+  }
+
+  .mob-br-locked-text {
+    font-size: 12px;
+    color: #999;
+    font-style: italic;
+  }
+
+  /* Tax debt cards */
+  .mob-tax-card {
+    background: #fff5f5;
+    border-radius: 8px;
+    padding: 12px 14px;
+    border: 1px solid #ffcdd2;
+    margin-bottom: 8px;
+  }
+
+  .mob-tax-header {
+    font-size: 14px;
+    font-weight: 600;
+    color: #900;
+    margin-bottom: 6px;
+  }
+
+  .mob-tax-settle {
+    background: #d32f2f;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    min-height: 44px;
+    width: 100%;
+    margin-top: 8px;
+  }
+
+  .mob-tax-settle:disabled {
+    background: #999;
+  }
+
+  /* IR (Investor Relations) section in mobile P&L */
+  .mob-ir-guidance-btns {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-top: 8px;
+  }
+
+  .mob-ir-guidance-btn {
+    flex: 1 1 auto;
+    min-height: 40px;
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    background: white;
+    font-size: 12px;
+    cursor: pointer;
+    text-align: center;
+    font-family: inherit;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .mob-ir-guidance-btn.active {
+    background: #0078d4;
+    color: white;
+    border-color: #005a9e;
+    font-weight: 600;
+  }
+
+  /* CFO level selector */
+  .mob-cfo-btns {
+    display: flex;
+    gap: 6px;
+    margin-top: 8px;
+  }
+
+  .mob-cfo-btn {
+    flex: 1;
+    min-height: 40px;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    background: white;
+    font-size: 12px;
+    cursor: pointer;
+    text-align: center;
+    font-family: inherit;
+  }
+
+  .mob-cfo-btn.active {
+    background: #0078d4;
+    color: white;
+    border-color: #005a9e;
+    font-weight: 600;
+  }
+
+  /* ===== TOASTS: Mobile optimized ===== */
+  #event-toast {
+    width: 92vw;
+    max-width: 400px;
+    left: 50% !important;
+    top: auto !important;
+    bottom: 80px !important;
+    transform: translateX(-50%) !important;
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+    font-size: 14px;
+    max-height: 70vh;
+    overflow-y: auto;
+  }
+
+  #toast-header {
+    border-radius: 12px 12px 0 0;
+    padding: 10px 12px;
+  }
+
   #toast-close {
     min-width: 44px;
     min-height: 44px;
@@ -1921,41 +2390,51 @@ body {
     font-size: 18px;
   }
 
-  /* Toast action buttons: 44px */
+  #toast-body {
+    padding: 8px 12px;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    white-space: pre-wrap;
+  }
+
+  #toast-actions {
+    padding: 8px 12px 12px;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
   .toast-btn {
     min-height: 44px;
     padding: 10px 16px;
     font-size: 13px;
+    border-radius: 6px;
+    flex: 1 1 auto;
+    text-align: center;
   }
 
-  /* Mini-task buttons: 44px */
-  .mini-task-btn {
-    min-height: 44px;
-    padding: 8px 14px;
+  .toast-countdown-wrapper {
+    height: 44px;
+    border-radius: 6px;
+  }
+
+  .toast-countdown-label {
     font-size: 13px;
   }
 
-  .mini-task-skip {
-    min-height: 44px;
-    min-width: 44px;
-    padding: 8px 10px;
-    font-size: 13px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  /* Modal buttons: 44px */
-  #offline-ok,
-  #series-a-ok,
-  #about-content button,
-  #confirm-buttons button {
-    min-height: 44px;
-    padding: 10px 20px;
+  /* ===== MODALS: Mobile optimized ===== */
+  #help-content {
+    max-width: 95vw;
+    max-height: 85vh;
+    border-radius: 12px;
     font-size: 14px;
   }
 
-  /* Help close button */
+  .help-body {
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    font-size: 13px;
+  }
+
   .help-close {
     min-width: 44px;
     min-height: 44px;
@@ -1965,411 +2444,126 @@ body {
     font-size: 20px;
   }
 
-  /* Tab buttons */
-  .sheet-tab {
-    min-height: 36px;
-    display: flex;
-    align-items: center;
-  }
-
-  /* Column headers stay compact */
-  #col-headers > * {
-    min-height: 22px;
-  }
-
-  /* Title bar buttons */
-  .title-btn {
-    min-width: 44px;
-    min-height: 30px;
-  }
-
-  /* Arc option cards: larger touch targets */
-  .arc-option {
-    padding: 20px 16px;
-    min-height: 80px;
-  }
-
-  /* Boss view: hide on mobile (Esc key doesn't work on touch) */
-  /* No change needed - boss view is hidden by default */
-
-  /* Toast countdown wrapper */
-  .toast-countdown-wrapper {
-    height: 44px;
-  }
-
-  .toast-countdown-label {
-    font-size: 13px;
-  }
-
-  /* --- #40: Scale up text sizes for mobile readability --- */
-
-  /* Grid cells: bump from 11px to 14px */
-  .cell {
-    font-size: 14px;
-  }
-
-  /* Revenue numbers in grid */
-  .cell-e, .cell-f {
-    font-size: 13px;
-  }
-
-  /* Button labels: readable on mobile */
-  .cell-btn {
-    font-size: 13px;
-  }
-
-  .cell-btn.btn-max {
-    font-size: 12px;
-  }
-
-  /* Revenue breakdown bar */
-  .rb-label {
-    font-size: 12px;
-  }
-
-  .rb-val {
-    font-size: 12px;
-  }
-
-  /* Status bar */
-  #status-bar {
-    font-size: 12px;
-  }
-
-  /* Sheet tabs */
-  .sheet-tab {
-    font-size: 12px;
-  }
-
-  /* Formula bar */
-  #formula-bar {
-    font-size: 12px;
-  }
-
-  #cell-ref {
-    font-size: 11px;
-  }
-
-  /* Row numbers */
-  .row-num {
-    font-size: 10px;
-  }
-
-  /* Column headers */
-  .col-header {
-    font-size: 12px;
-  }
-
-  /* Toast messages */
-  #event-toast {
-    font-size: 14px;
-  }
-
-  /* Mini-task bar */
-  #mini-task-bar {
-    font-size: 13px;
-  }
-
-  /* Modal text */
-  #help-content {
-    font-size: 14px;
-  }
-
   #about-content {
-    font-size: 14px;
-  }
-
-  /* --- #41: Toast notifications responsive sizing --- */
-  #event-toast {
     max-width: 90vw;
-    width: 90vw;
-  }
-
-  #toast-body {
-    word-wrap: break-word;
-    overflow-wrap: break-word;
-  }
-
-  #toast-actions {
-    flex-wrap: wrap;
-  }
-
-  .toast-btn {
-    flex: 1 1 auto;
-    text-align: center;
-  }
-
-  /* --- #42: Mobile boss key button --- */
-  .mobile-boss-btn {
-    /* On desktop, this is just a normal minimize button */
-    /* On mobile, it triggers boss mode */
-  }
-
-  /* --- #43: Touch event support / eliminate 300ms tap delay --- */
-  *, *::before, *::after {
-    touch-action: manipulation;
-  }
-
-  /* --- #44: Formula bar wastes space on mobile --- */
-  #formula-bar {
-    display: none;
-  }
-
-  /* --- #45: Mini-task bar mobile-friendly layout --- */
-  #mini-task-bar {
-    max-width: 100%;
-    width: 100%;
-    padding: 8px 10px;
-    gap: 8px;
-    flex-wrap: wrap;
-  }
-
-  #mini-task-text {
-    flex: 1 1 100%;
-    word-wrap: break-word;
-    overflow-wrap: break-word;
-  }
-
-  #mini-task-reward {
-    flex: 0 0 auto;
-  }
-
-  .mini-task-btn {
-    flex: 1 1 auto;
-    min-width: 80px;
-  }
-
-  .mini-task-skip {
-    flex: 0 0 auto;
-  }
-
-  /* --- #50: Status bar simplified for mobile --- */
-  #status-left .status-sep,
-  #status-timescale {
-    display: none;
-  }
-
-  #status-center {
-    display: none;
-  }
-
-  #status-clicks,
-  #status-zoom,
-  #stock-sep {
-    display: none;
-  }
-
-  /* Keep only game-date on left, time on right */
-  #status-left {
-    flex: 1;
-  }
-
-  #status-right {
-    flex: 0 0 auto;
-    gap: 4px;
-  }
-
-  /* --- #51: Modal dialogs max-width clamping --- */
-  #help-content {
-    max-width: 95vw;
-    max-height: 85vh;
-    overflow-y: auto;
-  }
-
-  .help-body {
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-  }
-
-  #about-content {
-    max-width: 95vw;
+    padding: 20px;
+    border-radius: 12px;
+    font-size: 14px;
   }
 
   #offline-content {
-    max-width: 95vw;
+    max-width: 90vw;
+    padding: 20px;
+    border-radius: 12px;
   }
 
   #series-a-content {
     max-width: 95vw;
+    border-radius: 12px;
   }
 
   #confirm-content {
-    max-width: 95vw;
+    max-width: 90vw;
+    padding: 20px;
+    border-radius: 12px;
   }
 
-  /* --- #48: Hide filler rows on mobile to save vertical space --- */
-  #filler-rows {
-    display: none !important;
+  /* Modal buttons */
+  #offline-ok,
+  #series-a-ok,
+  #about-content button,
+  #confirm-buttons button {
+    min-height: 44px;
+    padding: 12px 20px;
+    font-size: 14px;
+    border-radius: 6px;
+  }
+
+  /* ===== ARC SELECTION: Mobile ===== */
+  #arc-options {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  #arc-container {
+    padding: 20px;
+    width: 95%;
+    border-radius: 12px;
+  }
+
+  #arc-title {
+    font-size: 20px;
+  }
+
+  .arc-option {
+    padding: 16px;
+    min-height: 60px;
+    border-radius: 8px;
+  }
+
+  /* ===== GOLDEN CELL ON MOBILE ===== */
+  .source-row.golden-cell {
+    border-color: #ff9800 !important;
+    box-shadow: 0 0 12px rgba(255, 152, 0, 0.4) !important;
   }
 }
 
 /* ============================================
-   LANDSCAPE MODE — Issue #49
+   LANDSCAPE MODE
    ============================================ */
-@media (max-width: 900px) and (orientation: landscape) {
-  /* Compact title bar in landscape */
-  #title-bar {
-    height: 22px;
-    font-size: 10px;
-    padding: 0 4px;
+@media (max-width: 900px) and (max-height: 500px) and (orientation: landscape) {
+  /* In landscape on mobile, use a more compact card layout */
+  #row-cash {
+    padding: 6px 12px;
   }
 
-  .title-btn {
-    width: 36px;
-    height: 22px;
-    font-size: 10px;
+  #row-cash #cash-display {
+    font-size: 18px !important;
   }
 
-  #title-text {
-    font-size: 10px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+  .source-row {
+    padding: 8px !important;
+    gap: 6px !important;
   }
 
-  /* Hide menu bar entirely in landscape — vertical space is critical */
-  #menu-bar {
-    display: none;
+  .source-row .cell-btn {
+    min-height: 36px !important;
+    font-size: 12px !important;
   }
 
-  /* Hide formula bar */
-  #formula-bar {
-    display: none;
-  }
-
-  /* Hide toolbar */
-  #toolbar {
-    display: none;
-  }
-
-  /* Compact column headers */
-  #col-headers > * {
-    height: 18px;
-    min-height: 18px;
-  }
-
-  .col-header {
+  #status-bar {
+    height: 20px;
     font-size: 10px;
   }
 
-  /* Compact grid rows for landscape's limited vertical space */
-  .grid-row > * {
-    min-height: 32px;
+  #mobile-nav {
+    padding: 0;
   }
 
-  .header-row > * {
-    min-height: 20px;
+  .mob-nav-btn {
+    min-height: 40px;
+    padding: 4px 4px;
   }
 
-  /* Compact cell buttons — still touchable but shorter */
-  .cell-btn {
-    min-height: 32px;
-    min-width: 40px;
-    padding: 4px 8px;
-    font-size: 11px;
+  .mob-nav-icon {
+    font-size: 16px;
   }
 
-  .cell-btn.btn-max {
-    min-height: 32px;
-    font-size: 10px;
-  }
-
-  /* Compact row numbers */
-  .row-num {
+  .mob-nav-label {
     font-size: 9px;
   }
 
-  /* Cells: slightly smaller text */
-  .cell {
-    font-size: 12px;
-    padding: 1px 3px;
-  }
-
-  /* Compact separator */
-  .sep-cell {
-    height: 2px !important;
-    min-height: 2px !important;
-  }
-
-  #row-sep > * {
-    min-height: 2px !important;
-  }
-
-  /* Hide filler rows in landscape too */
-  #filler-rows {
-    display: none !important;
-  }
-
-  /* Compact revenue breakdown */
-  #revenue-breakdown {
-    padding: 2px 8px;
-    font-size: 10px;
-  }
-
-  /* Hide $/hr and $/day in landscape */
-  #stat-hr,
-  #stat-day {
-    display: none;
-  }
-
-  #revenue-breakdown .rb-sep:nth-of-type(2),
-  #revenue-breakdown .rb-sep:nth-of-type(3) {
-    display: none;
-  }
-
-  /* Compact sheet tabs */
-  #sheet-tabs {
-    height: 22px;
-  }
-
-  .sheet-tab {
-    font-size: 10px;
-    padding: 2px 10px;
-    min-height: 22px;
-  }
-
-  /* Compact status bar */
-  #status-bar {
-    height: 18px;
-    font-size: 10px;
-    padding: 0 6px;
-  }
-
-  /* Simplify status bar like portrait */
-  #status-center {
-    display: none;
-  }
-
-  #status-clicks,
-  #status-zoom,
-  #stock-sep {
-    display: none;
-  }
-
-  /* Mini-task bar compact */
-  #mini-task-bar {
-    padding: 3px 8px;
-    font-size: 11px;
-    gap: 6px;
-    max-width: 100%;
-  }
-
-  /* Toast: fit landscape */
+  /* Toast: more compact in landscape */
   #event-toast {
-    max-width: 50vw;
-    max-height: 90vh;
-  }
-
-  #toast-body {
-    max-height: 40vh;
-    overflow-y: auto;
+    max-width: 60vw;
+    max-height: 80vh;
   }
 
   .toast-btn {
     min-height: 36px;
   }
 
-  /* Modals: fit landscape viewport */
+  /* Modals: landscape fit */
   #help-content {
     max-height: 90vh;
     max-width: 70vw;
@@ -2385,24 +2579,7 @@ body {
     max-width: 70vw;
   }
 
-  /* Timescale banner compact */
-  #timescale-banner {
-    padding: 3px 12px;
-    font-size: 11px;
-  }
-
-  /* Valuation chart: hide in landscape too */
   #valuation-chart-container {
     display: none !important;
-  }
-
-  /* Touch action for landscape too */
-  *, *::before, *::after {
-    touch-action: manipulation;
-  }
-
-  /* Overscroll prevention */
-  html, body {
-    overscroll-behavior: none;
   }
 }

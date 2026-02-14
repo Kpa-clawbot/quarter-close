@@ -3286,7 +3286,17 @@ function init() {
   if (!loaded) {
     showArcSelect();
   }
-  setInterval(gameTick, 1000);
+
+  // Use mobile-aware tick if on mobile
+  setInterval(function() {
+    gameTick();
+    if (typeof mobileTickUpdate === 'function') mobileTickUpdate();
+  }, 1000);
+
+  // Mobile initialization
+  if (typeof updateMobileNav === 'function' && isMobile()) {
+    updateMobileNav();
+  }
 }
 
 // Expose for inline onclick
@@ -3570,5 +3580,429 @@ window.showHelp = showHelp;
 window.dismissHelp = dismissHelp;
 window.switchTab = switchTab;
 
+// ============================================
+// MOBILE SUPPORT
+// ============================================
+
+function isMobile() {
+  return window.innerWidth <= 600;
+}
+
+let _mobileActiveTab = 'operations';
+let _lastMobilePnlHash = '';
+let _lastMobileBRHash = '';
+
+function mobileSwitchTab(tab) {
+  _mobileActiveTab = tab;
+
+  // Update nav buttons
+  document.querySelectorAll('.mob-nav-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.tab === tab);
+  });
+
+  // Show/hide views
+  const gridContainer = document.getElementById('grid-container');
+  const pnlView = document.getElementById('mobile-pnl-view');
+  const brView = document.getElementById('mobile-boardroom-view');
+  const settingsView = document.getElementById('mobile-settings-view');
+  const miniTaskBar = document.getElementById('mini-task-bar');
+
+  // Hide all
+  gridContainer.style.display = 'none';
+  pnlView.classList.add('hidden');
+  brView.classList.add('hidden');
+  settingsView.classList.add('hidden');
+
+  switch (tab) {
+    case 'operations':
+      gridContainer.style.display = '';
+      // Sync with internal game state
+      if (gameState.activeTab !== 'operations') {
+        gameState.activeTab = 'operations';
+      }
+      break;
+    case 'pnl':
+      pnlView.classList.remove('hidden');
+      pnlView.style.display = 'block';
+      _lastMobilePnlHash = '';
+      buildMobilePnL();
+      break;
+    case 'boardroom':
+      brView.classList.remove('hidden');
+      brView.style.display = 'block';
+      _lastMobileBRHash = '';
+      buildMobileBoardRoom();
+      break;
+    case 'settings':
+      settingsView.classList.remove('hidden');
+      settingsView.style.display = 'block';
+      updateMobileSettings();
+      break;
+  }
+}
+
+function updateMobileNav() {
+  if (!isMobile()) return;
+  const brBtn = document.getElementById('mob-nav-boardroom');
+  if (brBtn) {
+    if (gameState.isPublic) {
+      brBtn.classList.remove('hidden');
+    } else {
+      brBtn.classList.add('hidden');
+    }
+  }
+}
+
+function updateMobileSettings() {
+  const statsEl = document.getElementById('mob-stats');
+  if (!statsEl || !gameState.arc) return;
+
+  const totalRev = totalAnnualRev();
+  const perTick = totalRevPerTick();
+
+  statsEl.innerHTML = `
+    <div><strong>Game Date:</strong> ${document.getElementById('game-date').textContent}</div>
+    <div><strong>Revenue/sec:</strong> ${formatStatMoney(totalRev / SECS_PER_YEAR)}/s</div>
+    <div><strong>Revenue/day:</strong> ${formatStatMoney(perTick)}/d</div>
+    <div><strong>Revenue/year:</strong> ${formatRate(totalRev)}</div>
+    <div><strong>Total Earned:</strong> ${formatMoney(gameState.totalEarned)}</div>
+    <div><strong>Clicks:</strong> ${gameState.totalClicks.toLocaleString()}</div>
+    <div><strong>Play Time:</strong> ${formatDuration(gameState.totalPlayTime)}</div>
+    ${gameState.isPublic ? `<div><strong>Stock Price:</strong> ${formatMoney(getStockPrice())}</div>
+    <div><strong>Retained Earnings:</strong> ${gameState.retainedEarnings.toLocaleString()} RE</div>` : ''}
+  `;
+
+  // Update autosave button text
+  const btn = document.getElementById('mob-autosave-btn');
+  if (btn) {
+    btn.textContent = `Auto-save: ${gameState.autosave === false ? 'OFF' : 'ON'}`;
+  }
+}
+
+function toggleAutosaveMobile() {
+  gameState.autosave = gameState.autosave === false ? true : false;
+  updateAutosaveToggle();
+  updateMobileSettings();
+}
+window.toggleAutosaveMobile = toggleAutosaveMobile;
+
+// ===== MOBILE P&L RENDERING =====
+function buildMobilePnL() {
+  if (!isMobile() || !gameState.arc) return;
+  const container = document.getElementById('mobile-pnl-content');
+  if (!container) return;
+
+  const currentDay = Math.floor(gameState.gameElapsedSecs / SECS_PER_DAY);
+  const daysIntoQuarter = currentDay - gameState.lastQuarterDay;
+  const daysToTax = Math.max(0, 90 - daysIntoQuarter);
+  const totalExpenses = gameState.totalSpentHires + gameState.totalSpentUpgrades + gameState.totalSpentAuto;
+  const qDepreciation = getQuarterlyDepreciation();
+  const qTaxable = Math.max(0, gameState.quarterRevenue - qDepreciation);
+  const currentTaxRate = getBoardRoomTaxRate();
+  const currentAMTRate = getBoardRoomAMTRate();
+  const qRegularTax = Math.floor(qTaxable * currentTaxRate);
+  const qAMT = Math.floor(gameState.quarterRevenue * currentAMTRate);
+  const amtApplies = qAMT > qRegularTax && gameState.quarterRevenue > 0;
+  const qNet = gameState.quarterRevenue - gameState.quarterExpenses - gameState.quarterTaxPaid;
+  const ltNet = gameState.totalEarned - totalExpenses - gameState.totalTaxPaid;
+  const garnishActive = gameState.taxDebts && gameState.taxDebts.some(d => d.stage === 'garnish');
+
+  // Hash for change detection
+  const hashParts = [
+    gameState.quarterRevenue|0, gameState.totalEarned|0,
+    gameState.quarterExpenses|0, gameState.quarterTaxPaid|0,
+    daysToTax, gameState.taxDebts ? gameState.taxDebts.length : 0,
+    gameState.isPublic ? 1 : 0,
+    gameState.earningsQuarterRevenue|0,
+    gameState.retainedEarnings|0,
+    gameState.earningsStreak|0,
+    gameState.currentGuidance || '',
+    gameState.activeCFOLevel,
+  ].join('|');
+
+  if (hashParts === _lastMobilePnlHash) return;
+  _lastMobilePnlHash = hashParts;
+
+  let html = '';
+
+  // P&L Card
+  html += `<div class="mob-card">
+    <div class="mob-card-header">
+      📊 Profit & Loss
+      <span style="font-size:12px;color:#888;font-weight:400">Tax in ${daysToTax}d</span>
+    </div>
+    <div class="mob-card-row">
+      <span class="mob-card-label">Revenue (Qtr)</span>
+      <span class="mob-card-value positive">${formatMoney(gameState.quarterRevenue)}</span>
+    </div>
+    <div class="mob-card-row">
+      <span class="mob-card-label">Revenue (Lifetime)</span>
+      <span class="mob-card-value positive">${formatMoney(gameState.totalEarned)}</span>
+    </div>
+    ${garnishActive ? `<div class="mob-card-row">
+      <span class="mob-card-label">🔴 IRS Garnishment</span>
+      <span class="mob-card-value negative">−15%</span>
+    </div>` : ''}
+    <div class="mob-card-row">
+      <span class="mob-card-label">Capital Spending (Qtr)</span>
+      <span class="mob-card-value negative">(${formatMoney(gameState.quarterExpenses)})</span>
+    </div>
+    <div class="mob-card-row">
+      <span class="mob-card-label">Depreciation</span>
+      <span class="mob-card-value negative">(${formatMoney(qDepreciation)})</span>
+    </div>
+    <div class="mob-card-row">
+      <span class="mob-card-label">Taxes Paid (Qtr)</span>
+      <span class="mob-card-value negative">(${formatMoney(gameState.quarterTaxPaid)})</span>
+    </div>
+    <div class="mob-card-row">
+      <span class="mob-card-label">${amtApplies ? '⚠️ AMT Taxable' : 'Taxable Income'}</span>
+      <span class="mob-card-value" style="color:${amtApplies ? '#c60' : '#888'}">${formatMoney(amtApplies ? gameState.quarterRevenue : qTaxable)}</span>
+    </div>
+    <div class="mob-card-row" style="border-top:2px solid #333;border-bottom:none;padding-top:8px">
+      <span class="mob-card-label" style="font-weight:700;color:#333">Net Income (Qtr)</span>
+      <span class="mob-card-value" style="color:${qNet >= 0 ? '#217346' : '#c00'}">${qNet < 0 ? '(' + formatMoney(-qNet) + ')' : formatMoney(qNet)}</span>
+    </div>
+    <div class="mob-card-row">
+      <span class="mob-card-label" style="font-weight:700;color:#333">Net Income (Lifetime)</span>
+      <span class="mob-card-value" style="color:${ltNet >= 0 ? '#217346' : '#c00'}">${ltNet < 0 ? '(' + formatMoney(-ltNet) + ')' : formatMoney(ltNet)}</span>
+    </div>
+  </div>`;
+
+  // Investor Relations Card (if public)
+  if (gameState.isPublic) {
+    const earningsDaysSince = currentDay - gameState.lastEarningsDay;
+    const earningsDaysLeft = Math.max(0, EARNINGS_QUARTER_DAYS - earningsDaysSince);
+    const earningsQLabel = getEarningsQuarterLabel();
+    const stockPrice = getStockPrice();
+    const stockPriceStart = gameState.ipoStockPriceStart || stockPrice;
+    const qtdChange = stockPriceStart > 0 ? ((stockPrice - stockPriceStart) / stockPriceStart * 100) : 0;
+    const qtdColor = qtdChange >= 0 ? '#217346' : '#c00';
+    const qtdStr = (qtdChange >= 0 ? '+' : '') + qtdChange.toFixed(1) + '%';
+    const guidanceKey = gameState.currentGuidance || 'in-line';
+    const guidanceLevel = GUIDANCE_LEVELS[guidanceKey];
+    const target = gameState.guidanceTarget;
+    const qRev = gameState.earningsQuarterRevenue;
+    const daysElapsed = earningsDaysSince || 1;
+    const expectedAtThisPoint = target > 0 ? (target * daysElapsed / EARNINGS_QUARTER_DAYS) : 0;
+    const onTrack = qRev >= expectedAtThisPoint;
+    const trackColor = onTrack ? '#217346' : '#c00';
+    const trackLabel = onTrack ? '✅ On Track' : '⚠️ Off Track';
+    const streakVal = gameState.earningsStreak;
+    const streakStr = streakVal > 0 ? `🔥 ${streakVal} beat${streakVal > 1 ? 's' : ''}` :
+                      streakVal < 0 ? `❄️ ${Math.abs(streakVal)} miss${Math.abs(streakVal) > 1 ? 'es' : ''}` : '—';
+
+    html += `<div class="mob-card">
+      <div class="mob-card-header">
+        📈 Investor Relations
+        <span style="font-size:12px;color:#888;font-weight:400">Earnings in ${earningsDaysLeft}d</span>
+      </div>
+      <div class="mob-card-row">
+        <span class="mob-card-label">Quarter</span>
+        <span class="mob-card-value blue">${earningsQLabel}</span>
+      </div>
+      <div class="mob-card-row">
+        <span class="mob-card-label">Stock Price</span>
+        <span class="mob-card-value blue">${formatMoney(stockPrice)} <span style="color:${qtdColor};font-size:12px">${qtdStr}</span></span>
+      </div>
+      <div class="mob-card-row">
+        <span class="mob-card-label">Revenue vs Target</span>
+        <span class="mob-card-value" style="color:${trackColor}">${trackLabel}</span>
+      </div>
+      <div class="mob-card-row">
+        <span class="mob-card-label">Progress</span>
+        <span class="mob-card-value">${formatCompact(qRev)} / ${formatCompact(target)}</span>
+      </div>
+      <div class="mob-card-row">
+        <span class="mob-card-label">Guidance</span>
+        <span class="mob-card-value">${guidanceLevel.emoji} ${guidanceLevel.label} (${guidanceLevel.reMult}× RE)</span>
+      </div>
+      <div class="mob-card-row">
+        <span class="mob-card-label">Streak</span>
+        <span class="mob-card-value">${streakStr}</span>
+      </div>
+      <div class="mob-card-row">
+        <span class="mob-card-label">Analyst Expectation</span>
+        <span class="mob-card-value">${(gameState.analystBaseline).toFixed(2)}×</span>
+      </div>
+      <div class="mob-card-row">
+        <span class="mob-card-label">Retained Earnings</span>
+        <span class="mob-card-value purple">${gameState.retainedEarnings.toLocaleString()} RE</span>
+      </div>`;
+
+    // CFO selector
+    const maxCFOLevel = getFinanceDeptLevel();
+    if (maxCFOLevel > 0) {
+      const activeCFO = gameState.activeCFOLevel;
+      const labels = { 0: 'Manual', 1: '👶 Intern', 2: '📊 CFO', 3: '🎩 Elite' };
+      let cfoHtml = '<div class="mob-cfo-btns">';
+      for (let lvl = 0; lvl <= maxCFOLevel; lvl++) {
+        cfoHtml += `<button class="mob-cfo-btn${activeCFO === lvl ? ' active' : ''}" onclick="setActiveCFOLevel(${lvl})">${labels[lvl]}</button>`;
+      }
+      cfoHtml += '</div>';
+      const record = gameState.cfoRecords[activeCFO];
+      const recordStr = activeCFO > 0 && record && record.total > 0
+        ? `Record: ${record.beats}/${record.total} (${Math.round(record.beats / record.total * 100)}%)`
+        : '';
+      html += `<div style="margin-top:8px;font-size:12px;color:#666">Finance Dept${recordStr ? ' — ' + recordStr : ''}</div>${cfoHtml}`;
+    }
+
+    html += '</div>';
+  }
+
+  // Tax Debts
+  if (gameState.taxDebts && gameState.taxDebts.length > 0) {
+    const stageLabels = {
+      notice1: '1st Notice',
+      notice2: '⚠ 2nd Notice',
+      garnish: '🔴 Garnishment',
+      seizure: '🚨 Seizure',
+    };
+
+    html += `<div class="mob-card" style="border-color:#ffcdd2">
+      <div class="mob-card-header" style="color:#900">🏛️ Tax Liability</div>`;
+
+    for (let i = 0; i < gameState.taxDebts.length; i++) {
+      const d = gameState.taxDebts[i];
+      const interest = d.current - d.original;
+      const qLabel = d.quarter || '';
+      html += `<div class="mob-tax-card">
+        <div class="mob-tax-header">${qLabel} Assessment</div>
+        <div class="mob-card-row">
+          <span class="mob-card-label">Original</span>
+          <span class="mob-card-value negative">${formatMoney(d.original)}</span>
+        </div>
+        <div class="mob-card-row">
+          <span class="mob-card-label">Interest</span>
+          <span class="mob-card-value negative">${formatMoney(interest)}</span>
+        </div>
+        <div class="mob-card-row">
+          <span class="mob-card-label">Total Due</span>
+          <span class="mob-card-value negative" style="font-weight:700">${formatMoney(d.current)}</span>
+        </div>
+        <div class="mob-card-row">
+          <span class="mob-card-label">Status</span>
+          <span class="mob-card-value">${stageLabels[d.stage]} (${d.daysOverdue}d)</span>
+        </div>
+        <button class="mob-tax-settle" onclick="settleTaxDebt(${i})" ${gameState.cash >= d.current ? '' : 'disabled'}>Settle ${formatMoney(d.current)}</button>
+      </div>`;
+    }
+
+    if (gameState.taxDebts.length > 1) {
+      const total = totalTaxOwed();
+      html += `<button class="mob-tax-settle" onclick="settleAllTax()" ${gameState.cash >= total ? '' : 'disabled'}>Settle All — ${formatMoney(total)}</button>`;
+    }
+
+    html += '</div>';
+  }
+
+  container.innerHTML = html;
+}
+
+// ===== MOBILE BOARD ROOM RENDERING =====
+function buildMobileBoardRoom() {
+  if (!isMobile() || !gameState.arc) return;
+  const container = document.getElementById('mobile-boardroom-content');
+  if (!container) return;
+
+  const hashParts = [
+    gameState.retainedEarnings,
+    JSON.stringify(gameState.boardRoomPurchases),
+    gameState.cash|0,
+  ].join('|');
+  if (hashParts === _lastMobileBRHash && container.innerHTML !== '') return;
+  _lastMobileBRHash = hashParts;
+
+  let html = '';
+
+  // RE Balance header
+  html += `<div class="mob-card" style="border-left:3px solid #7b1fa2">
+    <div class="mob-card-header" style="color:#7b1fa2">
+      🏢 Board Room
+      <span class="mob-card-value purple" style="font-size:16px">${gameState.retainedEarnings.toLocaleString()} RE</span>
+    </div>
+  </div>`;
+
+  // Upgrade cards
+  for (const upgrade of BOARD_ROOM_UPGRADES) {
+    const owned = getBoardRoomUpgradeCount(upgrade.id);
+    const isOwned = owned > 0 && upgrade.maxCount !== Infinity;
+    const requiresMet = !upgrade.requires || hasBoardRoomUpgrade(upgrade.requires);
+    const canAfford = gameState.retainedEarnings >= upgrade.cost;
+    const isLocked = !requiresMet;
+
+    let cardClass = 'mob-br-card';
+    if (isOwned) cardClass += ' owned';
+    if (isLocked) cardClass += ' locked';
+
+    let statusHtml = '';
+    if (isOwned) {
+      const label = upgrade.maxCount === 1 ? '✅ Owned' : `✅ Owned (×${owned})`;
+      statusHtml = `<span class="mob-br-status">${label}</span>`;
+    } else if (isLocked) {
+      const reqUpgrade = BOARD_ROOM_UPGRADES.find(u => u.id === upgrade.requires);
+      const reqName = reqUpgrade ? reqUpgrade.name : upgrade.requires;
+      statusHtml = `<span class="mob-br-locked-text">🔒 Requires ${reqName}</span>`;
+    } else {
+      const countLabel = upgrade.maxCount === Infinity && owned > 0 ? ` (have ${owned})` : '';
+      statusHtml = `<button class="mob-br-buy" data-buy-upgrade="${upgrade.id}" ${canAfford ? '' : 'disabled'}>Buy${countLabel}</button>`;
+    }
+
+    html += `<div class="${cardClass}">
+      <div class="mob-br-name">${upgrade.name}</div>
+      <div class="mob-br-desc">${upgrade.desc}</div>
+      <div class="mob-br-footer">
+        <span class="mob-br-cost" style="color:${isOwned ? '#999' : isLocked ? '#ccc' : canAfford ? '#7b1fa2' : '#c00'}">${upgrade.cost.toLocaleString()} RE</span>
+        ${statusHtml}
+      </div>
+    </div>`;
+  }
+
+  container.innerHTML = html;
+
+  // Re-attach buy button handlers via delegation
+  container.onclick = (e) => {
+    const buyBtn = e.target.closest('[data-buy-upgrade]');
+    if (buyBtn) {
+      e.stopPropagation();
+      purchaseBoardRoomUpgrade(buyBtn.dataset.buyUpgrade);
+      _lastMobileBRHash = ''; // force rebuild
+      buildMobileBoardRoom();
+    }
+  };
+}
+
+// ===== MOBILE TICK UPDATE =====
+function mobileTickUpdate() {
+  if (!isMobile()) return;
+
+  updateMobileNav();
+
+  // Update active mobile tab content
+  if (_mobileActiveTab === 'pnl') {
+    buildMobilePnL();
+  } else if (_mobileActiveTab === 'boardroom') {
+    buildMobileBoardRoom();
+  } else if (_mobileActiveTab === 'settings') {
+    updateMobileSettings();
+  }
+}
+
+// Hook into init to handle initial mobile state — done in init() above
+
+window.mobileSwitchTab = mobileSwitchTab;
+window.settleTaxDebt = settleTaxDebt;
+window.settleAllTax = settleAllTax;
+window.hireMax = hireMax;
+window.upgradeMax = upgradeMax;
+window.toggleBossMode = toggleBossMode;
+window.triggerIRS = triggerIRS;
+window.triggerBonus = triggerBonus;
+window.saveGame = saveGame;
+
 document.addEventListener('DOMContentLoaded', init);
-window.addEventListener('resize', () => { if (gridBuilt) buildFillerRows(); });
+window.addEventListener('resize', () => {
+  if (gridBuilt) buildFillerRows();
+  // Handle orientation changes and resize for mobile
+  if (typeof updateMobileNav === 'function') updateMobileNav();
+});
