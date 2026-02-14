@@ -2057,7 +2057,11 @@ function updateTaxPanel() {
   }
 
   // Only rebuild DOM if content actually changed (prevents click-swallowing race)
-  // Hash key parts that change: P&L numbers, tax debt count/amounts/stages, days-to-tax, IR data
+  const currentDay = Math.floor(gameState.gameElapsedSecs / SECS_PER_DAY);
+  const daysIntoQuarter = currentDay - gameState.lastQuarterDay;
+  const daysToTax = Math.max(0, 90 - daysIntoQuarter);
+  const garnishActive = gameState.taxDebts && gameState.taxDebts.some(d => d.stage === 'garnish');
+
   const hashParts = [
     gameState.quarterRevenue|0, gameState.totalEarned|0,
     gameState.quarterExpenses|0, gameState.quarterTaxPaid|0, gameState.totalTaxPaid|0,
@@ -2544,10 +2548,14 @@ function loadGame() {
     // Show game view (skip arc select)
     document.getElementById('arc-select').classList.add('hidden');
     document.getElementById('game-view').classList.remove('hidden');
-    buildGrid();
-    updateDisplay();
-    updateTaxPanel();
-    updateBoardRoomTab();
+    try {
+      buildGrid();
+      updateDisplay();
+      updateTaxPanel();
+      updateBoardRoomTab();
+    } catch (renderErr) {
+      console.error('Render error after load (non-fatal):', renderErr);
+    }
 
     return true;
   } catch (e) {
