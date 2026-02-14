@@ -2099,10 +2099,11 @@ function updateTaxPanel() {
       const btnStyle = (active) => active
         ? 'cursor:pointer;font-weight:700;color:#fff;background:#0078d4;padding:1px 6px;border-radius:2px;font-size:11px;margin-right:3px'
         : 'cursor:pointer;color:#0078d4;border:1px solid #0078d4;padding:1px 5px;border-radius:2px;font-size:10px;margin-right:3px;background:transparent';
-      let cfoButtons = `<span style="${btnStyle(activeCFO === 0)}" onclick="setActiveCFOLevel(0)">Manual</span>`;
+      let cfoManual = `<span style="${btnStyle(activeCFO === 0)}" onclick="setActiveCFOLevel(0)">Manual</span>`;
       const labels = { 1: '👶 1', 2: '📊 2', 3: '🎩 3' };
+      let cfoLevels = '';
       for (let lvl = 1; lvl <= maxCFOLevel; lvl++) {
-        cfoButtons += `<span style="${btnStyle(activeCFO === lvl)}" onclick="setActiveCFOLevel(${lvl})">${labels[lvl]}</span>`;
+        cfoLevels += `<span style="${btnStyle(activeCFO === lvl)}" onclick="setActiveCFOLevel(${lvl})">${labels[lvl]}</span>`;
       }
       // Record for active CFO
       const record = gameState.cfoRecords[activeCFO];
@@ -2116,8 +2117,8 @@ function updateTaxPanel() {
       html += `<div class="grid-row ir-row">
         <div class="row-num">${rowNum++}</div>
         <div class="cell cell-a" style="padding-left:16px;color:#444">Finance Dept</div>
-        <div class="cell cell-b" style="display:flex;align-items:center">${cfoButtons}</div>
-        <div class="cell cell-c"></div>
+        <div class="cell cell-b" style="display:flex;align-items:center">${cfoManual}</div>
+        <div class="cell cell-c" style="display:flex;align-items:center">${cfoLevels}</div>
         <div class="cell cell-d" style="font-size:10px;color:#888">${activeCFO > 0 ? 'Record' : ''}</div>
         <div class="cell cell-e" style="font-family:Consolas,monospace;font-size:11px;color:${recordColor}">${recordStr}</div>
         <div class="cell cell-f"></div>
