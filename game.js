@@ -3477,7 +3477,8 @@ function showGameOptions() {
   document.getElementById('toggle-overtime').checked = toggles.overtime !== false;
   document.getElementById('toggle-focus').checked = toggles.managementFocus !== false;
   document.getElementById('event-freq-slider').value = Math.round(EVENT_FREQ_MULT * 100);
-  document.getElementById('event-freq-label').textContent = `📬 Events: ${EVENT_FREQ_MULT.toFixed(1)}×`;
+  const initTag = EVENT_FREQ_MULT === 0 ? 'off' : EVENT_FREQ_MULT <= 1 ? '' : EVENT_FREQ_MULT <= 3 ? '🔥' : EVENT_FREQ_MULT <= 6 ? '💀' : '☠️';
+  document.getElementById('event-freq-label').textContent = `📬 Events: ${EVENT_FREQ_MULT.toFixed(1)}× ${initTag}`;
   document.getElementById('options-modal').classList.remove('hidden');
 }
 
@@ -4641,7 +4642,8 @@ function formatCompact(n) {
 
 function setEventFreqMult(val) {
   EVENT_FREQ_MULT = parseInt(val) / 100;
-  document.getElementById('event-freq-label').textContent = `📬 Events: ${EVENT_FREQ_MULT.toFixed(1)}×`;
+  const tag = EVENT_FREQ_MULT === 0 ? 'off' : EVENT_FREQ_MULT <= 1 ? '' : EVENT_FREQ_MULT <= 3 ? '🔥' : EVENT_FREQ_MULT <= 6 ? '💀' : '☠️';
+  document.getElementById('event-freq-label').textContent = `📬 Events: ${EVENT_FREQ_MULT.toFixed(1)}× ${tag}`;
   saveGame();
 }
 
