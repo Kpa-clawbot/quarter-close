@@ -2419,6 +2419,7 @@ function loadGame() {
     // Cap RE from pre-fix saves with inflated balances
     if (gameState.retainedEarnings > 100000) gameState.retainedEarnings = 0;
     gameState.analystBaseline = data.analystBaseline || 1.0;
+    if (gameState.analystBaseline > 2.5) gameState.analystBaseline = 1.5; // cap inflated saves
     gameState.earningsStreak = data.earningsStreak || 0;
     gameState.currentGuidance = data.currentGuidance || null;
     gameState.guidanceTarget = data.guidanceTarget || 0;
@@ -2920,10 +2921,12 @@ function processEarnings() {
     // Analyst ratchet (slowed by Analyst Relations upgrade)
     const hasAnalystRelations = hasBoardRoomUpgrade('analyst_relations');
     if (gameState.earningsStreak >= 3) {
-      gameState.analystBaseline *= hasAnalystRelations ? 1.075 : 1.15; // analyst upgrade
+      gameState.analystBaseline *= hasAnalystRelations ? 1.03 : 1.05; // was 1.075/1.15 — too aggressive
     } else {
-      gameState.analystBaseline *= hasAnalystRelations ? 1.025 : 1.05;
+      gameState.analystBaseline *= hasAnalystRelations ? 1.01 : 1.02;
     }
+    // Cap analyst baseline so expectations can't become literally impossible
+    gameState.analystBaseline = Math.min(gameState.analystBaseline, 2.5);
   } else {
     // Miss
     if (isInLine) {
