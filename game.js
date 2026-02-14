@@ -2613,6 +2613,7 @@ function loadGame() {
     if (gameState.retainedEarnings > 100000) gameState.retainedEarnings = 0;
     gameState.analystBaseline = data.analystBaseline || 1.0;
     if (gameState.analystBaseline > 2.5) gameState.analystBaseline = 1.5; // cap inflated saves
+    if (gameState.analystBaseline < 0.5) gameState.analystBaseline = 0.8; // rescue crushed saves
     gameState.earningsStreak = data.earningsStreak || 0;
     gameState.currentGuidance = data.currentGuidance || null;
     gameState.guidanceTarget = data.guidanceTarget || 0;
@@ -3158,6 +3159,8 @@ function processEarnings() {
       }
     }
   }
+  // Floor analyst baseline — can't go below 0.5
+  gameState.analystBaseline = Math.max(0.5, gameState.analystBaseline);
 
   // Apply stock price change via valuation manipulation
   // We affect the market sentiment to create the price jump
