@@ -1852,11 +1852,15 @@ body {
   .source-row > .cell-e {
     flex: 1 1 48%;
     order: 11;
+    display: flex !important;
+    gap: 6px;
   }
 
   .source-row > .cell-f {
     flex: 1 1 48%;
     order: 12;
+    display: flex !important;
+    gap: 6px;
   }
 
   /* Hide G and H columns */
@@ -1865,9 +1869,8 @@ body {
     display: none !important;
   }
 
-  /* Buttons inside cards: full width, proper sizing */
+  /* Buttons inside cards: proper sizing */
   .source-row .cell-btn {
-    width: 100%;
     min-height: 44px;
     padding: 8px 12px;
     font-size: 13px;
@@ -1877,6 +1880,7 @@ body {
     justify-content: center;
     white-space: nowrap;
     text-align: center;
+    flex: 1 1 auto;
   }
 
   .source-row .cell-btn.btn-max {
@@ -1922,7 +1926,24 @@ body {
   .source-row.source-locked .cell-a {
     font-size: 14px;
     font-weight: 500;
-    flex: 1 1 auto;
+    flex: 1 1 100%;
+  }
+
+  /* Hide empty cells in locked rows */
+  .source-row.source-locked .cell-b,
+  .source-row.source-locked .cell-c,
+  .source-row.source-locked .cell-e,
+  .source-row.source-locked .cell-f {
+    display: none !important;
+  }
+
+  .source-row.source-locked .cell-d {
+    flex: 1 1 100%;
+  }
+
+  /* Hide locked rows that can't be unlocked yet (JS adds this class) */
+  .source-row.source-locked.mob-hidden {
+    display: none !important;
   }
 
   .source-row.source-locked .cell-btn.btn-unlock {

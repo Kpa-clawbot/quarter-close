@@ -990,6 +990,8 @@ function buildGrid() {
     if (!state.unlocked) {
       row.classList.add('source-locked');
       const nextUnlockable = isNextUnlock(i);
+      // On mobile, hide non-unlockable locked rows
+      if (!nextUnlockable) row.classList.add('mob-hidden');
       row.innerHTML = `
         <div class="row-num">${rowNum}</div>
         <div class="cell cell-a" data-field="name">🔒 ${src.name}</div>
