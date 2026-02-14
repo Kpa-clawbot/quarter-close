@@ -2459,6 +2459,15 @@ body {
     font-size: 11px;
     padding: 0 8px;
     flex-shrink: 0;
+    overflow: hidden;
+  }
+  #status-text {
+    max-width: 45vw;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    display: inline-block;
+    vertical-align: middle;
   }
   #status-center,
   #status-clicks,
