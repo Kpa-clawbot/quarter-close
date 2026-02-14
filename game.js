@@ -2027,7 +2027,8 @@ function updateTaxPanel() {
     const trackColor = onTrack ? '#217346' : '#c00';
     const trackDetail = `${onTrack ? '+' : ''}${formatCompact(trackDiff)} (${trackPct >= 0 ? '+' : ''}${trackPct.toFixed(1)}%)`;
     const streakVal = gameState.earningsStreak;
-    const streakStr = streakVal > 0 ? `🔥 ${streakVal} beat${streakVal > 1 ? 's' : ''}` :
+    const irStreakMult = streakVal >= 1 ? Math.min(2.0, 1 + streakVal * 0.1) : 1;
+    const streakStr = streakVal > 0 ? `🔥 ${streakVal} beat${streakVal > 1 ? 's' : ''} (${irStreakMult.toFixed(1)}× RE)` :
                       streakVal < 0 ? `❄️ ${Math.abs(streakVal)} miss${Math.abs(streakVal) > 1 ? 'es' : ''}` : '—';
 
     // Separator
@@ -3582,7 +3583,9 @@ function processEarnings() {
   // Show earnings modal with next quarter guidance selection
   const marginPct = (margin * 100).toFixed(1);
   const resultEmoji = result === 'BEAT' ? '📈' : result === 'MISS' ? '📉' : '➡️';
-  const streakText = gameState.earningsStreak > 1 ? `🔥 ${gameState.earningsStreak} consecutive beats` :
+  const streakBonus = gameState.earningsStreak >= 1 ?
+    Math.min(2.0, 1 + gameState.earningsStreak * 0.1) : 1;
+  const streakText = gameState.earningsStreak > 1 ? `🔥 ${gameState.earningsStreak} consecutive beats (${streakBonus.toFixed(1)}× RE)` :
                      gameState.earningsStreak < -1 ? `❄️ ${Math.abs(gameState.earningsStreak)} consecutive misses` : '';
   const analystText = gameState.earningsStreak >= 3 ? 'Analyst Upgrade ⬆️' :
                       gameState.earningsStreak <= -2 ? 'Analyst Downgrade ⬇️' : '';
