@@ -473,7 +473,7 @@ const EVENTS = [
 const BOARD_ROOM_UPGRADES = [
   {
     id: 'finance_dept_1',
-    name: 'Finance Dept Lv1',
+    name: 'CFO Lv1',
     desc: 'The Intern — auto-earnings, randomizes guidance (often wrong).',
     cost: 500,
     requires: null,
@@ -482,7 +482,7 @@ const BOARD_ROOM_UPGRADES = [
   },
   {
     id: 'finance_dept_2',
-    name: 'Finance Dept Lv2',
+    name: 'CFO Lv2',
     desc: 'Competent CFO — analyzes trends, picks right ~70% of the time.',
     cost: 2500,
     requires: 'finance_dept_1',
@@ -491,7 +491,7 @@ const BOARD_ROOM_UPGRADES = [
   },
   {
     id: 'finance_dept_3',
-    name: 'Finance Dept Lv3',
+    name: 'CFO Lv3',
     desc: 'Elite CFO — factors in streaks, bonuses, analyst pressure. ~90% optimal.',
     cost: 10000,
     requires: 'finance_dept_2',
