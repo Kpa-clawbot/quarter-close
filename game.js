@@ -1942,7 +1942,11 @@ function updateTaxPanel() {
         const remaining = nextUpgrade.cost - gameState.retainedEarnings;
         if (remaining > 0) {
           const quartersNeeded = Math.ceil(remaining / lastQRE);
-          etaStr = `${nextUpgrade.name} in ~${quartersNeeded}Q`;
+          const etaSecs = quartersNeeded * 90;
+          const etaTime = etaSecs >= 3600 ? `${Math.floor(etaSecs/3600)}h${Math.floor((etaSecs%3600)/60)}m`
+                        : etaSecs >= 60 ? `${Math.floor(etaSecs/60)}m${etaSecs%60 ? etaSecs%60 + 's' : ''}`
+                        : `${etaSecs}s`;
+          etaStr = `${nextUpgrade.name} in ~${quartersNeeded}Q (${etaTime})`;
         } else {
           etaStr = `${nextUpgrade.name} — affordable!`;
         }
