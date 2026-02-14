@@ -2847,6 +2847,25 @@ function debugEvent(query) {
   showEvent(event);
 }
 
+function showDebugEvents() {
+  closeDataMenu();
+  const list = document.getElementById('debug-events-list');
+  list.innerHTML = '';
+  EVENTS.forEach((event, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'toast-btn';
+    btn.style.cssText = 'display:block;width:100%;text-align:left;margin-bottom:4px;padding:6px 10px;font-size:12px';
+    btn.textContent = `${event.sender} — ${event.subject}`;
+    btn.onclick = () => { dismissDebugEvents(); showEvent(event); };
+    list.appendChild(btn);
+  });
+  document.getElementById('debug-events-modal').classList.remove('hidden');
+}
+
+function dismissDebugEvents() {
+  document.getElementById('debug-events-modal').classList.add('hidden');
+}
+
 // ===== BOSS KEY =====
 function toggleBossMode() {
   gameState.bossMode = !gameState.bossMode;
