@@ -1774,3 +1774,99 @@ body {
   padding: 10px 0 14px;
   background: #fff;
 }
+
+/* ===== GAME OPTIONS MODAL ===== */
+#options-modal {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.4);
+  z-index: 9000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+#options-content {
+  background: #fff;
+  border: 1px solid #d0d0d0;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+  width: 440px;
+  max-width: 90vw;
+  max-height: 80vh;
+  border-radius: 2px;
+  display: flex;
+  flex-direction: column;
+}
+#options-content .help-header {
+  padding: 12px 16px;
+  border-bottom: 1px solid #e0e0e0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+#options-content .help-header h3 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+}
+.options-body {
+  padding: 16px;
+  overflow-y: auto;
+}
+.options-section h4 {
+  font-size: 13px;
+  font-weight: 600;
+  color: #217346;
+  margin: 0 0 4px;
+}
+.options-desc {
+  font-size: 11px;
+  color: #888;
+  margin: 0 0 12px;
+}
+.option-toggle {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 8px 0;
+  border-bottom: 1px solid #f0f0f0;
+  cursor: pointer;
+}
+.option-toggle:last-child {
+  border-bottom: none;
+}
+.option-toggle input[type="checkbox"] {
+  margin-top: 2px;
+  accent-color: #217346;
+}
+.option-name {
+  font-size: 12px;
+  font-weight: 600;
+  color: #333;
+  flex: 1;
+}
+.option-info {
+  font-size: 11px;
+  color: #888;
+  width: 100%;
+  padding-left: 24px;
+  margin-top: -4px;
+}
+.options-footer {
+  padding: 10px 16px;
+  border-top: 1px solid #e0e0e0;
+  text-align: right;
+}
+.options-footer button {
+  background: #217346;
+  color: #fff;
+  border: none;
+  padding: 6px 24px;
+  border-radius: 2px;
+  cursor: pointer;
+  font-size: 12px;
+}
+.options-footer button:hover {
+  background: #1a5c38;
+}

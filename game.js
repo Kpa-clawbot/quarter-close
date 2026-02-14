@@ -2555,6 +2555,7 @@ function saveGame() {
     cfoRecords: gameState.cfoRecords || {},
     revenueHistory: gameState.revenueHistory || [],
     lastQuarterRE: gameState.lastQuarterRE || 0,
+    featureToggles: gameState.featureToggles || DEFAULT_FEATURES,
     savedAt: Date.now(),
   };
 
@@ -2629,6 +2630,7 @@ function loadGame() {
     gameState.cfoRecords = data.cfoRecords || {};
     gameState.revenueHistory = data.revenueHistory || [];
     gameState.lastQuarterRE = data.lastQuarterRE || 0;
+    gameState.featureToggles = data.featureToggles || { ...DEFAULT_FEATURES };
     gameState.activeTab = 'operations';
 
     // Rebuild sources for selected arc
@@ -2741,6 +2743,7 @@ function resetGame() {
   gameState.cfoRecords = {};
   gameState.revenueHistory = [];
   gameState.lastQuarterRE = 0;
+  gameState.featureToggles = { ...DEFAULT_FEATURES };
   gameState.eventCooldown = 0;
   gameState.miniTaskCooldown = 0;
   gameState.miniTaskActive = false;
@@ -2899,6 +2902,59 @@ function updateAutosaveToggle() {
   if (el) el.classList.toggle('off', !autosaveEnabled);
 }
 
+// ===== DATA MENU =====
+let dataMenuOpen = false;
+
+function toggleDataMenu(e) {
+  e.stopPropagation();
+  dataMenuOpen = !dataMenuOpen;
+  const dropdown = document.getElementById('data-dropdown');
+  dropdown.classList.toggle('open', dataMenuOpen);
+  closeFileMenu();
+}
+
+function closeDataMenu() {
+  dataMenuOpen = false;
+  const dropdown = document.getElementById('data-dropdown');
+  if (dropdown) dropdown.classList.remove('open');
+}
+
+// ===== FEATURE TOGGLES =====
+const DEFAULT_FEATURES = {
+  closeTheDeals: true,
+  overtime: true,
+  managementFocus: true,
+};
+
+function getFeatureToggles() {
+  if (!gameState.featureToggles) {
+    gameState.featureToggles = { ...DEFAULT_FEATURES };
+  }
+  return gameState.featureToggles;
+}
+
+function isFeatureEnabled(key) {
+  return getFeatureToggles()[key] !== false;
+}
+
+function toggleFeature(key, enabled) {
+  getFeatureToggles()[key] = enabled;
+}
+
+// ===== GAME OPTIONS MODAL =====
+function showGameOptions() {
+  closeDataMenu();
+  const toggles = getFeatureToggles();
+  document.getElementById('toggle-deals').checked = toggles.closeTheDeals !== false;
+  document.getElementById('toggle-overtime').checked = toggles.overtime !== false;
+  document.getElementById('toggle-focus').checked = toggles.managementFocus !== false;
+  document.getElementById('options-modal').classList.remove('hidden');
+}
+
+function dismissOptions() {
+  document.getElementById('options-modal').classList.add('hidden');
+}
+
 function showAbout() {
   closeFileMenu();
   document.getElementById('about-modal').classList.remove('hidden');
@@ -2947,6 +3003,9 @@ document.addEventListener('click', (e) => {
 
   if (fileMenuOpen && !e.target.closest('#file-menu')) {
     closeFileMenu();
+  }
+  if (dataMenuOpen && !e.target.closest('#data-menu')) {
+    closeDataMenu();
   }
 
   // Formula bar: update cell reference on click

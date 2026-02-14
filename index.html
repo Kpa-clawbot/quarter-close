@@ -20,7 +20,7 @@
   <meta name="description" content="An idle tycoon game disguised as a spreadsheet. Look busy. Get rich.">
   <title>Q4 Financials - Operations.xlsx - Quarter Close</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='4' fill='%23217346'/><rect x='4' y='4' width='7' height='5' rx='1' fill='white'/><rect x='13' y='4' width='7' height='5' rx='1' fill='white'/><rect x='22' y='4' width='7' height='5' rx='1' fill='white'/><rect x='4' y='11' width='7' height='5' rx='1' fill='white' opacity='0.8'/><rect x='13' y='11' width='7' height='5' rx='1' fill='white' opacity='0.8'/><rect x='22' y='11' width='7' height='5' rx='1' fill='white' opacity='0.8'/><rect x='4' y='18' width='7' height='5' rx='1' fill='white' opacity='0.6'/><rect x='13' y='18' width='7' height='5' rx='1' fill='white' opacity='0.6'/><rect x='22' y='18' width='7' height='5' rx='1' fill='white' opacity='0.6'/><rect x='4' y='25' width='7' height='5' rx='1' fill='white' opacity='0.4'/><rect x='13' y='25' width='7' height='5' rx='1' fill='white' opacity='0.4'/><rect x='22' y='25' width='7' height='5' rx='1' fill='white' opacity='0.4'/></svg>">
-  <link rel="stylesheet" href="style.css?v=23">
+  <link rel="stylesheet" href="style.css?v=26">
 </head>
 <body>
   <!-- ===== SPLASH SCREEN ===== -->
@@ -106,7 +106,11 @@
       <span class="menu-item">Insert</span>
       <span class="menu-item">Page Layout</span>
       <span class="menu-item">Formulas</span>
-      <span class="menu-item">Data</span>
+      <span class="menu-item" id="data-menu" onclick="toggleDataMenu(event)">Data
+        <div class="menu-dropdown" id="data-dropdown">
+          <div class="menu-dropdown-item" onclick="showGameOptions()">Game Options...</div>
+        </div>
+      </span>
       <span class="menu-item">Review</span>
       <span class="menu-item">View</span>
       <span class="menu-item" onclick="showHelp()">Help</span>
@@ -375,6 +379,40 @@
     </div>
   </div>
 
+  <!-- ===== GAME OPTIONS MODAL ===== -->
+  <div id="options-modal" class="hidden">
+    <div id="options-content">
+      <div class="help-header">
+        <h3>⚙️ Game Options</h3>
+        <button class="help-close" onclick="dismissOptions()">✕</button>
+      </div>
+      <div class="options-body">
+        <div class="options-section">
+          <h4>Active Play Mechanics</h4>
+          <p class="options-desc">These mechanics reward active clicking. Toggle off for a more idle experience.</p>
+          <label class="option-toggle">
+            <input type="checkbox" id="toggle-deals" onchange="toggleFeature('closeTheDeals', this.checked)">
+            <span class="option-name">🤝 Close the Deal</span>
+            <span class="option-info">Random high-value contracts that require rapid clicking to close.</span>
+          </label>
+          <label class="option-toggle">
+            <input type="checkbox" id="toggle-overtime" onchange="toggleFeature('overtime', this.checked)">
+            <span class="option-name">⏰ Overtime</span>
+            <span class="option-info">Click for instant revenue bursts with diminishing returns per quarter.</span>
+          </label>
+          <label class="option-toggle">
+            <input type="checkbox" id="toggle-focus" onchange="toggleFeature('managementFocus', this.checked)">
+            <span class="option-name">🎯 Management Focus</span>
+            <span class="option-info">Click departments to temporarily boost their output.</span>
+          </label>
+        </div>
+      </div>
+      <div class="options-footer">
+        <button onclick="dismissOptions()">OK</button>
+      </div>
+    </div>
+  </div>
+
   <!-- ===== HELP MODAL ===== -->
   <div id="help-modal" class="hidden">
     <div id="help-content">
@@ -472,7 +510,7 @@
     </div>
   </div>
 
-  <script src="game.js?v=25"></script>
+  <script src="game.js?v=26"></script>
   <script>
     if (location.hostname === 'kpa-clawbot.github.io') {
       var s = document.createElement('script');
