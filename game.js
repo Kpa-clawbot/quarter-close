@@ -2766,9 +2766,9 @@ function updateTaxPanel() {
         <div class="cell cell-c" style="display:flex;align-items:center">${ctoLevels}</div>
         <div class="cell cell-d"></div>
         <div class="cell cell-e"></div>
-        <div class="cell cell-f" style="font-size:9px;color:#888">${activeCTO > 0 ? `Upgrades: ${gameState.ctoUpgradeCount || 0}${gameState._ctoDebug ? ' | ' + gameState._ctoDebug : ''}` : ''}</div>
+        <div class="cell cell-f" style="font-size:9px;color:#888">${activeCTO > 0 ? `Upgrades: ${gameState.ctoUpgradeCount || 0}` : ''}</div>
         <div class="cell cell-g"></div>
-        <div class="cell cell-h"></div>
+        <div class="cell cell-h" style="font-size:8px;color:#999;overflow:visible;white-space:nowrap">${activeCTO > 0 && gameState._ctoDebug ? gameState._ctoDebug : ''}</div>
       </div>`;
 
       // CTO Budget sub-row (only when CTO is active)
