@@ -1193,8 +1193,10 @@ function updateGridValues() {
     const prestigeTag = (state.prestigeLevel || 0) > 0 ? ` <span style="color:#d4a017;font-size:10px">★${state.prestigeLevel}</span>` : '';
     const breakthroughTag = (state.breakthroughMult || 1) > 1 ? ` <span style="color:#2e7d32;font-size:10px">🔬×${state.breakthroughMult}</span>` : '';
     const focusLevel = state.focus || 0;
-    nameCell.innerHTML = src.name + (state.upgradeLevel > 0 ? ` <span style="color:#999;font-size:10px">Lv${state.upgradeLevel}</span>` : '') + prestigeTag + breakthroughTag;
-    if (isFeatureEnabled('managementFocus') && state.employees > 0) {
+    const focusable = isFeatureEnabled('managementFocus') && state.automated;
+    const focusIcon = focusable ? `<span class="focus-icon${focusLevel > 0 ? ' focus-active' : ''}" title="Click to boost revenue (+5% per click, max +50%)">🎯</span>` : '';
+    nameCell.innerHTML = focusIcon + src.name + (state.upgradeLevel > 0 ? ` <span style="color:#999;font-size:10px">Lv${state.upgradeLevel}</span>` : '') + prestigeTag + breakthroughTag;
+    if (focusable) {
       nameCell.style.cursor = 'pointer';
       nameCell.classList.add('focusable');
       nameCell.onclick = () => clickFocus(i);

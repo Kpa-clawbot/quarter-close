@@ -1901,6 +1901,24 @@ body {
   font-weight: 600;
 }
 
+/* Focus icon next to dept name */
+.focus-icon {
+  font-size: 10px;
+  margin-right: 3px;
+  opacity: 0.4;
+  display: inline-block;
+}
+
+.focus-icon.focus-active {
+  opacity: 1;
+  animation: focus-pulse 1s ease-in-out infinite alternate;
+}
+
+@keyframes focus-pulse {
+  from { transform: scale(1); }
+  to { transform: scale(1.2); }
+}
+
 /* Clickable source name hint */
 .source-name.focusable:hover {
   background: #f0f7f0 !important;
