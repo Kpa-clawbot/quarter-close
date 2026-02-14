@@ -365,6 +365,15 @@ const BOARD_ROOM_UPGRADES = [
     category: 'Investor',
   },
   {
+    id: 'cpa',
+    name: 'CPA on Retainer',
+    desc: 'Auto-pays taxes when affordable, auto-settles debts. No more IRS toasts.',
+    cost: 750,
+    requires: null,
+    maxCount: 1,
+    category: 'Tax',
+  },
+  {
     id: 'golden_parachute',
     name: 'Golden Parachute',
     desc: 'Survive one asset seizure event (consumed on use).',
@@ -1451,6 +1460,7 @@ function flashCash() {
 // ===== TAX DEBT SYSTEM =====
 
 function processQuarterlyTax() {
+  const hasCPA = hasBoardRoomUpgrade('cpa');
   const depreciation = getQuarterlyDepreciation();
   const taxableIncome = gameState.quarterRevenue - depreciation;
   const taxRate = getBoardRoomTaxRate();
@@ -1474,19 +1484,50 @@ function processQuarterlyTax() {
   gameState.quarterExpenses = 0;
   gameState.quarterTaxPaid = 0;
 
+  const currentDay = Math.floor(gameState.gameElapsedSecs / SECS_PER_DAY);
+  const quarter = Math.floor(currentDay / 90);
+  const qLabel = `Q${(quarter % 4) + 1}`;
+
+  // CPA auto-pay: handle taxes silently
+  if (hasCPA) {
+    if (taxOwed <= 0) {
+      // No tax — CPA files a zero return silently
+      return;
+    }
+    if (gameState.cash >= taxOwed) {
+      // Can afford — auto-pay
+      gameState.cash -= taxOwed;
+      gameState.quarterTaxPaid += taxOwed;
+      gameState.totalTaxPaid += taxOwed;
+      document.getElementById('status-text').textContent = `📋 CPA paid ${qLabel} taxes (${formatMoney(taxOwed)})`;
+      setTimeout(() => { document.getElementById('status-text').textContent = 'Ready'; }, 4000);
+      updateDisplay();
+      flashCash();
+      return;
+    } else {
+      // Can't afford — CPA defers (creates debt like Ignore, but silently)
+      if (!gameState.taxDebts) gameState.taxDebts = [];
+      gameState.taxDebts.push({
+        original: taxOwed,
+        current: taxOwed,
+        dayCreated: currentDay,
+        daysOverdue: 0,
+        stage: 'notice1',
+        quarter: qLabel,
+      });
+      document.getElementById('status-text').textContent = `📋 CPA deferred ${qLabel} taxes — insufficient funds`;
+      setTimeout(() => { document.getElementById('status-text').textContent = 'Ready'; }, 4000);
+      updateTaxPanel();
+      return;
+    }
+  }
+
   if (taxOwed <= 0) {
-    const currentDay = Math.floor(gameState.gameElapsedSecs / SECS_PER_DAY);
-    const quarter = Math.floor(currentDay / 90);
-    const qLabel = `Q${(quarter % 4) + 1}`;
     showEventToast('IRS', `${qLabel} Quarterly Tax Assessment`,
       `Revenue: ${formatMoney(qRev)}\nDepreciation: (${formatMoney(qDep)})\nTaxable income: ${formatMoney(Math.max(0, taxableIncome))}\n\nNo tax owed this quarter.`,
       [{ label: 'OK', effect: () => `No tax liability for ${qLabel}. Keep investing!` }]);
     return;
   }
-
-  const currentDay = Math.floor(gameState.gameElapsedSecs / SECS_PER_DAY);
-  const quarter = Math.floor(currentDay / 90);
-  const qLabel = `Q${(quarter % 4) + 1}`;
 
   const amtNote = isAMT ? `\n⚠️ AMT applies (${Math.round(amtRate*100)}% of revenue > regular tax)` : '';
   showEventToast('IRS', `${qLabel} Quarterly Tax Assessment`,
@@ -1519,6 +1560,27 @@ function processQuarterlyTax() {
 
 function processTaxDebts() {
   if (!gameState.taxDebts || gameState.taxDebts.length === 0) return;
+
+  // CPA auto-settle: try to pay off debts before they escalate
+  if (hasBoardRoomUpgrade('cpa')) {
+    for (let i = gameState.taxDebts.length - 1; i >= 0; i--) {
+      const debt = gameState.taxDebts[i];
+      if (debt.settled) continue;
+      if (gameState.cash >= debt.current) {
+        gameState.cash -= debt.current;
+        gameState.quarterTaxPaid += debt.current;
+        gameState.totalTaxPaid += debt.current;
+        document.getElementById('status-text').textContent = `📋 CPA settled ${debt.quarter} tax debt (${formatMoney(debt.current)})`;
+        setTimeout(() => { document.getElementById('status-text').textContent = 'Ready'; }, 4000);
+        gameState.taxDebts.splice(i, 1);
+        _lastTaxPanelHash = '';
+        updateTaxPanel();
+        updateDisplay();
+        flashCash();
+      }
+    }
+    if (gameState.taxDebts.length === 0) return;
+  }
 
   let needsUpdate = false;
   for (const debt of gameState.taxDebts) {

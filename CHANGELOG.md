@@ -28,6 +28,13 @@ All notable changes to Quarter Close.
 - Snowballs gradually — log10 RE formula keeps it balanced
 - RE stats in IR section: "Last Q: +198" and ETA to next affordable upgrade with real time estimate
 
+### CPA on Retainer (Tax Automation)
+- **New Board Room upgrade** (750 RE): auto-handles all tax interactions
+- Auto-pays quarterly taxes when cash is available
+- Defers taxes silently when broke (creates debt without toast)
+- Auto-settles outstanding tax debts as soon as cash is available
+- Status bar shows what the CPA did — no more IRS toast interruptions
+
 ### Number Formatting
 - Added **Quadrillion (Q)** tier to all format functions — formatMoney, formatRate, formatPerTick, formatStatMoney, formatCompact
 - Added **Trillion (T)** tier where missing — no more "13335M" displays

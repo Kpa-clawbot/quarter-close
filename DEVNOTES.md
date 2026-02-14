@@ -165,3 +165,9 @@
 - **RE stats in IR section**: `lastQuarterRE` tracked in gameState, set in `processEarnings()`. IR row shows "Last Q: +N" and ETA to cheapest affordable upgrade with real time: "Growth Initiative in ~2Q (3m)".
 - **ETA logic**: Filters available upgrades (not maxed, prereqs met), sorts by `getUpgradeCost()`, picks cheapest. Shows quarters needed + real time (quarters × 90s).
 - **Design rationale**: RE progression was too slow — at $5.5T/yr revenue, log10 formula gives ~121 RE/Q. Saving for 500 RE Finance Dept Lv1 takes 4+ quarters with nothing to spend on. Growth Initiative gives immediate value every quarter and creates a flywheel: more rev → more RE → more GI → more rev.
+
+### CPA on Retainer (Tax Automation)
+- **Board Room upgrade**, 750 RE, category Tax. Completely eliminates IRS toast interruptions.
+- **processQuarterlyTax()**: CPA check runs before any toast logic. If can afford → auto-pay + status bar message + return. If can't afford → auto-defer (create debt silently) + return. If taxOwed ≤ 0 → silent return (no zero-tax toast either).
+- **processTaxDebts()**: CPA auto-settle runs before escalation loop. Iterates debts in reverse (safe splice), pays any affordable debt. Status bar shows "📋 CPA settled Q2 tax debt ($X)".
+- **Status bar feedback**: 4-second messages: "📋 CPA paid Q3 taxes ($2.4B)" or "📋 CPA deferred Q3 taxes — insufficient funds" or "📋 CPA settled Q2 tax debt ($1.8B)".
