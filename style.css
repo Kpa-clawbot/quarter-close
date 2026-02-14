@@ -2341,17 +2341,9 @@ body {
     padding: 4px 8px;
   }
 
-  /* Auto badge */
+  /* Auto badge - hide on mobile, automated status is obvious from button layout */
   .source-row .auto-badge {
-    font-size: 12px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: 4px 8px;
-    background: #e0f2f1;
-    border-radius: 4px;
-    color: #00695c;
-    font-weight: 600;
+    display: none !important;
   }
 
   /* ===== OVERTIME ROW ===== */
