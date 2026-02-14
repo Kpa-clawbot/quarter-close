@@ -3013,6 +3013,38 @@ function initToastDrag() {
       toastDragState = null;
     }
   });
+
+  // Deal popup drag
+  const dealHeader = document.getElementById('deal-header');
+  let dealDragState = null;
+
+  dealHeader.addEventListener('mousedown', (e) => {
+    e.preventDefault();
+    const popup = document.getElementById('deal-popup');
+    const rect = popup.getBoundingClientRect();
+    popup.style.transform = 'none';
+    popup.style.left = rect.left + 'px';
+    popup.style.top = rect.top + 'px';
+    dealDragState = { startX: e.clientX, startY: e.clientY, origLeft: rect.left, origTop: rect.top };
+  });
+
+  document.addEventListener('mousemove', (e) => {
+    if (!dealDragState) return;
+    const dx = e.clientX - dealDragState.startX;
+    const dy = e.clientY - dealDragState.startY;
+    const popup = document.getElementById('deal-popup');
+    popup.style.left = (dealDragState.origLeft + dx) + 'px';
+    popup.style.top = (dealDragState.origTop + dy) + 'px';
+  });
+
+  document.addEventListener('mouseup', () => {
+    if (dealDragState) {
+      const popup = document.getElementById('deal-popup');
+      const rect = popup.getBoundingClientRect();
+      localStorage.setItem('quarterClose_dealPos', JSON.stringify({ left: rect.left, top: rect.top }));
+      dealDragState = null;
+    }
+  });
 }
 
 // ===== BOSS VIEW GENERATION =====
@@ -3217,6 +3249,19 @@ function spawnDeal() {
   };
 
   // Use dedicated deal popup (not the event toast)
+  const popup = document.getElementById('deal-popup');
+  const savedPos = localStorage.getItem('quarterClose_dealPos');
+  if (savedPos) {
+    const pos = JSON.parse(savedPos);
+    popup.style.left = pos.left + 'px';
+    popup.style.top = pos.top + 'px';
+    popup.style.transform = 'none';
+  } else {
+    popup.style.left = '50%';
+    popup.style.top = '50%';
+    popup.style.transform = 'translate(-50%, -50%)';
+  }
+
   document.getElementById('deal-client').textContent = client;
   document.getElementById('deal-body').textContent = `Enterprise contract worth ${formatMoney(amount)}. Click to get signatures before they walk!`;
   document.getElementById('deal-progress-text').textContent = `Signatures: 0 / ${clicksNeeded}`;
@@ -3225,11 +3270,9 @@ function spawnDeal() {
   const timerFill = document.getElementById('deal-timer-fill');
   timerFill.style.animation = 'none';
   timerFill.offsetHeight; // force reflow
-  timerFill.style.animationDuration = (timeLimit / 1000) + 's';
-  timerFill.style.animation = '';
-  timerFill.className = 'toast-btn-countdown';
+  timerFill.style.animation = `toast-btn-fill ${timeLimit / 1000}s linear forwards`;
 
-  document.getElementById('deal-popup').classList.remove('hidden');
+  popup.classList.remove('hidden');
 
   // Timer — auto-fail
   dealTimer = setTimeout(() => {
