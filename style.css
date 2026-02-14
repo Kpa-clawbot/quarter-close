@@ -746,6 +746,17 @@ body {
   background: #b2dfdb;
 }
 
+.cell-btn.btn-prestige {
+  background: #fff8e1;
+  border-color: #d4a017;
+  color: #8d6e0f;
+  font-size: 9px;
+}
+
+.cell-btn.btn-prestige:hover {
+  background: #ffecb3;
+}
+
 .cell-btn:disabled {
   opacity: 0.4;
   cursor: not-allowed;
