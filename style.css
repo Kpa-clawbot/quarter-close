@@ -555,6 +555,10 @@ body {
 }
 
 /* Cash display */
+.stats-row {
+  background: #f8faf8;
+}
+
 .cash-label {
   font-weight: 700;
   color: #333;

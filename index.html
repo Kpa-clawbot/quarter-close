@@ -20,7 +20,7 @@
   <meta name="description" content="An idle tycoon game disguised as a spreadsheet. Look busy. Get rich.">
   <title>Q4 Financials - Operations.xlsx - Quarter Close</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='4' fill='%23217346'/><rect x='4' y='4' width='7' height='5' rx='1' fill='white'/><rect x='13' y='4' width='7' height='5' rx='1' fill='white'/><rect x='22' y='4' width='7' height='5' rx='1' fill='white'/><rect x='4' y='11' width='7' height='5' rx='1' fill='white' opacity='0.8'/><rect x='13' y='11' width='7' height='5' rx='1' fill='white' opacity='0.8'/><rect x='22' y='11' width='7' height='5' rx='1' fill='white' opacity='0.8'/><rect x='4' y='18' width='7' height='5' rx='1' fill='white' opacity='0.6'/><rect x='13' y='18' width='7' height='5' rx='1' fill='white' opacity='0.6'/><rect x='22' y='18' width='7' height='5' rx='1' fill='white' opacity='0.6'/><rect x='4' y='25' width='7' height='5' rx='1' fill='white' opacity='0.4'/><rect x='13' y='25' width='7' height='5' rx='1' fill='white' opacity='0.4'/><rect x='22' y='25' width='7' height='5' rx='1' fill='white' opacity='0.4'/></svg>">
-  <link rel="stylesheet" href="style.css?v=37">
+  <link rel="stylesheet" href="style.css?v=34">
 </head>
 <body>
   <!-- ===== SPLASH SCREEN ===== -->
@@ -177,28 +177,29 @@
         <div class="col-header col-h">H</div>
       </div>
       <!-- Row 1: Header / Cash -->
-      <div class="grid-row header-row" id="row-1">
+      <!-- Row 1: Key stats -->
+      <div class="grid-row stats-row" id="row-cash">
         <div class="row-num">1</div>
+        <div class="cell cell-a cash-label">💰 Cash</div>
+        <div class="cell cell-b cash-value" id="cash-display">$0.00</div>
+        <div class="cell cell-c per-tick-value" id="per-tick-display">$0.00/day</div>
+        <div class="cell cell-d"></div>
+        <div class="cell cell-e"></div>
+        <div class="cell cell-f"></div>
+        <div class="cell cell-g"></div>
+        <div class="cell cell-h" id="stock-price-cell"></div>
+      </div>
+
+      <!-- Row 2: Column headers -->
+      <div class="grid-row header-row" id="row-1">
+        <div class="row-num">2</div>
         <div class="cell cell-a header-cell">DEPARTMENT</div>
         <div class="cell cell-b header-cell">Staff</div>
         <div class="cell cell-c header-cell">Rev/day</div>
-        <div class="cell cell-d header-cell"></div>
-        <div class="cell cell-e header-cell"></div>
-        <div class="cell cell-f header-cell"></div>
+        <div class="cell cell-d header-cell">Hire</div>
+        <div class="cell cell-e header-cell">Upgrade</div>
+        <div class="cell cell-f header-cell">Actions</div>
         <div class="cell cell-g header-cell">Rev/yr</div>
-        <div class="cell cell-h empty-cell"></div>
-      </div>
-
-      <!-- Row 2: Cash display + Per-day -->
-      <div class="grid-row" id="row-cash">
-        <div class="row-num">2</div>
-        <div class="cell cell-a cash-label">Total Cash</div>
-        <div class="cell cell-b" id="stock-price-cell"></div>
-        <div class="cell cell-c"></div>
-        <div class="cell cell-d cash-value" id="cash-display">$0.00</div>
-        <div class="cell cell-e per-tick-value" id="per-tick-display">$0.00/day</div>
-        <div class="cell cell-f rev-label">Total Rev/yr:</div>
-        <div class="cell cell-g rev-value" id="total-rev">$0.00</div>
         <div class="cell cell-h empty-cell"></div>
       </div>
 
