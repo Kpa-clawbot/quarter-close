@@ -528,7 +528,7 @@ const BOARD_ROOM_UPGRADES = [
   {
     id: 'ops_dept_1',
     name: 'COO Lv1',
-    desc: 'The Recruiter — auto-hires into department with fewest employees.',
+    desc: 'The Recruiter — auto-hires cheapest employee first.',
     cost: 2500,
     requires: null,
     maxCount: 1,
@@ -966,8 +966,8 @@ function cooAutoHire() {
 
     let target = null;
     if (level === 1) {
-      // The Recruiter: fewest employees first
-      allCandidates.sort((a, b) => a.employees - b.employees);
+      // The Recruiter: cheapest hire first
+      allCandidates.sort((a, b) => a.cost - b.cost);
       target = allCandidates[0];
     } else if (level === 2) {
       // VP of Ops: best marginal revenue per hire cost
@@ -2915,7 +2915,7 @@ function updateTaxPanel() {
       let cooManual = `<span style="${csBtnStyle(activeCOO === 0)}" onclick="setActiveCOOLevel(0)" title="Hire employees yourself">Manual</span>`;
       const cooLabels = { 1: '📋 1', 2: '📊 2', 3: '🧠 3' };
       const cooTooltips = {
-        1: 'The Recruiter — auto-hires into department with fewest employees',
+        1: 'The Recruiter — auto-hires cheapest employee first',
         2: 'VP of Ops — hires where marginal revenue per employee is highest',
         3: 'Elite COO — revenue-optimized with earnings timing awareness'
       };
