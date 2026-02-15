@@ -5199,7 +5199,13 @@ let chartFloating = false;
 let marketSentiment = 0; // random walk: drifts between -1 and 1
 
 function toggleChartOverlay() {
-  if (chartFloating) return; // clicking sparkline while floating does nothing
+  if (chartFloating) {
+    // Toggle floating chart visibility
+    const container = document.getElementById('valuation-chart-container');
+    container.classList.toggle('hidden');
+    if (!container.classList.contains('hidden')) drawValuationChart();
+    return;
+  }
   const overlay = document.getElementById('chart-overlay');
   if (overlay.classList.contains('hidden')) {
     overlay.classList.remove('hidden');
@@ -5235,7 +5241,6 @@ function floatChart() {
   chartFloating = true;
   localStorage.setItem('qc-chart-float', '1');
   document.getElementById('chart-float-btn').style.display = 'none';
-  document.getElementById('chart-dock-btn').style.display = '';
   initChartDrag();
   drawValuationChart();
 }
@@ -5259,13 +5264,12 @@ function dockChart() {
   chartFloating = false;
   localStorage.setItem('qc-chart-float', '0');
   document.getElementById('chart-float-btn').style.display = '';
-  document.getElementById('chart-dock-btn').style.display = 'none';
 }
 window.dockChart = dockChart;
 
 function closeChart() {
   if (chartFloating) {
-    dockChart();
+    document.getElementById('valuation-chart-container').classList.add('hidden');
   } else {
     document.getElementById('chart-overlay').classList.add('hidden');
   }
