@@ -526,6 +526,33 @@ const BOARD_ROOM_UPGRADES = [
     category: 'Finance',
   },
   {
+    id: 'ops_dept_1',
+    name: 'COO Lv1',
+    desc: 'The Recruiter — auto-hires into department with fewest employees.',
+    cost: 2500,
+    requires: null,
+    maxCount: 1,
+    category: 'Operations',
+  },
+  {
+    id: 'ops_dept_2',
+    name: 'COO Lv2',
+    desc: 'VP of Operations — hires where marginal revenue per employee is highest.',
+    cost: 10000,
+    requires: 'ops_dept_1',
+    maxCount: 1,
+    category: 'Operations',
+  },
+  {
+    id: 'ops_dept_3',
+    name: 'COO Lv3',
+    desc: 'Elite COO — revenue-optimized hiring with earnings timing awareness.',
+    cost: 50000,
+    requires: 'ops_dept_2',
+    maxCount: 1,
+    category: 'Operations',
+  },
+  {
     id: 'rev_mult_1',
     name: 'Revenue Multiplier I',
     desc: 'Permanent 1.1× revenue multiplier.',
@@ -668,6 +695,13 @@ function getTechDeptLevel() {
   if (hasBoardRoomUpgrade('tech_dept_3')) return 3;
   if (hasBoardRoomUpgrade('tech_dept_2')) return 2;
   if (hasBoardRoomUpgrade('tech_dept_1')) return 1;
+  return 0;
+}
+
+function getOpsDeptLevel() {
+  if (hasBoardRoomUpgrade('ops_dept_3')) return 3;
+  if (hasBoardRoomUpgrade('ops_dept_2')) return 2;
+  if (hasBoardRoomUpgrade('ops_dept_1')) return 1;
   return 0;
 }
 
@@ -827,6 +861,20 @@ function setCtoBudgetPct(val) {
   updateTaxPanel();
 }
 
+function setActiveCOOLevel(level) {
+  const maxLevel = getOpsDeptLevel();
+  if (level < 0 || level > maxLevel) return;
+  gameState.activeCOOLevel = level;
+  _lastTaxPanelHash = '';
+  updateTaxPanel();
+}
+
+function setCooBudgetPct(val) {
+  gameState.cooBudgetPct = Math.max(0, Math.min(100, parseInt(val) || 0));
+  _lastTaxPanelHash = '';
+  updateTaxPanel();
+}
+
 function toggleCtoBudgetAuto(enabled) {
   gameState.ctoBudgetAuto = enabled;
   _lastTaxPanelHash = '';
@@ -895,6 +943,71 @@ function ctoAutoUpgrade() {
   }
 }
 
+function cooAutoHire() {
+  try {
+    const level = gameState.activeCOOLevel;
+    if (!level || getOpsDeptLevel() < level) return;
+
+    const pool = gameState.cooBudgetPool || 0;
+
+    // Build candidate list: all unlocked depts
+    const allCandidates = [];
+    for (let i = 0; i < gameState.sources.length; i++) {
+      const state = gameState.sources[i];
+      if (!state.unlocked) continue;
+      const stats = SOURCE_STATS[state.id];
+      if (!stats) continue;
+      const cost = hireCost(state);
+      // Marginal revenue gain from one more employee
+      const revGain = sourceRevPerTick(state) / Math.max(1, state.employees);
+      allCandidates.push({ index: i, cost, revGain, employees: state.employees, name: stats.name });
+    }
+    if (allCandidates.length === 0) return;
+
+    let target = null;
+    if (level === 1) {
+      // The Recruiter: fewest employees first
+      allCandidates.sort((a, b) => a.employees - b.employees);
+      target = allCandidates[0];
+    } else if (level === 2) {
+      // VP of Ops: best marginal revenue per hire cost
+      allCandidates.sort((a, b) => (b.revGain / b.cost) - (a.revGain / a.cost));
+      target = allCandidates[0];
+    } else if (level === 3) {
+      // Elite COO: revenue-optimized with earnings timing awareness
+      allCandidates.sort((a, b) => (b.revGain / b.cost) - (a.revGain / a.cost));
+      const currentDay = Math.floor(gameState.gameElapsedSecs / SECS_PER_DAY);
+      const earningsDaysSince = currentDay - gameState.lastEarningsDay;
+      const daysLeft = Math.max(0, EARNINGS_QUARTER_DAYS - earningsDaysSince);
+      if (daysLeft < 5) {
+        // Near earnings: hire cheapest to conserve pool
+        allCandidates.sort((a, b) => a.cost - b.cost);
+      }
+      target = allCandidates[0];
+    }
+
+    if (!target) return;
+
+    // Store target info for display
+    gameState.cooTarget = target.name;
+    gameState.cooTargetCost = target.cost;
+
+    // Hire if pool can afford it (also check hire freeze)
+    const hireFrozen = gameState.hireFrozen && Date.now() < gameState.hireFrozen;
+    if (pool >= target.cost && !hireFrozen) {
+      gameState.cooBudgetPool -= target.cost;
+      gameState.cooSpentThisQuarter += target.cost;
+      gameState.cooHireCount = (gameState.cooHireCount || 0) + 1;
+      gameState.cooJustBought = true;
+      // hireEmployee deducts from cash — add cost back since COO pays from pool
+      gameState.cash += target.cost;
+      hireEmployee(target.index);
+    }
+  } catch (e) {
+    console.error('[COO] Error:', e);
+  }
+}
+
 // ===== GAME STATE =====
 let gameState = {
   arc: null,  // selected arc key
@@ -954,6 +1067,11 @@ let gameState = {
   ctoSpentThisQuarter: 0,  // $ spent by CTO this quarter
   ctoBudgetPool: 0,        // accumulated CTO budget from revenue skimming
   ctoBudgetAuto: false,    // CapEx Planning upgrade — CFO manages budget automatically
+  activeCOOLevel: 0,       // 0 = manual, 1/2/3 = Ops Dept level in use
+  cooBudgetPct: 15,        // 0-100, slider value for COO hiring budget
+  cooSpentThisQuarter: 0,  // $ spent by COO this quarter
+  cooBudgetPool: 0,        // accumulated COO budget from revenue skimming
+  cooHireCount: 0,         // total hires by COO
   cfoRecords: {},          // { 1: {beats:0,total:0}, 2: {...}, 3: {...} }
   revenueHistory: [],      // last 3 quarterly revenues for trend analysis
   lastQuarterRE: 0,        // RE earned last quarter (for ETA display)
@@ -1254,6 +1372,11 @@ function selectArc(arcKey) {
   gameState.ctoSpentThisQuarter = 0;
   gameState.ctoBudgetPool = 0;
   gameState.ctoBudgetAuto = false;
+  gameState.activeCOOLevel = 0;
+  gameState.cooBudgetPct = 15;
+  gameState.cooSpentThisQuarter = 0;
+  gameState.cooBudgetPool = 0;
+  gameState.cooHireCount = 0;
   gameState.cfoRecords = {};
   gameState.revenueHistory = [];
   gameState.lastQuarterRE = 0;
@@ -2084,6 +2207,8 @@ function processQuarterlyTax() {
     }
     gameState.ctoSpentThisQuarter = 0;
     // Pool carries over — unspent CTO budget rolls to next quarter
+    gameState.cooSpentThisQuarter = 0;
+    // COO pool also carries over
   }
 
   // Reset quarterly tracking
@@ -2773,9 +2898,72 @@ function updateTaxPanel() {
             <input type="range" min="0" max="100" step="5" value="${budgetPct}" class="cto-budget-slider" ${sliderDisabled} oninput="setCtoBudgetPct(this.value)" title="% of revenue skimmed into CTO budget pool">
             <span class="cto-budget-pct">${budgetPct}%</span>
           </div>
-          <div class="cell cell-c" style="font-family:Consolas,monospace;font-size:10px;color:${barColor}" title="${pctUsed}% used">${bar}</div>
+          <div class="cell cell-c" style="font-family:Consolas,monospace;font-size:10px;color:${barColor}" title="${progress}% toward next upgrade">${bar}</div>
           <div class="cell cell-d" style="font-size:10px;color:#666;white-space:nowrap">${poolStr} / ${costStr}</div>
           <div class="cell cell-e" style="font-size:10px">${autoLabel}</div>
+          <div class="cell cell-f"></div>
+          <div class="cell cell-g"></div>
+          <div class="cell cell-h"></div>
+        </div>`;
+      }
+    }
+
+    // COO row
+    const maxCOOLevel = getOpsDeptLevel();
+    if (maxCOOLevel > 0) {
+      const activeCOO = gameState.activeCOOLevel;
+      let cooManual = `<span style="${csBtnStyle(activeCOO === 0)}" onclick="setActiveCOOLevel(0)" title="Hire employees yourself">Manual</span>`;
+      const cooLabels = { 1: '📋 1', 2: '📊 2', 3: '🧠 3' };
+      const cooTooltips = {
+        1: 'The Recruiter — auto-hires into department with fewest employees',
+        2: 'VP of Ops — hires where marginal revenue per employee is highest',
+        3: 'Elite COO — revenue-optimized with earnings timing awareness'
+      };
+      let cooLevels = '';
+      for (let lvl = 1; lvl <= 3; lvl++) {
+        if (lvl <= maxCOOLevel) {
+          cooLevels += `<span style="${csBtnStyle(activeCOO === lvl)}" onclick="setActiveCOOLevel(${lvl})" title="${cooTooltips[lvl]}">${cooLabels[lvl]}</span>`;
+        } else {
+          cooLevels += `<span style="${csLockedStyle}" title="Purchase COO Lv${lvl} in Board Room">🔒${lvl}</span>`;
+        }
+      }
+
+      html += `<div class="grid-row ir-row">
+        <div class="row-num">${rowNum++}</div>
+        <div class="cell cell-a" style="padding-left:16px;color:#444">COO</div>
+        <div class="cell cell-b" style="display:flex;align-items:center">${cooManual}</div>
+        <div class="cell cell-c" style="display:flex;align-items:center">${cooLevels}</div>
+        <div class="cell cell-d"></div>
+        <div class="cell cell-e"></div>
+        <div class="cell cell-f" style="font-size:9px;color:#888">${activeCOO > 0 ? `Hires: ${gameState.cooHireCount || 0}` : ''}</div>
+        <div class="cell cell-g"></div>
+        <div class="cell cell-h" style="font-size:8px;color:#999;white-space:nowrap">${activeCOO > 0 && gameState.cooTarget ? `Next: ${gameState.cooTarget}` : ''}</div>
+      </div>`;
+
+      // COO Budget sub-row
+      if (activeCOO > 0) {
+        const cooPct = gameState.cooBudgetPct;
+        const cooPool = gameState.cooBudgetPool || 0;
+        const cooTargetCost = gameState.cooTargetCost || 0;
+        const cooPoolStr = formatCompact(cooPool);
+        const cooCostStr = cooTargetCost > 0 ? formatCompact(cooTargetCost) : '—';
+        const cooProgress = cooTargetCost > 0 ? Math.min(100, Math.round(cooPool / cooTargetCost * 100)) : 0;
+        const cooBarFilled = Math.round(cooProgress / 10);
+        const cooBar = '█'.repeat(cooBarFilled) + '░'.repeat(10 - cooBarFilled);
+        const cooJustBought = gameState.cooJustBought;
+        if (cooJustBought) gameState.cooJustBought = false;
+        const cooBarColor = cooJustBought ? '#217346' : cooProgress >= 90 ? '#b8860b' : '#666';
+
+        html += `<div class="grid-row ir-row cto-budget-row">
+          <div class="row-num">${rowNum++}</div>
+          <div class="cell cell-a" style="padding-left:28px;color:#666;font-size:10px">Budget</div>
+          <div class="cell cell-b" style="display:flex;align-items:center;gap:4px">
+            <input type="range" min="0" max="100" step="5" value="${cooPct}" class="cto-budget-slider" oninput="setCooBudgetPct(this.value)" title="% of revenue skimmed into COO hiring pool">
+            <span class="cto-budget-pct">${cooPct}%</span>
+          </div>
+          <div class="cell cell-c" style="font-family:Consolas,monospace;font-size:10px;color:${cooBarColor}" title="${cooProgress}% toward next hire">${cooBar}</div>
+          <div class="cell cell-d" style="font-size:10px;color:#666;white-space:nowrap">${cooPoolStr} / ${cooCostStr}</div>
+          <div class="cell cell-e"></div>
           <div class="cell cell-f"></div>
           <div class="cell cell-g"></div>
           <div class="cell cell-h"></div>
@@ -2880,8 +3068,16 @@ function updateTaxPanel() {
     gameState.ctoJustBought ? 1 : 0,
     gameState.ctoBudgetAuto ? 1 : 0,
     gameState.ctoUpgradeCount || 0,
+    gameState.activeCOOLevel || 0,
+    gameState.cooBudgetPct || 0,
+    Math.floor(gameState.cooSpentThisQuarter || 0),
+    Math.floor(gameState.cooBudgetPool || 0),
+    gameState.cooTarget || '',
+    gameState.cooJustBought ? 1 : 0,
+    gameState.cooHireCount || 0,
     getFinanceDeptLevel(),
     getTechDeptLevel(),
+    getOpsDeptLevel(),
   ].join('|');
 
   if (hashParts !== _lastTaxPanelHash) {
@@ -2941,11 +3137,14 @@ function gameTick() {
       const garnished = garnishActive ? Math.floor(fullRev * 0.15) : 0;
 
       if (state.automated) {
-        // Skim CTO budget from revenue before adding to cash
+        // Skim CTO + COO budgets from revenue before adding to cash
         const ctoSkim = (gameState.activeCTOLevel > 0 && gameState.ctoBudgetPct > 0)
           ? rev * (gameState.ctoBudgetPct / 100) : 0;
-        gameState.cash += rev - ctoSkim;
+        const cooSkim = (gameState.activeCOOLevel > 0 && gameState.cooBudgetPct > 0)
+          ? rev * (gameState.cooBudgetPct / 100) : 0;
+        gameState.cash += rev - ctoSkim - cooSkim;
         gameState.ctoBudgetPool = (gameState.ctoBudgetPool || 0) + ctoSkim;
+        gameState.cooBudgetPool = (gameState.cooBudgetPool || 0) + cooSkim;
         gameState.totalEarned += rev;
         gameState.quarterRevenue += rev;
         trackEarningsRevenue(rev);
@@ -2994,6 +3193,9 @@ function gameTick() {
 
   // CTO auto-upgrade
   ctoAutoUpgrade();
+
+  // COO auto-hire
+  cooAutoHire();
 
   // Event system
   if (gameState.eventCooldown > 0) {
@@ -3339,6 +3541,11 @@ function saveGame() {
     ctoSpentThisQuarter: gameState.ctoSpentThisQuarter || 0,
     ctoBudgetPool: gameState.ctoBudgetPool || 0,
     ctoBudgetAuto: gameState.ctoBudgetAuto || false,
+    activeCOOLevel: gameState.activeCOOLevel || 0,
+    cooBudgetPct: gameState.cooBudgetPct != null ? gameState.cooBudgetPct : 15,
+    cooSpentThisQuarter: gameState.cooSpentThisQuarter || 0,
+    cooBudgetPool: gameState.cooBudgetPool || 0,
+    cooHireCount: gameState.cooHireCount || 0,
     cfoRecords: gameState.cfoRecords || {},
     revenueHistory: gameState.revenueHistory || [],
     lastQuarterRE: gameState.lastQuarterRE || 0,
@@ -3422,6 +3629,11 @@ function loadGame() {
     gameState.ctoSpentThisQuarter = data.ctoSpentThisQuarter || 0;
     gameState.ctoBudgetPool = data.ctoBudgetPool || 0;
     gameState.ctoBudgetAuto = data.ctoBudgetAuto || false;
+    gameState.activeCOOLevel = data.activeCOOLevel || 0;
+    gameState.cooBudgetPct = data.cooBudgetPct != null ? data.cooBudgetPct : 15;
+    gameState.cooSpentThisQuarter = data.cooSpentThisQuarter || 0;
+    gameState.cooBudgetPool = data.cooBudgetPool || 0;
+    gameState.cooHireCount = data.cooHireCount || 0;
     gameState.cfoRecords = data.cfoRecords || {};
     gameState.revenueHistory = data.revenueHistory || [];
     gameState.lastQuarterRE = data.lastQuarterRE || 0;
@@ -3548,6 +3760,11 @@ function resetGame() {
   gameState.ctoSpentThisQuarter = 0;
   gameState.ctoBudgetPool = 0;
   gameState.ctoBudgetAuto = false;
+  gameState.activeCOOLevel = 0;
+  gameState.cooBudgetPct = 15;
+  gameState.cooSpentThisQuarter = 0;
+  gameState.cooBudgetPool = 0;
+  gameState.cooHireCount = 0;
   gameState.cfoRecords = {};
   gameState.revenueHistory = [];
   gameState.lastQuarterRE = 0;
@@ -4230,6 +4447,11 @@ function resetBoardRoom() {
   gameState.ctoSpentThisQuarter = 0;
   gameState.ctoBudgetPool = 0;
   gameState.ctoBudgetAuto = false;
+  gameState.activeCOOLevel = 0;
+  gameState.cooBudgetPct = 15;
+  gameState.cooSpentThisQuarter = 0;
+  gameState.cooBudgetPool = 0;
+  gameState.cooHireCount = 0;
   gameState.cfoRecords = {};
   gameState.revenueHistory = [];
   gameState.lastQuarterRE = 0;
@@ -4460,6 +4682,8 @@ window.resetBoardRoom = resetBoardRoom;
 window.setActiveCFOLevel = setActiveCFOLevel;
 window.setActiveCTOLevel = setActiveCTOLevel;
 window.setCtoBudgetPct = setCtoBudgetPct;
+window.setActiveCOOLevel = setActiveCOOLevel;
+window.setCooBudgetPct = setCooBudgetPct;
 window.toggleCtoBudgetAuto = toggleCtoBudgetAuto;
 window.setGuidance = setGuidance;
 
