@@ -5012,26 +5012,17 @@ function buildBoardRoom() {
   let html = '';
   let rowNum = 3; // starts after the header rows (1-2)
 
-  // Board Room header
+  // Board Room header (RE balance)
   html += `<div class="grid-row br-header-row">
     <div class="row-num">${rowNum++}</div>
     <div class="cell cell-a" style="font-weight:700;color:${dm('#7b1fa2')}">BOARD ROOM</div>
-    <div class="cell cell-b" style="font-weight:600;color:${dm('#666')};font-size:0.625rem">Category</div>
+    <div class="cell cell-b"></div>
     <div class="cell cell-c" style="font-weight:600;color:${dm('#666')};font-size:0.625rem;justify-content:flex-end">Cost</div>
     <div class="cell cell-d" style="font-weight:600;color:${dm('#666')};font-size:0.625rem;justify-content:flex-end">Status</div>
     <div class="cell cell-e"></div>
     <div class="cell cell-f" style="font-weight:700;color:${dm('#7b1fa2')};font-family:Consolas,monospace;font-size:0.75rem">${gameState.retainedEarnings.toLocaleString()} RE</div>
     <div class="cell cell-g"></div>
     <div class="cell cell-h"></div>
-  </div>`;
-
-  // Separator
-  html += `<div class="grid-row">
-    <div class="row-num">${rowNum++}</div>
-    <div class="cell cell-a sep-cell"></div><div class="cell cell-b sep-cell"></div>
-    <div class="cell cell-c sep-cell"></div><div class="cell cell-d sep-cell"></div>
-    <div class="cell cell-e sep-cell"></div><div class="cell cell-f sep-cell"></div>
-    <div class="cell cell-g sep-cell"></div><div class="cell cell-h sep-cell"></div>
   </div>`;
 
   // Group upgrades by category, sort each group by cost ascending
@@ -5061,20 +5052,6 @@ function buildBoardRoom() {
   for (const cat of categoryOrder) {
     const upgrades = grouped[cat];
     if (!upgrades || upgrades.length === 0) continue;
-
-    // Category header row
-    html += `<div class="grid-row br-category-row">
-      <div class="row-num">${rowNum++}</div>
-      <div class="cell cell-a" style="font-weight:700;color:${dm('#555')};font-size:0.6875rem;border-bottom:1px solid ${dm('#ccc')}">${categoryLabels[cat] || cat}</div>
-      <div class="cell cell-b" style="border-bottom:1px solid ${dm('#ccc')}"></div>
-      <div class="cell cell-c" style="border-bottom:1px solid ${dm('#ccc')}"></div>
-      <div class="cell cell-d" style="border-bottom:1px solid ${dm('#ccc')}"></div>
-      <div class="cell cell-e" style="border-bottom:1px solid ${dm('#ccc')}"></div>
-      <div class="cell cell-f" style="border-bottom:1px solid ${dm('#ccc')}"></div>
-      <div class="cell cell-g" style="border-bottom:1px solid ${dm('#ccc')}"></div>
-      <div class="cell cell-h" style="border-bottom:1px solid ${dm('#ccc')}"></div>
-    </div>`;
-    totalUpgradeRows++;
 
     for (const upgrade of upgrades) {
     const owned = getBoardRoomUpgradeCount(upgrade.id);
@@ -5122,10 +5099,10 @@ function buildBoardRoom() {
     html += `<div class="${rowClass}">
       <div class="row-num">${rowNum++}</div>
       <div class="cell cell-a" style="font-weight:500;${isLocked ? `color:${dm('#bbb')}` : ''}">${upgrade.name}</div>
-      <div class="cell cell-b" style="font-size:0.625rem;color:${dm('#888')}">${upgrade.category}</div>
+      <div class="cell cell-b" style="font-size:0.625rem;color:${dm('#888')};white-space:normal;line-height:1.3">${desc}</div>
       <div class="cell cell-c" style="font-family:Consolas,monospace;font-size:0.6875rem;color:${costColor};justify-content:flex-end">${costLabel}</div>
       <div class="cell cell-d" style="justify-content:flex-end">${statusCell}</div>
-      <div class="cell cell-e" style="font-size:0.625rem;color:${dm('#888')};white-space:normal;line-height:1.3">${desc}</div>
+      <div class="cell cell-e"></div>
       <div class="cell cell-f"></div>
       <div class="cell cell-g"></div>
       <div class="cell cell-h"></div>
