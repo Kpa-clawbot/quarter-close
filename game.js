@@ -505,7 +505,7 @@ const BOARD_ROOM_UPGRADES = [
     cost: 2500,
     requires: null,
     maxCount: 1,
-    category: 'Finance',
+    category: 'Technology',
   },
   {
     id: 'tech_dept_2',
@@ -514,7 +514,7 @@ const BOARD_ROOM_UPGRADES = [
     cost: 10000,
     requires: 'tech_dept_1',
     maxCount: 1,
-    category: 'Finance',
+    category: 'Technology',
   },
   {
     id: 'tech_dept_3',
@@ -523,7 +523,7 @@ const BOARD_ROOM_UPGRADES = [
     cost: 50000,
     requires: 'tech_dept_2',
     maxCount: 1,
-    category: 'Finance',
+    category: 'Technology',
   },
   {
     id: 'ops_dept_1',
@@ -689,7 +689,7 @@ const BOARD_ROOM_UPGRADES = [
     cost: 5000,
     requires: null,
     maxCount: 1,
-    category: 'Operations',
+    category: 'Talent',
   },
   {
     id: 'employer_branding',
@@ -698,7 +698,7 @@ const BOARD_ROOM_UPGRADES = [
     cost: 12000,
     requires: 'talent_pipeline',
     maxCount: 1,
-    category: 'Operations',
+    category: 'Talent',
   },
   {
     id: 'talent_magnet',
@@ -707,7 +707,7 @@ const BOARD_ROOM_UPGRADES = [
     cost: 25000,
     requires: 'employer_branding',
     maxCount: 1,
-    category: 'Operations',
+    category: 'Talent',
   },
 ];
 
@@ -4850,10 +4850,14 @@ function buildBoardRoom() {
   </div>`;
 
   // Group upgrades by category, sort each group by cost ascending
-  const categoryOrder = ['Finance', 'Revenue', 'Tax', 'Investor', 'Protection'];
+  const categoryOrder = ['Expansion', 'Revenue', 'Talent', 'Finance', 'Technology', 'Operations', 'Tax', 'Investor', 'Protection'];
   const categoryLabels = {
-    Finance: '📊 Finance',
+    Expansion: '🌍 Market Expansion',
     Revenue: '💰 Revenue',
+    Talent: '🎓 Talent Acquisition',
+    Finance: '📊 Finance',
+    Technology: '🔧 Technology',
+    Operations: '📋 Operations',
     Tax: '🏛️ Tax',
     Investor: '📈 Investor Relations',
     Protection: '🛡️ Protection',
