@@ -2676,7 +2676,7 @@ function updateTaxPanel() {
 
   html += `<div class="grid-row pnl-header">
     <div class="row-num">${rowNum++}</div>
-    <div class="cell cell-a" style="font-weight:700;color:${dm('#333')};cursor:pointer;overflow:visible;white-space:nowrap" data-toggle-pnl>${pnlArrow} P&amp;L${collapsedSummary}</div>
+    <div class="cell cell-a" style="font-weight:700;color:${dm('#333')};cursor:pointer;overflow:visible;white-space:nowrap" data-toggle-pnl>${pnlArrow} ${pnlCollapsed ? 'P&amp;L' : 'PROFIT &amp; LOSS'}${collapsedSummary}</div>
     <div class="cell cell-b"></div>
     <div class="cell cell-c" style="font-size:0.625rem;color:${dm('#888')};justify-content:flex-end">${pnlCollapsed ? '' : 'This Qtr'}</div>
     <div class="cell cell-d" style="font-size:0.625rem;color:${dm('#888')};justify-content:flex-end">${pnlCollapsed ? '' : 'Lifetime'}</div>
@@ -2809,19 +2809,32 @@ function updateTaxPanel() {
     const streakStr = streakVal > 0 ? `🔥 ${streakVal} beat${streakVal > 1 ? 's' : ''} (${irStreakMult.toFixed(1)}× RE)` :
                       streakVal < 0 ? `❄️ ${Math.abs(streakVal)} miss${Math.abs(streakVal) > 1 ? 'es' : ''}` : '—';
 
+    // IR collapsed state
+    const irCollapsed = gameState.irCollapsed !== false; // default true
+    const irArrow = irCollapsed ? '▶' : '▼';
+
+    // Collapsed summary: Guidance │ On/Off Track │ % │ Streak │ Analyst
+    const trackPctStr = `${trackPct >= 0 ? '+' : ''}${trackPct.toFixed(1)}%`;
+    const shortStreak = streakVal > 0 ? `🔥 ${streakVal} (${irStreakMult.toFixed(1)}×)` :
+                        streakVal < 0 ? `❄️ ${Math.abs(streakVal)}` : '—';
+    const irSummary = irCollapsed
+      ? `<span style="font-weight:400;font-size:0.625rem;color:${dm('#666')}"> │ </span><span style="font-size:0.625rem">${guidanceLevel.emoji} ${guidanceLevel.label}</span><span style="font-weight:400;font-size:0.625rem;color:${dm('#666')}"> │ </span><span style="font-size:0.625rem;color:${trackColor}">${trackLabel}</span><span style="font-weight:400;font-size:0.625rem;color:${dm('#666')}"> │ </span><span style="font-size:0.625rem;color:${trackColor}">${trackPctStr}</span><span style="font-weight:400;font-size:0.625rem;color:${dm('#666')}"> │ </span><span style="font-size:0.625rem">${shortStreak}</span><span style="font-weight:400;font-size:0.625rem;color:${dm('#666')}"> │ </span><span style="font-size:0.625rem;color:${dm('#888')}">Analyst ${(gameState.analystBaseline).toFixed(2)}×</span>`
+      : '';
+
     // IR Header
     html += `<div class="grid-row ir-header">
       <div class="row-num">${rowNum++}</div>
-      <div class="cell cell-a" style="font-weight:700;color:${dm('#0078d4')}">INVESTOR RELATIONS</div>
+      <div class="cell cell-a" style="font-weight:700;color:${dm('#0078d4')};cursor:pointer;overflow:visible;white-space:nowrap" data-toggle-ir>${irArrow} ${irCollapsed ? 'IR' : 'INVESTOR RELATIONS'}${irSummary}</div>
       <div class="cell cell-b"></div>
       <div class="cell cell-c"></div>
       <div class="cell cell-d"></div>
       <div class="cell cell-e"></div>
-      <div class="cell cell-f" style="font-size:0.625rem;color:${dm('#888')}">Earnings in ${earningsDaysLeft}d</div>
+      <div class="cell cell-f" style="font-size:0.625rem;color:${dm('#888')}">${irCollapsed ? '' : `Earnings in ${earningsDaysLeft}d`}</div>
       <div class="cell cell-g"></div>
       <div class="cell cell-h"></div>
     </div>`;
 
+    if (!irCollapsed) {
     // Quarter + Days remaining
     html += `<div class="grid-row ir-row">
       <div class="row-num">${rowNum++}</div>
@@ -2925,6 +2938,7 @@ function updateTaxPanel() {
       <div class="cell cell-g"></div>
       <div class="cell cell-h"></div>
     </div>`;
+    } // end irCollapsed
   }
 
   // ===== C-SUITE SECTION (CFO + CTO selectors) =====
@@ -3222,6 +3236,7 @@ function updateTaxPanel() {
     getBoardRoomRevMultiplier(),
     gameState.pnlCollapsed ? 1 : 0,
     gameState.taxCollapsed ? 1 : 0,
+    gameState.irCollapsed ? 1 : 0,
     gameState.activeCFOLevel || 0,
     gameState.activeCTOLevel || 0,
     gameState.ctoBudgetPct || 0,
@@ -5203,6 +5218,14 @@ function init() {
     const toggleTax = e.target.closest('[data-toggle-tax]');
     if (toggleTax) {
       gameState.taxCollapsed = gameState.taxCollapsed === false; // toggle: default true
+      _lastTaxPanelHash = ''; // force rebuild
+      updateTaxPanel();
+      return;
+    }
+    // IR collapse toggle
+    const toggleIr = e.target.closest('[data-toggle-ir]');
+    if (toggleIr) {
+      gameState.irCollapsed = gameState.irCollapsed === false; // toggle: default true
       _lastTaxPanelHash = ''; // force rebuild
       updateTaxPanel();
       return;
