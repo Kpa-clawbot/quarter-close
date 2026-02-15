@@ -5251,13 +5251,11 @@ function dockChart() {
   container.style.right = '';
   container.style.width = '';
   container.style.height = '';
-  overlay.querySelector('#chart-overlay') || overlay.appendChild(container);
-  // Actually put it back
   if (container.parentElement !== overlay) {
     overlay.appendChild(container);
   }
   container.classList.remove('hidden');
-  overlay.classList.add('hidden');
+  overlay.classList.remove('hidden');
   chartFloating = false;
   localStorage.setItem('qc-chart-float', '0');
   document.getElementById('chart-float-btn').style.display = '';
