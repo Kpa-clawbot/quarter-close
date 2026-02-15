@@ -2619,7 +2619,7 @@ function updateTaxAlert() {
   const btnLabel = canAfford ? `SETTLE ${formatCompact(total)}` : `Need ${formatCompact(total)}`;
 
   alert.className = alertClass;
-  alert.innerHTML = `<span class="tax-alert-text">${icon} IRS DEBT: ${formatCompact(total)} │ ${statusText}</span><button class="tax-alert-btn" onclick="settleAllTax()">${btnLabel}</button>`;
+  alert.innerHTML = `<button class="tax-alert-btn" onclick="settleAllTax()">${btnLabel}</button><span class="tax-alert-text">${icon} IRS DEBT: ${formatCompact(total)} │ ${statusText}</span>`;
 
   // Hide normal formula bar elements
   cellRef.style.display = 'none';
