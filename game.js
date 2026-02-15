@@ -2707,12 +2707,12 @@ function updateTaxPanel() {
   html += `<div class="grid-row pnl-header">
     <div class="row-num">${rowNum++}</div>
     <div class="cell cell-a" style="font-weight:700;color:${dm('#333')};cursor:pointer" data-toggle-pnl>${pnlArrow} ${pnlCollapsed ? 'P&amp;L' : 'PROFIT &amp; LOSS'}</div>
-    <div class="cell cell-b" style="font-size:0.625rem;font-weight:600;color:${dm('#333')}">${pnlCollapsed ? `Q Rev: ${qRevStr}` : ''}</div>
+    <div class="cell cell-b" style="font-size:0.625rem;font-weight:600;color:${dm('#333')}">${pnlCollapsed ? `Revenue: ${qRevStr}` : ''}</div>
     <div class="cell cell-c" style="font-size:0.625rem;color:${pnlCollapsed ? vsTargetColor : dm('#888')};justify-content:flex-end">${pnlCollapsed ? `vs Target: ${vsTargetStr}` : 'This Qtr'}</div>
-    <div class="cell cell-d" style="font-size:0.625rem;color:${dm('#888')};justify-content:flex-end">${pnlCollapsed ? estTaxStr : 'Lifetime'}</div>
+    <div class="cell cell-d" style="font-size:0.625rem;color:${dm('#888')};justify-content:flex-end">${pnlCollapsed ? '' : 'Lifetime'}</div>
     <div class="cell cell-e"></div>
     <div class="cell cell-f" style="${taxCellStyle}">${pnlCollapsed ? taxLabel : `Tax due in ${daysToTax}d`}</div>
-    <div class="cell cell-g"></div>
+    <div class="cell cell-g" style="font-size:0.625rem;color:${dm('#888')}">${pnlCollapsed ? estTaxStr : ''}</div>
     <div class="cell cell-h"></div>
   </div>`;
 
