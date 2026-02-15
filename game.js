@@ -2670,7 +2670,7 @@ function updateTaxPanel() {
 
   // Separator
   html += `<div class="grid-row sep-row">
-    <div class="row-num">${rowNum++}</div>
+    <div class="row-num"></div>
     <div class="cell cell-a sep-cell"></div><div class="cell cell-b sep-cell"></div>
     <div class="cell cell-c sep-cell"></div><div class="cell cell-d sep-cell"></div>
     <div class="cell cell-e sep-cell"></div><div class="cell cell-f sep-cell"></div>
@@ -2819,7 +2819,7 @@ function updateTaxPanel() {
 
     // Separator
     html += `<div class="grid-row sep-row">
-      <div class="row-num">${rowNum++}</div>
+      <div class="row-num"></div>
       <div class="cell cell-a sep-cell"></div><div class="cell cell-b sep-cell"></div>
       <div class="cell cell-c sep-cell"></div><div class="cell cell-d sep-cell"></div>
       <div class="cell cell-e sep-cell"></div><div class="cell cell-f sep-cell"></div>
@@ -2948,7 +2948,7 @@ function updateTaxPanel() {
   if (gameState.isPublic && (getFinanceDeptLevel() > 0 || getTechDeptLevel() > 0)) {
     // Separator
     html += `<div class="grid-row sep-row">
-      <div class="row-num">${rowNum++}</div>
+      <div class="row-num"></div>
       <div class="cell cell-a sep-cell"></div><div class="cell cell-b sep-cell"></div>
       <div class="cell cell-c sep-cell"></div><div class="cell cell-d sep-cell"></div>
       <div class="cell cell-e sep-cell"></div><div class="cell cell-f sep-cell"></div>
@@ -3172,7 +3172,7 @@ function updateTaxPanel() {
     const worstLabel = stageLabels[worstStage] || worstStage;
 
     html += `<div class="grid-row sep-row">
-      <div class="row-num">${rowNum++}</div>
+      <div class="row-num"></div>
       <div class="cell cell-a sep-cell"></div><div class="cell cell-b sep-cell"></div>
       <div class="cell cell-c sep-cell"></div><div class="cell cell-d sep-cell"></div>
       <div class="cell cell-e sep-cell"></div><div class="cell cell-f sep-cell"></div>
