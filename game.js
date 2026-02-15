@@ -839,15 +839,10 @@ function ctoAutoUpgrade() {
     const level = gameState.activeCTOLevel;
     if (!level || getTechDeptLevel() < level) return;
 
-    // Budget 0% = CTO paused
-    if (gameState.ctoBudgetPct === 0) return;
+    const pool = gameState.ctoBudgetPool || 0;
+    if (pool <= 0) return;
 
-    // Allowance = % of current cash, minus what CTO already spent this quarter
-    const allowance = gameState.cash * (gameState.ctoBudgetPct / 100);
-    const budgetRemaining = allowance - gameState.ctoSpentThisQuarter;
-    if (budgetRemaining <= 0) return;
-
-    // Build candidate list: all unlocked depts with affordable upgrades
+    // Build candidate list: upgrades affordable from CTO pool
     const candidates = [];
     for (let i = 0; i < gameState.sources.length; i++) {
       const state = gameState.sources[i];
@@ -855,11 +850,11 @@ function ctoAutoUpgrade() {
       const stats = SOURCE_STATS[state.id];
       if (!stats) continue;
       const cost = upgradeCost(state);
-      if (cost > gameState.cash || cost > budgetRemaining) continue;
+      if (cost > pool) continue;
       // ROI = annual revenue gain / cost
       const annualRevGain = sourceRevPerTick(state) * 365.25 * 0.5;
       const roi = cost > 0 ? annualRevGain / cost : 0;
-      candidates.push({ index: i, cost, revGain: annualRevGain, roi, name: stats.name });
+      candidates.push({ index: i, cost, revGain: annualRevGain, roi });
     }
     if (candidates.length === 0) return;
 
@@ -889,10 +884,13 @@ function ctoAutoUpgrade() {
       pick = candidates.find(c => c.roi >= threshold) || null;
     }
 
-    // Buy ONE upgrade per tick
+    // Buy ONE upgrade per tick from CTO pool
     if (pick) {
+      gameState.ctoBudgetPool -= pick.cost;
       gameState.ctoSpentThisQuarter += pick.cost;
       gameState.ctoUpgradeCount = (gameState.ctoUpgradeCount || 0) + 1;
+      // upgradeSource deducts from cash — add cost back since CTO pays from pool
+      gameState.cash += pick.cost;
       upgradeSource(pick.index);
     }
   } catch (e) {
@@ -957,6 +955,7 @@ let gameState = {
   activeCTOLevel: 0,       // 0 = manual, 1/2/3 = Tech Dept level in use
   ctoBudgetPct: 15,        // 0-100, slider value for CTO quarterly budget
   ctoSpentThisQuarter: 0,  // $ spent by CTO this quarter
+  ctoBudgetPool: 0,        // accumulated CTO budget from revenue skimming
   ctoBudgetAuto: false,    // CapEx Planning upgrade — CFO manages budget automatically
   cfoRecords: {},          // { 1: {beats:0,total:0}, 2: {...}, 3: {...} }
   revenueHistory: [],      // last 3 quarterly revenues for trend analysis
@@ -1256,6 +1255,7 @@ function selectArc(arcKey) {
   gameState.activeCTOLevel = 0;
   gameState.ctoBudgetPct = 15;
   gameState.ctoSpentThisQuarter = 0;
+  gameState.ctoBudgetPool = 0;
   gameState.ctoBudgetAuto = false;
   gameState.cfoRecords = {};
   gameState.revenueHistory = [];
@@ -2086,6 +2086,7 @@ function processQuarterlyTax() {
       }
     }
     gameState.ctoSpentThisQuarter = 0;
+    // Pool carries over — unspent CTO budget rolls to next quarter
   }
 
   // Reset quarterly tracking
@@ -2750,14 +2751,16 @@ function updateTaxPanel() {
       // CTO Budget sub-row (only when CTO is active)
       if (activeCTO > 0) {
         const budgetPct = gameState.ctoBudgetPct;
+        const pool = gameState.ctoBudgetPool || 0;
         const spent = gameState.ctoSpentThisQuarter;
-        const allowance = gameState.cash * (budgetPct / 100);
+        const poolStr = formatCompact(pool);
         const spentStr = formatCompact(spent);
-        const allowStr = formatCompact(allowance);
-        const pctUsed = allowance > 0 ? Math.min(100, Math.round(spent / allowance * 100)) : 0;
+        // Bar shows pool accumulation relative to spent (pool is what's available)
+        const total = pool + spent;
+        const pctUsed = total > 0 ? Math.min(100, Math.round(spent / total * 100)) : 0;
         const barFilled = Math.round(pctUsed / 10);
         const bar = '█'.repeat(barFilled) + '░'.repeat(10 - barFilled);
-        const barColor = pctUsed >= 90 ? '#c00' : pctUsed >= 70 ? '#b8860b' : '#666';
+        const barColor = pctUsed >= 90 ? '#217346' : pctUsed >= 50 ? '#b8860b' : '#666';
         const hasCapEx = hasBoardRoomUpgrade('capex_planning');
         const autoChecked = gameState.ctoBudgetAuto ? 'checked' : '';
         const sliderDisabled = gameState.ctoBudgetAuto ? 'disabled style="opacity:0.5"' : '';
@@ -2767,11 +2770,11 @@ function updateTaxPanel() {
           <div class="row-num">${rowNum++}</div>
           <div class="cell cell-a" style="padding-left:28px;color:#666;font-size:10px">Budget</div>
           <div class="cell cell-b" style="display:flex;align-items:center;gap:4px">
-            <input type="range" min="0" max="100" step="5" value="${budgetPct}" class="cto-budget-slider" ${sliderDisabled} oninput="setCtoBudgetPct(this.value)" title="% of cash CTO is allowed to spend">
+            <input type="range" min="0" max="100" step="5" value="${budgetPct}" class="cto-budget-slider" ${sliderDisabled} oninput="setCtoBudgetPct(this.value)" title="% of revenue skimmed into CTO budget pool">
             <span class="cto-budget-pct">${budgetPct}%</span>
           </div>
           <div class="cell cell-c" style="font-family:Consolas,monospace;font-size:10px;color:${barColor}" title="${pctUsed}% used">${bar}</div>
-          <div class="cell cell-d" style="font-size:10px;color:#666;white-space:nowrap">${spentStr} / ${allowStr}</div>
+          <div class="cell cell-d" style="font-size:10px;color:#666;white-space:nowrap">Pool: ${poolStr} | Spent: ${spentStr}</div>
           <div class="cell cell-e" style="font-size:10px">${autoLabel}</div>
           <div class="cell cell-f"></div>
           <div class="cell cell-g"></div>
@@ -2872,7 +2875,7 @@ function updateTaxPanel() {
     gameState.activeCTOLevel || 0,
     gameState.ctoBudgetPct || 0,
     Math.floor(gameState.ctoSpentThisQuarter || 0),
-    Math.floor(gameState.cash / 1000000), // cash changes affect budget display
+    Math.floor(gameState.ctoBudgetPool || 0),
     gameState.ctoBudgetAuto ? 1 : 0,
     gameState.ctoUpgradeCount || 0,
     getFinanceDeptLevel(),
@@ -2936,7 +2939,11 @@ function gameTick() {
       const garnished = garnishActive ? Math.floor(fullRev * 0.15) : 0;
 
       if (state.automated) {
-        gameState.cash += rev;
+        // Skim CTO budget from revenue before adding to cash
+        const ctoSkim = (gameState.activeCTOLevel > 0 && gameState.ctoBudgetPct > 0)
+          ? rev * (gameState.ctoBudgetPct / 100) : 0;
+        gameState.cash += rev - ctoSkim;
+        gameState.ctoBudgetPool = (gameState.ctoBudgetPool || 0) + ctoSkim;
         gameState.totalEarned += rev;
         gameState.quarterRevenue += rev;
         trackEarningsRevenue(rev);
@@ -3328,6 +3335,7 @@ function saveGame() {
     activeCTOLevel: gameState.activeCTOLevel || 0,
     ctoBudgetPct: gameState.ctoBudgetPct != null ? gameState.ctoBudgetPct : 15,
     ctoSpentThisQuarter: gameState.ctoSpentThisQuarter || 0,
+    ctoBudgetPool: gameState.ctoBudgetPool || 0,
     ctoBudgetAuto: gameState.ctoBudgetAuto || false,
     cfoRecords: gameState.cfoRecords || {},
     revenueHistory: gameState.revenueHistory || [],
@@ -3410,6 +3418,7 @@ function loadGame() {
     gameState.activeCTOLevel = data.activeCTOLevel || 0;
     gameState.ctoBudgetPct = data.ctoBudgetPct != null ? data.ctoBudgetPct : 15;
     gameState.ctoSpentThisQuarter = data.ctoSpentThisQuarter || 0;
+    gameState.ctoBudgetPool = data.ctoBudgetPool || 0;
     gameState.ctoBudgetAuto = data.ctoBudgetAuto || false;
     gameState.cfoRecords = data.cfoRecords || {};
     gameState.revenueHistory = data.revenueHistory || [];
@@ -3535,6 +3544,7 @@ function resetGame() {
   gameState.activeCTOLevel = 0;
   gameState.ctoBudgetPct = 15;
   gameState.ctoSpentThisQuarter = 0;
+  gameState.ctoBudgetPool = 0;
   gameState.ctoBudgetAuto = false;
   gameState.cfoRecords = {};
   gameState.revenueHistory = [];
@@ -4216,6 +4226,7 @@ function resetBoardRoom() {
   gameState.activeCTOLevel = 0;
   gameState.ctoBudgetPct = 15;
   gameState.ctoSpentThisQuarter = 0;
+  gameState.ctoBudgetPool = 0;
   gameState.ctoBudgetAuto = false;
   gameState.cfoRecords = {};
   gameState.revenueHistory = [];
