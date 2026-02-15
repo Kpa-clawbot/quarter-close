@@ -5065,8 +5065,8 @@ function purchaseBoardRoomUpgrade(id) {
 // ===== INITIALIZATION =====
 // ===== DARK MODE =====
 // ===== FONT SIZE (ROOT FONT-SIZE) =====
-const FONT_SIZES = [12, 13, 14, 15, 16, 17, 18];
-let fontSizeIdx = parseInt(localStorage.getItem('qc-font-idx') || '2'); // default 14px base
+const FONT_SIZES = [10, 11, 12, 13, 14, 15, 16, 17, 18, 20, 22, 24];
+let fontSizeIdx = parseInt(localStorage.getItem('qc-font-idx') || '4'); // default 14px base
 
 function changeFontSize(dir) {
   fontSizeIdx = Math.max(0, Math.min(FONT_SIZES.length - 1, fontSizeIdx + dir));
