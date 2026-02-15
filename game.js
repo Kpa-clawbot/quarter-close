@@ -5064,6 +5064,26 @@ function purchaseBoardRoomUpgrade(id) {
 
 // ===== INITIALIZATION =====
 // ===== DARK MODE =====
+// ===== FONT SIZE (ZOOM) =====
+const ZOOM_MIN = 70;
+const ZOOM_MAX = 150;
+const ZOOM_STEP = 10;
+let currentZoom = parseInt(localStorage.getItem('qc-zoom') || '100');
+
+function changeFontSize(dir) {
+  currentZoom = Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, currentZoom + dir * ZOOM_STEP));
+  document.getElementById('game-view').style.zoom = (currentZoom / 100).toString();
+  localStorage.setItem('qc-zoom', currentZoom.toString());
+}
+
+function initZoom() {
+  if (currentZoom !== 100) {
+    document.getElementById('game-view').style.zoom = (currentZoom / 100).toString();
+  }
+}
+window.changeFontSize = changeFontSize;
+
+// ===== DARK MODE =====
 function toggleDarkMode() {
   const isDark = document.body.classList.toggle('dark-mode');
   document.getElementById('dark-mode-toggle').textContent = isDark ? '☀️' : '🌙';
@@ -5110,6 +5130,7 @@ window.toggleDarkMode = toggleDarkMode;
 
 function init() {
   initDarkMode();
+  initZoom();
   generateBossGrid();
   initChartDrag();
   initToastDrag();

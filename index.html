@@ -145,6 +145,9 @@
         <button class="tool-btn" title="Percent">%</button>
         <button class="tool-btn" title="Comma">,</button>
         <div class="toolbar-sep"></div>
+        <button class="tool-btn" onclick="changeFontSize(-1)" title="Decrease font size">A↓</button>
+        <button class="tool-btn" onclick="changeFontSize(1)" title="Increase font size">A↑</button>
+        <div class="toolbar-sep"></div>
         <button class="tool-btn" id="dark-mode-toggle" onclick="toggleDarkMode()" title="Toggle dark mode">🌙</button>
       </div>
     </div>
@@ -677,7 +680,7 @@
     </div>
   </div>
 
-  <script src="game.js?v=106"></script>
+  <script src="game.js?v=107"></script>
   <script>
     if (location.hostname === 'kpa-clawbot.github.io') {
       var s = document.createElement('script');
