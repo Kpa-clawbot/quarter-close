@@ -840,58 +840,55 @@ function ctoAutoUpgrade() {
     if (!level || getTechDeptLevel() < level) return;
 
     const pool = gameState.ctoBudgetPool || 0;
-    if (pool <= 0) return;
 
-    // Build candidate list: upgrades affordable from CTO pool
-    const candidates = [];
+    // Build candidate list: all unlocked depts (regardless of affordability)
+    const allCandidates = [];
     for (let i = 0; i < gameState.sources.length; i++) {
       const state = gameState.sources[i];
       if (!state.unlocked || state.employees === 0) continue;
       const stats = SOURCE_STATS[state.id];
       if (!stats) continue;
       const cost = upgradeCost(state);
-      if (cost > pool) continue;
-      // ROI = annual revenue gain / cost
       const annualRevGain = sourceRevPerTick(state) * 365.25 * 0.5;
       const roi = cost > 0 ? annualRevGain / cost : 0;
-      candidates.push({ index: i, cost, revGain: annualRevGain, roi });
+      allCandidates.push({ index: i, cost, revGain: annualRevGain, roi, name: stats.name });
     }
-    if (candidates.length === 0) return;
+    if (allCandidates.length === 0) return;
 
-    let pick = null;
-
+    // Determine target based on CTO level strategy
+    let target = null;
     if (level === 1) {
-      // The Intern: cheapest first
-      candidates.sort((a, b) => a.cost - b.cost);
-      pick = candidates[0];
+      allCandidates.sort((a, b) => a.cost - b.cost);
+      target = allCandidates[0];
     } else if (level === 2) {
-      // Competent CTO: best ROI first, skip truly worthless upgrades
-      candidates.sort((a, b) => b.roi - a.roi);
-      pick = candidates.find(c => c.roi >= 0.001) || null;
+      allCandidates.sort((a, b) => b.roi - a.roi);
+      target = allCandidates.find(c => c.roi >= 0.001) || allCandidates[0];
     } else if (level === 3) {
-      // Elite CTO: ROI + timing awareness
-      candidates.sort((a, b) => b.roi - a.roi);
+      allCandidates.sort((a, b) => b.roi - a.roi);
       const currentDay = Math.floor(gameState.gameElapsedSecs / SECS_PER_DAY);
       const earningsDaysSince = currentDay - gameState.lastEarningsDay;
       const daysLeft = Math.max(0, EARNINGS_QUARTER_DAYS - earningsDaysSince);
-      // Near earnings: tighten up; otherwise very permissive
       let threshold = 0.001;
-      if (daysLeft < 5) {
-        threshold = 0.05;
-      } else if (daysLeft < 20) {
-        threshold = 0.01;
-      }
-      pick = candidates.find(c => c.roi >= threshold) || null;
+      if (daysLeft < 5) threshold = 0.05;
+      else if (daysLeft < 20) threshold = 0.01;
+      target = allCandidates.find(c => c.roi >= threshold) || allCandidates[0];
     }
 
-    // Buy ONE upgrade per tick from CTO pool
-    if (pick) {
-      gameState.ctoBudgetPool -= pick.cost;
-      gameState.ctoSpentThisQuarter += pick.cost;
+    if (!target) return;
+
+    // Store target info for display
+    gameState.ctoTarget = target.name;
+    gameState.ctoTargetCost = target.cost;
+
+    // Buy if pool can afford it
+    if (pool >= target.cost) {
+      gameState.ctoBudgetPool -= target.cost;
+      gameState.ctoSpentThisQuarter += target.cost;
       gameState.ctoUpgradeCount = (gameState.ctoUpgradeCount || 0) + 1;
+      gameState.ctoJustBought = true; // flash flag for UI
       // upgradeSource deducts from cash — add cost back since CTO pays from pool
-      gameState.cash += pick.cost;
-      upgradeSource(pick.index);
+      gameState.cash += target.cost;
+      upgradeSource(target.index);
     }
   } catch (e) {
     console.error('[CTO] Error:', e);
@@ -2745,22 +2742,25 @@ function updateTaxPanel() {
         <div class="cell cell-e"></div>
         <div class="cell cell-f" style="font-size:9px;color:#888">${activeCTO > 0 ? `Upgrades: ${gameState.ctoUpgradeCount || 0}` : ''}</div>
         <div class="cell cell-g"></div>
-        <div class="cell cell-h"></div>
+        <div class="cell cell-h" style="font-size:8px;color:#999;white-space:nowrap">${activeCTO > 0 && gameState.ctoTarget ? `Next: ${gameState.ctoTarget}` : ''}</div>
       </div>`;
 
       // CTO Budget sub-row (only when CTO is active)
       if (activeCTO > 0) {
         const budgetPct = gameState.ctoBudgetPct;
         const pool = gameState.ctoBudgetPool || 0;
-        const spent = gameState.ctoSpentThisQuarter;
+        const targetCost = gameState.ctoTargetCost || 0;
+        const targetName = gameState.ctoTarget || '—';
         const poolStr = formatCompact(pool);
-        const spentStr = formatCompact(spent);
-        // Bar shows pool accumulation relative to spent (pool is what's available)
-        const total = pool + spent;
-        const pctUsed = total > 0 ? Math.min(100, Math.round(spent / total * 100)) : 0;
-        const barFilled = Math.round(pctUsed / 10);
+        const costStr = targetCost > 0 ? formatCompact(targetCost) : '—';
+        // Progress toward next purchase
+        const progress = targetCost > 0 ? Math.min(100, Math.round(pool / targetCost * 100)) : 0;
+        const barFilled = Math.round(progress / 10);
         const bar = '█'.repeat(barFilled) + '░'.repeat(10 - barFilled);
-        const barColor = pctUsed >= 90 ? '#217346' : pctUsed >= 50 ? '#b8860b' : '#666';
+        // Flash green on purchase, otherwise color by progress
+        const justBought = gameState.ctoJustBought;
+        if (justBought) gameState.ctoJustBought = false;
+        const barColor = justBought ? '#217346' : progress >= 90 ? '#b8860b' : '#666';
         const hasCapEx = hasBoardRoomUpgrade('capex_planning');
         const autoChecked = gameState.ctoBudgetAuto ? 'checked' : '';
         const sliderDisabled = gameState.ctoBudgetAuto ? 'disabled style="opacity:0.5"' : '';
@@ -2774,7 +2774,7 @@ function updateTaxPanel() {
             <span class="cto-budget-pct">${budgetPct}%</span>
           </div>
           <div class="cell cell-c" style="font-family:Consolas,monospace;font-size:10px;color:${barColor}" title="${pctUsed}% used">${bar}</div>
-          <div class="cell cell-d" style="font-size:10px;color:#666;white-space:nowrap">Pool: ${poolStr} | Spent: ${spentStr}</div>
+          <div class="cell cell-d" style="font-size:10px;color:#666;white-space:nowrap">${poolStr} / ${costStr}</div>
           <div class="cell cell-e" style="font-size:10px">${autoLabel}</div>
           <div class="cell cell-f"></div>
           <div class="cell cell-g"></div>
@@ -2876,6 +2876,8 @@ function updateTaxPanel() {
     gameState.ctoBudgetPct || 0,
     Math.floor(gameState.ctoSpentThisQuarter || 0),
     Math.floor(gameState.ctoBudgetPool || 0),
+    gameState.ctoTarget || '',
+    gameState.ctoJustBought ? 1 : 0,
     gameState.ctoBudgetAuto ? 1 : 0,
     gameState.ctoUpgradeCount || 0,
     getFinanceDeptLevel(),
