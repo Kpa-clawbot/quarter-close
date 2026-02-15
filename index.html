@@ -20,7 +20,7 @@
   <meta name="description" content="An idle tycoon game disguised as a spreadsheet. Look busy. Get rich.">
   <title>Q4 Financials - Operations.xlsx - Quarter Close</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='4' fill='%23217346'/><rect x='4' y='4' width='7' height='5' rx='1' fill='white'/><rect x='13' y='4' width='7' height='5' rx='1' fill='white'/><rect x='22' y='4' width='7' height='5' rx='1' fill='white'/><rect x='4' y='11' width='7' height='5' rx='1' fill='white' opacity='0.8'/><rect x='13' y='11' width='7' height='5' rx='1' fill='white' opacity='0.8'/><rect x='22' y='11' width='7' height='5' rx='1' fill='white' opacity='0.8'/><rect x='4' y='18' width='7' height='5' rx='1' fill='white' opacity='0.6'/><rect x='13' y='18' width='7' height='5' rx='1' fill='white' opacity='0.6'/><rect x='22' y='18' width='7' height='5' rx='1' fill='white' opacity='0.6'/><rect x='4' y='25' width='7' height='5' rx='1' fill='white' opacity='0.4'/><rect x='13' y='25' width='7' height='5' rx='1' fill='white' opacity='0.4'/><rect x='22' y='25' width='7' height='5' rx='1' fill='white' opacity='0.4'/></svg>">
-  <link rel="stylesheet" href="style.css?v=66">
+  <link rel="stylesheet" href="style.css?v=67">
 </head>
 <body>
   <!-- ===== SPLASH SCREEN ===== -->
@@ -230,8 +230,16 @@
     <!-- Valuation Chart Overlay -->
     <div id="chart-overlay" class="hidden" onclick="toggleChartOverlay()">
       <div id="valuation-chart-container" onclick="event.stopPropagation()">
-        <div class="chart-title">Company Valuation</div>
+        <div class="chart-header">
+          <div class="chart-title">Company Valuation</div>
+          <div class="chart-btns">
+            <button class="chart-btn" id="chart-float-btn" onclick="floatChart()" title="Float on page">⇱</button>
+            <button class="chart-btn" id="chart-dock-btn" onclick="dockChart()" title="Back to overlay" style="display:none">⇲</button>
+            <button class="chart-btn" onclick="closeChart()" title="Close">✕</button>
+          </div>
+        </div>
         <canvas id="valuation-chart"></canvas>
+        <div class="chart-resize-handle"></div>
       </div>
     </div>
 
@@ -687,7 +695,7 @@
     </div>
   </div>
 
-  <script src="game.js?v=110"></script>
+  <script src="game.js?v=111"></script>
   <script>
     if (location.hostname === 'kpa-clawbot.github.io') {
       var s = document.createElement('script');

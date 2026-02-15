@@ -1471,6 +1471,7 @@ function selectArc(arcKey) {
   const taxPanel = document.getElementById('tax-panel');
   taxPanel.innerHTML = '';
   taxPanel.classList.add('hidden');
+  if (chartFloating) dockChart();
   document.getElementById('chart-overlay').classList.add('hidden');
 
   // Reset Board Room state
@@ -5130,6 +5131,7 @@ window.toggleDarkMode = toggleDarkMode;
 function init() {
   initDarkMode();
   initZoom();
+  initChartMode();
   generateBossGrid();
   initToastDrag();
   initDebugTap();
@@ -5193,9 +5195,11 @@ function init() {
 const MAX_VALUATION_POINTS = 200;
 let valuationTickCounter = 0;
 let chartDragState = null;
+let chartFloating = false;
 let marketSentiment = 0; // random walk: drifts between -1 and 1
 
 function toggleChartOverlay() {
+  if (chartFloating) return; // clicking sparkline while floating does nothing
   const overlay = document.getElementById('chart-overlay');
   if (overlay.classList.contains('hidden')) {
     overlay.classList.remove('hidden');
@@ -5205,6 +5209,141 @@ function toggleChartOverlay() {
   }
 }
 window.toggleChartOverlay = toggleChartOverlay;
+
+function floatChart() {
+  const overlay = document.getElementById('chart-overlay');
+  const container = document.getElementById('valuation-chart-container');
+  // Move container out of overlay into game-view
+  overlay.classList.add('hidden');
+  document.getElementById('game-view').appendChild(container);
+  container.classList.add('chart-floating');
+  container.classList.remove('hidden');
+  // Position to the right of column G
+  const cell = document.querySelector('#row-1 .cell-g');
+  if (cell) {
+    const gRect = cell.getBoundingClientRect();
+    container.style.left = (gRect.right + 12) + 'px';
+    container.style.top = gRect.top + 'px';
+    container.style.width = '560px';
+    container.style.height = '340px';
+  } else {
+    container.style.right = '20px';
+    container.style.top = '80px';
+    container.style.width = '300px';
+    container.style.height = '200px';
+  }
+  chartFloating = true;
+  localStorage.setItem('qc-chart-float', '1');
+  document.getElementById('chart-float-btn').style.display = 'none';
+  document.getElementById('chart-dock-btn').style.display = '';
+  initChartDrag();
+  drawValuationChart();
+}
+window.floatChart = floatChart;
+
+function dockChart() {
+  const overlay = document.getElementById('chart-overlay');
+  const container = document.getElementById('valuation-chart-container');
+  // Move container back into overlay
+  container.classList.remove('chart-floating');
+  container.style.left = '';
+  container.style.top = '';
+  container.style.right = '';
+  container.style.width = '';
+  container.style.height = '';
+  overlay.querySelector('#chart-overlay') || overlay.appendChild(container);
+  // Actually put it back
+  if (container.parentElement !== overlay) {
+    overlay.appendChild(container);
+  }
+  container.classList.remove('hidden');
+  overlay.classList.add('hidden');
+  chartFloating = false;
+  localStorage.setItem('qc-chart-float', '0');
+  document.getElementById('chart-float-btn').style.display = '';
+  document.getElementById('chart-dock-btn').style.display = 'none';
+}
+window.dockChart = dockChart;
+
+function closeChart() {
+  if (chartFloating) {
+    dockChart();
+  } else {
+    document.getElementById('chart-overlay').classList.add('hidden');
+  }
+}
+window.closeChart = closeChart;
+
+function initChartMode() {
+  if (localStorage.getItem('qc-chart-float') === '1') {
+    // Delay float until game renders so cell positions exist
+    setTimeout(() => floatChart(), 500);
+  }
+}
+
+function initChartDrag() {
+  const container = document.getElementById('valuation-chart-container');
+  const handle = container.querySelector('.chart-resize-handle');
+  if (!handle) return;
+
+  container.onmousedown = (e) => {
+    if (!chartFloating) return;
+    if (e.target === handle || e.target.closest('.chart-btn')) return;
+    e.preventDefault();
+    const rect = container.getBoundingClientRect();
+    chartDragState = { type: 'move', startX: e.clientX, startY: e.clientY, origLeft: rect.left, origTop: rect.top };
+  };
+
+  container.ontouchstart = (e) => {
+    if (!chartFloating) return;
+    if (e.target === handle || e.target.closest('.chart-btn')) return;
+    const t = e.touches[0];
+    const rect = container.getBoundingClientRect();
+    chartDragState = { type: 'move', startX: t.clientX, startY: t.clientY, origLeft: rect.left, origTop: rect.top };
+  };
+
+  handle.onmousedown = (e) => {
+    if (!chartFloating) return;
+    e.preventDefault();
+    e.stopPropagation();
+    chartDragState = { type: 'resize', startX: e.clientX, startY: e.clientY, origW: container.offsetWidth, origH: container.offsetHeight };
+  };
+
+  handle.ontouchstart = (e) => {
+    if (!chartFloating) return;
+    e.stopPropagation();
+    const t = e.touches[0];
+    chartDragState = { type: 'resize', startX: t.clientX, startY: t.clientY, origW: container.offsetWidth, origH: container.offsetHeight };
+  };
+
+  document.addEventListener('mousemove', (e) => {
+    if (!chartDragState) return;
+    if (chartDragState.type === 'move') {
+      container.style.left = (chartDragState.origLeft + e.clientX - chartDragState.startX) + 'px';
+      container.style.top = (chartDragState.origTop + e.clientY - chartDragState.startY) + 'px';
+      container.style.right = 'auto';
+    } else {
+      container.style.width = Math.max(200, chartDragState.origW + e.clientX - chartDragState.startX) + 'px';
+      container.style.height = Math.max(140, chartDragState.origH + e.clientY - chartDragState.startY) + 'px';
+    }
+  });
+
+  document.addEventListener('touchmove', (e) => {
+    if (!chartDragState) return;
+    const t = e.touches[0];
+    if (chartDragState.type === 'move') {
+      container.style.left = (chartDragState.origLeft + t.clientX - chartDragState.startX) + 'px';
+      container.style.top = (chartDragState.origTop + t.clientY - chartDragState.startY) + 'px';
+      container.style.right = 'auto';
+    } else {
+      container.style.width = Math.max(200, chartDragState.origW + t.clientX - chartDragState.startX) + 'px';
+      container.style.height = Math.max(140, chartDragState.origH + t.clientY - chartDragState.startY) + 'px';
+    }
+  }, { passive: true });
+
+  document.addEventListener('mouseup', () => { chartDragState = null; });
+  document.addEventListener('touchend', () => { chartDragState = null; });
+}
 
 function drawValuationSparkline() {
   const hist = gameState.valuationHistory;
@@ -5328,9 +5467,11 @@ function drawValuationChart() {
   // Always update sparkline
   drawValuationSparkline();
 
-  // Only draw full chart if overlay is visible
-  const overlay = document.getElementById('chart-overlay');
-  if (overlay.classList.contains('hidden')) return;
+  // Only draw full chart if visible (overlay open or floating)
+  if (!chartFloating) {
+    const overlay = document.getElementById('chart-overlay');
+    if (overlay.classList.contains('hidden')) return;
+  }
 
   const canvas = document.getElementById('valuation-chart');
   const ctx = canvas.getContext('2d');
