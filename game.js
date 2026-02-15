@@ -2694,13 +2694,22 @@ function updateTaxPanel() {
   const taxLabel = daysToTax <= 0 ? 'Tax due today' : `Tax: ${daysToTax}d`;
   const taxCellStyle = `font-size:0.625rem;color:${taxFg}${taxBg ? `;background:${taxBg};border-radius:3px;padding:1px 4px` : ''}`;
 
+  // P&L collapsed summary values
+  const qRevStr = formatCompact(gameState.quarterRevenue);
+  const earningsRev = gameState.earningsQuarterRevenue || 0;
+  const earningsTarget = gameState.guidanceTarget || 0;
+  const vsTargetPct = earningsTarget > 0 ? ((earningsRev / earningsTarget) * 100) : 0;
+  const vsTargetColor = earningsRev >= earningsTarget ? dm('#217346') : dm('#c00', '#ef5350');
+  const vsTargetStr = earningsTarget > 0 ? `${formatCompact(earningsRev)} / ${formatCompact(earningsTarget)} (${vsTargetPct.toFixed(0)}%)` : '—';
+  const estTaxStr = projectedTax > 0 ? `Est. tax: ${formatCompact(projectedTax)}` : 'No tax';
+
   // P&L Header (clickable to collapse)
   html += `<div class="grid-row pnl-header">
     <div class="row-num">${rowNum++}</div>
     <div class="cell cell-a" style="font-weight:700;color:${dm('#333')};cursor:pointer" data-toggle-pnl>${pnlArrow} ${pnlCollapsed ? 'P&amp;L' : 'PROFIT &amp; LOSS'}</div>
-    <div class="cell cell-b" style="font-size:0.625rem;color:${qNetColor};font-weight:600">${pnlCollapsed ? `Quarter: ${qNetStr}` : ''}</div>
-    <div class="cell cell-c" style="font-size:0.625rem;color:${pnlCollapsed ? ltNetColor : dm('#888')};justify-content:flex-end;font-weight:${pnlCollapsed ? '600' : '400'}">${pnlCollapsed ? `Lifetime: ${ltNetStr}` : 'This Qtr'}</div>
-    <div class="cell cell-d" style="font-size:0.625rem;color:${dm('#888')};justify-content:flex-end">${pnlCollapsed ? '' : 'Lifetime'}</div>
+    <div class="cell cell-b" style="font-size:0.625rem;font-weight:600;color:${dm('#333')}">${pnlCollapsed ? `Q Rev: ${qRevStr}` : ''}</div>
+    <div class="cell cell-c" style="font-size:0.625rem;color:${pnlCollapsed ? vsTargetColor : dm('#888')};justify-content:flex-end">${pnlCollapsed ? `vs Target: ${vsTargetStr}` : 'This Qtr'}</div>
+    <div class="cell cell-d" style="font-size:0.625rem;color:${dm('#888')};justify-content:flex-end">${pnlCollapsed ? estTaxStr : 'Lifetime'}</div>
     <div class="cell cell-e"></div>
     <div class="cell cell-f" style="${taxCellStyle}">${pnlCollapsed ? taxLabel : `Tax due in ${daysToTax}d`}</div>
     <div class="cell cell-g"></div>
