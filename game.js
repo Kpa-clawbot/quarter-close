@@ -2802,8 +2802,21 @@ function updateTaxPanel() {
     const trackDetail = `${onTrack ? '+' : ''}${formatCompact(trackDiff)} (${trackPct >= 0 ? '+' : ''}${trackPct.toFixed(1)}%)`;
     const streakVal = gameState.earningsStreak;
     const irStreakMult = streakVal >= 1 ? Math.min(2.0, 1 + streakVal * 0.1) : 1;
-    const streakStr = streakVal > 0 ? `🔥 ${streakVal} beat${streakVal > 1 ? 's' : ''} (${irStreakMult.toFixed(1)}× RE)` :
-                      streakVal < 0 ? `❄️ ${Math.abs(streakVal)} miss${Math.abs(streakVal) > 1 ? 'es' : ''}` : '—';
+
+    // Reactive streak emoji + color
+    let streakEmoji, streakColor;
+    if (streakVal >= 10) { streakEmoji = '👑'; streakColor = dm('#b8860b', '#ffd700'); }
+    else if (streakVal >= 7) { streakEmoji = '🚀'; streakColor = dm('#1565c0', '#64b5f6'); }
+    else if (streakVal >= 4) { streakEmoji = '🔥🔥'; streakColor = dm('#e65100', '#ff9800'); }
+    else if (streakVal >= 2) { streakEmoji = '🔥'; streakColor = dm('#e65100', '#ffab40'); }
+    else if (streakVal === 1) { streakEmoji = '✅'; streakColor = dm('#217346'); }
+    else if (streakVal === 0) { streakEmoji = ''; streakColor = dm('#888'); }
+    else if (streakVal === -1) { streakEmoji = '😬'; streakColor = dm('#e65100', '#ffab40'); }
+    else if (streakVal >= -3) { streakEmoji = '❄️'; streakColor = dm('#1565c0', '#64b5f6'); }
+    else { streakEmoji = '💀'; streakColor = dm('#c00', '#ef5350'); }
+
+    const streakStr = streakVal > 0 ? `${streakEmoji} ${streakVal} beat${streakVal > 1 ? 's' : ''} (${irStreakMult.toFixed(1)}× RE)` :
+                      streakVal < 0 ? `${streakEmoji} ${Math.abs(streakVal)} miss${Math.abs(streakVal) > 1 ? 'es' : ''}` : '—';
 
     // IR collapsed state
     const irCollapsed = gameState.irCollapsed !== false; // default true
@@ -2811,8 +2824,8 @@ function updateTaxPanel() {
 
     // Collapsed summary values
     const trackPctStr = `${trackPct >= 0 ? '+' : ''}${trackPct.toFixed(1)}%`;
-    const shortStreak = streakVal > 0 ? `🔥 ${streakVal} (${irStreakMult.toFixed(1)}×)` :
-                        streakVal < 0 ? `❄️ ${Math.abs(streakVal)}` : '—';
+    const shortStreak = streakVal > 0 ? `${streakEmoji} ${streakVal} (${irStreakMult.toFixed(1)}×)` :
+                        streakVal < 0 ? `${streakEmoji} ${Math.abs(streakVal)}` : '—';
 
     // Reactive earnings label based on time + tracking
     const wayAhead = trackPct > 20;
@@ -2855,7 +2868,7 @@ function updateTaxPanel() {
       <div class="cell cell-b" style="font-size:0.625rem">${irCollapsed ? `Guidance: ${guidanceLevel.emoji} ${guidanceLevel.label}` : ''}</div>
       <div class="cell cell-c" style="font-size:0.625rem;color:${irCollapsed ? trackColor : dm('#888')};font-weight:${irCollapsed ? '600' : '400'}">${irCollapsed ? `${trackLabel}` : ''}</div>
       <div class="cell cell-d" style="font-size:0.625rem;color:${irCollapsed ? trackColor : dm('#888')}">${irCollapsed ? trackPctStr : ''}</div>
-      <div class="cell cell-e" style="font-size:0.625rem">${irCollapsed ? `Streak: ${shortStreak}` : ''}</div>
+      <div class="cell cell-e" style="font-size:0.625rem;color:${streakColor}">${irCollapsed ? `Streak: ${shortStreak}` : ''}</div>
       <div class="cell cell-f" style="${earningsCellStyle}">${earningsLabel}</div>
       <div class="cell cell-g"></div>
       <div class="cell cell-h"></div>
@@ -2904,7 +2917,7 @@ function updateTaxPanel() {
     html += `<div class="grid-row ir-row">
       <div class="row-num">${rowNum++}</div>
       <div class="cell cell-a" style="padding-left:16px;color:${dm('#444')}">Streak</div>
-      <div class="cell cell-b" style="color:${dm('#333')}">${streakStr}</div>
+      <div class="cell cell-b" style="color:${streakColor}">${streakStr}</div>
       <div class="cell cell-c"></div>
       <div class="cell cell-d" style="font-size:0.625rem;color:${dm('#888')}">Analyst Exp</div>
       <div class="cell cell-e" style="font-family:Consolas,monospace;font-size:0.6875rem;color:${dm('#333')}">${(gameState.analystBaseline).toFixed(2)}×</div>
