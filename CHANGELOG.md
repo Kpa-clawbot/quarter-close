@@ -2,6 +2,26 @@
 
 All notable changes to Quarter Close.
 
+## [v0.4.1] — 2026-02-15
+
+Balance and UX fixes.
+
+### ⚖️ Upgrade Scaling Rebalance
+- **Cost formula**: `2^level` → `1.07^level` — gentle exponential curve instead of brutal doubling
+- **Revenue**: stays linear (`1 + level × 0.5`) — predictable, satisfying growth
+- CTO buys every 37s at Lv0, slowing to ~18min at Lv50 — machine gun early, natural soft cap late
+- Lv70+ takes 1h+ per upgrade, naturally nudging toward prestige/restructuring
+
+### 🛠️ Debug Tools
+- Speed controls (1×/2×/3×/5×/10×) moved to hidden debug toolbar (tap 💰 Cash 7× to reveal)
+- Removed Debug menu from menu bar — all debug tools live in one place
+- Active speed button highlighted in blue
+
+### 🏢 Board Room Fixes
+- Board Room now shows only Cash row + purchasable upgrades (no P&L, IR, or department headers)
+- Fixed `updateTaxPanel()` re-showing hidden panels every tick in Board Room mode
+- C-Suite section (CFO/CTO/COO + budget sliders) extracted into shared `buildCSuiteHTML()` function
+
 ## [v0.4.0] — 2026-02-15
 
 Major UI/UX overhaul: reactive information design, dark mode, C-suite automation, and late-game progression.
