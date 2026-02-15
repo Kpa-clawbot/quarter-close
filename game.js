@@ -2824,40 +2824,35 @@ function updateTaxPanel() {
 
     // Collapsed summary values
     const trackPctStr = `${trackPct >= 0 ? '+' : ''}${trackPct.toFixed(1)}%`;
-    const shortStreak = streakVal > 0 ? `${streakEmoji} ${streakVal} (${irStreakMult.toFixed(1)}×)` :
+    const shortStreak = streakVal > 0 ? `${streakEmoji} ${streakVal} (${irStreakMult.toFixed(1)}× RE)` :
                         streakVal < 0 ? `${streakEmoji} ${Math.abs(streakVal)}` : '—';
 
-    // Reactive earnings label based on time + tracking
+    // Reactive earnings color based on time + tracking
     const wayAhead = trackPct > 20;
     const wayBehind = trackPct < -20;
     let earningsLabel, earningsBg, earningsFg;
+    earningsLabel = earningsDaysLeft <= 0 ? 'Earnings today' : `Earnings: ${earningsDaysLeft}d`;
     if (earningsDaysLeft <= 0) {
-      // Today
-      earningsLabel = onTrack ? '📊 Earnings today! — beat expected' : '🚨 Earnings today — miss incoming';
       earningsBg = onTrack ? dm('#e8f5e9', '#1b3d1f') : dm('#ffebee', '#4a1515');
       earningsFg = onTrack ? dm('#217346') : dm('#c00', '#ef5350');
     } else if (earningsDaysLeft <= 6) {
-      // Imminent
-      if (wayAhead) { earningsLabel = `📊 Earnings in ${earningsDaysLeft}d — looking good`; earningsBg = dm('#e8f5e9', '#1b3d1f'); earningsFg = dm('#217346'); }
-      else if (onTrack) { earningsLabel = `⚠️ Earnings in ${earningsDaysLeft}d — tight!`; earningsBg = dm('#fff8e1', '#3d3520'); earningsFg = dm('#e65100', '#ffab40'); }
-      else { earningsLabel = `🚨 Earnings in ${earningsDaysLeft}d — will miss!`; earningsBg = dm('#ffebee', '#4a1515'); earningsFg = dm('#c00', '#ef5350'); }
+      if (wayAhead) { earningsBg = dm('#e8f5e9', '#1b3d1f'); earningsFg = dm('#217346'); }
+      else if (onTrack) { earningsBg = dm('#fff8e1', '#3d3520'); earningsFg = dm('#e65100', '#ffab40'); }
+      else { earningsBg = dm('#ffebee', '#4a1515'); earningsFg = dm('#c00', '#ef5350'); }
     } else if (earningsDaysLeft <= 14) {
-      // Crunch
-      if (wayAhead) { earningsLabel = `Earnings in ${earningsDaysLeft}d — locked in ✅`; earningsBg = dm('#e8f5e9', '#1b3d1f'); earningsFg = dm('#217346'); }
-      else if (onTrack) { earningsLabel = `⏳ Earnings in ${earningsDaysLeft} days`; earningsBg = dm('#fffde7', '#33301a'); earningsFg = dm('#f9a825', '#fdd835'); }
-      else if (wayBehind) { earningsLabel = `⚠️ Earnings in ${earningsDaysLeft}d — need revenue!`; earningsBg = dm('#ffebee', '#4a1515'); earningsFg = dm('#c00', '#ef5350'); }
-      else { earningsLabel = `⚠️ Earnings in ${earningsDaysLeft}d — falling behind`; earningsBg = dm('#fff3e0', '#3d2e1a'); earningsFg = dm('#e65100', '#ffab40'); }
+      if (wayAhead) { earningsBg = dm('#e8f5e9', '#1b3d1f'); earningsFg = dm('#217346'); }
+      else if (onTrack) { earningsBg = dm('#fffde7', '#33301a'); earningsFg = dm('#f9a825', '#fdd835'); }
+      else if (wayBehind) { earningsBg = dm('#ffebee', '#4a1515'); earningsFg = dm('#c00', '#ef5350'); }
+      else { earningsBg = dm('#fff3e0', '#3d2e1a'); earningsFg = dm('#e65100', '#ffab40'); }
     } else if (earningsDaysLeft <= 30) {
-      // Getting close
-      if (wayAhead) { earningsLabel = `Earnings in ${earningsDaysLeft} days — cruising 🏖️`; earningsBg = dm('#e8f5e9', '#1b3d1f'); earningsFg = dm('#217346'); }
-      else if (onTrack) { earningsLabel = `Earnings in ${earningsDaysLeft} days`; earningsBg = ''; earningsFg = dm('#888'); }
-      else if (wayBehind) { earningsLabel = `⚠️ Earnings in ${earningsDaysLeft} days — behind`; earningsBg = dm('#fff3e0', '#3d2e1a'); earningsFg = dm('#e65100', '#ffab40'); }
-      else { earningsLabel = `⏳ Earnings in ${earningsDaysLeft} days — falling behind`; earningsBg = dm('#fff8e1', '#3d3520'); earningsFg = dm('#e65100', '#ffab40'); }
+      if (wayAhead) { earningsBg = dm('#e8f5e9', '#1b3d1f'); earningsFg = dm('#217346'); }
+      else if (onTrack) { earningsBg = ''; earningsFg = dm('#888'); }
+      else if (wayBehind) { earningsBg = dm('#fff3e0', '#3d2e1a'); earningsFg = dm('#e65100', '#ffab40'); }
+      else { earningsBg = dm('#fff8e1', '#3d3520'); earningsFg = dm('#e65100', '#ffab40'); }
     } else {
-      // Far out
-      if (onTrack) { earningsLabel = `Next earnings: ${earningsDaysLeft} days`; earningsBg = ''; earningsFg = dm('#888'); }
-      else if (wayBehind) { earningsLabel = `Earnings in ${earningsDaysLeft} days — behind`; earningsBg = dm('#fff8e1', '#3d3520'); earningsFg = dm('#e65100', '#ffab40'); }
-      else { earningsLabel = `Earnings in ${earningsDaysLeft} days — behind`; earningsBg = dm('#fffde7', '#33301a'); earningsFg = dm('#888'); }
+      if (onTrack) { earningsBg = ''; earningsFg = dm('#888'); }
+      else if (wayBehind) { earningsBg = dm('#fff8e1', '#3d3520'); earningsFg = dm('#e65100', '#ffab40'); }
+      else { earningsBg = dm('#fffde7', '#33301a'); earningsFg = dm('#888'); }
     }
     const earningsCellStyle = `font-size:0.625rem;color:${earningsFg}${earningsBg ? `;background:${earningsBg};border-radius:3px;padding:1px 4px` : ''}`;
 
