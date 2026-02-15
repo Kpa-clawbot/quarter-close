@@ -644,6 +644,71 @@ const BOARD_ROOM_UPGRADES = [
     category: 'Finance',
     customRequires: () => getTechDeptLevel() >= 1 && getFinanceDeptLevel() >= 1,
   },
+  // Market Expansion — company-wide revenue multiplier
+  {
+    id: 'market_domestic',
+    name: 'Domestic Market',
+    desc: '2× all revenue. Expand into the full domestic market.',
+    cost: 3000,
+    requires: null,
+    maxCount: 1,
+    category: 'Expansion',
+  },
+  {
+    id: 'market_international',
+    name: 'International',
+    desc: '3× all revenue. Go global across developed markets.',
+    cost: 8000,
+    requires: 'market_domestic',
+    maxCount: 1,
+    category: 'Expansion',
+  },
+  {
+    id: 'market_emerging',
+    name: 'Emerging Markets',
+    desc: '5× all revenue. Tap into rapidly growing economies.',
+    cost: 15000,
+    requires: 'market_international',
+    maxCount: 1,
+    category: 'Expansion',
+  },
+  {
+    id: 'market_global',
+    name: 'Global Domination',
+    desc: '10× all revenue. You ARE the global economy.',
+    cost: 25000,
+    requires: 'market_emerging',
+    maxCount: 1,
+    category: 'Expansion',
+  },
+  // Talent Acquisition — reduce hire cost scaling exponent
+  {
+    id: 'talent_pipeline',
+    name: 'Talent Pipeline',
+    desc: 'Hiring cost scaling reduced (1.15× → 1.12× per employee).',
+    cost: 5000,
+    requires: null,
+    maxCount: 1,
+    category: 'Operations',
+  },
+  {
+    id: 'employer_branding',
+    name: 'Employer Branding',
+    desc: 'Hiring cost scaling reduced (1.12× → 1.09× per employee).',
+    cost: 12000,
+    requires: 'talent_pipeline',
+    maxCount: 1,
+    category: 'Operations',
+  },
+  {
+    id: 'talent_magnet',
+    name: 'Talent Magnet',
+    desc: 'Hiring cost scaling reduced (1.09× → 1.06× per employee).',
+    cost: 25000,
+    requires: 'employer_branding',
+    maxCount: 1,
+    category: 'Operations',
+  },
 ];
 
 function hasBoardRoomUpgrade(id) {
@@ -670,6 +735,11 @@ function getBoardRoomRevMultiplier() {
   // Growth Initiative: +2% per purchase, stacks multiplicatively
   const gi = getBoardRoomUpgradeCount('growth_initiative');
   if (gi > 0) mult *= Math.pow(1.02, gi);
+  // Market Expansion
+  if (hasBoardRoomUpgrade('market_domestic')) mult *= 2;
+  if (hasBoardRoomUpgrade('market_international')) mult *= 3;
+  if (hasBoardRoomUpgrade('market_emerging')) mult *= 5;
+  if (hasBoardRoomUpgrade('market_global')) mult *= 10;
   return mult;
 }
 
@@ -1094,10 +1164,18 @@ function getSourceDef(index) {
 }
 
 // ===== COST FORMULAS =====
+function getHireCostExponent() {
+  if (hasBoardRoomUpgrade('talent_magnet')) return 1.06;
+  if (hasBoardRoomUpgrade('employer_branding')) return 1.09;
+  if (hasBoardRoomUpgrade('talent_pipeline')) return 1.12;
+  return 1.15;
+}
+
 function hireCost(source) {
   const stats = SOURCE_STATS[source.id];
   const base = stats.unlockCost || 10;
-  return Math.max(5, Math.floor(base * 0.5 * Math.pow(1.15, source.employees)));
+  const exp = getHireCostExponent();
+  return Math.max(5, Math.floor(base * 0.5 * Math.pow(exp, source.employees)));
 }
 
 function upgradeCost(source) {
@@ -1144,7 +1222,7 @@ function maxAffordable(source) {
   const stats = SOURCE_STATS[source.id];
   const base = stats.unlockCost || 10;
   while (count < 1000) {
-    const cost = Math.max(5, Math.floor(base * 0.5 * Math.pow(1.15, emps)));
+    const cost = Math.max(5, Math.floor(base * 0.5 * Math.pow(getHireCostExponent(), emps)));
     if (cash < cost) break;
     cash -= cost;
     emps++;
@@ -4515,8 +4593,8 @@ function processEarnings() {
     const marginBonusMult = 1 + Math.min(margin, 0.5); // up to 1.5× for blowout
     const streakMult = gameState.earningsStreak >= 0 ?
       Math.min(2.0, 1 + gameState.earningsStreak * 0.1) : 1;
-    // Base RE = 10 × log10(quarterRevenue) — e.g. $80B → ~109 base RE
-    const baseRE = qRevenue > 0 ? Math.floor(10 * Math.log10(qRevenue)) : 0;
+    // Base RE = 5 × log10(qRev)² — quadratic log so revenue growth meaningfully boosts RE
+    const baseRE = qRevenue > 0 ? Math.floor(5 * Math.pow(Math.log10(qRevenue), 2)) : 0;
     reEarned = Math.floor(baseRE * guidanceLevel.reMult * marginBonusMult * streakMult);
 
     gameState.retainedEarnings += reEarned;
