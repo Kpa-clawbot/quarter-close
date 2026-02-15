@@ -1087,6 +1087,19 @@ html[data-theme="dark"] .tax-notice .tax-alert-btn:hover {
   font-size: 0.6875rem;
 }
 
+.re-label {
+  font-weight: 700;
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+}
+
+.re-value {
+  font-weight: 700;
+  color: #d4a017 !important;
+  font-family: 'Consolas', 'Courier New', monospace;
+  font-size: 0.8125rem !important;
+}
+
 .per-tick-value {
   font-weight: 700;
   color: var(--accent-blue) !important;

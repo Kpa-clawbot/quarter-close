@@ -1902,6 +1902,12 @@ function updateDisplay() {
   const cashEl = document.getElementById('cash-display');
   cashEl.textContent = formatMoney(gameState.cash);
 
+  // RE display
+  const reEl = document.getElementById('re-display');
+  if (reEl) {
+    reEl.textContent = gameState.retainedEarnings ? formatCompact(gameState.retainedEarnings) : '0';
+  }
+
   const totalRev = totalAnnualRev();
   const perTick = totalRevPerTick();
   document.getElementById('total-rev').textContent = formatRate(totalRev);
