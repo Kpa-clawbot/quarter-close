@@ -2060,29 +2060,66 @@ body {
   to { width: 100%; }
 }
 
-/* Valuation chart (floating Excel chart object) */
-#valuation-chart-container {
-  position: fixed;
-  padding: 6px 10px;
-  background: var(--bg-cell);
-  border: 1px solid var(--border-heavy);
-  border-radius: 2px;
-  box-shadow: 1px 1px 3px var(--shadow-sm);
-  z-index: 10;
-  cursor: move;
-  user-select: none;
-  min-width: 200px;
-  min-height: 140px;
+/* Valuation sparkline (menu bar) */
+#menu-spacer {
+  flex: 1;
 }
 
-#valuation-chart-container .chart-resize-handle {
-  position: absolute;
-  right: 0;
-  bottom: 0;
-  width: 12px;
-  height: 12px;
-  cursor: nwse-resize;
-  background: linear-gradient(135deg, transparent 50%, var(--border-heavy) 50%, var(--border-heavy) 60%, transparent 60%, transparent 75%, var(--border-heavy) 75%, var(--border-heavy) 85%, transparent 85%);
+#valuation-mini {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  cursor: pointer;
+  padding: 0.125rem 0.5rem;
+  border-radius: 3px;
+  transition: background 0.15s;
+}
+
+#valuation-mini:hover {
+  background: var(--bg-tool-hover);
+}
+
+#valuation-sparkline {
+  display: block;
+  height: 1.25rem;
+  width: 5rem;
+}
+
+#valuation-label {
+  font-size: 0.625rem;
+  font-weight: 600;
+  color: var(--accent-green);
+  white-space: nowrap;
+  font-family: 'Consolas', 'Courier New', monospace;
+}
+
+/* Chart overlay (modal) */
+#chart-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#chart-overlay.hidden {
+  display: none;
+}
+
+/* Valuation chart (overlay mode) */
+#valuation-chart-container {
+  padding: 0.75rem 1rem;
+  background: var(--bg-cell);
+  border: 1px solid var(--border-heavy);
+  border-radius: 4px;
+  box-shadow: 0 4px 24px var(--shadow-lg);
+  width: min(90vw, 600px);
+  height: min(60vh, 400px);
 }
 
 #valuation-chart-container:hover {
@@ -2092,7 +2129,7 @@ body {
 #valuation-chart {
   display: block;
   width: 100%;
-  height: calc(100% - 18px);
+  height: calc(100% - 1.5rem);
 }
 
 .chart-title {

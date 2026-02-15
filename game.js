@@ -1471,8 +1471,7 @@ function selectArc(arcKey) {
   const taxPanel = document.getElementById('tax-panel');
   taxPanel.innerHTML = '';
   taxPanel.classList.add('hidden');
-  document.getElementById('valuation-chart-container').classList.add('hidden');
-  chartPositioned = false;
+  document.getElementById('chart-overlay').classList.add('hidden');
 
   // Reset Board Room state
   document.getElementById('board-room-rows').innerHTML = '';
@@ -5132,7 +5131,6 @@ function init() {
   initDarkMode();
   initZoom();
   generateBossGrid();
-  initChartDrag();
   initToastDrag();
   initDebugTap();
 
@@ -5194,107 +5192,57 @@ function init() {
 // ===== VALUATION CHART =====
 const MAX_VALUATION_POINTS = 200;
 let valuationTickCounter = 0;
-let chartPositioned = false;
 let chartDragState = null;
 let marketSentiment = 0; // random walk: drifts between -1 and 1
 
-function initChartDrag() {
-  const container = document.getElementById('valuation-chart-container');
-  const handle = container.querySelector('.chart-resize-handle');
-
-  // Drag (move) — on the container itself
-  container.addEventListener('mousedown', (e) => {
-    if (e.target === handle) return; // let resize handle its own
-    e.preventDefault();
-    const rect = container.getBoundingClientRect();
-    chartDragState = { type: 'move', startX: e.clientX, startY: e.clientY, origLeft: rect.left, origTop: rect.top };
-  });
-
-  container.addEventListener('touchstart', (e) => {
-    if (e.target === handle) return;
-    const t = e.touches[0];
-    const rect = container.getBoundingClientRect();
-    chartDragState = { type: 'move', startX: t.clientX, startY: t.clientY, origLeft: rect.left, origTop: rect.top };
-  }, { passive: true });
-
-  // Resize — on the handle
-  handle.addEventListener('mousedown', (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    chartDragState = { type: 'resize', startX: e.clientX, startY: e.clientY, origW: container.offsetWidth, origH: container.offsetHeight };
-  });
-
-  handle.addEventListener('touchstart', (e) => {
-    e.stopPropagation();
-    const t = e.touches[0];
-    chartDragState = { type: 'resize', startX: t.clientX, startY: t.clientY, origW: container.offsetWidth, origH: container.offsetHeight };
-  }, { passive: true });
-
-  document.addEventListener('mousemove', (e) => {
-    if (!chartDragState) return;
-    if (chartDragState.type === 'move') {
-      const dx = e.clientX - chartDragState.startX;
-      const dy = e.clientY - chartDragState.startY;
-      container.style.left = (chartDragState.origLeft + dx) + 'px';
-      container.style.top = (chartDragState.origTop + dy) + 'px';
-      container.style.right = 'auto';
-    } else if (chartDragState.type === 'resize') {
-      const dx = e.clientX - chartDragState.startX;
-      const dy = e.clientY - chartDragState.startY;
-      const newW = Math.max(200, chartDragState.origW + dx);
-      const newH = Math.max(140, chartDragState.origH + dy);
-      container.style.width = newW + 'px';
-      container.style.height = newH + 'px';
-    }
-  });
-
-  document.addEventListener('touchmove', (e) => {
-    if (!chartDragState) return;
-    const t = e.touches[0];
-    if (chartDragState.type === 'move') {
-      const dx = t.clientX - chartDragState.startX;
-      const dy = t.clientY - chartDragState.startY;
-      container.style.left = (chartDragState.origLeft + dx) + 'px';
-      container.style.top = (chartDragState.origTop + dy) + 'px';
-      container.style.right = 'auto';
-    } else if (chartDragState.type === 'resize') {
-      const dx = t.clientX - chartDragState.startX;
-      const dy = t.clientY - chartDragState.startY;
-      const newW = Math.max(200, chartDragState.origW + dx);
-      const newH = Math.max(140, chartDragState.origH + dy);
-      container.style.width = newW + 'px';
-      container.style.height = newH + 'px';
-    }
-  }, { passive: true });
-
-  document.addEventListener('mouseup', () => {
-    chartDragState = null;
-  });
-
-  document.addEventListener('touchend', () => {
-    chartDragState = null;
-  });
+function toggleChartOverlay() {
+  const overlay = document.getElementById('chart-overlay');
+  if (overlay.classList.contains('hidden')) {
+    overlay.classList.remove('hidden');
+    drawValuationChart();
+  } else {
+    overlay.classList.add('hidden');
+  }
 }
+window.toggleChartOverlay = toggleChartOverlay;
 
-function positionChartDefault() {
-  const container = document.getElementById('valuation-chart-container');
-  // Position to the right of column G (Rev/yr)
-  const cell = document.querySelector('#row-1 .cell-g');
-  if (!cell) {
-    // Fallback: top-right area
-    container.style.right = '20px';
-    container.style.top = '80px';
-    container.style.width = '300px';
-    container.style.height = '200px';
-    chartPositioned = true;
+function drawValuationSparkline() {
+  const hist = gameState.valuationHistory;
+  const label = document.getElementById('valuation-label');
+  const canvas = document.getElementById('valuation-sparkline');
+  if (!hist || hist.length < 2) {
+    if (label) label.textContent = '';
     return;
   }
-  const gRect = cell.getBoundingClientRect();
-  container.style.left = (gRect.right + 12) + 'px';
-  container.style.top = gRect.top + 'px';
-  container.style.width = '560px';
-  container.style.height = '340px';
-  chartPositioned = true;
+
+  // Update valuation number
+  const current = hist[hist.length - 1].val;
+  if (label) label.textContent = formatCompact(current);
+
+  // Draw sparkline
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width = 80;
+  const H = canvas.height = 20;
+  ctx.clearRect(0, 0, W, H);
+
+  const vals = hist.map(h => h.val);
+  const minVal = Math.min(...vals) * 0.95;
+  const maxVal = Math.max(...vals) * 1.05;
+  const range = maxVal - minVal || 1;
+
+  // Trend color: green if up, red if down
+  const trending = vals[vals.length - 1] >= vals[Math.max(0, vals.length - 10)];
+  ctx.strokeStyle = trending ? '#217346' : '#c00';
+  ctx.lineWidth = 1.5;
+  ctx.lineJoin = 'round';
+  ctx.beginPath();
+  for (let i = 0; i < vals.length; i++) {
+    const x = (i / (vals.length - 1)) * W;
+    const y = H - ((vals[i] - minVal) / range) * (H - 2) - 1;
+    if (i === 0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  }
+  ctx.stroke();
 }
 
 function getCompanyValuation() {
@@ -5374,25 +5322,23 @@ function drawValuationChart() {
   const container = document.getElementById('valuation-chart-container');
   const hist = gameState.valuationHistory;
   if (!hist || hist.length < 1) {
-    container.classList.add('hidden');
     return;
   }
 
-  if (!chartPositioned) {
-    // Need to show it first so we can position, then set size
-    container.style.width = '300px';
-    container.style.height = '200px';
-    container.classList.remove('hidden');
-    positionChartDefault();
-  }
-  container.classList.remove('hidden');
+  // Always update sparkline
+  drawValuationSparkline();
+
+  // Only draw full chart if overlay is visible
+  const overlay = document.getElementById('chart-overlay');
+  if (overlay.classList.contains('hidden')) return;
 
   const canvas = document.getElementById('valuation-chart');
   const ctx = canvas.getContext('2d');
 
-  // Use explicit container size
-  const W = Math.max(100, parseInt(container.style.width) || 300) - 20;
-  const H = Math.max(60, parseInt(container.style.height) || 200) - 36;
+  // Size canvas to container
+  const rect = container.getBoundingClientRect();
+  const W = Math.max(100, Math.round(rect.width) - 20);
+  const H = Math.max(60, Math.round(rect.height) - 36);
   canvas.width = W;
   canvas.height = H;
 
