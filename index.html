@@ -561,6 +561,18 @@
               <p>Notice → 2nd Notice → <b>Garnishment</b> (−15% revenue) → <b>Asset Seizure</b>.</p>
               <p><b>Depreciation:</b> Capital spending (hires, upgrades, automation) is deducted over 4 quarters, not immediately.</p>
             </div>
+            <div class="help-section">
+              <h4>🔥 Earnings Streaks</h4>
+              <p>Consecutive beats earn bonus RE: <b>+10% per beat</b>, up to <b>2.0× at 10 beats</b>.</p>
+              <p>Streak emoji: ✅ (1) → 🔥 (2-3) → 🔥🔥 (4-6) → 🚀 (7-9) → 👑 (10).</p>
+              <p>Misses: 😬 (1) → ❄️ (2-3) → 💀 (4+).</p>
+              <p>A miss resets your streak. High streaks make analysts ratchet up expectations faster.</p>
+            </div>
+            <div class="help-section">
+              <h4>📈 Stock & Valuation</h4>
+              <p>Valuation = Cash + (Annual Revenue × market multiple).</p>
+              <p>Tap the sparkline to toggle the floating chart. Stock price in column H.</p>
+            </div>
           </div>
         </div>
 
@@ -569,88 +581,46 @@
           <p style="color:#888;margin-bottom:12px">Unlocks after <b>IPO</b>. Spend <b>Retained Earnings (RE)</b> on permanent upgrades.</p>
           <div class="help-columns">
             <div class="help-section">
-              <h4>📊 CFO (Finance)</h4>
-              <p>Auto-handles quarterly earnings guidance. Three levels:</p>
-              <p><b>Lv1 "The Intern"</b> — picks guidance randomly. Often wrong, but no more popups.</p>
-              <p><b>Lv2 "Competent CFO"</b> — reads context: plays safe after misses, gets bolder on beat streaks. ~70% optimal.</p>
-              <p><b>Lv3 "Elite CFO"</b> — factors in streaks, analyst pressure, bonuses, and penalties. Knows when to push and when to pull back. ~90% optimal.</p>
-              <p>Switch between owned levels anytime in the C-Suite section.</p>
+              <h4>👔 C-Suite</h4>
+              <p>Hire executives to automate management tasks. Each has 3 levels — buy higher tiers for smarter AI.</p>
+              <p><b>📊 CFO</b> — auto-sets earnings guidance. Lv1 = random, Lv2 = trend-based (~70% optimal), Lv3 = full analysis (~90%).</p>
+              <p><b>🔧 CTO</b> — auto-upgrades departments. Lv1 = cheapest first, Lv2 = ROI-optimized, Lv3 = timing-aware.</p>
+              <p><b>📋 COO</b> — auto-hires employees. Lv1 = cheapest first, Lv2 = best marginal revenue, Lv3 = earnings-aware.</p>
+              <p>CTO and COO use <b>revenue skimming</b> — slider sets % of revenue taken per tick into a budget pool. Progress bar fills toward next purchase.</p>
             </div>
             <div class="help-section">
-              <h4>🔧 CTO (Technology)</h4>
-              <p>Auto-upgrades department efficiency (⬆ Upgrade). Three levels:</p>
-              <p><b>Lv1 "The Intern"</b> — upgrades cheapest department first. No intelligence, just spending.</p>
-              <p><b>Lv2 "Competent CTO"</b> — prioritizes by ROI (revenue gain per dollar spent). Skips low-value upgrades.</p>
-              <p><b>Lv3 "Elite CTO"</b> — ROI-optimized with timing awareness. Tightens spending near quarter end to preserve cash for earnings.</p>
-              <p><b>Budget:</b> The slider sets what % of revenue the CTO skims each tick. At 15%, the CTO takes 15¢ of every $1 earned into his own budget pool. The rest goes to your cash as normal.</p>
-              <p>The progress bar fills up as the pool grows toward the next upgrade cost. When it reaches 100%, the CTO buys the upgrade and starts saving for the next one. Unspent pool carries over across quarters.</p>
-              <p>At 0% the CTO is paused — no skimming, no buying. At 100% all revenue goes to the CTO.</p>
-              <p><b>CapEx Planning</b> (Board Room upgrade, requires CFO + CTO): The CFO automatically adjusts both CTO and COO budget percentages each quarter based on guidance strategy and market conditions. Toggle "Auto" on/off independently for each.</p>
-              <p>Switch CTO levels in the C-Suite section.</p>
+              <h4>📈 CapEx Planning</h4>
+              <p>Requires CFO + CTO or COO. The CFO auto-adjusts CTO/COO budget % each quarter based on guidance and market conditions.</p>
+              <p>Toggle "Auto" independently for CTO and COO budgets.</p>
             </div>
             <div class="help-section">
-              <h4>📋 COO (Operations)</h4>
-              <p>Auto-hires employees into departments. Three levels:</p>
-              <p><b>Lv1 "The Recruiter"</b> — hires cheapest employee first.</p>
-              <p><b>Lv2 "VP of Ops"</b> — hires where marginal revenue per employee is highest.</p>
-              <p><b>Lv3 "Elite COO"</b> — revenue-optimized, switches to cheapest hires near earnings to conserve budget.</p>
-              <p><b>Budget:</b> Works the same as CTO — slider sets % of revenue skimmed into the COO's hiring pool. Progress bar fills toward the next hire cost. Unspent pool carries over.</p>
-              <p>COO respects hiring freezes — won't hire during freeze events.</p>
-              <p>Switch COO levels in the C-Suite section.</p>
-            </div>
-            <div class="help-section">
-              <h4>🔥 Earnings Streaks</h4>
-              <p>Consecutive beats earn bonus RE: <b>+10% per beat</b>, up to <b>2.0× at 10 beats</b>.</p>
-              <p>Streak emoji escalates: ✅ (1) → 🔥 (2-3) → 🔥🔥 (4-6) → 🚀 (7-9) → 👑 (10).</p>
-              <p>Misses: 😬 (1) → ❄️ (2-3) → 💀 (4+).</p>
-              <p>A miss resets your streak to zero. High streaks also make analysts ratchet up expectations faster — the CFO factors this in.</p>
-            </div>
-            <div class="help-section">
-              <h4>💰 Revenue Boosts</h4>
-              <p><b>Revenue Multipliers</b> — permanent boosts that stack (1.1× → 1.25× → 1.5×).</p>
-              <p><b>Growth Initiative</b> — repeatable +2% per purchase. Cost scales 10% each time. Stacks multiplicatively — buy early, buy often.</p>
+              <h4>💰 Revenue Upgrades</h4>
+              <p><b>Revenue Multipliers I–III</b> — permanent boosts (1.1× → 1.25× → 1.5×).</p>
+              <p><b>Growth Initiative</b> — repeatable +2% per purchase. Cost scales 10% each time. Buy early, buy often.</p>
             </div>
             <div class="help-section">
               <h4>🌍 Market Expansion</h4>
-              <p>Company-wide revenue multipliers that stack — the biggest RE sink and primary late-game growth driver.</p>
-              <p><b>Domestic Market</b> — 2× all revenue (3,000 RE)</p>
-              <p><b>International</b> — 3× all revenue (8,000 RE)</p>
-              <p><b>Emerging Markets</b> — 5× all revenue (15,000 RE)</p>
-              <p><b>Global Domination</b> — 10× all revenue (25,000 RE)</p>
-              <p>Cumulative: all four = <b>300×</b> total revenue. Each purchase boosts RE generation, which accelerates the next unlock.</p>
+              <p>Biggest RE sink — company-wide revenue multipliers that stack:</p>
+              <p><b>Domestic</b> 2× (3K RE) → <b>International</b> 3× (8K) → <b>Emerging</b> 5× (15K) → <b>Global</b> 10× (25K)</p>
+              <p>All four = <b>300× total revenue</b>.</p>
             </div>
             <div class="help-section">
               <h4>🎓 Talent Acquisition</h4>
-              <p>Reduces the cost scaling exponent for hiring employees. Normally each hire costs 1.15× the previous one — this makes employees cheaper at scale.</p>
-              <p><b>Talent Pipeline</b> — 1.15× → 1.12× (5,000 RE)</p>
-              <p><b>Employer Branding</b> — 1.12× → 1.09× (12,000 RE)</p>
-              <p><b>Talent Magnet</b> — 1.09× → 1.06× (25,000 RE)</p>
-              <p>With Talent Magnet, employee #50 costs what employee #20 used to. Pairs well with COO auto-hire.</p>
+              <p>Reduces hire cost scaling (normally 1.15× per hire):</p>
+              <p><b>Pipeline</b> → 1.12× (5K RE) → <b>Branding</b> → 1.09× (12K) → <b>Magnet</b> → 1.06× (25K)</p>
+              <p>Employee #50 costs what #20 used to. Pairs well with COO.</p>
             </div>
             <div class="help-section">
               <h4>🏛️ Tax & Protection</h4>
               <p><b>Lobbyist / Tax Haven</b> — reduce tax rate (25% → 20% → 15%).</p>
-              <p><b>CPA on Retainer</b> — auto-pays taxes and settles debts. No more IRS toasts.</p>
-              <p><b>Golden Parachute</b> — blocks one IRS asset seizure (consumed, rebuyable).</p>
+              <p><b>CPA on Retainer</b> — auto-pays taxes and settles debts.</p>
+              <p><b>Golden Parachute</b> — blocks one asset seizure (consumed, rebuyable).</p>
               <p><b>Analyst Relations</b> — slows analyst expectation ratchet by 50%.</p>
             </div>
             <div class="help-section">
               <h4>★ Restructure</h4>
               <p>Each automated department gets a <b>★ Restructure</b> button post-IPO.</p>
-              <p>Each level = <b>10× revenue</b> for that department. Costs RE.</p>
-              <p>Stacks: ★2 = 100×, ★3 = 1,000×.</p>
-            </div>
-            <div class="help-section">
-              <h4>🔬 R&D Breakthroughs</h4>
-              <p>Random event: R&D discovers a breakthrough that <b>permanently doubles</b> a department's revenue.</p>
-              <p>Choose: implement (×2 revenue) or file patent (5% cash).</p>
-              <p>Stacks on same dept: ×4, ×8, ×16...</p>
-            </div>
-            <div class="help-section">
-              <h4>📈 Stock & Valuation</h4>
-              <p>Valuation = Cash + (Annual Revenue × market multiple).</p>
-              <p>The floating chart tracks it over time. Drag to move, resize from corner.</p>
-              <p>Stock price shown in column H of the stats row.</p>
+              <p>Each level = <b>10× revenue</b>. Stacks: ★2 = 100×, ★3 = 1,000×.</p>
             </div>
           </div>
         </div>
@@ -713,7 +683,7 @@
     </div>
   </div>
 
-  <script src="game.js?v=139"></script>
+  <script src="game.js?v=140"></script>
   <script>
     if (location.hostname === 'kpa-clawbot.github.io') {
       var s = document.createElement('script');
