@@ -2670,16 +2670,12 @@ function updateTaxPanel() {
   const ltNetStr = ltNet < 0 ? '(' + formatCompact(-ltNet) + ')' : formatCompact(ltNet);
 
   // P&L Header (clickable to collapse)
-  const collapsedSummary = pnlCollapsed
-    ? `<span style="font-weight:400;font-size:0.625rem;color:${dm('#666')}"> │ </span><span style="font-size:0.625rem;color:${qNetColor}">Q: ${qNetStr}</span><span style="font-weight:400;font-size:0.625rem;color:${dm('#666')}"> │ </span><span style="font-size:0.625rem;color:${ltNetColor}">All-Time: ${ltNetStr}</span><span style="font-weight:400;font-size:0.625rem;color:${dm('#666')}"> │ </span><span style="font-size:0.625rem;color:${dm('#888')}">Tax in ${daysToTax}d</span>`
-    : '';
-
   html += `<div class="grid-row pnl-header">
     <div class="row-num">${rowNum++}</div>
-    <div class="cell cell-a" style="font-weight:700;color:${dm('#333')};cursor:pointer;overflow:visible;white-space:nowrap" data-toggle-pnl>${pnlArrow} ${pnlCollapsed ? 'P&amp;L' : 'PROFIT &amp; LOSS'}${collapsedSummary}</div>
-    <div class="cell cell-b"></div>
-    <div class="cell cell-c" style="font-size:0.625rem;color:${dm('#888')};justify-content:flex-end">${pnlCollapsed ? '' : 'This Qtr'}</div>
-    <div class="cell cell-d" style="font-size:0.625rem;color:${dm('#888')};justify-content:flex-end">${pnlCollapsed ? '' : 'Lifetime'}</div>
+    <div class="cell cell-a" style="font-weight:700;color:${dm('#333')};cursor:pointer" data-toggle-pnl>${pnlArrow} ${pnlCollapsed ? 'P&amp;L' : 'PROFIT &amp; LOSS'}</div>
+    <div class="cell cell-b" style="font-size:0.625rem;color:${qNetColor};font-weight:600">${pnlCollapsed ? `Q: ${qNetStr}` : ''}</div>
+    <div class="cell cell-c" style="font-size:0.625rem;color:${pnlCollapsed ? ltNetColor : dm('#888')};justify-content:flex-end;font-weight:${pnlCollapsed ? '600' : '400'}">${pnlCollapsed ? `LT: ${ltNetStr}` : 'This Qtr'}</div>
+    <div class="cell cell-d" style="font-size:0.625rem;color:${dm('#888')};justify-content:flex-end">${pnlCollapsed ? `Tax in ${daysToTax}d` : 'Lifetime'}</div>
     <div class="cell cell-e"></div>
     <div class="cell cell-f" style="font-size:0.625rem;color:${dm('#888')}">${pnlCollapsed ? '' : `Tax due in ${daysToTax}d`}</div>
     <div class="cell cell-g"></div>
@@ -2813,23 +2809,20 @@ function updateTaxPanel() {
     const irCollapsed = gameState.irCollapsed !== false; // default true
     const irArrow = irCollapsed ? '▶' : '▼';
 
-    // Collapsed summary: Guidance │ On/Off Track │ % │ Streak │ Analyst
+    // Collapsed summary values
     const trackPctStr = `${trackPct >= 0 ? '+' : ''}${trackPct.toFixed(1)}%`;
     const shortStreak = streakVal > 0 ? `🔥 ${streakVal} (${irStreakMult.toFixed(1)}×)` :
                         streakVal < 0 ? `❄️ ${Math.abs(streakVal)}` : '—';
-    const irSummary = irCollapsed
-      ? `<span style="font-weight:400;font-size:0.625rem;color:${dm('#666')}"> │ </span><span style="font-size:0.625rem">${guidanceLevel.emoji} ${guidanceLevel.label}</span><span style="font-weight:400;font-size:0.625rem;color:${dm('#666')}"> │ </span><span style="font-size:0.625rem;color:${trackColor}">${trackLabel}</span><span style="font-weight:400;font-size:0.625rem;color:${dm('#666')}"> │ </span><span style="font-size:0.625rem;color:${trackColor}">${trackPctStr}</span><span style="font-weight:400;font-size:0.625rem;color:${dm('#666')}"> │ </span><span style="font-size:0.625rem">${shortStreak}</span><span style="font-weight:400;font-size:0.625rem;color:${dm('#666')}"> │ </span><span style="font-size:0.625rem;color:${dm('#888')}">Analyst ${(gameState.analystBaseline).toFixed(2)}×</span>`
-      : '';
 
     // IR Header
     html += `<div class="grid-row ir-header">
       <div class="row-num">${rowNum++}</div>
-      <div class="cell cell-a" style="font-weight:700;color:${dm('#0078d4')};cursor:pointer;overflow:visible;white-space:nowrap" data-toggle-ir>${irArrow} ${irCollapsed ? 'IR' : 'INVESTOR RELATIONS'}${irSummary}</div>
-      <div class="cell cell-b"></div>
-      <div class="cell cell-c"></div>
-      <div class="cell cell-d"></div>
-      <div class="cell cell-e"></div>
-      <div class="cell cell-f" style="font-size:0.625rem;color:${dm('#888')}">${irCollapsed ? '' : `Earnings in ${earningsDaysLeft}d`}</div>
+      <div class="cell cell-a" style="font-weight:700;color:${dm('#0078d4')};cursor:pointer" data-toggle-ir>${irArrow} ${irCollapsed ? 'IR' : 'INVESTOR RELATIONS'}</div>
+      <div class="cell cell-b" style="font-size:0.625rem">${irCollapsed ? `${guidanceLevel.emoji} ${guidanceLevel.label}` : ''}</div>
+      <div class="cell cell-c" style="font-size:0.625rem;color:${irCollapsed ? trackColor : dm('#888')};font-weight:${irCollapsed ? '600' : '400'}">${irCollapsed ? `${trackLabel} ${trackPctStr}` : ''}</div>
+      <div class="cell cell-d" style="font-size:0.625rem">${irCollapsed ? shortStreak : ''}</div>
+      <div class="cell cell-e" style="font-size:0.625rem;color:${dm('#888')}">${irCollapsed ? `Analyst ${(gameState.analystBaseline).toFixed(2)}×` : ''}</div>
+      <div class="cell cell-f" style="font-size:0.625rem;color:${dm('#888')}">${irCollapsed ? `Earnings ${earningsDaysLeft}d` : `Earnings in ${earningsDaysLeft}d`}</div>
       <div class="cell cell-g"></div>
       <div class="cell cell-h"></div>
     </div>`;
@@ -3159,17 +3152,12 @@ function updateTaxPanel() {
     }, 'notice1');
     const worstLabel = stageLabels[worstStage] || worstStage;
 
-    // Collapsed summary in header
-    const taxSummary = taxCollapsed
-      ? `<span style="font-weight:400;font-size:0.625rem;color:${dm('#c00')}"> │ ${formatCompact(total)} owed │ ${worstLabel} │ ${gameState.taxDebts.length} debt${gameState.taxDebts.length > 1 ? 's' : ''}</span>`
-      : '';
-
     html += `<div class="grid-row tax-grid-header">
       <div class="row-num">${rowNum++}</div>
-      <div class="cell cell-a" style="font-weight:600;color:${dm('#900')};cursor:pointer;overflow:visible;white-space:nowrap" data-toggle-tax>${taxArrow} TAX LIABILITY${taxSummary}</div>
-      <div class="cell cell-b" style="font-weight:600;color:${dm('#666')};font-size:0.625rem">${taxCollapsed ? '' : 'Original'}</div>
-      <div class="cell cell-c" style="font-weight:600;color:${dm('#666')};font-size:0.625rem;justify-content:flex-end">${taxCollapsed ? '' : 'Interest'}</div>
-      <div class="cell cell-d" style="font-weight:600;color:${dm('#666')};font-size:0.625rem;justify-content:flex-end">${taxCollapsed ? '' : 'Total Due'}</div>
+      <div class="cell cell-a" style="font-weight:600;color:${dm('#900')};cursor:pointer" data-toggle-tax>${taxArrow} TAX LIABILITY</div>
+      <div class="cell cell-b" style="font-weight:600;color:${dm(taxCollapsed ? '#c00' : '#666')};font-size:0.625rem">${taxCollapsed ? formatCompact(total) + ' owed' : 'Original'}</div>
+      <div class="cell cell-c" style="font-weight:600;color:${dm('#666')};font-size:0.625rem;justify-content:flex-end">${taxCollapsed ? worstLabel : 'Interest'}</div>
+      <div class="cell cell-d" style="font-weight:600;color:${dm('#666')};font-size:0.625rem;justify-content:flex-end">${taxCollapsed ? `${gameState.taxDebts.length} debt${gameState.taxDebts.length > 1 ? 's' : ''}` : 'Total Due'}</div>
       <div class="cell cell-e" style="font-weight:600;color:${dm('#666')};font-size:0.625rem">${taxCollapsed ? '' : 'Age'}</div>
       <div class="cell cell-f" style="font-weight:600;color:${dm('#666')};font-size:0.625rem">${taxCollapsed ? '' : 'Status'}</div>
       <div class="cell cell-g" style="font-weight:600;color:${dm('#666')};font-size:0.625rem">${taxCollapsed ? '' : 'Next'}</div>
