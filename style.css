@@ -2544,19 +2544,6 @@ body {
 
 /* ===== DARK MODE TOGGLE ===== */
 #dark-mode-toggle {
-  background: none;
-  border: none;
   font-size: 14px;
   cursor: pointer;
-  padding: 2px 6px;
-  margin-right: 4px;
-  border-radius: 3px;
-  line-height: 1;
-  opacity: 0.8;
-  color: white;
-  transition: opacity 0.15s;
-}
-#dark-mode-toggle:hover {
-  opacity: 1;
-  background: rgba(255,255,255,0.15);
 }
