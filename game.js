@@ -2668,15 +2668,6 @@ function updateTaxPanel() {
   const qNetStr = qNet < 0 ? '(' + formatCompact(-qNet) + ')' : formatCompact(qNet);
   const ltNetStr = ltNet < 0 ? '(' + formatCompact(-ltNet) + ')' : formatCompact(ltNet);
 
-  // Separator
-  html += `<div class="grid-row sep-row">
-    <div class="row-num"></div>
-    <div class="cell cell-a sep-cell"></div><div class="cell cell-b sep-cell"></div>
-    <div class="cell cell-c sep-cell"></div><div class="cell cell-d sep-cell"></div>
-    <div class="cell cell-e sep-cell"></div><div class="cell cell-f sep-cell"></div>
-    <div class="cell cell-g sep-cell"></div><div class="cell cell-h sep-cell"></div>
-  </div>`;
-
   // P&L Header (clickable to collapse)
   const collapsedSummary = pnlCollapsed
     ? `<span style="font-weight:400;font-size:0.625rem;color:${dm('#666')}"> │ </span><span style="font-size:0.625rem;color:${qNetColor}">Q: ${qNetStr}</span><span style="font-weight:400;font-size:0.625rem;color:${dm('#666')}"> │ </span><span style="font-size:0.625rem;color:${ltNetColor}">All-Time: ${ltNetStr}</span><span style="font-weight:400;font-size:0.625rem;color:${dm('#666')}"> │ </span><span style="font-size:0.625rem;color:${dm('#888')}">Tax in ${daysToTax}d</span>`
@@ -2817,15 +2808,6 @@ function updateTaxPanel() {
     const streakStr = streakVal > 0 ? `🔥 ${streakVal} beat${streakVal > 1 ? 's' : ''} (${irStreakMult.toFixed(1)}× RE)` :
                       streakVal < 0 ? `❄️ ${Math.abs(streakVal)} miss${Math.abs(streakVal) > 1 ? 'es' : ''}` : '—';
 
-    // Separator
-    html += `<div class="grid-row sep-row">
-      <div class="row-num"></div>
-      <div class="cell cell-a sep-cell"></div><div class="cell cell-b sep-cell"></div>
-      <div class="cell cell-c sep-cell"></div><div class="cell cell-d sep-cell"></div>
-      <div class="cell cell-e sep-cell"></div><div class="cell cell-f sep-cell"></div>
-      <div class="cell cell-g sep-cell"></div><div class="cell cell-h sep-cell"></div>
-    </div>`;
-
     // IR Header
     html += `<div class="grid-row ir-header">
       <div class="row-num">${rowNum++}</div>
@@ -2946,15 +2928,6 @@ function updateTaxPanel() {
 
   // ===== C-SUITE SECTION (CFO + CTO selectors) =====
   if (gameState.isPublic && (getFinanceDeptLevel() > 0 || getTechDeptLevel() > 0)) {
-    // Separator
-    html += `<div class="grid-row sep-row">
-      <div class="row-num"></div>
-      <div class="cell cell-a sep-cell"></div><div class="cell cell-b sep-cell"></div>
-      <div class="cell cell-c sep-cell"></div><div class="cell cell-d sep-cell"></div>
-      <div class="cell cell-e sep-cell"></div><div class="cell cell-f sep-cell"></div>
-      <div class="cell cell-g sep-cell"></div><div class="cell cell-h sep-cell"></div>
-    </div>`;
-
     // C-Suite Header
     html += `<div class="grid-row ir-header">
       <div class="row-num">${rowNum++}</div>
@@ -3170,14 +3143,6 @@ function updateTaxPanel() {
       return (order[d.stage] || 0) > (order[worst] || 0) ? d.stage : worst;
     }, 'notice1');
     const worstLabel = stageLabels[worstStage] || worstStage;
-
-    html += `<div class="grid-row sep-row">
-      <div class="row-num"></div>
-      <div class="cell cell-a sep-cell"></div><div class="cell cell-b sep-cell"></div>
-      <div class="cell cell-c sep-cell"></div><div class="cell cell-d sep-cell"></div>
-      <div class="cell cell-e sep-cell"></div><div class="cell cell-f sep-cell"></div>
-      <div class="cell cell-g sep-cell"></div><div class="cell cell-h sep-cell"></div>
-    </div>`;
 
     // Collapsed summary in header
     const taxSummary = taxCollapsed

@@ -1121,6 +1121,13 @@ html[data-theme="dark"] .tax-notice .tax-alert-btn:hover {
   font-size: 0.6875rem;
 }
 
+/* Section header top borders (replace separator rows) */
+.pnl-header > *,
+.ir-header > *,
+.tax-grid-header > * {
+  border-top: 3px solid var(--bg-highlight);
+}
+
 .sep-cell {
   background: var(--bg-surface);
   height: 4px !important;
@@ -1134,6 +1141,7 @@ html[data-theme="dark"] .tax-notice .tax-alert-btn:hover {
   font-size: 0;
   background: var(--bg-surface);
   border-bottom: 1px solid var(--bg-highlight) !important;
+  color: transparent;
 }
 
 #row-sep {
