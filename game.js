@@ -104,7 +104,8 @@ const SOURCE_STATS = [
 // Fixed: 1 tick = 1 game-day, always
 const SECS_PER_DAY = 86400;
 const SECS_PER_YEAR = 365.25 * SECS_PER_DAY;
-const TIME_LABEL = '▶ 1 day/tick';
+let gameSpeed = 1;
+const TIME_LABEL_BASE = '1 day/tick';
 
 // ===== MINI-TASK DEFINITIONS =====
 // tier: 'low' (clerical), 'mid' (management), 'high' (executive)
@@ -1949,7 +1950,9 @@ function updateDisplay() {
   document.getElementById('stat-hr').textContent = formatStatMoney(totalRev / SECS_PER_YEAR * 3600) + '/hr';
   document.getElementById('stat-day').textContent = formatStatMoney(perTick) + '/day';
 
-  document.getElementById('status-timescale').textContent = TIME_LABEL;
+  document.getElementById('status-timescale').textContent = gameSpeed > 1
+    ? `⏩ ${gameSpeed}× (${gameSpeed} days/s)`
+    : `▶ ${TIME_LABEL_BASE}`;
 
   // In-game date
   const gameDate = new Date(gameState.gameStartDate + gameState.gameElapsedSecs * 1000);
@@ -3167,6 +3170,7 @@ function showEventToast(sender, subject, body, actions, opts) {
 }
 
 function gameTick() {
+  for (let _speedIter = 0; _speedIter < gameSpeed; _speedIter++) {
   if (!gameState.arc) return;
   if (gameState.earningsPaused) return;
   const now = Date.now();
@@ -3300,6 +3304,8 @@ function gameTick() {
 
   // Management focus decay
   decayFocus();
+
+  } // end speed loop
 
   updateToastButtons();
   updateGridValues();
@@ -3486,6 +3492,37 @@ function updateToastButtons() {
 let debugTapCount = 0;
 let debugTapTimer = null;
 let debugMode = false;
+
+// ===== DEBUG MENU =====
+let debugMenuOpen = false;
+
+function toggleDebugMenu(e) {
+  e.stopPropagation();
+  debugMenuOpen = !debugMenuOpen;
+  const dropdown = document.getElementById('debug-dropdown');
+  dropdown.classList.toggle('open', debugMenuOpen);
+  closeFileMenu();
+  closeDataMenu();
+}
+
+function closeDebugMenu() {
+  debugMenuOpen = false;
+  const dropdown = document.getElementById('debug-dropdown');
+  if (dropdown) dropdown.classList.remove('open');
+}
+
+function setGameSpeed(speed) {
+  gameSpeed = speed;
+  // Update checkmarks
+  for (const s of [1, 2, 3, 5, 10]) {
+    const el = document.getElementById('speed-' + s);
+    if (el) el.textContent = s === speed ? '✓' : '';
+  }
+  closeDebugMenu();
+  document.getElementById('status-text').textContent = speed > 1 ? `⏩ Speed: ${speed}×` : 'Ready';
+}
+window.setGameSpeed = setGameSpeed;
+window.toggleDebugMenu = toggleDebugMenu;
 
 function initDebugTap() {
   const cashLabel = document.querySelector('.cash-label');
@@ -4063,6 +4100,8 @@ function toggleFileMenu(e) {
   const dropdown = document.getElementById('file-dropdown');
   dropdown.classList.toggle('open', fileMenuOpen);
   updateAutosaveToggle();
+  closeDataMenu();
+  closeDebugMenu();
 }
 
 function closeFileMenu() {
@@ -4099,6 +4138,7 @@ function toggleDataMenu(e) {
   const dropdown = document.getElementById('data-dropdown');
   dropdown.classList.toggle('open', dataMenuOpen);
   closeFileMenu();
+  closeDebugMenu();
 }
 
 function closeDataMenu() {
@@ -4402,6 +4442,9 @@ document.addEventListener('click', (e) => {
   }
   if (dataMenuOpen && !e.target.closest('#data-menu')) {
     closeDataMenu();
+  }
+  if (debugMenuOpen && !e.target.closest('#debug-menu')) {
+    closeDebugMenu();
   }
 
   // Formula bar: update cell reference on click

@@ -20,7 +20,7 @@
   <meta name="description" content="An idle tycoon game disguised as a spreadsheet. Look busy. Get rich.">
   <title>Q4 Financials - Operations.xlsx - Quarter Close</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='4' fill='%23217346'/><rect x='4' y='4' width='7' height='5' rx='1' fill='white'/><rect x='13' y='4' width='7' height='5' rx='1' fill='white'/><rect x='22' y='4' width='7' height='5' rx='1' fill='white'/><rect x='4' y='11' width='7' height='5' rx='1' fill='white' opacity='0.8'/><rect x='13' y='11' width='7' height='5' rx='1' fill='white' opacity='0.8'/><rect x='22' y='11' width='7' height='5' rx='1' fill='white' opacity='0.8'/><rect x='4' y='18' width='7' height='5' rx='1' fill='white' opacity='0.6'/><rect x='13' y='18' width='7' height='5' rx='1' fill='white' opacity='0.6'/><rect x='22' y='18' width='7' height='5' rx='1' fill='white' opacity='0.6'/><rect x='4' y='25' width='7' height='5' rx='1' fill='white' opacity='0.4'/><rect x='13' y='25' width='7' height='5' rx='1' fill='white' opacity='0.4'/><rect x='22' y='25' width='7' height='5' rx='1' fill='white' opacity='0.4'/></svg>">
-  <link rel="stylesheet" href="style.css?v=73">
+  <link rel="stylesheet" href="style.css?v=74">
 </head>
 <body>
   <!-- ===== SPLASH SCREEN ===== -->
@@ -114,6 +114,16 @@
       <span class="menu-item">Review</span>
       <span class="menu-item">View</span>
       <span class="menu-item" onclick="showHelp()">Help</span>
+      <span class="menu-item" id="debug-menu" onclick="toggleDebugMenu(event)">Debug
+        <div class="menu-dropdown" id="debug-dropdown">
+          <div class="menu-dropdown-label">⏩ Game Speed</div>
+          <div class="menu-dropdown-item speed-item" onclick="setGameSpeed(1)"><span class="speed-check" id="speed-1">✓</span> 1× (normal)</div>
+          <div class="menu-dropdown-item speed-item" onclick="setGameSpeed(2)"><span class="speed-check" id="speed-2"></span> 2×</div>
+          <div class="menu-dropdown-item speed-item" onclick="setGameSpeed(3)"><span class="speed-check" id="speed-3"></span> 3×</div>
+          <div class="menu-dropdown-item speed-item" onclick="setGameSpeed(5)"><span class="speed-check" id="speed-5"></span> 5×</div>
+          <div class="menu-dropdown-item speed-item" onclick="setGameSpeed(10)"><span class="speed-check" id="speed-10"></span> 10×</div>
+        </div>
+      </span>
       <div id="menu-spacer"></div>
       <div id="valuation-mini" onclick="toggleChartOverlay()" title="Company Valuation — tap for details">
         <canvas id="valuation-sparkline" width="80" height="20"></canvas>
@@ -683,7 +693,7 @@
     </div>
   </div>
 
-  <script src="game.js?v=144"></script>
+  <script src="game.js?v=145"></script>
   <script>
     if (location.hostname === 'kpa-clawbot.github.io') {
       var s = document.createElement('script');
