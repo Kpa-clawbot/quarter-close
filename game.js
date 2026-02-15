@@ -3027,202 +3027,9 @@ function updateTaxPanel() {
 
   // ===== C-SUITE SECTION (CFO + CTO selectors) =====
   if (gameState.isPublic && (getFinanceDeptLevel() > 0 || getTechDeptLevel() > 0)) {
-    // C-Suite Header
-    html += `<div class="grid-row ir-header">
-      <div class="row-num">${rowNum++}</div>
-      <div class="cell cell-a" style="font-weight:700;color:${dm('#555')}">👔 C-SUITE</div>
-      <div class="cell cell-b"></div>
-      <div class="cell cell-c"></div>
-      <div class="cell cell-d"></div>
-      <div class="cell cell-e"></div>
-      <div class="cell cell-f"></div>
-      <div class="cell cell-g"></div>
-      <div class="cell cell-h"></div>
-    </div>`;
-
-    // Shared button style
-    const csBtnStyle = (active) => active
-      ? `cursor:pointer;font-weight:700;color:${dm('#fff')};background:${dm('#0078d4')};padding:1px 6px;border-radius:2px;font-size:0.6875rem;margin-right:3px;touch-action:manipulation`
-      : `cursor:pointer;color:${dm('#0078d4')};border:1px solid ${dm('#0078d4')};padding:1px 5px;border-radius:2px;font-size:0.625rem;margin-right:3px;background:transparent;touch-action:manipulation`;
-    const csLockedStyle = `color:${dm('#aaa')};border:1px solid ${dm('#ddd')};padding:1px 5px;border-radius:2px;font-size:0.625rem;margin-right:3px;background:${dm('#f5f5f5')};cursor:default`;
-
-    // CFO row (if Finance Dept owned)
-    const maxCFOLevel = getFinanceDeptLevel();
-    if (maxCFOLevel > 0) {
-      const activeCFO = gameState.activeCFOLevel;
-      let cfoManual = `<span style="${csBtnStyle(activeCFO === 0)}" onclick="setActiveCFOLevel(0)" title="Set earnings guidance yourself each quarter">Manual</span>`;
-      const cfoLabels = { 1: '👶 1', 2: '📊 2', 3: '🎩 3' };
-      const cfoTooltips = {
-        1: 'The Intern — auto-sets guidance randomly (often wrong)',
-        2: 'Competent CFO — analyzes trends, ~70% optimal',
-        3: 'Elite CFO — factors in everything, ~90% optimal'
-      };
-      let cfoLevels = '';
-      for (let lvl = 1; lvl <= 3; lvl++) {
-        if (lvl <= maxCFOLevel) {
-          cfoLevels += `<span style="${csBtnStyle(activeCFO === lvl)}" onclick="setActiveCFOLevel(${lvl})" title="${cfoTooltips[lvl]}">${cfoLabels[lvl]}</span>`;
-        } else {
-          cfoLevels += `<span style="${csLockedStyle}" title="Purchase CFO Lv${lvl} in Board Room">🔒${lvl}</span>`;
-        }
-      }
-      // Record for active CFO
-      const record = gameState.cfoRecords[activeCFO];
-      const recordStr = activeCFO > 0 && record && record.total > 0
-        ? `${record.beats}/${record.total} (${Math.round(record.beats / record.total * 100)}%)`
-        : activeCFO > 0 ? 'No data' : '';
-      const recordColor = dm(activeCFO > 0 && record && record.total > 0
-        ? (record.beats / record.total >= 0.7 ? '#217346' : record.beats / record.total >= 0.4 ? '#b8860b' : '#c00')
-        : '#333');
-
-      html += `<div class="grid-row ir-row">
-        <div class="row-num">${rowNum++}</div>
-        <div class="cell cell-a" style="padding-left:16px;color:${dm('#444')}">CFO</div>
-        <div class="cell cell-b" style="display:flex;align-items:center">${cfoManual}</div>
-        <div class="cell cell-c" style="display:flex;align-items:center">${cfoLevels}</div>
-        <div class="cell cell-d" style="font-size:0.625rem;color:${dm('#888')}">${activeCFO > 0 ? 'Record' : ''}</div>
-        <div class="cell cell-e" style="font-family:Consolas,monospace;font-size:0.6875rem;color:${recordColor}">${recordStr}</div>
-        <div class="cell cell-f"></div>
-        <div class="cell cell-g"></div>
-        <div class="cell cell-h"></div>
-      </div>`;
-    }
-
-    // CTO row (if Tech Dept owned)
-    const maxCTOLevel = getTechDeptLevel();
-    if (maxCTOLevel > 0) {
-      const activeCTO = gameState.activeCTOLevel;
-      let ctoManual = `<span style="${csBtnStyle(activeCTO === 0)}" onclick="setActiveCTOLevel(0)" title="Upgrade departments yourself">Manual</span>`;
-      const ctoLabels = { 1: '🔧 1', 2: '💻 2', 3: '🧠 3' };
-      const ctoTooltips = {
-        1: 'The Intern — auto-upgrades cheapest department first',
-        2: 'Competent CTO — prioritizes upgrades by ROI',
-        3: 'Elite CTO — ROI-optimized with earnings timing awareness'
-      };
-      let ctoLevels = '';
-      for (let lvl = 1; lvl <= 3; lvl++) {
-        if (lvl <= maxCTOLevel) {
-          ctoLevels += `<span style="${csBtnStyle(activeCTO === lvl)}" onclick="setActiveCTOLevel(${lvl})" title="${ctoTooltips[lvl]}">${ctoLabels[lvl]}</span>`;
-        } else {
-          ctoLevels += `<span style="${csLockedStyle}" title="Purchase CTO Lv${lvl} in Board Room">🔒${lvl}</span>`;
-        }
-      }
-
-      html += `<div class="grid-row ir-row">
-        <div class="row-num">${rowNum++}</div>
-        <div class="cell cell-a" style="padding-left:16px;color:${dm('#444')}">CTO</div>
-        <div class="cell cell-b" style="display:flex;align-items:center">${ctoManual}</div>
-        <div class="cell cell-c" style="display:flex;align-items:center">${ctoLevels}</div>
-        <div class="cell cell-d"></div>
-        <div class="cell cell-e"></div>
-        <div class="cell cell-f" style="font-size:0.5625rem;color:${dm('#888')}">${activeCTO > 0 ? `Upgrades: ${gameState.ctoUpgradeCount || 0}` : ''}</div>
-        <div class="cell cell-g"></div>
-        <div class="cell cell-h" style="font-size:0.5rem;color:${dm('#999')};white-space:nowrap">${activeCTO > 0 && gameState.ctoTarget ? `Next: ${gameState.ctoTarget}` : ''}</div>
-      </div>`;
-
-      // CTO Budget sub-row (only when CTO is active)
-      if (activeCTO > 0) {
-        const budgetPct = gameState.ctoBudgetPct;
-        const pool = gameState.ctoBudgetPool || 0;
-        const targetCost = gameState.ctoTargetCost || 0;
-        const targetName = gameState.ctoTarget || '—';
-        const poolStr = formatCompact(pool);
-        const costStr = targetCost > 0 ? formatCompact(targetCost) : '—';
-        // Progress toward next purchase
-        const progress = targetCost > 0 ? Math.min(100, Math.round(pool / targetCost * 100)) : 0;
-        const barFilled = Math.round(progress / 10);
-        const bar = '█'.repeat(barFilled) + '░'.repeat(10 - barFilled);
-        // Flash green on purchase, otherwise color by progress
-        const justBought = gameState.ctoJustBought;
-        if (justBought) gameState.ctoJustBought = false;
-        const barColor = dm(justBought ? '#217346' : progress >= 90 ? '#b8860b' : '#666');
-        const hasCapEx = hasBoardRoomUpgrade('capex_planning');
-        const autoChecked = gameState.ctoBudgetAuto ? 'checked' : '';
-        const sliderDisabled = gameState.ctoBudgetAuto ? 'disabled style="opacity:0.5"' : '';
-        const autoLabel = hasCapEx ? `<label class="cto-auto-label" title="CFO manages budget automatically"><input type="checkbox" ${autoChecked} onchange="toggleCtoBudgetAuto(this.checked)"> Auto</label>` : '';
-
-        html += `<div class="grid-row ir-row cto-budget-row">
-          <div class="row-num">${rowNum++}</div>
-          <div class="cell cell-a" style="padding-left:28px;color:${dm('#666')};font-size:0.625rem">Budget</div>
-          <div class="cell cell-b" style="display:flex;align-items:center;gap:4px">
-            <input type="range" min="0" max="100" step="5" value="${budgetPct}" class="cto-budget-slider" ${sliderDisabled} oninput="setCtoBudgetPct(this.value)" title="% of revenue skimmed into CTO budget pool">
-            <span class="cto-budget-pct">${budgetPct}%</span>
-          </div>
-          <div class="cell cell-c" style="font-family:Consolas,monospace;font-size:0.625rem;color:${barColor}" title="${progress}% toward next upgrade">${bar}</div>
-          <div class="cell cell-d" style="font-size:0.625rem;color:${dm('#666')};white-space:nowrap">${poolStr} / ${costStr}</div>
-          <div class="cell cell-e" style="font-size:0.625rem">${autoLabel}</div>
-          <div class="cell cell-f"></div>
-          <div class="cell cell-g"></div>
-          <div class="cell cell-h"></div>
-        </div>`;
-      }
-    }
-
-    // COO row
-    const maxCOOLevel = getOpsDeptLevel();
-    if (maxCOOLevel > 0) {
-      const activeCOO = gameState.activeCOOLevel;
-      let cooManual = `<span style="${csBtnStyle(activeCOO === 0)}" onclick="setActiveCOOLevel(0)" title="Hire employees yourself">Manual</span>`;
-      const cooLabels = { 1: '📋 1', 2: '📊 2', 3: '🧠 3' };
-      const cooTooltips = {
-        1: 'The Recruiter — auto-hires cheapest employee first',
-        2: 'VP of Ops — hires where marginal revenue per employee is highest',
-        3: 'Elite COO — revenue-optimized with earnings timing awareness'
-      };
-      let cooLevels = '';
-      for (let lvl = 1; lvl <= 3; lvl++) {
-        if (lvl <= maxCOOLevel) {
-          cooLevels += `<span style="${csBtnStyle(activeCOO === lvl)}" onclick="setActiveCOOLevel(${lvl})" title="${cooTooltips[lvl]}">${cooLabels[lvl]}</span>`;
-        } else {
-          cooLevels += `<span style="${csLockedStyle}" title="Purchase COO Lv${lvl} in Board Room">🔒${lvl}</span>`;
-        }
-      }
-
-      html += `<div class="grid-row ir-row">
-        <div class="row-num">${rowNum++}</div>
-        <div class="cell cell-a" style="padding-left:16px;color:${dm('#444')}">COO</div>
-        <div class="cell cell-b" style="display:flex;align-items:center">${cooManual}</div>
-        <div class="cell cell-c" style="display:flex;align-items:center">${cooLevels}</div>
-        <div class="cell cell-d"></div>
-        <div class="cell cell-e"></div>
-        <div class="cell cell-f" style="font-size:0.5625rem;color:${dm('#888')}">${activeCOO > 0 ? `Hires: ${gameState.cooHireCount || 0}` : ''}</div>
-        <div class="cell cell-g"></div>
-        <div class="cell cell-h" style="font-size:0.5rem;color:${dm('#999')};white-space:nowrap">${activeCOO > 0 && gameState.cooTarget ? `Next: ${gameState.cooTarget}` : ''}</div>
-      </div>`;
-
-      // COO Budget sub-row
-      if (activeCOO > 0) {
-        const cooPct = gameState.cooBudgetPct;
-        const cooPool = gameState.cooBudgetPool || 0;
-        const cooTargetCost = gameState.cooTargetCost || 0;
-        const cooPoolStr = formatCompact(cooPool);
-        const cooCostStr = cooTargetCost > 0 ? formatCompact(cooTargetCost) : '—';
-        const cooProgress = cooTargetCost > 0 ? Math.min(100, Math.round(cooPool / cooTargetCost * 100)) : 0;
-        const cooBarFilled = Math.round(cooProgress / 10);
-        const cooBar = '█'.repeat(cooBarFilled) + '░'.repeat(10 - cooBarFilled);
-        const cooJustBought = gameState.cooJustBought;
-        if (cooJustBought) gameState.cooJustBought = false;
-        const cooBarColor = dm(cooJustBought ? '#217346' : cooProgress >= 90 ? '#b8860b' : '#666');
-        const hasCapEx = hasBoardRoomUpgrade('capex_planning');
-        const cooAutoChecked = gameState.cooBudgetAuto ? 'checked' : '';
-        const cooSliderDisabled = gameState.cooBudgetAuto ? 'disabled style="opacity:0.5"' : '';
-        const cooAutoLabel = hasCapEx ? `<label class="cto-auto-label" title="CFO manages hiring budget automatically"><input type="checkbox" ${cooAutoChecked} onchange="toggleCooBudgetAuto(this.checked)"> Auto</label>` : '';
-
-        html += `<div class="grid-row ir-row cto-budget-row">
-          <div class="row-num">${rowNum++}</div>
-          <div class="cell cell-a" style="padding-left:28px;color:${dm('#666')};font-size:0.625rem">Budget</div>
-          <div class="cell cell-b" style="display:flex;align-items:center;gap:4px">
-            <input type="range" min="0" max="100" step="5" value="${cooPct}" class="cto-budget-slider" ${cooSliderDisabled} oninput="setCooBudgetPct(this.value)" title="% of revenue skimmed into COO hiring pool">
-            <span class="cto-budget-pct">${cooPct}%</span>
-          </div>
-          <div class="cell cell-c" style="font-family:Consolas,monospace;font-size:0.625rem;color:${cooBarColor}" title="${cooProgress}% toward next hire">${cooBar}</div>
-          <div class="cell cell-d" style="font-size:0.625rem;color:${dm('#666')};white-space:nowrap">${cooPoolStr} / ${cooCostStr}</div>
-          <div class="cell cell-e" style="font-size:0.625rem">${cooAutoLabel}</div>
-          <div class="cell cell-f"></div>
-          <div class="cell cell-g"></div>
-          <div class="cell cell-h"></div>
-        </div>`;
-      }
-    }
+    const csResult = buildCSuiteHTML(rowNum);
+    html += csResult.html;
+    rowNum = csResult.rowNum;
   }
 
   // ===== TAX LIABILITY (if any debts) =====
@@ -5001,6 +4808,206 @@ function updateBoardRoomTab() {
 
 let _lastBoardRoomHash = '';
 
+function buildCSuiteHTML(rowNum) {
+  let html = '';
+
+  // C-Suite Header
+  html += `<div class="grid-row ir-header">
+    <div class="row-num">${rowNum++}</div>
+    <div class="cell cell-a" style="font-weight:700;color:${dm('#555')}">👔 C-SUITE</div>
+    <div class="cell cell-b"></div>
+    <div class="cell cell-c"></div>
+    <div class="cell cell-d"></div>
+    <div class="cell cell-e"></div>
+    <div class="cell cell-f"></div>
+    <div class="cell cell-g"></div>
+    <div class="cell cell-h"></div>
+  </div>`;
+
+  // Shared button style
+  const csBtnStyle = (active) => active
+    ? `cursor:pointer;font-weight:700;color:${dm('#fff')};background:${dm('#0078d4')};padding:1px 6px;border-radius:2px;font-size:0.6875rem;margin-right:3px;touch-action:manipulation`
+    : `cursor:pointer;color:${dm('#0078d4')};border:1px solid ${dm('#0078d4')};padding:1px 5px;border-radius:2px;font-size:0.625rem;margin-right:3px;background:transparent;touch-action:manipulation`;
+  const csLockedStyle = `color:${dm('#aaa')};border:1px solid ${dm('#ddd')};padding:1px 5px;border-radius:2px;font-size:0.625rem;margin-right:3px;background:${dm('#f5f5f5')};cursor:default`;
+
+  // CFO row (if Finance Dept owned)
+  const maxCFOLevel = getFinanceDeptLevel();
+  if (maxCFOLevel > 0) {
+    const activeCFO = gameState.activeCFOLevel;
+    let cfoManual = `<span style="${csBtnStyle(activeCFO === 0)}" onclick="setActiveCFOLevel(0)" title="Set earnings guidance yourself each quarter">Manual</span>`;
+    const cfoLabels = { 1: '👶 1', 2: '📊 2', 3: '🎩 3' };
+    const cfoTooltips = {
+      1: 'The Intern — auto-sets guidance randomly (often wrong)',
+      2: 'Competent CFO — analyzes trends, ~70% optimal',
+      3: 'Elite CFO — factors in everything, ~90% optimal'
+    };
+    let cfoLevels = '';
+    for (let lvl = 1; lvl <= 3; lvl++) {
+      if (lvl <= maxCFOLevel) {
+        cfoLevels += `<span style="${csBtnStyle(activeCFO === lvl)}" onclick="setActiveCFOLevel(${lvl})" title="${cfoTooltips[lvl]}">${cfoLabels[lvl]}</span>`;
+      } else {
+        cfoLevels += `<span style="${csLockedStyle}" title="Purchase CFO Lv${lvl} in Board Room">🔒${lvl}</span>`;
+      }
+    }
+    // Record for active CFO
+    const record = gameState.cfoRecords[activeCFO];
+    const recordStr = activeCFO > 0 && record && record.total > 0
+      ? `${record.beats}/${record.total} (${Math.round(record.beats / record.total * 100)}%)`
+      : activeCFO > 0 ? 'No data' : '';
+    const recordColor = dm(activeCFO > 0 && record && record.total > 0
+      ? (record.beats / record.total >= 0.7 ? '#217346' : record.beats / record.total >= 0.4 ? '#b8860b' : '#c00')
+      : '#333');
+
+    html += `<div class="grid-row ir-row">
+      <div class="row-num">${rowNum++}</div>
+      <div class="cell cell-a" style="padding-left:16px;color:${dm('#444')}">CFO</div>
+      <div class="cell cell-b" style="display:flex;align-items:center">${cfoManual}</div>
+      <div class="cell cell-c" style="display:flex;align-items:center">${cfoLevels}</div>
+      <div class="cell cell-d" style="font-size:0.625rem;color:${dm('#888')}">${activeCFO > 0 ? 'Record' : ''}</div>
+      <div class="cell cell-e" style="font-family:Consolas,monospace;font-size:0.6875rem;color:${recordColor}">${recordStr}</div>
+      <div class="cell cell-f"></div>
+      <div class="cell cell-g"></div>
+      <div class="cell cell-h"></div>
+    </div>`;
+  }
+
+  // CTO row (if Tech Dept owned)
+  const maxCTOLevel = getTechDeptLevel();
+  if (maxCTOLevel > 0) {
+    const activeCTO = gameState.activeCTOLevel;
+    let ctoManual = `<span style="${csBtnStyle(activeCTO === 0)}" onclick="setActiveCTOLevel(0)" title="Upgrade departments yourself">Manual</span>`;
+    const ctoLabels = { 1: '🔧 1', 2: '💻 2', 3: '🧠 3' };
+    const ctoTooltips = {
+      1: 'The Intern — auto-upgrades cheapest department first',
+      2: 'Competent CTO — prioritizes upgrades by ROI',
+      3: 'Elite CTO — ROI-optimized with earnings timing awareness'
+    };
+    let ctoLevels = '';
+    for (let lvl = 1; lvl <= 3; lvl++) {
+      if (lvl <= maxCTOLevel) {
+        ctoLevels += `<span style="${csBtnStyle(activeCTO === lvl)}" onclick="setActiveCTOLevel(${lvl})" title="${ctoTooltips[lvl]}">${ctoLabels[lvl]}</span>`;
+      } else {
+        ctoLevels += `<span style="${csLockedStyle}" title="Purchase CTO Lv${lvl} in Board Room">🔒${lvl}</span>`;
+      }
+    }
+
+    html += `<div class="grid-row ir-row">
+      <div class="row-num">${rowNum++}</div>
+      <div class="cell cell-a" style="padding-left:16px;color:${dm('#444')}">CTO</div>
+      <div class="cell cell-b" style="display:flex;align-items:center">${ctoManual}</div>
+      <div class="cell cell-c" style="display:flex;align-items:center">${ctoLevels}</div>
+      <div class="cell cell-d"></div>
+      <div class="cell cell-e"></div>
+      <div class="cell cell-f" style="font-size:0.5625rem;color:${dm('#888')}">${activeCTO > 0 ? `Upgrades: ${gameState.ctoUpgradeCount || 0}` : ''}</div>
+      <div class="cell cell-g"></div>
+      <div class="cell cell-h" style="font-size:0.5rem;color:${dm('#999')};white-space:nowrap">${activeCTO > 0 && gameState.ctoTarget ? `Next: ${gameState.ctoTarget}` : ''}</div>
+    </div>`;
+
+    // CTO Budget sub-row (only when CTO is active)
+    if (activeCTO > 0) {
+      const budgetPct = gameState.ctoBudgetPct;
+      const pool = gameState.ctoBudgetPool || 0;
+      const targetCost = gameState.ctoTargetCost || 0;
+      const poolStr = formatCompact(pool);
+      const costStr = targetCost > 0 ? formatCompact(targetCost) : '—';
+      const progress = targetCost > 0 ? Math.min(100, Math.round(pool / targetCost * 100)) : 0;
+      const barFilled = Math.round(progress / 10);
+      const bar = '█'.repeat(barFilled) + '░'.repeat(10 - barFilled);
+      const justBought = gameState.ctoJustBought;
+      if (justBought) gameState.ctoJustBought = false;
+      const barColor = dm(justBought ? '#217346' : progress >= 90 ? '#b8860b' : '#666');
+      const hasCapEx = hasBoardRoomUpgrade('capex_planning');
+      const autoChecked = gameState.ctoBudgetAuto ? 'checked' : '';
+      const sliderDisabled = gameState.ctoBudgetAuto ? 'disabled style="opacity:0.5"' : '';
+      const autoLabel = hasCapEx ? `<label class="cto-auto-label" title="CFO manages budget automatically"><input type="checkbox" ${autoChecked} onchange="toggleCtoBudgetAuto(this.checked)"> Auto</label>` : '';
+
+      html += `<div class="grid-row ir-row cto-budget-row">
+        <div class="row-num">${rowNum++}</div>
+        <div class="cell cell-a" style="padding-left:28px;color:${dm('#666')};font-size:0.625rem">Budget</div>
+        <div class="cell cell-b" style="display:flex;align-items:center;gap:4px">
+          <input type="range" min="0" max="100" step="5" value="${budgetPct}" class="cto-budget-slider" ${sliderDisabled} oninput="setCtoBudgetPct(this.value)" title="% of revenue skimmed into CTO budget pool">
+          <span class="cto-budget-pct">${budgetPct}%</span>
+        </div>
+        <div class="cell cell-c" style="font-family:Consolas,monospace;font-size:0.625rem;color:${barColor}" title="${progress}% toward next upgrade">${bar}</div>
+        <div class="cell cell-d" style="font-size:0.625rem;color:${dm('#666')};white-space:nowrap">${poolStr} / ${costStr}</div>
+        <div class="cell cell-e" style="font-size:0.625rem">${autoLabel}</div>
+        <div class="cell cell-f"></div>
+        <div class="cell cell-g"></div>
+        <div class="cell cell-h"></div>
+      </div>`;
+    }
+  }
+
+  // COO row
+  const maxCOOLevel = getOpsDeptLevel();
+  if (maxCOOLevel > 0) {
+    const activeCOO = gameState.activeCOOLevel;
+    let cooManual = `<span style="${csBtnStyle(activeCOO === 0)}" onclick="setActiveCOOLevel(0)" title="Hire employees yourself">Manual</span>`;
+    const cooLabels = { 1: '📋 1', 2: '📊 2', 3: '🧠 3' };
+    const cooTooltips = {
+      1: 'The Recruiter — auto-hires cheapest employee first',
+      2: 'VP of Ops — hires where marginal revenue per employee is highest',
+      3: 'Elite COO — revenue-optimized with earnings timing awareness'
+    };
+    let cooLevels = '';
+    for (let lvl = 1; lvl <= 3; lvl++) {
+      if (lvl <= maxCOOLevel) {
+        cooLevels += `<span style="${csBtnStyle(activeCOO === lvl)}" onclick="setActiveCOOLevel(${lvl})" title="${cooTooltips[lvl]}">${cooLabels[lvl]}</span>`;
+      } else {
+        cooLevels += `<span style="${csLockedStyle}" title="Purchase COO Lv${lvl} in Board Room">🔒${lvl}</span>`;
+      }
+    }
+
+    html += `<div class="grid-row ir-row">
+      <div class="row-num">${rowNum++}</div>
+      <div class="cell cell-a" style="padding-left:16px;color:${dm('#444')}">COO</div>
+      <div class="cell cell-b" style="display:flex;align-items:center">${cooManual}</div>
+      <div class="cell cell-c" style="display:flex;align-items:center">${cooLevels}</div>
+      <div class="cell cell-d"></div>
+      <div class="cell cell-e"></div>
+      <div class="cell cell-f" style="font-size:0.5625rem;color:${dm('#888')}">${activeCOO > 0 ? `Hires: ${gameState.cooHireCount || 0}` : ''}</div>
+      <div class="cell cell-g"></div>
+      <div class="cell cell-h" style="font-size:0.5rem;color:${dm('#999')};white-space:nowrap">${activeCOO > 0 && gameState.cooTarget ? `Next: ${gameState.cooTarget}` : ''}</div>
+    </div>`;
+
+    // COO Budget sub-row
+    if (activeCOO > 0) {
+      const cooPct = gameState.cooBudgetPct;
+      const cooPool = gameState.cooBudgetPool || 0;
+      const cooTargetCost = gameState.cooTargetCost || 0;
+      const cooPoolStr = formatCompact(cooPool);
+      const cooCostStr = cooTargetCost > 0 ? formatCompact(cooTargetCost) : '—';
+      const cooProgress = cooTargetCost > 0 ? Math.min(100, Math.round(cooPool / cooTargetCost * 100)) : 0;
+      const cooBarFilled = Math.round(cooProgress / 10);
+      const cooBar = '█'.repeat(cooBarFilled) + '░'.repeat(10 - cooBarFilled);
+      const cooJustBought = gameState.cooJustBought;
+      if (cooJustBought) gameState.cooJustBought = false;
+      const cooBarColor = dm(cooJustBought ? '#217346' : cooProgress >= 90 ? '#b8860b' : '#666');
+      const hasCapEx = hasBoardRoomUpgrade('capex_planning');
+      const cooAutoChecked = gameState.cooBudgetAuto ? 'checked' : '';
+      const cooSliderDisabled = gameState.cooBudgetAuto ? 'disabled style="opacity:0.5"' : '';
+      const cooAutoLabel = hasCapEx ? `<label class="cto-auto-label" title="CFO manages hiring budget automatically"><input type="checkbox" ${cooAutoChecked} onchange="toggleCooBudgetAuto(this.checked)"> Auto</label>` : '';
+
+      html += `<div class="grid-row ir-row cto-budget-row">
+        <div class="row-num">${rowNum++}</div>
+        <div class="cell cell-a" style="padding-left:28px;color:${dm('#666')};font-size:0.625rem">Budget</div>
+        <div class="cell cell-b" style="display:flex;align-items:center;gap:4px">
+          <input type="range" min="0" max="100" step="5" value="${cooPct}" class="cto-budget-slider" ${cooSliderDisabled} oninput="setCooBudgetPct(this.value)" title="% of revenue skimmed into COO hiring pool">
+          <span class="cto-budget-pct">${cooPct}%</span>
+        </div>
+        <div class="cell cell-c" style="font-family:Consolas,monospace;font-size:0.625rem;color:${cooBarColor}" title="${cooProgress}% toward next hire">${cooBar}</div>
+        <div class="cell cell-d" style="font-size:0.625rem;color:${dm('#666')};white-space:nowrap">${cooPoolStr} / ${cooCostStr}</div>
+        <div class="cell cell-e" style="font-size:0.625rem">${cooAutoLabel}</div>
+        <div class="cell cell-f"></div>
+        <div class="cell cell-g"></div>
+        <div class="cell cell-h"></div>
+      </div>`;
+    }
+  }
+
+  return { html, rowNum };
+}
+
 function buildBoardRoom() {
   const container = document.getElementById('board-room-rows');
   if (!container) return;
@@ -5009,12 +5016,17 @@ function buildBoardRoom() {
   const hashParts = [
     gameState.retainedEarnings,
     JSON.stringify(gameState.boardRoomPurchases),
+    gameState.activeCFOLevel, gameState.activeCTOLevel, gameState.activeCOOLevel,
+    gameState.ctoBudgetPct, gameState.ctoBudgetPool, gameState.ctoTargetCost,
+    gameState.cooBudgetPct, gameState.cooBudgetPool, gameState.cooTargetCost,
+    gameState.ctoBudgetAuto, gameState.cooBudgetAuto,
+    gameState.ctoUpgradeCount, gameState.cooHireCount,
   ].join('|');
   if (hashParts === _lastBoardRoomHash && container.innerHTML !== '') return;
   _lastBoardRoomHash = hashParts;
 
   let html = '';
-  let rowNum = 3; // starts after the header rows (1-2)
+  let rowNum = 2; // starts after the cash row (1), dept header is hidden
 
   // Board Room header (RE balance)
   html += `<div class="grid-row br-header-row">
@@ -5028,6 +5040,13 @@ function buildBoardRoom() {
     <div class="cell cell-g"></div>
     <div class="cell cell-h"></div>
   </div>`;
+
+  // C-Suite section (CFO/CTO/COO selectors + budgets)
+  if (gameState.isPublic && (getFinanceDeptLevel() > 0 || getTechDeptLevel() > 0)) {
+    const csResult = buildCSuiteHTML(rowNum);
+    html += csResult.html;
+    rowNum = csResult.rowNum;
+  }
 
   // Group upgrades by category, sort each group by cost ascending
   const categoryOrder = ['Expansion', 'Revenue', 'Talent', 'Finance', 'Technology', 'Operations', 'Tax', 'Investor', 'Protection'];
