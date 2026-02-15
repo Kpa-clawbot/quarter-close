@@ -2890,7 +2890,7 @@ function updateTaxPanel() {
       <div class="cell cell-d" style="font-size:0.625rem;color:${irCollapsed ? trackColor : dm('#888')}">${irCollapsed ? trackPctStr : ''}</div>
       <div class="cell cell-e" style="font-size:0.625rem;color:${streakColor}">${irCollapsed ? `Streak: ${shortStreak}` : ''}</div>
       <div class="cell cell-f" style="${earningsCellStyle}">${earningsLabel}</div>
-      <div class="cell cell-g"></div>
+      <div class="cell cell-g" style="font-size:0.625rem;color:${dm('#888')}">${irCollapsed ? `Analyst: ${gameState.analystBaseline.toFixed(2)}×` : ''}</div>
       <div class="cell cell-h"></div>
     </div>`;
 
