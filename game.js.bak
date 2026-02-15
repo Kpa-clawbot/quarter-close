@@ -1686,7 +1686,7 @@ function buildGrid() {
         <div class="cell cell-b" data-field="emp">—</div>
         <div class="cell cell-c" data-field="rate">—</div>
         <div class="cell cell-d" data-field="action1">
-          ${nextUnlockable ? `<button class="cell-btn btn-unlock" onclick="unlockSource(${i})" data-btn="unlock">Unlock ${formatMoney(src.unlockCost)}</button>` : `<span style="color:${dm('#ccc')}">${formatMoney(src.unlockCost)}</span>`}
+          ${nextUnlockable ? `<button class="cell-btn btn-unlock" onclick="unlockSource(${i})" data-btn="unlock">Unlock ${formatMoney(src.unlockCost)}</button>` : `<span style="color:#ccc">${formatMoney(src.unlockCost)}</span>`}
         </div>
         <div class="cell cell-e" data-field="action2"></div>
         <div class="cell cell-f" data-field="action3"></div>
@@ -1718,13 +1718,13 @@ function buildGrid() {
   const otRowNum = SOURCE_STATS.length + 4;
   overtimeRow.innerHTML = `
     <div class="row-num">${otRowNum}</div>
-    <div class="cell cell-a" style="font-weight:600;color:${dm('#555')}">⏰ Overtime</div>
-    <div class="cell cell-b" id="overtime-clicks" style="font-size:11px;color:${dm('#888')}"></div>
-    <div class="cell cell-c" id="overtime-next" style="font-family:Consolas,monospace;font-size:11px;color:${dm('#217346')};justify-content:flex-end"></div>
+    <div class="cell cell-a" style="font-weight:600;color:#555">⏰ Overtime</div>
+    <div class="cell cell-b" id="overtime-clicks" style="font-size:11px;color:#888"></div>
+    <div class="cell cell-c" id="overtime-next" style="font-family:Consolas,monospace;font-size:11px;color:#217346;justify-content:flex-end"></div>
     <div class="cell cell-d">
       <button class="cell-btn btn-collect" id="overtime-btn" onclick="clickOvertime()" title="Instant cash (5s of revenue). Diminishing returns per quarter.">Push It</button>
     </div>
-    <div class="cell cell-e" id="overtime-diminish" style="font-size:10px;color:${dm('#999')}"></div>
+    <div class="cell cell-e" id="overtime-diminish" style="font-size:10px;color:#999"></div>
     <div class="cell cell-f"></div>
     <div class="cell cell-g"></div>
     <div class="cell cell-h empty-cell"></div>
@@ -1800,12 +1800,12 @@ function updateGridValues() {
 
     // Name (clickable for focus)
     const nameCell = row.querySelector('[data-field="name"]');
-    const prestigeTag = (state.prestigeLevel || 0) > 0 ? ` <span style="color:${dm('#d4a017')};font-size:10px">★${state.prestigeLevel}</span>` : '';
-    const breakthroughTag = (state.breakthroughMult || 1) > 1 ? ` <span style="color:${dm('#2e7d32')};font-size:10px">🔬×${state.breakthroughMult}</span>` : '';
+    const prestigeTag = (state.prestigeLevel || 0) > 0 ? ` <span style="color:#d4a017;font-size:10px">★${state.prestigeLevel}</span>` : '';
+    const breakthroughTag = (state.breakthroughMult || 1) > 1 ? ` <span style="color:#2e7d32;font-size:10px">🔬×${state.breakthroughMult}</span>` : '';
     const focusLevel = state.focus || 0;
     const focusable = isFeatureEnabled('managementFocus') && state.automated;
     const focusIcon = focusable ? `<span class="focus-icon${focusLevel > 0 ? ' focus-active' : ''}" title="Click to boost revenue (+5% per click, max +50%)">🎯</span>` : '';
-    const tags = (state.upgradeLevel > 0 ? `<span style="color:${dm('#999')};font-size:10px">Lv${state.upgradeLevel}</span>` : '') + prestigeTag + breakthroughTag;
+    const tags = (state.upgradeLevel > 0 ? `<span style="color:#999;font-size:10px">Lv${state.upgradeLevel}</span>` : '') + prestigeTag + breakthroughTag;
     nameCell.innerHTML = `<span style="display:flex;align-items:center;justify-content:space-between;width:100%"><span>${focusIcon}${src.name}</span><span style="white-space:nowrap">${tags}</span></span>`;
     if (focusable) {
       nameCell.style.cursor = 'pointer';
@@ -1827,7 +1827,7 @@ function updateGridValues() {
     if (isDbDown) {
       row.classList.add('db-outage');
       const secsLeft = Math.ceil((gameState.dbOutage.until - Date.now()) / 1000);
-      rateCell.innerHTML = `<span style="color:${dm('#c00')};font-weight:600">💾 OFFLINE ${secsLeft}s</span>`;
+      rateCell.innerHTML = `<span style="color:#c00;font-weight:600">💾 OFFLINE ${secsLeft}s</span>`;
     } else {
       row.classList.remove('db-outage');
       if (isFeatureEnabled('managementFocus') && focusLevel > 0) {
@@ -1906,14 +1906,14 @@ function updateDisplay() {
   const hasDbOut = gameState.dbOutage && Date.now() < gameState.dbOutage.until;
 
   if (hasOutage) {
-    ptEl.innerHTML = `<span style="color:${dm('#c00')};font-weight:700">⚡ $0.00/day</span>`;
+    ptEl.innerHTML = `<span style="color:#c00;font-weight:700">⚡ $0.00/day</span>`;
   } else if (hasPenalty) {
     const pct = Math.round((1 - gameState.revPenalty.mult) * 100);
-    ptEl.innerHTML = `<span style="color:${dm('#c00')}">${formatPerTick(perTick)}/day</span> <span style="color:${dm('#c00')};font-size:9px">▼${pct}%</span>`;
+    ptEl.innerHTML = `<span style="color:#c00">${formatPerTick(perTick)}/day</span> <span style="color:#c00;font-size:9px">▼${pct}%</span>`;
   } else if (hasDbOut) {
-    ptEl.innerHTML = `<span style="color:${dm('#e65100')}">${formatPerTick(perTick)}/day</span> <span style="color:${dm('#e65100')};font-size:9px">💾</span>`;
+    ptEl.innerHTML = `<span style="color:#e65100">${formatPerTick(perTick)}/day</span> <span style="color:#e65100;font-size:9px">💾</span>`;
   } else if (hasBonus) {
-    ptEl.innerHTML = `<span style="color:${dm('#217346')};font-weight:600">${formatPerTick(perTick)}/day</span> <span style="color:${dm('#217346')};font-size:9px">▲×${gameState.revBonus.mult}</span>`;
+    ptEl.innerHTML = `<span style="color:#217346;font-weight:600">${formatPerTick(perTick)}/day</span> <span style="color:#217346;font-size:9px">▲×${gameState.revBonus.mult}</span>`;
   } else {
     ptEl.textContent = formatPerTick(perTick) + '/day';
   }
@@ -1923,7 +1923,7 @@ function updateDisplay() {
   if (stockCell) {
     if (gameState.isPublic) {
       const sp = getStockPrice();
-      stockCell.innerHTML = `<span style="font-size:9px;color:${dm('#888')}">Stock: </span><span style="font-weight:700;color:${dm('#0078d4')};font-family:Consolas,monospace;font-size:12px">${formatMoney(sp)}</span>`;
+      stockCell.innerHTML = `<span style="font-size:9px;color:#888">Stock: </span><span style="font-weight:700;color:#0078d4;font-family:Consolas,monospace;font-size:12px">${formatMoney(sp)}</span>`;
     } else {
       stockCell.innerHTML = '';
     }
@@ -2339,14 +2339,14 @@ function processQuarterlyTax() {
         <div class="er-row"><span class="er-label">Depreciation</span><span class="er-value">(${formatMoney(qDep)})</span></div>
         <div class="er-row"><span class="er-label">Taxable Income</span><span class="er-value">${formatMoney(Math.max(0, taxableIncome))}</span></div>
         <div class="er-divider"></div>
-        <div class="er-row"><span class="er-label">Tax Owed</span><span class="er-value" style="color:${dm('#217346')}">$0 ✓</span></div>
+        <div class="er-row"><span class="er-label">Tax Owed</span><span class="er-value" style="color:#217346">$0 ✓</span></div>
       </div>`,
       [{ label: 'OK', effect: () => `No tax liability for ${qLabel}. Keep investing!` }],
       { html: true });
     return;
   }
 
-  const amtNote = isAMT ? `<div class="er-row" style="color:${dm('#c7254e')}"><span class="er-label">⚠️ AMT</span><span class="er-value">${Math.round(amtRate*100)}% of revenue &gt; regular tax</span></div>` : '';
+  const amtNote = isAMT ? `<div class="er-row" style="color:#c7254e"><span class="er-label">⚠️ AMT</span><span class="er-value">${Math.round(amtRate*100)}% of revenue &gt; regular tax</span></div>` : '';
   showEventToast('IRS', `${qLabel} Quarterly Tax Assessment`,
     `<div class="irs-report">
       <div class="er-row"><span class="er-label">Revenue</span><span class="er-value">${formatMoney(qRev)}</span></div>
@@ -2354,7 +2354,7 @@ function processQuarterlyTax() {
       <div class="er-row"><span class="er-label">Taxable Income</span><span class="er-value">${formatMoney(taxableIncome)}</span></div>
       <div class="er-divider"></div>
       <div class="er-row"><span class="er-label">Tax Rate</span><span class="er-value">${isAMT ? 'AMT ' + Math.round(amtRate*100) + '%' : Math.round(taxRate*100) + '%'}</span></div>
-      <div class="er-row er-result"><span class="er-label">Tax Owed</span><span class="er-value" style="color:${dm('#c7254e')};font-weight:700">${formatMoney(taxOwed)}</span></div>
+      <div class="er-row er-result"><span class="er-label">Tax Owed</span><span class="er-value" style="color:#c7254e;font-weight:700">${formatMoney(taxOwed)}</span></div>
       ${amtNote}
     </div>`,
     [
@@ -2579,12 +2579,12 @@ function updateTaxPanel() {
   // P&L Header (clickable to collapse)
   html += `<div class="grid-row pnl-header">
     <div class="row-num">${rowNum++}</div>
-    <div class="cell cell-a" style="font-weight:700;color:${dm('#333')};cursor:pointer" data-toggle-pnl>${pnlArrow} PROFIT &amp; LOSS</div>
+    <div class="cell cell-a" style="font-weight:700;color:#333;cursor:pointer" data-toggle-pnl>${pnlArrow} PROFIT &amp; LOSS</div>
     <div class="cell cell-b"></div>
-    <div class="cell cell-c" style="font-size:10px;color:${dm('#888')};justify-content:flex-end">${pnlCollapsed ? '' : 'This Qtr'}</div>
-    <div class="cell cell-d" style="font-size:10px;color:${dm('#888')};justify-content:flex-end">${pnlCollapsed ? '' : 'Lifetime'}</div>
+    <div class="cell cell-c" style="font-size:10px;color:#888;justify-content:flex-end">${pnlCollapsed ? '' : 'This Qtr'}</div>
+    <div class="cell cell-d" style="font-size:10px;color:#888;justify-content:flex-end">${pnlCollapsed ? '' : 'Lifetime'}</div>
     <div class="cell cell-e"></div>
-    <div class="cell cell-f" style="font-size:10px;color:${dm('#888')}">${pnlCollapsed ? '' : `Tax due in ${daysToTax}d`}</div>
+    <div class="cell cell-f" style="font-size:10px;color:#888">${pnlCollapsed ? '' : `Tax due in ${daysToTax}d`}</div>
     <div class="cell cell-g"></div>
     <div class="cell cell-h"></div>
   </div>`;
@@ -2596,10 +2596,10 @@ function updateTaxPanel() {
     // Revenue
     html += `<div class="grid-row pnl-row">
       <div class="row-num">${rowNum++}</div>
-      <div class="cell cell-a" style="padding-left:16px;color:${dm('#444')}">Revenue</div>
+      <div class="cell cell-a" style="padding-left:16px;color:#444">Revenue</div>
       <div class="cell cell-b"></div>
-      <div class="cell cell-c" style="color:${dm('#217346')};font-family:Consolas,monospace;font-size:11px;justify-content:flex-end">${formatMoney(gameState.quarterRevenue)}</div>
-      <div class="cell cell-d" style="color:${dm('#217346')};font-family:Consolas,monospace;font-size:11px;justify-content:flex-end">${formatMoney(gameState.totalEarned)}</div>
+      <div class="cell cell-c" style="color:#217346;font-family:Consolas,monospace;font-size:11px;justify-content:flex-end">${formatMoney(gameState.quarterRevenue)}</div>
+      <div class="cell cell-d" style="color:#217346;font-family:Consolas,monospace;font-size:11px;justify-content:flex-end">${formatMoney(gameState.totalEarned)}</div>
       <div class="cell cell-e"></div><div class="cell cell-f"></div>
       <div class="cell cell-g"></div><div class="cell cell-h"></div>
     </div>`;
@@ -2608,11 +2608,11 @@ function updateTaxPanel() {
     if (garnishActive) {
       html += `<div class="grid-row pnl-row">
         <div class="row-num">${rowNum++}</div>
-        <div class="cell cell-a" style="padding-left:16px;color:${dm('#c00')}">🔴 IRS Garnishment</div>
+        <div class="cell cell-a" style="padding-left:16px;color:#c00">🔴 IRS Garnishment</div>
         <div class="cell cell-b"></div>
-        <div class="cell cell-c" style="color:${dm('#c00')};font-family:Consolas,monospace;font-size:11px;justify-content:flex-end">−15%</div>
+        <div class="cell cell-c" style="color:#c00;font-family:Consolas,monospace;font-size:11px;justify-content:flex-end">−15%</div>
         <div class="cell cell-d"></div>
-        <div class="cell cell-e"></div><div class="cell cell-f" style="font-size:9px;color:${dm('#c00')}">settle debt to remove</div>
+        <div class="cell cell-e"></div><div class="cell cell-f" style="font-size:9px;color:#c00">settle debt to remove</div>
         <div class="cell cell-g"></div><div class="cell cell-h"></div>
       </div>`;
     }
@@ -2620,11 +2620,11 @@ function updateTaxPanel() {
     // Capital Spending
     html += `<div class="grid-row pnl-row">
       <div class="row-num">${rowNum++}</div>
-      <div class="cell cell-a" style="padding-left:16px;color:${dm('#444')}">Capital Spending</div>
+      <div class="cell cell-a" style="padding-left:16px;color:#444">Capital Spending</div>
       <div class="cell cell-b"></div>
-      <div class="cell cell-c" style="color:${dm('#c00')};font-family:Consolas,monospace;font-size:11px;justify-content:flex-end">(${formatMoney(gameState.quarterExpenses)})</div>
-      <div class="cell cell-d" style="color:${dm('#c00')};font-family:Consolas,monospace;font-size:11px;justify-content:flex-end">(${formatMoney(totalExpenses)})</div>
-      <div class="cell cell-e"></div><div class="cell cell-f" style="font-size:9px;color:${dm('#999')}">not tax-deductible</div>
+      <div class="cell cell-c" style="color:#c00;font-family:Consolas,monospace;font-size:11px;justify-content:flex-end">(${formatMoney(gameState.quarterExpenses)})</div>
+      <div class="cell cell-d" style="color:#c00;font-family:Consolas,monospace;font-size:11px;justify-content:flex-end">(${formatMoney(totalExpenses)})</div>
+      <div class="cell cell-e"></div><div class="cell cell-f" style="font-size:9px;color:#999">not tax-deductible</div>
       <div class="cell cell-g"></div><div class="cell cell-h"></div>
     </div>`;
 
@@ -2632,21 +2632,21 @@ function updateTaxPanel() {
     const capCount = gameState.capitalExpenses ? gameState.capitalExpenses.length : 0;
     html += `<div class="grid-row pnl-row">
       <div class="row-num">${rowNum++}</div>
-      <div class="cell cell-a" style="padding-left:16px;color:${dm('#444')}">Depreciation</div>
+      <div class="cell cell-a" style="padding-left:16px;color:#444">Depreciation</div>
       <div class="cell cell-b"></div>
-      <div class="cell cell-c" style="color:${dm('#c00')};font-family:Consolas,monospace;font-size:11px;justify-content:flex-end">(${formatMoney(qDepreciation)})</div>
+      <div class="cell cell-c" style="color:#c00;font-family:Consolas,monospace;font-size:11px;justify-content:flex-end">(${formatMoney(qDepreciation)})</div>
       <div class="cell cell-d"></div>
-      <div class="cell cell-e"></div><div class="cell cell-f" style="font-size:9px;color:${dm('#999')}">${capCount} assets depreciating</div>
+      <div class="cell cell-e"></div><div class="cell cell-f" style="font-size:9px;color:#999">${capCount} assets depreciating</div>
       <div class="cell cell-g"></div><div class="cell cell-h"></div>
     </div>`;
 
     // Taxes paid
     html += `<div class="grid-row pnl-row">
       <div class="row-num">${rowNum++}</div>
-      <div class="cell cell-a" style="padding-left:16px;color:${dm('#444')}">Taxes Paid</div>
+      <div class="cell cell-a" style="padding-left:16px;color:#444">Taxes Paid</div>
       <div class="cell cell-b"></div>
-      <div class="cell cell-c" style="color:${dm('#c00')};font-family:Consolas,monospace;font-size:11px;justify-content:flex-end">(${formatMoney(gameState.quarterTaxPaid)})</div>
-      <div class="cell cell-d" style="color:${dm('#c00')};font-family:Consolas,monospace;font-size:11px;justify-content:flex-end">(${formatMoney(gameState.totalTaxPaid)})</div>
+      <div class="cell cell-c" style="color:#c00;font-family:Consolas,monospace;font-size:11px;justify-content:flex-end">(${formatMoney(gameState.quarterTaxPaid)})</div>
+      <div class="cell cell-d" style="color:#c00;font-family:Consolas,monospace;font-size:11px;justify-content:flex-end">(${formatMoney(gameState.totalTaxPaid)})</div>
       <div class="cell cell-e"></div><div class="cell cell-f"></div>
       <div class="cell cell-g"></div><div class="cell cell-h"></div>
     </div>`;
@@ -2665,26 +2665,26 @@ function updateTaxPanel() {
     const taxableNote = amtApplies ? `⚠️ AMT floor (${amtRatePct}% of revenue)` : 'rev − depreciation';
     html += `<div class="grid-row pnl-row">
       <div class="row-num">${rowNum++}</div>
-      <div class="cell cell-a" style="padding-left:16px;color:${dm(amtApplies ? '#c60' : '#888')};font-size:10px">${taxableLabel}</div>
+      <div class="cell cell-a" style="padding-left:16px;color:${amtApplies ? '#c60' : '#888'};font-size:10px">${taxableLabel}</div>
       <div class="cell cell-b"></div>
-      <div class="cell cell-c" style="color:${dm(amtApplies ? '#c60' : '#888')};font-family:Consolas,monospace;font-size:10px;justify-content:flex-end">${formatMoney(effectiveTaxable)}</div>
+      <div class="cell cell-c" style="color:${amtApplies ? '#c60' : '#888'};font-family:Consolas,monospace;font-size:10px;justify-content:flex-end">${formatMoney(effectiveTaxable)}</div>
       <div class="cell cell-d"></div>
-      <div class="cell cell-e"></div><div class="cell cell-f" style="font-size:9px;color:${dm(amtApplies ? '#c60' : '#999')}">${taxableNote}</div>
+      <div class="cell cell-e"></div><div class="cell cell-f" style="font-size:9px;color:${amtApplies ? '#c60' : '#999'}">${taxableNote}</div>
       <div class="cell cell-g"></div><div class="cell cell-h"></div>
     </div>`;
 
     // Net Income
     const qNet = gameState.quarterRevenue - gameState.quarterExpenses - gameState.quarterTaxPaid;
     const ltNet = gameState.totalEarned - totalExpenses - gameState.totalTaxPaid;
-    const qColor = dm(qNet >= 0 ? '#217346' : '#c00');
-    const ltColor = dm(ltNet >= 0 ? '#217346' : '#c00');
+    const qColor = qNet >= 0 ? '#217346' : '#c00';
+    const ltColor = ltNet >= 0 ? '#217346' : '#c00';
 
     html += `<div class="grid-row pnl-net">
       <div class="row-num">${rowNum++}</div>
-      <div class="cell cell-a" style="font-weight:700;color:${dm('#333')};padding-left:16px">Net Income</div>
+      <div class="cell cell-a" style="font-weight:700;color:#333;padding-left:16px">Net Income</div>
       <div class="cell cell-b"></div>
-      <div class="cell cell-c" style="color:${qColor};font-family:Consolas,monospace;font-size:11px;font-weight:700;justify-content:flex-end;border-top:1px solid ${dm('#333')};border-bottom:3px double ${dm('#333')}">${qNet < 0 ? '(' + formatMoney(-qNet) + ')' : formatMoney(qNet)}</div>
-      <div class="cell cell-d" style="color:${ltColor};font-family:Consolas,monospace;font-size:11px;font-weight:700;justify-content:flex-end;border-top:1px solid ${dm('#333')};border-bottom:3px double ${dm('#333')}">${ltNet < 0 ? '(' + formatMoney(-ltNet) + ')' : formatMoney(ltNet)}</div>
+      <div class="cell cell-c" style="color:${qColor};font-family:Consolas,monospace;font-size:11px;font-weight:700;justify-content:flex-end;border-top:1px solid #333;border-bottom:3px double #333">${qNet < 0 ? '(' + formatMoney(-qNet) + ')' : formatMoney(qNet)}</div>
+      <div class="cell cell-d" style="color:${ltColor};font-family:Consolas,monospace;font-size:11px;font-weight:700;justify-content:flex-end;border-top:1px solid #333;border-bottom:3px double #333">${ltNet < 0 ? '(' + formatMoney(-ltNet) + ')' : formatMoney(ltNet)}</div>
       <div class="cell cell-e"></div><div class="cell cell-f"></div>
       <div class="cell cell-g"></div><div class="cell cell-h"></div>
     </div>`;
@@ -2699,7 +2699,7 @@ function updateTaxPanel() {
     const stockPrice = getStockPrice();
     const stockPriceStart = gameState.ipoStockPriceStart || stockPrice;
     const qtdChange = stockPriceStart > 0 ? ((stockPrice - stockPriceStart) / stockPriceStart * 100) : 0;
-    const qtdColor = dm(qtdChange >= 0 ? '#217346' : '#c00');
+    const qtdColor = qtdChange >= 0 ? '#217346' : '#c00';
     const qtdStr = (qtdChange >= 0 ? '+' : '') + qtdChange.toFixed(1) + '%';
     const guidanceKey = gameState.currentGuidance || 'in-line';
     const guidanceLevel = GUIDANCE_LEVELS[guidanceKey];
@@ -2711,7 +2711,7 @@ function updateTaxPanel() {
     const trackPct = expectedAtThisPoint > 0 ? ((trackDiff / expectedAtThisPoint) * 100) : 0;
     const onTrack = qRev >= expectedAtThisPoint;
     const trackLabel = onTrack ? '✅ On Track' : '⚠️ Off Track';
-    const trackColor = dm(onTrack ? '#217346' : '#c00');
+    const trackColor = onTrack ? '#217346' : '#c00';
     const trackDetail = `${onTrack ? '+' : ''}${formatCompact(trackDiff)} (${trackPct >= 0 ? '+' : ''}${trackPct.toFixed(1)}%)`;
     const streakVal = gameState.earningsStreak;
     const irStreakMult = streakVal >= 1 ? Math.min(2.0, 1 + streakVal * 0.1) : 1;
@@ -2730,12 +2730,12 @@ function updateTaxPanel() {
     // IR Header
     html += `<div class="grid-row ir-header">
       <div class="row-num">${rowNum++}</div>
-      <div class="cell cell-a" style="font-weight:700;color:${dm('#0078d4')}">INVESTOR RELATIONS</div>
+      <div class="cell cell-a" style="font-weight:700;color:#0078d4">INVESTOR RELATIONS</div>
       <div class="cell cell-b"></div>
       <div class="cell cell-c"></div>
       <div class="cell cell-d"></div>
       <div class="cell cell-e"></div>
-      <div class="cell cell-f" style="font-size:10px;color:${dm('#888')}">Earnings in ${earningsDaysLeft}d</div>
+      <div class="cell cell-f" style="font-size:10px;color:#888">Earnings in ${earningsDaysLeft}d</div>
       <div class="cell cell-g"></div>
       <div class="cell cell-h"></div>
     </div>`;
@@ -2743,11 +2743,11 @@ function updateTaxPanel() {
     // Quarter + Days remaining
     html += `<div class="grid-row ir-row">
       <div class="row-num">${rowNum++}</div>
-      <div class="cell cell-a" style="padding-left:16px;color:${dm('#444')}">Quarter</div>
-      <div class="cell cell-b" style="font-weight:600;color:${dm('#0078d4')}">${earningsQLabel}</div>
+      <div class="cell cell-a" style="padding-left:16px;color:#444">Quarter</div>
+      <div class="cell cell-b" style="font-weight:600;color:#0078d4">${earningsQLabel}</div>
       <div class="cell cell-c"></div>
-      <div class="cell cell-d" style="font-size:10px;color:${dm('#888')}">Days Left</div>
-      <div class="cell cell-e" style="font-weight:600;color:${dm('#333')}">${earningsDaysLeft}</div>
+      <div class="cell cell-d" style="font-size:10px;color:#888">Days Left</div>
+      <div class="cell cell-e" style="font-weight:600;color:#333">${earningsDaysLeft}</div>
       <div class="cell cell-f"></div>
       <div class="cell cell-g"></div>
       <div class="cell cell-h"></div>
@@ -2756,10 +2756,10 @@ function updateTaxPanel() {
     // Revenue vs Target
     html += `<div class="grid-row ir-row">
       <div class="row-num">${rowNum++}</div>
-      <div class="cell cell-a" style="padding-left:16px;color:${dm('#444')}">Revenue vs Target</div>
+      <div class="cell cell-a" style="padding-left:16px;color:#444">Revenue vs Target</div>
       <div class="cell cell-b" style="font-weight:700;color:${trackColor}">${trackLabel}</div>
       <div class="cell cell-c" style="font-family:Consolas,monospace;font-size:10px;color:${trackColor}">${trackPct >= 0 ? '+' : ''}${trackPct.toFixed(1)}%</div>
-      <div class="cell cell-d" style="font-size:10px;color:${dm('#888')}">${formatCompact(qRev)} / ${formatCompact(target)}</div>
+      <div class="cell cell-d" style="font-size:10px;color:#888">${formatCompact(qRev)} / ${formatCompact(target)}</div>
       <div class="cell cell-e"></div>
       <div class="cell cell-f"></div>
       <div class="cell cell-g"></div>
@@ -2768,12 +2768,12 @@ function updateTaxPanel() {
 
         html += `<div class="grid-row ir-row" id="ir-guidance-row">
       <div class="row-num">${rowNum++}</div>
-      <div class="cell cell-a" style="padding-left:16px;color:${dm('#444')}">Guidance</div>
-      <div class="cell cell-b" style="font-weight:600;color:${dm('#333')}">${guidanceLevel.emoji} ${guidanceLevel.label}</div>
-      <div class="cell cell-c" style="font-size:10px;color:${dm('#888')};justify-content:flex-end">${guidanceLevel.reMult}× RE</div>
-      <div class="cell cell-d" style="font-size:10px;color:${dm('#888')}">Target: ${formatCompact(gameState.guidanceTarget)}</div>
+      <div class="cell cell-a" style="padding-left:16px;color:#444">Guidance</div>
+      <div class="cell cell-b" style="font-weight:600;color:#333">${guidanceLevel.emoji} ${guidanceLevel.label}</div>
+      <div class="cell cell-c" style="font-size:10px;color:#888;justify-content:flex-end">${guidanceLevel.reMult}× RE</div>
+      <div class="cell cell-d" style="font-size:10px;color:#888">Target: ${formatCompact(gameState.guidanceTarget)}</div>
       <div class="cell cell-e"></div>
-      <div class="cell cell-f" style="font-size:10px;color:${dm('#999')}">${gameState.activeCFOLevel > 0 ? 'Set by CFO' : 'Set at earnings'}</div>
+      <div class="cell cell-f" style="font-size:10px;color:#999">${gameState.activeCFOLevel > 0 ? 'Set by CFO' : 'Set at earnings'}</div>
       <div class="cell cell-g"></div>
       <div class="cell cell-h"></div>
     </div>`;
@@ -2781,11 +2781,11 @@ function updateTaxPanel() {
     // Streak
     html += `<div class="grid-row ir-row">
       <div class="row-num">${rowNum++}</div>
-      <div class="cell cell-a" style="padding-left:16px;color:${dm('#444')}">Streak</div>
-      <div class="cell cell-b" style="color:${dm('#333')}">${streakStr}</div>
+      <div class="cell cell-a" style="padding-left:16px;color:#444">Streak</div>
+      <div class="cell cell-b" style="color:#333">${streakStr}</div>
       <div class="cell cell-c"></div>
-      <div class="cell cell-d" style="font-size:10px;color:${dm('#888')}">Analyst Exp</div>
-      <div class="cell cell-e" style="font-family:Consolas,monospace;font-size:11px;color:${dm('#333')}">${(gameState.analystBaseline).toFixed(2)}×</div>
+      <div class="cell cell-d" style="font-size:10px;color:#888">Analyst Exp</div>
+      <div class="cell cell-e" style="font-family:Consolas,monospace;font-size:11px;color:#333">${(gameState.analystBaseline).toFixed(2)}×</div>
       <div class="cell cell-f"></div>
       <div class="cell cell-g"></div>
       <div class="cell cell-h"></div>
@@ -2794,10 +2794,10 @@ function updateTaxPanel() {
     // Stock Price + QTD change
     html += `<div class="grid-row ir-row">
       <div class="row-num">${rowNum++}</div>
-      <div class="cell cell-a" style="padding-left:16px;color:${dm('#444')}">Stock Price</div>
-      <div class="cell cell-b" style="font-weight:700;color:${dm('#0078d4')};font-family:Consolas,monospace;font-size:12px">${formatMoney(stockPrice)}</div>
+      <div class="cell cell-a" style="padding-left:16px;color:#444">Stock Price</div>
+      <div class="cell cell-b" style="font-weight:700;color:#0078d4;font-family:Consolas,monospace;font-size:12px">${formatMoney(stockPrice)}</div>
       <div class="cell cell-c"></div>
-      <div class="cell cell-d" style="font-size:10px;color:${dm('#888')}">QTD</div>
+      <div class="cell cell-d" style="font-size:10px;color:#888">QTD</div>
       <div class="cell cell-e" style="font-weight:600;color:${qtdColor};font-family:Consolas,monospace;font-size:11px">${qtdStr}</div>
       <div class="cell cell-f"></div>
       <div class="cell cell-g"></div>
@@ -2834,12 +2834,12 @@ function updateTaxPanel() {
     }
     html += `<div class="grid-row ir-row">
       <div class="row-num">${rowNum++}</div>
-      <div class="cell cell-a" style="padding-left:16px;color:${dm('#444')}">Retained Earnings</div>
-      <div class="cell cell-b" style="font-weight:700;color:${dm('#7b1fa2')};font-family:Consolas,monospace;font-size:12px">${gameState.retainedEarnings.toLocaleString()} RE</div>
-      <div class="cell cell-c" style="font-size:10px;color:${dm('#7b1fa2')}">${lastQStr}</div>
+      <div class="cell cell-a" style="padding-left:16px;color:#444">Retained Earnings</div>
+      <div class="cell cell-b" style="font-weight:700;color:#7b1fa2;font-family:Consolas,monospace;font-size:12px">${gameState.retainedEarnings.toLocaleString()} RE</div>
+      <div class="cell cell-c" style="font-size:10px;color:#7b1fa2">${lastQStr}</div>
       <div class="cell cell-d"></div>
       <div class="cell cell-e"></div>
-      <div class="cell cell-f" style="font-size:9px;color:${dm('#888')};white-space:nowrap">${etaStr}</div>
+      <div class="cell cell-f" style="font-size:9px;color:#888;white-space:nowrap">${etaStr}</div>
       <div class="cell cell-g"></div>
       <div class="cell cell-h"></div>
     </div>`;
@@ -2859,7 +2859,7 @@ function updateTaxPanel() {
     // C-Suite Header
     html += `<div class="grid-row ir-header">
       <div class="row-num">${rowNum++}</div>
-      <div class="cell cell-a" style="font-weight:700;color:${dm('#555')}">👔 C-SUITE</div>
+      <div class="cell cell-a" style="font-weight:700;color:#555">👔 C-SUITE</div>
       <div class="cell cell-b"></div>
       <div class="cell cell-c"></div>
       <div class="cell cell-d"></div>
@@ -2871,9 +2871,9 @@ function updateTaxPanel() {
 
     // Shared button style
     const csBtnStyle = (active) => active
-      ? `cursor:pointer;font-weight:700;color:${dm('#fff')};background:${dm('#0078d4')};padding:1px 6px;border-radius:2px;font-size:11px;margin-right:3px;touch-action:manipulation`
-      : `cursor:pointer;color:${dm('#0078d4')};border:1px solid ${dm('#0078d4')};padding:1px 5px;border-radius:2px;font-size:10px;margin-right:3px;background:transparent;touch-action:manipulation`;
-    const csLockedStyle = `color:${dm('#aaa')};border:1px solid ${dm('#ddd')};padding:1px 5px;border-radius:2px;font-size:10px;margin-right:3px;background:${dm('#f5f5f5')};cursor:default`;
+      ? 'cursor:pointer;font-weight:700;color:#fff;background:#0078d4;padding:1px 6px;border-radius:2px;font-size:11px;margin-right:3px;touch-action:manipulation'
+      : 'cursor:pointer;color:#0078d4;border:1px solid #0078d4;padding:1px 5px;border-radius:2px;font-size:10px;margin-right:3px;background:transparent;touch-action:manipulation';
+    const csLockedStyle = 'color:#aaa;border:1px solid #ddd;padding:1px 5px;border-radius:2px;font-size:10px;margin-right:3px;background:#f5f5f5;cursor:default';
 
     // CFO row (if Finance Dept owned)
     const maxCFOLevel = getFinanceDeptLevel();
@@ -2899,16 +2899,16 @@ function updateTaxPanel() {
       const recordStr = activeCFO > 0 && record && record.total > 0
         ? `${record.beats}/${record.total} (${Math.round(record.beats / record.total * 100)}%)`
         : activeCFO > 0 ? 'No data' : '';
-      const recordColor = dm(activeCFO > 0 && record && record.total > 0
+      const recordColor = activeCFO > 0 && record && record.total > 0
         ? (record.beats / record.total >= 0.7 ? '#217346' : record.beats / record.total >= 0.4 ? '#b8860b' : '#c00')
-        : '#333');
+        : '#333';
 
       html += `<div class="grid-row ir-row">
         <div class="row-num">${rowNum++}</div>
-        <div class="cell cell-a" style="padding-left:16px;color:${dm('#444')}">CFO</div>
+        <div class="cell cell-a" style="padding-left:16px;color:#444">CFO</div>
         <div class="cell cell-b" style="display:flex;align-items:center">${cfoManual}</div>
         <div class="cell cell-c" style="display:flex;align-items:center">${cfoLevels}</div>
-        <div class="cell cell-d" style="font-size:10px;color:${dm('#888')}">${activeCFO > 0 ? 'Record' : ''}</div>
+        <div class="cell cell-d" style="font-size:10px;color:#888">${activeCFO > 0 ? 'Record' : ''}</div>
         <div class="cell cell-e" style="font-family:Consolas,monospace;font-size:11px;color:${recordColor}">${recordStr}</div>
         <div class="cell cell-f"></div>
         <div class="cell cell-g"></div>
@@ -2938,14 +2938,14 @@ function updateTaxPanel() {
 
       html += `<div class="grid-row ir-row">
         <div class="row-num">${rowNum++}</div>
-        <div class="cell cell-a" style="padding-left:16px;color:${dm('#444')}">CTO</div>
+        <div class="cell cell-a" style="padding-left:16px;color:#444">CTO</div>
         <div class="cell cell-b" style="display:flex;align-items:center">${ctoManual}</div>
         <div class="cell cell-c" style="display:flex;align-items:center">${ctoLevels}</div>
         <div class="cell cell-d"></div>
         <div class="cell cell-e"></div>
-        <div class="cell cell-f" style="font-size:9px;color:${dm('#888')}">${activeCTO > 0 ? `Upgrades: ${gameState.ctoUpgradeCount || 0}` : ''}</div>
+        <div class="cell cell-f" style="font-size:9px;color:#888">${activeCTO > 0 ? `Upgrades: ${gameState.ctoUpgradeCount || 0}` : ''}</div>
         <div class="cell cell-g"></div>
-        <div class="cell cell-h" style="font-size:8px;color:${dm('#999')};white-space:nowrap">${activeCTO > 0 && gameState.ctoTarget ? `Next: ${gameState.ctoTarget}` : ''}</div>
+        <div class="cell cell-h" style="font-size:8px;color:#999;white-space:nowrap">${activeCTO > 0 && gameState.ctoTarget ? `Next: ${gameState.ctoTarget}` : ''}</div>
       </div>`;
 
       // CTO Budget sub-row (only when CTO is active)
@@ -2963,7 +2963,7 @@ function updateTaxPanel() {
         // Flash green on purchase, otherwise color by progress
         const justBought = gameState.ctoJustBought;
         if (justBought) gameState.ctoJustBought = false;
-        const barColor = dm(justBought ? '#217346' : progress >= 90 ? '#b8860b' : '#666');
+        const barColor = justBought ? '#217346' : progress >= 90 ? '#b8860b' : '#666';
         const hasCapEx = hasBoardRoomUpgrade('capex_planning');
         const autoChecked = gameState.ctoBudgetAuto ? 'checked' : '';
         const sliderDisabled = gameState.ctoBudgetAuto ? 'disabled style="opacity:0.5"' : '';
@@ -2971,13 +2971,13 @@ function updateTaxPanel() {
 
         html += `<div class="grid-row ir-row cto-budget-row">
           <div class="row-num">${rowNum++}</div>
-          <div class="cell cell-a" style="padding-left:28px;color:${dm('#666')};font-size:10px">Budget</div>
+          <div class="cell cell-a" style="padding-left:28px;color:#666;font-size:10px">Budget</div>
           <div class="cell cell-b" style="display:flex;align-items:center;gap:4px">
             <input type="range" min="0" max="100" step="5" value="${budgetPct}" class="cto-budget-slider" ${sliderDisabled} oninput="setCtoBudgetPct(this.value)" title="% of revenue skimmed into CTO budget pool">
             <span class="cto-budget-pct">${budgetPct}%</span>
           </div>
           <div class="cell cell-c" style="font-family:Consolas,monospace;font-size:10px;color:${barColor}" title="${progress}% toward next upgrade">${bar}</div>
-          <div class="cell cell-d" style="font-size:10px;color:${dm('#666')};white-space:nowrap">${poolStr} / ${costStr}</div>
+          <div class="cell cell-d" style="font-size:10px;color:#666;white-space:nowrap">${poolStr} / ${costStr}</div>
           <div class="cell cell-e" style="font-size:10px">${autoLabel}</div>
           <div class="cell cell-f"></div>
           <div class="cell cell-g"></div>
@@ -3008,14 +3008,14 @@ function updateTaxPanel() {
 
       html += `<div class="grid-row ir-row">
         <div class="row-num">${rowNum++}</div>
-        <div class="cell cell-a" style="padding-left:16px;color:${dm('#444')}">COO</div>
+        <div class="cell cell-a" style="padding-left:16px;color:#444">COO</div>
         <div class="cell cell-b" style="display:flex;align-items:center">${cooManual}</div>
         <div class="cell cell-c" style="display:flex;align-items:center">${cooLevels}</div>
         <div class="cell cell-d"></div>
         <div class="cell cell-e"></div>
-        <div class="cell cell-f" style="font-size:9px;color:${dm('#888')}">${activeCOO > 0 ? `Hires: ${gameState.cooHireCount || 0}` : ''}</div>
+        <div class="cell cell-f" style="font-size:9px;color:#888">${activeCOO > 0 ? `Hires: ${gameState.cooHireCount || 0}` : ''}</div>
         <div class="cell cell-g"></div>
-        <div class="cell cell-h" style="font-size:8px;color:${dm('#999')};white-space:nowrap">${activeCOO > 0 && gameState.cooTarget ? `Next: ${gameState.cooTarget}` : ''}</div>
+        <div class="cell cell-h" style="font-size:8px;color:#999;white-space:nowrap">${activeCOO > 0 && gameState.cooTarget ? `Next: ${gameState.cooTarget}` : ''}</div>
       </div>`;
 
       // COO Budget sub-row
@@ -3030,17 +3030,17 @@ function updateTaxPanel() {
         const cooBar = '█'.repeat(cooBarFilled) + '░'.repeat(10 - cooBarFilled);
         const cooJustBought = gameState.cooJustBought;
         if (cooJustBought) gameState.cooJustBought = false;
-        const cooBarColor = dm(cooJustBought ? '#217346' : cooProgress >= 90 ? '#b8860b' : '#666');
+        const cooBarColor = cooJustBought ? '#217346' : cooProgress >= 90 ? '#b8860b' : '#666';
 
         html += `<div class="grid-row ir-row cto-budget-row">
           <div class="row-num">${rowNum++}</div>
-          <div class="cell cell-a" style="padding-left:28px;color:${dm('#666')};font-size:10px">Budget</div>
+          <div class="cell cell-a" style="padding-left:28px;color:#666;font-size:10px">Budget</div>
           <div class="cell cell-b" style="display:flex;align-items:center;gap:4px">
             <input type="range" min="0" max="100" step="5" value="${cooPct}" class="cto-budget-slider" oninput="setCooBudgetPct(this.value)" title="% of revenue skimmed into COO hiring pool">
             <span class="cto-budget-pct">${cooPct}%</span>
           </div>
           <div class="cell cell-c" style="font-family:Consolas,monospace;font-size:10px;color:${cooBarColor}" title="${cooProgress}% toward next hire">${cooBar}</div>
-          <div class="cell cell-d" style="font-size:10px;color:${dm('#666')};white-space:nowrap">${cooPoolStr} / ${cooCostStr}</div>
+          <div class="cell cell-d" style="font-size:10px;color:#666;white-space:nowrap">${cooPoolStr} / ${cooCostStr}</div>
           <div class="cell cell-e"></div>
           <div class="cell cell-f"></div>
           <div class="cell cell-g"></div>
@@ -3069,13 +3069,13 @@ function updateTaxPanel() {
 
     html += `<div class="grid-row tax-grid-header">
       <div class="row-num">${rowNum++}</div>
-      <div class="cell cell-a" style="font-weight:600;color:${dm('#900')}">TAX LIABILITY</div>
-      <div class="cell cell-b" style="font-weight:600;color:${dm('#666')};font-size:10px">Original</div>
-      <div class="cell cell-c" style="font-weight:600;color:${dm('#666')};font-size:10px;justify-content:flex-end">Interest</div>
-      <div class="cell cell-d" style="font-weight:600;color:${dm('#666')};font-size:10px;justify-content:flex-end">Total Due</div>
-      <div class="cell cell-e" style="font-weight:600;color:${dm('#666')};font-size:10px">Age</div>
-      <div class="cell cell-f" style="font-weight:600;color:${dm('#666')};font-size:10px">Status</div>
-      <div class="cell cell-g" style="font-weight:600;color:${dm('#666')};font-size:10px">Next</div>
+      <div class="cell cell-a" style="font-weight:600;color:#900">TAX LIABILITY</div>
+      <div class="cell cell-b" style="font-weight:600;color:#666;font-size:10px">Original</div>
+      <div class="cell cell-c" style="font-weight:600;color:#666;font-size:10px;justify-content:flex-end">Interest</div>
+      <div class="cell cell-d" style="font-weight:600;color:#666;font-size:10px;justify-content:flex-end">Total Due</div>
+      <div class="cell cell-e" style="font-weight:600;color:#666;font-size:10px">Age</div>
+      <div class="cell cell-f" style="font-weight:600;color:#666;font-size:10px">Status</div>
+      <div class="cell cell-g" style="font-weight:600;color:#666;font-size:10px">Next</div>
       <div class="cell cell-h"></div>
     </div>`;
 
@@ -3093,13 +3093,13 @@ function updateTaxPanel() {
 
       html += `<div class="grid-row tax-debt-row">
         <div class="row-num">${rowNum++}</div>
-        <div class="cell cell-a" style="color:${dm('#900')}">${qLabel} Assessment</div>
-        <div class="cell cell-b" style="font-family:Consolas,monospace;font-size:11px;color:${dm('#c00')}">${formatMoney(d.original)}</div>
-        <div class="cell cell-c" style="font-family:Consolas,monospace;font-size:11px;color:${dm('#c00')};justify-content:flex-end">${formatMoney(interest)}</div>
-        <div class="cell cell-d" style="font-family:Consolas,monospace;font-size:11px;color:${dm('#c00')};font-weight:700;justify-content:flex-end">${formatMoney(d.current)}</div>
-        <div class="cell cell-e" style="color:${dm('#888')};font-size:11px">${d.daysOverdue}d</div>
+        <div class="cell cell-a" style="color:#900">${qLabel} Assessment</div>
+        <div class="cell cell-b" style="font-family:Consolas,monospace;font-size:11px;color:#c00">${formatMoney(d.original)}</div>
+        <div class="cell cell-c" style="font-family:Consolas,monospace;font-size:11px;color:#c00;justify-content:flex-end">${formatMoney(interest)}</div>
+        <div class="cell cell-d" style="font-family:Consolas,monospace;font-size:11px;color:#c00;font-weight:700;justify-content:flex-end">${formatMoney(d.current)}</div>
+        <div class="cell cell-e" style="color:#888;font-size:11px">${d.daysOverdue}d</div>
         <div class="cell cell-f" style="font-size:10px">${stageLabels[d.stage]}</div>
-        <div class="cell cell-g" style="font-size:10px;color:${dm('#888')}">${nextText}</div>
+        <div class="cell cell-g" style="font-size:10px;color:#888">${nextText}</div>
         <div class="cell cell-h"><button class="cell-btn btn-max" data-settle="${i}">Settle</button></div>
       </div>`;
     }
@@ -3108,10 +3108,10 @@ function updateTaxPanel() {
     const settleAllVis = gameState.taxDebts.length > 1 ? '' : 'display:none';
     html += `<div class="grid-row tax-total-row">
       <div class="row-num">${rowNum++}</div>
-      <div class="cell cell-a" style="font-weight:700;color:${dm('#900')}">TOTAL OWED</div>
+      <div class="cell cell-a" style="font-weight:700;color:#900">TOTAL OWED</div>
       <div class="cell cell-b"></div>
       <div class="cell cell-c"></div>
-      <div class="cell cell-d" style="font-family:Consolas,monospace;font-size:12px;color:${dm('#c00')};font-weight:700;justify-content:flex-end">${formatMoney(total)}</div>
+      <div class="cell cell-d" style="font-family:Consolas,monospace;font-size:12px;color:#c00;font-weight:700;justify-content:flex-end">${formatMoney(total)}</div>
       <div class="cell cell-e"></div><div class="cell cell-f"></div>
       <div class="cell cell-g"></div>
       <div class="cell cell-h"><button class="cell-btn btn-max" data-settle-all style="${settleAllVis}">Settle All</button></div>
@@ -3527,11 +3527,11 @@ function toggleDebugEventDropdown() {
   dd.innerHTML = '';
   EVENTS.forEach((event) => {
     const btn = document.createElement('div');
-    btn.style.cssText = `padding:5px 10px;cursor:pointer;font-size:11px;border-bottom:1px solid ${dm('#eee')};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:${dm('#333')}`;
+    btn.style.cssText = 'padding:5px 10px;cursor:pointer;font-size:11px;border-bottom:1px solid #eee;white-space:nowrap;overflow:hidden;text-overflow:ellipsis';
     btn.textContent = event.debugLabel || `${event.sender || 'Dynamic'} — ${(event.subject || '(dynamic event)').replace(/[\u{1F300}-\u{1FAFF}]/gu, '').trim()}`;
-    btn.onmouseenter = () => btn.style.background = dm('#e8f0fe');
+    btn.onmouseenter = () => btn.style.background = '#e8f0fe';
     btn.onmouseleave = () => btn.style.background = '';
-    btn.ontouchstart = () => btn.style.background = dm('#e8f0fe');
+    btn.ontouchstart = () => btn.style.background = '#e8f0fe';
     btn.ontouchend = () => btn.style.background = '';
     btn.onclick = () => { dd.classList.add('hidden'); showEvent(event); };
     dd.appendChild(btn);
@@ -3868,7 +3868,7 @@ function showOfflineModal(elapsedSeconds, earnings) {
     <p>Your team worked while you were away!</p>
     <p>⏱ Time elapsed: <strong>${formatDuration(elapsedSeconds)}</strong></p>
     <p>💰 Earnings: <strong>${formatMoney(earnings)}</strong></p>
-    ${elapsedSeconds >= 8 * 3600 ? `<p style="color:${dm('#999')};font-size:11px">(Capped at 8 hours overtime)</p>` : ''}
+    ${elapsedSeconds >= 8 * 3600 ? '<p style="color:#999;font-size:11px">(Capped at 8 hours overtime)</p>' : ''}
   `;
   document.getElementById('offline-modal').classList.remove('hidden');
 }
@@ -4022,7 +4022,7 @@ function generateBossGrid() {
   grid.innerHTML = '';
 
   const corner = document.createElement('div');
-  corner.style.cssText = `background:${dm('#f0f0f0')};border-right:1px solid ${dm('#c0c0c0')};border-bottom:1px solid ${dm('#c0c0c0')};`;
+  corner.style.cssText = 'background:#f0f0f0;border-right:1px solid #c0c0c0;border-bottom:1px solid #c0c0c0;';
   grid.appendChild(corner);
 
   const cols = 'ABCDEFGHIJ';
@@ -4172,7 +4172,7 @@ function clickFocus(sourceIndex) {
     const nameCell = row.querySelector('[data-field="name"]');
     if (nameCell) {
       nameCell.style.transition = 'background 0.15s';
-      nameCell.style.background = dm('#e8f5e9');
+      nameCell.style.background = '#e8f5e9';
       setTimeout(() => { nameCell.style.background = ''; }, 300);
     }
   }
@@ -4830,12 +4830,12 @@ function buildBoardRoom() {
   // Board Room header
   html += `<div class="grid-row br-header-row">
     <div class="row-num">${rowNum++}</div>
-    <div class="cell cell-a" style="font-weight:700;color:${dm('#7b1fa2')}">BOARD ROOM</div>
-    <div class="cell cell-b" style="font-weight:600;color:${dm('#666')};font-size:10px">Category</div>
-    <div class="cell cell-c" style="font-weight:600;color:${dm('#666')};font-size:10px;justify-content:flex-end">Cost</div>
-    <div class="cell cell-d" style="font-weight:600;color:${dm('#666')};font-size:10px;justify-content:flex-end">Status</div>
+    <div class="cell cell-a" style="font-weight:700;color:#7b1fa2">BOARD ROOM</div>
+    <div class="cell cell-b" style="font-weight:600;color:#666;font-size:10px">Category</div>
+    <div class="cell cell-c" style="font-weight:600;color:#666;font-size:10px;justify-content:flex-end">Cost</div>
+    <div class="cell cell-d" style="font-weight:600;color:#666;font-size:10px;justify-content:flex-end">Status</div>
     <div class="cell cell-e"></div>
-    <div class="cell cell-f" style="font-weight:700;color:${dm('#7b1fa2')};font-family:Consolas,monospace;font-size:12px">${gameState.retainedEarnings.toLocaleString()} RE</div>
+    <div class="cell cell-f" style="font-weight:700;color:#7b1fa2;font-family:Consolas,monospace;font-size:12px">${gameState.retainedEarnings.toLocaleString()} RE</div>
     <div class="cell cell-g"></div>
     <div class="cell cell-h"></div>
   </div>`;
@@ -4876,14 +4876,14 @@ function buildBoardRoom() {
     // Category header row
     html += `<div class="grid-row br-category-row">
       <div class="row-num">${rowNum++}</div>
-      <div class="cell cell-a" style="font-weight:700;color:${dm('#555')};font-size:11px;border-bottom:1px solid ${dm('#ccc')}">${categoryLabels[cat] || cat}</div>
-      <div class="cell cell-b" style="border-bottom:1px solid ${dm('#ccc')}"></div>
-      <div class="cell cell-c" style="border-bottom:1px solid ${dm('#ccc')}"></div>
-      <div class="cell cell-d" style="border-bottom:1px solid ${dm('#ccc')}"></div>
-      <div class="cell cell-e" style="border-bottom:1px solid ${dm('#ccc')}"></div>
-      <div class="cell cell-f" style="border-bottom:1px solid ${dm('#ccc')}"></div>
-      <div class="cell cell-g" style="border-bottom:1px solid ${dm('#ccc')}"></div>
-      <div class="cell cell-h" style="border-bottom:1px solid ${dm('#ccc')}"></div>
+      <div class="cell cell-a" style="font-weight:700;color:#555;font-size:11px;border-bottom:1px solid #ccc">${categoryLabels[cat] || cat}</div>
+      <div class="cell cell-b" style="border-bottom:1px solid #ccc"></div>
+      <div class="cell cell-c" style="border-bottom:1px solid #ccc"></div>
+      <div class="cell cell-d" style="border-bottom:1px solid #ccc"></div>
+      <div class="cell cell-e" style="border-bottom:1px solid #ccc"></div>
+      <div class="cell cell-f" style="border-bottom:1px solid #ccc"></div>
+      <div class="cell cell-g" style="border-bottom:1px solid #ccc"></div>
+      <div class="cell cell-h" style="border-bottom:1px solid #ccc"></div>
     </div>`;
     totalUpgradeRows++;
 
@@ -4917,7 +4917,7 @@ function buildBoardRoom() {
       statusCell = `<button class="cell-btn btn-buy-re" data-buy-upgrade="${upgrade.id}" ${canAfford ? '' : 'disabled'}>Buy${countLabel}</button>`;
     }
 
-    const costColor = dm(isOwned ? '#999' : isLocked ? '#ccc' : canAfford ? '#7b1fa2' : '#c00');
+    const costColor = isOwned ? '#999' : isLocked ? '#ccc' : canAfford ? '#7b1fa2' : '#c00';
 
     const costLabel = upgrade.maxCount === Infinity && owned > 0
       ? `${cost.toLocaleString()} RE (×${owned})`
@@ -4932,11 +4932,11 @@ function buildBoardRoom() {
 
     html += `<div class="${rowClass}">
       <div class="row-num">${rowNum++}</div>
-      <div class="cell cell-a" style="font-weight:500;${isLocked ? `color:${dm('#bbb')}` : ''}">${upgrade.name}</div>
-      <div class="cell cell-b" style="font-size:10px;color:${dm('#888')}">${upgrade.category}</div>
+      <div class="cell cell-a" style="font-weight:500;${isLocked ? 'color:#bbb' : ''}">${upgrade.name}</div>
+      <div class="cell cell-b" style="font-size:10px;color:#888">${upgrade.category}</div>
       <div class="cell cell-c" style="font-family:Consolas,monospace;font-size:11px;color:${costColor};justify-content:flex-end">${costLabel}</div>
       <div class="cell cell-d" style="justify-content:flex-end">${statusCell}</div>
-      <div class="cell cell-e" style="font-size:10px;color:${dm('#888')};white-space:normal;line-height:1.3">${desc}</div>
+      <div class="cell cell-e" style="font-size:10px;color:#888;white-space:normal;line-height:1.3">${desc}</div>
       <div class="cell cell-f"></div>
       <div class="cell cell-g"></div>
       <div class="cell cell-h"></div>
@@ -5020,53 +5020,7 @@ function purchaseBoardRoomUpgrade(id) {
 }
 
 // ===== INITIALIZATION =====
-// ===== DARK MODE =====
-function toggleDarkMode() {
-  const isDark = document.body.classList.toggle('dark-mode');
-  document.getElementById('dark-mode-toggle').textContent = isDark ? '☀️' : '🌙';
-  localStorage.setItem('qc-dark-mode', isDark ? '1' : '0');
-  // Force re-render of panels that use inline colors
-  _lastTaxPanelHash = '';
-  updateTaxPanel();
-  renderBoardRoom();
-}
-
-function initDarkMode() {
-  if (localStorage.getItem('qc-dark-mode') === '1') {
-    document.body.classList.add('dark-mode');
-    document.getElementById('dark-mode-toggle').textContent = '☀️';
-  }
-}
-
-// Dark-mode aware color mapper for inline styles
-function dm(lightColor) {
-  if (!document.body.classList.contains('dark-mode')) return lightColor;
-  const map = {
-    '#333': '#d0d0d0', '#444': '#c0c0c0', '#555': '#b0b0b0',
-    '#666': '#a0a0a0', '#888': '#909090', '#999': '#808080',
-    '#aaa': '#707070', '#bbb': '#606060', '#ccc': '#505050',
-    '#212121': '#e0e0e0',
-    '#c00': '#ef5350', '#c7254e': '#ef5350', '#900': '#ef5350', '#c60': '#ff9800',
-    '#0078d4': '#4da6ff', '#1565c0': '#64b5f6',
-    '#217346': '#217346', '#2e7d32': '#66bb6a', '#0b6623': '#4caf50',
-    '#7b1fa2': '#ba68c8', '#6a1b9a': '#9c27b0',
-    '#e65100': '#ff9800',
-    '#f0f0f0': '#1e1e1e', '#f5f5f5': '#2d2d2d', '#f8f8f8': '#2a2a2a',
-    '#fff': '#2d2d2d', '#ffffff': '#2d2d2d', 'white': '#2d2d2d',
-    '#e0e0e0': '#333333', '#d0d0d0': '#3a3a3a', '#c0c0c0': '#444444',
-    '#d4a017': '#ffd54f', '#8d6e0f': '#ffd54f',
-    '#eee': '#333333',
-    '#e8f0fe': '#2a3540', '#e8f5e9': '#1a3a25',
-    '#b8860b': '#daa520', '#ddd': '#3a3a3a', '#dea': '#3a3520',
-    '#4472C4': '#5b9bd5', '#4472c4': '#5b9bd5',
-  };
-  return map[lightColor.toLowerCase()] || lightColor;
-}
-
-window.toggleDarkMode = toggleDarkMode;
-
 function init() {
-  initDarkMode();
   generateBossGrid();
   initChartDrag();
   initToastDrag();
@@ -5345,10 +5299,10 @@ function drawValuationChart() {
   const range = maxVal - minVal || 1;
 
   // Gridlines (5 horizontal)
-  ctx.strokeStyle = dm('#e0e0e0');
+  ctx.strokeStyle = '#e0e0e0';
   ctx.lineWidth = 1;
   ctx.font = '9px Calibri, Segoe UI, sans-serif';
-  ctx.fillStyle = dm('#888');
+  ctx.fillStyle = '#888';
   ctx.textAlign = 'right';
   for (let i = 0; i <= 4; i++) {
     const y = padT + (cH * i / 4);
@@ -5362,13 +5316,13 @@ function drawValuationChart() {
 
   // X axis labels (first and last day)
   ctx.textAlign = 'center';
-  ctx.fillStyle = dm('#888');
+  ctx.fillStyle = '#888';
   ctx.fillText('Day ' + hist[0].day, padL, H - 2);
   ctx.fillText('Day ' + hist[hist.length - 1].day, W - padR, H - 2);
 
   // Data line
   ctx.beginPath();
-  ctx.strokeStyle = dm('#4472C4'); // Excel blue
+  ctx.strokeStyle = '#4472C4'; // Excel blue
   ctx.lineWidth = 2;
   ctx.lineJoin = 'round';
 
@@ -5377,7 +5331,7 @@ function drawValuationChart() {
     const x = padL + cW / 2;
     const y = padT + cH / 2;
     ctx.arc(x, y, 3, 0, Math.PI * 2);
-    ctx.fillStyle = dm('#4472C4');
+    ctx.fillStyle = '#4472C4';
     ctx.fill();
   } else {
     for (let i = 0; i < hist.length; i++) {
@@ -5403,7 +5357,7 @@ function drawValuationChart() {
 
   // Current valuation label (top right)
   const current = vals[vals.length - 1];
-  ctx.fillStyle = dm('#217346');
+  ctx.fillStyle = '#217346';
   ctx.font = 'bold 11px Calibri, Segoe UI, sans-serif';
   ctx.textAlign = 'right';
   ctx.fillText(formatMoney(current), W - padR, padT + 12);
