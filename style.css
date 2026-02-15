@@ -1125,6 +1125,15 @@ html[data-theme="dark"] .tax-notice .tax-alert-btn:hover {
   background: var(--bg-surface);
   height: 4px !important;
   min-height: 4px;
+  border-bottom: 1px solid var(--bg-highlight) !important;
+}
+
+.sep-row > .row-num {
+  height: 4px !important;
+  min-height: 4px;
+  font-size: 0;
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--bg-highlight) !important;
 }
 
 #row-sep {
