@@ -2564,9 +2564,73 @@ function totalTaxOwed() {
   return gameState.taxDebts.reduce((sum, d) => sum + d.current, 0);
 }
 
+function updateTaxAlert() {
+  const alert = document.getElementById('tax-alert');
+  const cellRef = document.getElementById('cell-ref');
+  const fxLabel = document.getElementById('fx-label');
+  const formulaInput = document.getElementById('formula-input');
+
+  if (!gameState.taxDebts || gameState.taxDebts.length === 0) {
+    alert.classList.add('hidden');
+    alert.className = 'hidden';
+    cellRef.style.display = '';
+    fxLabel.style.display = '';
+    formulaInput.style.display = '';
+    return;
+  }
+
+  const total = totalTaxOwed();
+  const worstStage = gameState.taxDebts.reduce((worst, d) => {
+    const order = { notice1: 1, notice2: 2, garnish: 3, seizure: 4 };
+    return (order[d.stage] || 0) > (order[worst] || 0) ? d.stage : worst;
+  }, 'notice1');
+
+  // Find days to next escalation
+  let nextEscalation = '';
+  for (const d of gameState.taxDebts) {
+    if (d.stage === 'notice1') nextEscalation = `2nd notice in ${Math.max(0, 30 - d.daysOverdue)}d`;
+    else if (d.stage === 'notice2') nextEscalation = `Garnishment in ${Math.max(0, 90 - d.daysOverdue)}d`;
+    else if (d.stage === 'garnish') nextEscalation = `Seizure in ${Math.max(0, 180 - d.daysOverdue)}d`;
+  }
+
+  let alertClass = 'tax-notice';
+  let icon = '⚠️';
+  let statusText = '';
+
+  if (worstStage === 'seizure') {
+    alertClass = 'tax-seizure';
+    icon = '🚨';
+    statusText = 'ASSET SEIZURE ACTIVE';
+  } else if (worstStage === 'garnish') {
+    alertClass = 'tax-garnish';
+    icon = '🔴';
+    statusText = 'Garnishing 15% revenue';
+  } else if (worstStage === 'notice2') {
+    alertClass = 'tax-notice';
+    icon = '⚠️';
+    statusText = nextEscalation;
+  } else {
+    alertClass = 'tax-notice';
+    icon = '⚠️';
+    statusText = nextEscalation;
+  }
+
+  const canAfford = gameState.cash >= total;
+  const btnLabel = canAfford ? `SETTLE ${formatCompact(total)}` : `Need ${formatCompact(total)}`;
+
+  alert.className = alertClass;
+  alert.innerHTML = `<span class="tax-alert-text">${icon} IRS DEBT: ${formatCompact(total)} │ ${statusText}</span><button class="tax-alert-btn" onclick="settleAllTax()">${btnLabel}</button>`;
+
+  // Hide normal formula bar elements
+  cellRef.style.display = 'none';
+  fxLabel.style.display = 'none';
+  formulaInput.style.display = 'none';
+}
+
 let _lastTaxPanelHash = '';
 
 function updateTaxPanel() {
+  updateTaxAlert();
   const panel = document.getElementById('tax-panel');
   const hasTaxDebts = gameState.taxDebts && gameState.taxDebts.length > 0;
   const hasActivity = gameState.totalEarned > 0;
@@ -3091,12 +3155,21 @@ function updateTaxPanel() {
 
   // ===== TAX LIABILITY (if any debts) =====
   if (hasTaxDebts) {
+    const taxCollapsed = gameState.taxCollapsed !== false; // default collapsed
+    const taxArrow = taxCollapsed ? '▶' : '▼';
     const stageLabels = {
       notice1: '1st Notice',
       notice2: '⚠ 2nd Notice',
       garnish: '🔴 Garnishment',
       seizure: '🚨 Seizure',
     };
+
+    const total = totalTaxOwed();
+    const worstStage = gameState.taxDebts.reduce((worst, d) => {
+      const order = { notice1: 1, notice2: 2, garnish: 3, seizure: 4 };
+      return (order[d.stage] || 0) > (order[worst] || 0) ? d.stage : worst;
+    }, 'notice1');
+    const worstLabel = stageLabels[worstStage] || worstStage;
 
     html += `<div class="grid-row sep-row">
       <div class="row-num">${rowNum++}</div>
@@ -3106,55 +3179,61 @@ function updateTaxPanel() {
       <div class="cell cell-g sep-cell"></div><div class="cell cell-h sep-cell"></div>
     </div>`;
 
+    // Collapsed summary in header
+    const taxSummary = taxCollapsed
+      ? `<span style="font-weight:400;font-size:0.625rem;color:${dm('#c00')}"> │ ${formatCompact(total)} owed │ ${worstLabel} │ ${gameState.taxDebts.length} debt${gameState.taxDebts.length > 1 ? 's' : ''}</span>`
+      : '';
+
     html += `<div class="grid-row tax-grid-header">
       <div class="row-num">${rowNum++}</div>
-      <div class="cell cell-a" style="font-weight:600;color:${dm('#900')}">TAX LIABILITY</div>
-      <div class="cell cell-b" style="font-weight:600;color:${dm('#666')};font-size:0.625rem">Original</div>
-      <div class="cell cell-c" style="font-weight:600;color:${dm('#666')};font-size:0.625rem;justify-content:flex-end">Interest</div>
-      <div class="cell cell-d" style="font-weight:600;color:${dm('#666')};font-size:0.625rem;justify-content:flex-end">Total Due</div>
-      <div class="cell cell-e" style="font-weight:600;color:${dm('#666')};font-size:0.625rem">Age</div>
-      <div class="cell cell-f" style="font-weight:600;color:${dm('#666')};font-size:0.625rem">Status</div>
-      <div class="cell cell-g" style="font-weight:600;color:${dm('#666')};font-size:0.625rem">Next</div>
-      <div class="cell cell-h"></div>
+      <div class="cell cell-a" style="font-weight:600;color:${dm('#900')};cursor:pointer;overflow:visible;white-space:nowrap" data-toggle-tax>${taxArrow} TAX LIABILITY${taxSummary}</div>
+      <div class="cell cell-b" style="font-weight:600;color:${dm('#666')};font-size:0.625rem">${taxCollapsed ? '' : 'Original'}</div>
+      <div class="cell cell-c" style="font-weight:600;color:${dm('#666')};font-size:0.625rem;justify-content:flex-end">${taxCollapsed ? '' : 'Interest'}</div>
+      <div class="cell cell-d" style="font-weight:600;color:${dm('#666')};font-size:0.625rem;justify-content:flex-end">${taxCollapsed ? '' : 'Total Due'}</div>
+      <div class="cell cell-e" style="font-weight:600;color:${dm('#666')};font-size:0.625rem">${taxCollapsed ? '' : 'Age'}</div>
+      <div class="cell cell-f" style="font-weight:600;color:${dm('#666')};font-size:0.625rem">${taxCollapsed ? '' : 'Status'}</div>
+      <div class="cell cell-g" style="font-weight:600;color:${dm('#666')};font-size:0.625rem">${taxCollapsed ? '' : 'Next'}</div>
+      <div class="cell cell-h">${taxCollapsed ? `<button class="cell-btn btn-max" data-settle-all>SETTLE</button>` : ''}</div>
     </div>`;
 
-    for (let i = 0; i < gameState.taxDebts.length; i++) {
-      const d = gameState.taxDebts[i];
-      const interest = d.current - d.original;
-      const daysToNext = d.stage === 'notice1' ? (30 - d.daysOverdue) :
-                         d.stage === 'notice2' ? (90 - d.daysOverdue) :
-                         d.stage === 'garnish' ? (180 - d.daysOverdue) : 0;
-      const nextLabel = d.stage === 'notice1' ? '2nd Notice' :
-                        d.stage === 'notice2' ? 'Garnish' :
-                        d.stage === 'garnish' ? 'Seizure' : '—';
-      const nextText = daysToNext > 0 ? `${nextLabel} ${daysToNext}d` : '—';
-      const qLabel = d.quarter || '';
+    if (!taxCollapsed) {
+      for (let i = 0; i < gameState.taxDebts.length; i++) {
+        const d = gameState.taxDebts[i];
+        const interest = d.current - d.original;
+        const daysToNext = d.stage === 'notice1' ? (30 - d.daysOverdue) :
+                           d.stage === 'notice2' ? (90 - d.daysOverdue) :
+                           d.stage === 'garnish' ? (180 - d.daysOverdue) : 0;
+        const nextLabel = d.stage === 'notice1' ? '2nd Notice' :
+                          d.stage === 'notice2' ? 'Garnish' :
+                          d.stage === 'garnish' ? 'Seizure' : '—';
+        const nextText = daysToNext > 0 ? `${nextLabel} ${daysToNext}d` : '—';
+        const qLabel = d.quarter || '';
 
-      html += `<div class="grid-row tax-debt-row">
+        html += `<div class="grid-row tax-debt-row">
+          <div class="row-num">${rowNum++}</div>
+          <div class="cell cell-a" style="color:${dm('#900')}">${qLabel} Assessment</div>
+          <div class="cell cell-b" style="font-family:Consolas,monospace;font-size:0.6875rem;color:${dm('#c00')}">${formatMoney(d.original)}</div>
+          <div class="cell cell-c" style="font-family:Consolas,monospace;font-size:0.6875rem;color:${dm('#c00')};justify-content:flex-end">${formatMoney(interest)}</div>
+          <div class="cell cell-d" style="font-family:Consolas,monospace;font-size:0.6875rem;color:${dm('#c00')};font-weight:700;justify-content:flex-end">${formatMoney(d.current)}</div>
+          <div class="cell cell-e" style="color:${dm('#888')};font-size:0.6875rem">${d.daysOverdue}d</div>
+          <div class="cell cell-f" style="font-size:0.625rem">${stageLabels[d.stage]}</div>
+          <div class="cell cell-g" style="font-size:0.625rem;color:${dm('#888')}">${nextText}</div>
+          <div class="cell cell-h"><button class="cell-btn btn-max" data-settle="${i}">Settle</button></div>
+        </div>`;
+      }
+
+      const settleAllVis = gameState.taxDebts.length > 1 ? '' : 'display:none';
+      html += `<div class="grid-row tax-total-row">
         <div class="row-num">${rowNum++}</div>
-        <div class="cell cell-a" style="color:${dm('#900')}">${qLabel} Assessment</div>
-        <div class="cell cell-b" style="font-family:Consolas,monospace;font-size:0.6875rem;color:${dm('#c00')}">${formatMoney(d.original)}</div>
-        <div class="cell cell-c" style="font-family:Consolas,monospace;font-size:0.6875rem;color:${dm('#c00')};justify-content:flex-end">${formatMoney(interest)}</div>
-        <div class="cell cell-d" style="font-family:Consolas,monospace;font-size:0.6875rem;color:${dm('#c00')};font-weight:700;justify-content:flex-end">${formatMoney(d.current)}</div>
-        <div class="cell cell-e" style="color:${dm('#888')};font-size:0.6875rem">${d.daysOverdue}d</div>
-        <div class="cell cell-f" style="font-size:0.625rem">${stageLabels[d.stage]}</div>
-        <div class="cell cell-g" style="font-size:0.625rem;color:${dm('#888')}">${nextText}</div>
-        <div class="cell cell-h"><button class="cell-btn btn-max" data-settle="${i}">Settle</button></div>
+        <div class="cell cell-a" style="font-weight:700;color:${dm('#900')}">TOTAL OWED</div>
+        <div class="cell cell-b"></div>
+        <div class="cell cell-c"></div>
+        <div class="cell cell-d" style="font-family:Consolas,monospace;font-size:0.75rem;color:${dm('#c00')};font-weight:700;justify-content:flex-end">${formatMoney(total)}</div>
+        <div class="cell cell-e"></div><div class="cell cell-f"></div>
+        <div class="cell cell-g"></div>
+        <div class="cell cell-h"><button class="cell-btn btn-max" data-settle-all style="${settleAllVis}">Settle All</button></div>
       </div>`;
     }
-
-    const total = totalTaxOwed();
-    const settleAllVis = gameState.taxDebts.length > 1 ? '' : 'display:none';
-    html += `<div class="grid-row tax-total-row">
-      <div class="row-num">${rowNum++}</div>
-      <div class="cell cell-a" style="font-weight:700;color:${dm('#900')}">TOTAL OWED</div>
-      <div class="cell cell-b"></div>
-      <div class="cell cell-c"></div>
-      <div class="cell cell-d" style="font-family:Consolas,monospace;font-size:0.75rem;color:${dm('#c00')};font-weight:700;justify-content:flex-end">${formatMoney(total)}</div>
-      <div class="cell cell-e"></div><div class="cell cell-f"></div>
-      <div class="cell cell-g"></div>
-      <div class="cell cell-h"><button class="cell-btn btn-max" data-settle-all style="${settleAllVis}">Settle All</button></div>
-    </div>`;
   }
 
   // Only rebuild DOM if content actually changed (prevents click-swallowing race)
@@ -3176,6 +3255,7 @@ function updateTaxPanel() {
     getBoardRoomTaxRate(),
     getBoardRoomRevMultiplier(),
     gameState.pnlCollapsed ? 1 : 0,
+    gameState.taxCollapsed ? 1 : 0,
     gameState.activeCFOLevel || 0,
     gameState.activeCTOLevel || 0,
     gameState.ctoBudgetPct || 0,
@@ -5149,6 +5229,14 @@ function init() {
     const togglePnl = e.target.closest('[data-toggle-pnl]');
     if (togglePnl) {
       gameState.pnlCollapsed = gameState.pnlCollapsed === false; // toggle: default true
+      _lastTaxPanelHash = ''; // force rebuild
+      updateTaxPanel();
+      return;
+    }
+    // Tax liability collapse toggle
+    const toggleTax = e.target.closest('[data-toggle-tax]');
+    if (toggleTax) {
+      gameState.taxCollapsed = gameState.taxCollapsed === false; // toggle: default true
       _lastTaxPanelHash = ''; // force rebuild
       updateTaxPanel();
       return;

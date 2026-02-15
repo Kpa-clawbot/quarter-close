@@ -849,6 +849,91 @@ body {
   align-items: center;
 }
 
+/* Tax alert (replaces formula bar content when tax debt exists) */
+#tax-alert {
+  display: none;
+  flex: 1;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0 0.5rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+#tax-alert:not(.hidden) {
+  display: flex;
+}
+
+#tax-alert.tax-notice {
+  background: #fff3cd;
+  color: #856404;
+}
+
+#tax-alert.tax-garnish {
+  background: #c00;
+  color: #fff;
+}
+
+#tax-alert.tax-seizure {
+  background: #900;
+  color: #fff;
+  animation: tax-pulse 1s ease-in-out infinite;
+}
+
+@keyframes tax-pulse {
+  0%, 100% { background: #900; }
+  50% { background: #c00; }
+}
+
+.tax-alert-text {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tax-alert-btn {
+  background: #fff;
+  color: #c00;
+  border: none;
+  border-radius: 3px;
+  padding: 0.125rem 0.75rem;
+  font-weight: 700;
+  font-size: 0.6875rem;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.tax-alert-btn:hover {
+  background: #f0f0f0;
+}
+
+.tax-notice .tax-alert-btn {
+  background: #856404;
+  color: #fff;
+}
+
+.tax-notice .tax-alert-btn:hover {
+  background: #6d5103;
+}
+
+/* Dark mode overrides for tax alert */
+html[data-theme="dark"] #tax-alert.tax-notice {
+  background: #5a4a00;
+  color: #ffd54f;
+}
+
+html[data-theme="dark"] .tax-notice .tax-alert-btn {
+  background: #ffd54f;
+  color: #5a4a00;
+}
+
+html[data-theme="dark"] .tax-notice .tax-alert-btn:hover {
+  background: #ffca28;
+}
+
 /* ============================================
    Column Headers
    ============================================ */
