@@ -974,7 +974,8 @@ function ctoAutoUpgrade() {
       const stats = SOURCE_STATS[state.id];
       if (!stats) continue;
       const cost = upgradeCost(state);
-      const annualRevGain = sourceRevPerTick(state) * 365.25 * 0.5;
+      // Marginal annual revenue gain: upgrading adds 10% of current rev (1.10^n → 1.10^(n+1))
+      const annualRevGain = sourceRevPerTick(state) * 365.25 * 0.10;
       const roi = cost > 0 ? annualRevGain / cost : 0;
       allCandidates.push({ index: i, cost, revGain: annualRevGain, roi, name: stats.name });
     }
@@ -1188,7 +1189,7 @@ function hireCost(source) {
 
 function upgradeCost(source) {
   const stats = SOURCE_STATS[source.id];
-  return Math.floor(Math.max(50, 10 * stats.baseRate) * Math.pow(2, source.upgradeLevel));
+  return Math.floor(Math.max(50, 10 * stats.baseRate) * Math.pow(1.12, source.upgradeLevel));
 }
 
 function automateCost(source) {
@@ -1245,7 +1246,7 @@ function maxAffordableUpgrades(source) {
   let count = 0;
   const stats = SOURCE_STATS[source.id];
   while (count < 100) {
-    const cost = Math.floor(Math.max(50, 10 * stats.baseRate) * Math.pow(2, level));
+    const cost = Math.floor(Math.max(50, 10 * stats.baseRate) * Math.pow(1.12, level));
     if (cash < cost) break;
     cash -= cost;
     level++;
@@ -1258,7 +1259,7 @@ function maxAffordableUpgrades(source) {
 function sourceRevPerTick(source) {
   if (!source.unlocked || source.employees === 0) return 0;
   const stats = SOURCE_STATS[source.id];
-  const upgradeMult = 1 + source.upgradeLevel * 0.5;
+  const upgradeMult = Math.pow(1.10, source.upgradeLevel);
   const prestigeMult = Math.pow(10, source.prestigeLevel || 0);
   const breakthroughMult = source.breakthroughMult || 1;
   const focusMult = isFeatureEnabled('managementFocus') ? 1 + (source.focus || 0) * 0.05 : 1;
@@ -1294,7 +1295,7 @@ function totalRevPerTick() {
 function sourceAnnualRev(source) {
   if (!source.unlocked || source.employees === 0) return 0;
   const stats = SOURCE_STATS[source.id];
-  const upgradeMult = 1 + source.upgradeLevel * 0.5;
+  const upgradeMult = Math.pow(1.10, source.upgradeLevel);
   const prestigeMult = Math.pow(10, source.prestigeLevel || 0);
   const breakthroughMult = source.breakthroughMult || 1;
   const focusMult = isFeatureEnabled('managementFocus') ? 1 + (source.focus || 0) * 0.05 : 1;
@@ -1857,7 +1858,7 @@ function updateGridValues() {
       a1.innerHTML = `<button class="cell-btn btn-hire" disabled>🚫 Frozen (${sLeft}s)</button>`;
     } else {
       const maxHires = maxAffordable(state);
-      const upgradeMult = 1 + state.upgradeLevel * 0.5;
+      const upgradeMult = Math.pow(1.10, state.upgradeLevel);
       const hireGainPerDay = src.baseRate * upgradeMult / 365.25;
       a1.innerHTML = (maxHires > 1 ? `<button class="cell-btn btn-max" onclick="hireMax(${i})" title="Hire all ${maxHires} you can afford">Max(${maxHires})</button>` : '') +
         `<button class="cell-btn btn-hire" onclick="hireEmployee(${i})" ${gameState.cash >= hCost ? '' : 'disabled'} title="Hire 1 employee — adds ${formatPerTick(hireGainPerDay)}/day">Hire ${formatMoney(hCost)} (+${formatPerTick(hireGainPerDay)}/d)</button>`;
@@ -1869,9 +1870,9 @@ function updateGridValues() {
       a2.innerHTML = `<button class="cell-btn btn-automate" onclick="automateSource(${i})" ${gameState.cash >= aCost ? '' : 'disabled'} title="Revenue flows automatically">Auto ${formatMoney(aCost)}</button>`;
     } else {
       const maxUpgrades = maxAffordableUpgrades(state);
-      const revGainPerDay = state.employees * src.baseRate * 0.5 / 365.25;
+      const revGainPerDay = sourceRevPerTick(state) * 0.10;
       a2.innerHTML = (maxUpgrades > 1 ? `<button class="cell-btn btn-max" onclick="upgradeMax(${i})" title="Buy all ${maxUpgrades} upgrades you can afford">Max(${maxUpgrades})</button>` : '') +
-        `<button class="cell-btn btn-upgrade" onclick="upgradeSource(${i})" ${gameState.cash >= uCost ? '' : 'disabled'} title="+50% efficiency per employee — adds ${formatPerTick(revGainPerDay)}/day">⬆ ${formatMoney(uCost)} (+${formatPerTick(revGainPerDay)}/d)</button>`;
+        `<button class="cell-btn btn-upgrade" onclick="upgradeSource(${i})" ${gameState.cash >= uCost ? '' : 'disabled'} title="+10% revenue — adds ${formatPerTick(revGainPerDay)}/day">⬆ ${formatMoney(uCost)} (+${formatPerTick(revGainPerDay)}/d)</button>`;
     }
 
     // Action 3: Collect (click) or AUTO badge + Restructure
