@@ -2673,9 +2673,9 @@ function updateTaxPanel() {
   html += `<div class="grid-row pnl-header">
     <div class="row-num">${rowNum++}</div>
     <div class="cell cell-a" style="font-weight:700;color:${dm('#333')};cursor:pointer" data-toggle-pnl>${pnlArrow} ${pnlCollapsed ? 'P&amp;L' : 'PROFIT &amp; LOSS'}</div>
-    <div class="cell cell-b" style="font-size:0.625rem;color:${qNetColor};font-weight:600">${pnlCollapsed ? `Q: ${qNetStr}` : ''}</div>
-    <div class="cell cell-c" style="font-size:0.625rem;color:${pnlCollapsed ? ltNetColor : dm('#888')};justify-content:flex-end;font-weight:${pnlCollapsed ? '600' : '400'}">${pnlCollapsed ? `LT: ${ltNetStr}` : 'This Qtr'}</div>
-    <div class="cell cell-d" style="font-size:0.625rem;color:${dm('#888')};justify-content:flex-end">${pnlCollapsed ? `Tax in ${daysToTax}d` : 'Lifetime'}</div>
+    <div class="cell cell-b" style="font-size:0.625rem;color:${qNetColor};font-weight:600">${pnlCollapsed ? `Quarter: ${qNetStr}` : ''}</div>
+    <div class="cell cell-c" style="font-size:0.625rem;color:${pnlCollapsed ? ltNetColor : dm('#888')};justify-content:flex-end;font-weight:${pnlCollapsed ? '600' : '400'}">${pnlCollapsed ? `Lifetime: ${ltNetStr}` : 'This Qtr'}</div>
+    <div class="cell cell-d" style="font-size:0.625rem;color:${dm('#888')};justify-content:flex-end">${pnlCollapsed ? `Tax in ${daysToTax} days` : 'Lifetime'}</div>
     <div class="cell cell-e"></div>
     <div class="cell cell-f" style="font-size:0.625rem;color:${dm('#888')}">${pnlCollapsed ? '' : `Tax due in ${daysToTax}d`}</div>
     <div class="cell cell-g"></div>
@@ -2822,7 +2822,7 @@ function updateTaxPanel() {
       <div class="cell cell-c" style="font-size:0.625rem;color:${irCollapsed ? trackColor : dm('#888')};font-weight:${irCollapsed ? '600' : '400'}">${irCollapsed ? `${trackLabel} ${trackPctStr}` : ''}</div>
       <div class="cell cell-d" style="font-size:0.625rem">${irCollapsed ? shortStreak : ''}</div>
       <div class="cell cell-e" style="font-size:0.625rem;color:${dm('#888')}">${irCollapsed ? `Analyst ${(gameState.analystBaseline).toFixed(2)}×` : ''}</div>
-      <div class="cell cell-f" style="font-size:0.625rem;color:${dm('#888')}">${irCollapsed ? `Earnings ${earningsDaysLeft}d` : `Earnings in ${earningsDaysLeft}d`}</div>
+      <div class="cell cell-f" style="font-size:0.625rem;color:${dm('#888')}">${irCollapsed ? `Earnings in ${earningsDaysLeft} days` : `Earnings in ${earningsDaysLeft}d`}</div>
       <div class="cell cell-g"></div>
       <div class="cell cell-h"></div>
     </div>`;
