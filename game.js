@@ -3494,36 +3494,20 @@ let debugTapCount = 0;
 let debugTapTimer = null;
 let debugMode = false;
 
-// ===== DEBUG MENU =====
-let debugMenuOpen = false;
-
-function toggleDebugMenu(e) {
-  e.stopPropagation();
-  debugMenuOpen = !debugMenuOpen;
-  const dropdown = document.getElementById('debug-dropdown');
-  dropdown.classList.toggle('open', debugMenuOpen);
-  closeFileMenu();
-  closeDataMenu();
-}
-
-function closeDebugMenu() {
-  debugMenuOpen = false;
-  const dropdown = document.getElementById('debug-dropdown');
-  if (dropdown) dropdown.classList.remove('open');
-}
-
+// ===== DEBUG MENU: GAME SPEED =====
 function setGameSpeed(speed) {
   gameSpeed = speed;
-  // Update checkmarks
+  // Highlight active speed button
   for (const s of [1, 2, 3, 5, 10]) {
     const el = document.getElementById('speed-' + s);
-    if (el) el.textContent = s === speed ? '✓' : '';
+    if (el) {
+      el.style.fontWeight = s === speed ? '700' : '';
+      el.style.color = s === speed ? '#0078d4' : '';
+    }
   }
-  closeDebugMenu();
   document.getElementById('status-text').textContent = speed > 1 ? `⏩ Speed: ${speed}×` : 'Ready';
 }
 window.setGameSpeed = setGameSpeed;
-window.toggleDebugMenu = toggleDebugMenu;
 
 function initDebugTap() {
   const cashLabel = document.querySelector('.cash-label');
@@ -4102,7 +4086,6 @@ function toggleFileMenu(e) {
   dropdown.classList.toggle('open', fileMenuOpen);
   updateAutosaveToggle();
   closeDataMenu();
-  closeDebugMenu();
 }
 
 function closeFileMenu() {
@@ -4139,7 +4122,6 @@ function toggleDataMenu(e) {
   const dropdown = document.getElementById('data-dropdown');
   dropdown.classList.toggle('open', dataMenuOpen);
   closeFileMenu();
-  closeDebugMenu();
 }
 
 function closeDataMenu() {
@@ -4443,9 +4425,6 @@ document.addEventListener('click', (e) => {
   }
   if (dataMenuOpen && !e.target.closest('#data-menu')) {
     closeDataMenu();
-  }
-  if (debugMenuOpen && !e.target.closest('#debug-menu')) {
-    closeDebugMenu();
   }
 
   // Formula bar: update cell reference on click

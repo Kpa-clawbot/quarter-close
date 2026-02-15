@@ -501,24 +501,7 @@ body {
   margin: 4px 8px;
 }
 
-.menu-dropdown-label {
-  padding: 4px 12px;
-  font-size: 0.625rem;
-  font-weight: 600;
-  color: var(--text-secondary);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.speed-check {
-  display: inline-block;
-  width: 1rem;
-  text-align: center;
-  color: var(--accent-green);
-  font-weight: 700;
-}
-
-.speed-item { font-family: 'Consolas', 'Courier New', monospace; }
+.speed-btn { font-family: 'Consolas', 'Courier New', monospace; font-size: 0.6875rem; }
 
 .menu-dropdown-item.toggle::before {
   content: '\2713';
