@@ -2818,10 +2818,10 @@ function updateTaxPanel() {
     html += `<div class="grid-row ir-header">
       <div class="row-num">${rowNum++}</div>
       <div class="cell cell-a" style="font-weight:700;color:${dm('#0078d4')};cursor:pointer" data-toggle-ir>${irArrow} ${irCollapsed ? 'IR' : 'INVESTOR RELATIONS'}</div>
-      <div class="cell cell-b" style="font-size:0.625rem">${irCollapsed ? `${guidanceLevel.emoji} ${guidanceLevel.label}` : ''}</div>
-      <div class="cell cell-c" style="font-size:0.625rem;color:${irCollapsed ? trackColor : dm('#888')};font-weight:${irCollapsed ? '600' : '400'}">${irCollapsed ? `${trackLabel} ${trackPctStr}` : ''}</div>
-      <div class="cell cell-d" style="font-size:0.625rem">${irCollapsed ? shortStreak : ''}</div>
-      <div class="cell cell-e" style="font-size:0.625rem;color:${dm('#888')}">${irCollapsed ? `Analyst ${(gameState.analystBaseline).toFixed(2)}×` : ''}</div>
+      <div class="cell cell-b" style="font-size:0.625rem">${irCollapsed ? `Guidance: ${guidanceLevel.emoji} ${guidanceLevel.label}` : ''}</div>
+      <div class="cell cell-c" style="font-size:0.625rem;color:${irCollapsed ? trackColor : dm('#888')};font-weight:${irCollapsed ? '600' : '400'}">${irCollapsed ? `${trackLabel}` : ''}</div>
+      <div class="cell cell-d" style="font-size:0.625rem;color:${irCollapsed ? trackColor : dm('#888')}">${irCollapsed ? trackPctStr : ''}</div>
+      <div class="cell cell-e" style="font-size:0.625rem">${irCollapsed ? `Streak: ${shortStreak}` : ''}</div>
       <div class="cell cell-f" style="font-size:0.625rem;color:${dm('#888')}">${irCollapsed ? `Earnings in ${earningsDaysLeft} days` : `Earnings in ${earningsDaysLeft}d`}</div>
       <div class="cell cell-g"></div>
       <div class="cell cell-h"></div>
