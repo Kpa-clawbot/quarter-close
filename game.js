@@ -637,7 +637,7 @@ const BOARD_ROOM_UPGRADES = [
   {
     id: 'capex_planning',
     name: 'CapEx Planning',
-    desc: 'CFO automatically manages CTO upgrade budget each quarter.',
+    desc: 'CFO automatically manages CTO and COO budgets each quarter.',
     cost: 15000,
     requires: null,
     maxCount: 1,
@@ -951,6 +951,12 @@ function toggleCtoBudgetAuto(enabled) {
   updateTaxPanel();
 }
 
+function toggleCooBudgetAuto(enabled) {
+  gameState.cooBudgetAuto = enabled;
+  _lastTaxPanelHash = '';
+  updateTaxPanel();
+}
+
 // CTO auto-upgrade logic — buys ONE dept upgrade per tick
 function ctoAutoUpgrade() {
   try {
@@ -1141,6 +1147,7 @@ let gameState = {
   cooBudgetPct: 15,        // 0-100, slider value for COO hiring budget
   cooSpentThisQuarter: 0,  // $ spent by COO this quarter
   cooBudgetPool: 0,        // accumulated COO budget from revenue skimming
+  cooBudgetAuto: false,    // CapEx Planning upgrade — CFO manages COO budget automatically
   cooHireCount: 0,         // total hires by COO
   cfoRecords: {},          // { 1: {beats:0,total:0}, 2: {...}, 3: {...} }
   revenueHistory: [],      // last 3 quarterly revenues for trend analysis
@@ -1454,6 +1461,7 @@ function selectArc(arcKey) {
   gameState.cooBudgetPct = 15;
   gameState.cooSpentThisQuarter = 0;
   gameState.cooBudgetPool = 0;
+  gameState.cooBudgetAuto = false;
   gameState.cooHireCount = 0;
   gameState.cfoRecords = {};
   gameState.revenueHistory = [];
@@ -2283,6 +2291,26 @@ function processQuarterlyTax() {
         }
       }
     }
+    // CapEx Planning: CFO auto-sets COO budget percentage (same logic)
+    if (gameState.cooBudgetAuto) {
+      const cfoLevel = getFinanceDeptLevel();
+      if (cfoLevel === 1) {
+        gameState.cooBudgetPct = 15;
+      } else if (cfoLevel >= 2) {
+        const guidance = gameState.currentGuidance;
+        if (guidance === 'conservative') gameState.cooBudgetPct = 20;
+        else if (guidance === 'ambitious' || guidance === 'aggressive') gameState.cooBudgetPct = 10;
+        else gameState.cooBudgetPct = 15;
+        if (cfoLevel >= 3) {
+          if (gameState.taxDebts && gameState.taxDebts.length > 0) {
+            gameState.cooBudgetPct = Math.max(5, Math.floor(gameState.cooBudgetPct / 2));
+          }
+          if (gameState.earningsStreak >= 5) {
+            gameState.cooBudgetPct = Math.max(5, gameState.cooBudgetPct - 5);
+          }
+        }
+      }
+    }
     gameState.ctoSpentThisQuarter = 0;
     // Pool carries over — unspent CTO budget rolls to next quarter
     gameState.cooSpentThisQuarter = 0;
@@ -3031,17 +3059,21 @@ function updateTaxPanel() {
         const cooJustBought = gameState.cooJustBought;
         if (cooJustBought) gameState.cooJustBought = false;
         const cooBarColor = dm(cooJustBought ? '#217346' : cooProgress >= 90 ? '#b8860b' : '#666');
+        const hasCapEx = hasBoardRoomUpgrade('capex_planning');
+        const cooAutoChecked = gameState.cooBudgetAuto ? 'checked' : '';
+        const cooSliderDisabled = gameState.cooBudgetAuto ? 'disabled style="opacity:0.5"' : '';
+        const cooAutoLabel = hasCapEx ? `<label class="cto-auto-label" title="CFO manages hiring budget automatically"><input type="checkbox" ${cooAutoChecked} onchange="toggleCooBudgetAuto(this.checked)"> Auto</label>` : '';
 
         html += `<div class="grid-row ir-row cto-budget-row">
           <div class="row-num">${rowNum++}</div>
           <div class="cell cell-a" style="padding-left:28px;color:${dm('#666')};font-size:10px">Budget</div>
           <div class="cell cell-b" style="display:flex;align-items:center;gap:4px">
-            <input type="range" min="0" max="100" step="5" value="${cooPct}" class="cto-budget-slider" oninput="setCooBudgetPct(this.value)" title="% of revenue skimmed into COO hiring pool">
+            <input type="range" min="0" max="100" step="5" value="${cooPct}" class="cto-budget-slider" ${cooSliderDisabled} oninput="setCooBudgetPct(this.value)" title="% of revenue skimmed into COO hiring pool">
             <span class="cto-budget-pct">${cooPct}%</span>
           </div>
           <div class="cell cell-c" style="font-family:Consolas,monospace;font-size:10px;color:${cooBarColor}" title="${cooProgress}% toward next hire">${cooBar}</div>
           <div class="cell cell-d" style="font-size:10px;color:${dm('#666')};white-space:nowrap">${cooPoolStr} / ${cooCostStr}</div>
-          <div class="cell cell-e"></div>
+          <div class="cell cell-e" style="font-size:10px">${cooAutoLabel}</div>
           <div class="cell cell-f"></div>
           <div class="cell cell-g"></div>
           <div class="cell cell-h"></div>
@@ -3152,6 +3184,7 @@ function updateTaxPanel() {
     Math.floor(gameState.cooBudgetPool || 0),
     gameState.cooTarget || '',
     gameState.cooJustBought ? 1 : 0,
+    gameState.cooBudgetAuto ? 1 : 0,
     gameState.cooHireCount || 0,
     getFinanceDeptLevel(),
     getTechDeptLevel(),
@@ -3623,6 +3656,7 @@ function saveGame() {
     cooBudgetPct: gameState.cooBudgetPct != null ? gameState.cooBudgetPct : 15,
     cooSpentThisQuarter: gameState.cooSpentThisQuarter || 0,
     cooBudgetPool: gameState.cooBudgetPool || 0,
+    cooBudgetAuto: gameState.cooBudgetAuto || false,
     cooHireCount: gameState.cooHireCount || 0,
     cfoRecords: gameState.cfoRecords || {},
     revenueHistory: gameState.revenueHistory || [],
@@ -3711,6 +3745,7 @@ function loadGame() {
     gameState.cooBudgetPct = data.cooBudgetPct != null ? data.cooBudgetPct : 15;
     gameState.cooSpentThisQuarter = data.cooSpentThisQuarter || 0;
     gameState.cooBudgetPool = data.cooBudgetPool || 0;
+    gameState.cooBudgetAuto = data.cooBudgetAuto || false;
     gameState.cooHireCount = data.cooHireCount || 0;
     gameState.cfoRecords = data.cfoRecords || {};
     gameState.revenueHistory = data.revenueHistory || [];
@@ -3842,6 +3877,7 @@ function resetGame() {
   gameState.cooBudgetPct = 15;
   gameState.cooSpentThisQuarter = 0;
   gameState.cooBudgetPool = 0;
+  gameState.cooBudgetAuto = false;
   gameState.cooHireCount = 0;
   gameState.cfoRecords = {};
   gameState.revenueHistory = [];
@@ -4529,6 +4565,7 @@ function resetBoardRoom() {
   gameState.cooBudgetPct = 15;
   gameState.cooSpentThisQuarter = 0;
   gameState.cooBudgetPool = 0;
+  gameState.cooBudgetAuto = false;
   gameState.cooHireCount = 0;
   gameState.cfoRecords = {};
   gameState.revenueHistory = [];
@@ -4763,6 +4800,7 @@ window.setCtoBudgetPct = setCtoBudgetPct;
 window.setActiveCOOLevel = setActiveCOOLevel;
 window.setCooBudgetPct = setCooBudgetPct;
 window.toggleCtoBudgetAuto = toggleCtoBudgetAuto;
+window.toggleCooBudgetAuto = toggleCooBudgetAuto;
 window.setGuidance = setGuidance;
 
 // ===== BOARD ROOM (Phase 2.2) =====
@@ -5007,9 +5045,10 @@ function purchaseBoardRoomUpgrade(id) {
     gameState.activeCTOLevel = 3;
   }
 
-  // CapEx Planning: enable CFO auto-budget for CTO
+  // CapEx Planning: enable CFO auto-budget for CTO and COO
   if (id === 'capex_planning') {
     gameState.ctoBudgetAuto = true;
+    gameState.cooBudgetAuto = true;
   }
 
   // Status bar feedback
