@@ -2702,7 +2702,7 @@ function updateTaxPanel() {
   html += `<div class="grid-row pnl-header">
     <div class="row-num">${rowNum++}</div>
     <div class="cell cell-a" style="font-weight:700;color:${dm('#333')};cursor:pointer" data-toggle-pnl>${pnlArrow} ${pnlCollapsed ? 'P&amp;L' : 'PROFIT &amp; LOSS'}</div>
-    <div class="cell cell-b" style="font-size:0.625rem;font-weight:600;color:${dm('#333')}">${pnlCollapsed ? `Revenue: ${qRevStr}` : ''}</div>
+    <div class="cell cell-b" style="font-size:0.625rem;font-weight:600;color:${dm('#333')}">${pnlCollapsed ? `Qtr Revenue: ${qRevStr}` : ''}</div>
     <div class="cell cell-c" style="font-size:0.625rem;color:${dm('#888')};justify-content:flex-end">${pnlCollapsed ? '' : 'This Qtr'}</div>
     <div class="cell cell-d" style="font-size:0.625rem;color:${dm('#888')};justify-content:flex-end">${pnlCollapsed ? '' : 'Lifetime'}</div>
     <div class="cell cell-e"></div>
@@ -2892,7 +2892,7 @@ function updateTaxPanel() {
       <div class="cell cell-a" style="font-weight:700;color:${dm('#0078d4')};cursor:pointer" data-toggle-ir>${irArrow} ${irCollapsed ? 'IR' : 'INVESTOR RELATIONS'}</div>
       <div class="cell cell-b" style="font-size:0.625rem">${irCollapsed ? `Guidance: ${guidanceLevel.emoji} ${guidanceLevel.label}` : ''}</div>
       <div class="cell cell-c" style="font-size:0.625rem;color:${irCollapsed ? trackColor : dm('#888')};font-weight:${irCollapsed ? '600' : '400'}">${irCollapsed ? `${trackLabel}` : ''}</div>
-      <div class="cell cell-d" style="font-size:0.625rem;color:${irCollapsed ? trackColor : dm('#888')}">${irCollapsed ? trackPctStr : ''}</div>
+      <div class="cell cell-d" style="font-size:0.625rem;color:${irCollapsed ? trackColor : dm('#888')}">${irCollapsed ? trackDetail : ''}</div>
       <div class="cell cell-e" style="font-size:0.625rem;color:${streakColor}">${irCollapsed ? `Streak: ${shortStreak}` : ''}</div>
       <div class="cell cell-f" style="${earningsCellStyle}">${earningsLabel}</div>
       <div class="cell cell-g" style="font-size:0.625rem;color:${
