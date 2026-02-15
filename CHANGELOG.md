@@ -2,7 +2,52 @@
 
 All notable changes to Quarter Close.
 
-## [v0.2.0] — 2026-02-14
+## [v0.4.0] — 2026-02-15
+
+Major UI/UX overhaul: reactive information design, dark mode, C-suite automation, and late-game progression.
+
+### 🌙 Dark Mode
+- Full dark mode with WCAG AA accessible palette
+- 361 CSS variable references + `dm()` helper for inline styles
+- Toggle button (🌙/☀️) in the formatting toolbar
+- Persists via localStorage
+
+### 🤖 C-Suite Automation
+- **CTO (Auto-Upgrade)** — revenue skimming budget model. Slider sets % of revenue the CTO takes per tick to fund upgrades. Progress bar fills toward next purchase. 3 levels: cheapest-first → ROI-optimized → timing-aware.
+- **COO (Auto-Hire)** — same revenue skimming mechanic for hiring employees. 3 levels: cheapest → best marginal revenue → earnings-aware.
+- **CapEx Planning** — CFO auto-adjusts both CTO and COO budgets each quarter based on guidance strategy. Independent Auto toggles.
+
+### 📊 Reactive Information Design
+- **Earnings countdown** — color-coded cell based on days remaining × tracking status (green→yellow→orange→red)
+- **Tax countdown** — color-coded based on cash vs projected tax bill (can you afford it?)
+- **Earnings streak emoji** — escalates with streak length: ✅ (1) → 🔥 (2-3) → 🔥🔥 (4-6) → 🚀 (7-9) → 👑 (10)
+- **Miss streak emoji** — 😬 (1) → ❄️ (2-3) → 💀 (4+)
+- **Analyst expectation** — color-coded by difficulty: green (easy) → gray → yellow → orange → red (near cap)
+- **Tax/earnings fiscal offset** — tax quarter fires 45 days after earnings (like real fiscal vs calendar year). Always something on the horizon.
+
+### 📈 Late-Game Progression
+- **Market Expansion** — 4 tiers of company-wide revenue multipliers (2×/3×/5×/10×, cumulative 300×)
+- **Talent Acquisition** — 3 tiers reducing hire cost scaling exponent (1.15→1.12→1.09→1.06)
+- **RE curve fix** — `5 × log10(qRev)²` creates actual feedback loop where more revenue → more RE → bigger upgrades
+
+### 🖥️ UI/UX Improvements
+- **RE in header bar** — ⭐ RE shown next to 💰 Cash, always visible
+- **Collapsible sections** — P&L, IR, and Tax all collapse with abbreviated headers (▶ P&L / ▼ PROFIT & LOSS)
+- **Collapsed summaries** — key stats shown inline: Qtr Revenue, Est. tax, Guidance, Track status, Streak, Earnings/Tax countdowns, Analyst expectation
+- **Responsive rem-based sizing** — all font sizes converted from px to rem with viewport-aware root size
+- **Font size controls** — A↑/A↓ buttons in toolbar (70%-150% range)
+- **Sparkline chart** — tap to toggle floating valuation chart
+- **Tax alert in formula bar** — red/yellow warning bar with SETTLE button for outstanding tax debt
+- **Separator rows removed** — replaced with clean border-top on section headers
+
+### 🔧 Bug Fixes
+- Fixed CTO not buying (ROI was per-tick instead of annual)
+- Fixed COO Lv1 picking fewest-employees instead of cheapest
+- Fixed Board Room missing Expansion and Operations categories
+- Fixed row numbering with overtime visibility
+- Fixed dock button hiding entire overlay
+
+## [v0.3.0] — 2026-02-14
 
 Major progression update: late-game mechanics, tax automation, and Board Room UX overhaul.
 

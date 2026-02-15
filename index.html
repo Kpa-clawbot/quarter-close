@@ -484,6 +484,7 @@
             <div class="help-section">
               <h4>📈 Earnings & IPO</h4>
               <p>Once big enough, you'll <b>go public</b>. Each quarter you set earnings guidance, then try to beat it. Beating guidance earns <b>Retained Earnings (RE)</b> — the prestige currency for Board Room upgrades.</p>
+              <p><b>⭐ RE</b> is shown in the header bar next to Cash — always visible.</p>
             </div>
           </div>
         </div>
@@ -551,6 +552,8 @@
               <p>Every 90 game-days, the IRS sends a tax bill.</p>
               <p><b>Regular tax:</b> 25% of (Revenue − Depreciation).</p>
               <p><b>AMT floor:</b> You always pay at least 15% of gross revenue — can't deduct your way to zero.</p>
+              <p><b>Fiscal offset:</b> Tax quarters are offset 45 days from earnings quarters — like real companies with different fiscal and calendar years.</p>
+              <p>The <b>P&L row</b> shows estimated tax and countdown with color-coded urgency based on whether you can afford it.</p>
             </div>
             <div class="help-section">
               <h4>⚠️ Tax Consequences</h4>
@@ -598,7 +601,8 @@
             <div class="help-section">
               <h4>🔥 Earnings Streaks</h4>
               <p>Consecutive beats earn bonus RE: <b>+10% per beat</b>, up to <b>2.0× at 10 beats</b>.</p>
-              <p>The current multiplier shows in the IR section and earnings report.</p>
+              <p>Streak emoji escalates: ✅ (1) → 🔥 (2-3) → 🔥🔥 (4-6) → 🚀 (7-9) → 👑 (10).</p>
+              <p>Misses: 😬 (1) → ❄️ (2-3) → 💀 (4+).</p>
               <p>A miss resets your streak to zero. High streaks also make analysts ratchet up expectations faster — the CFO factors this in.</p>
             </div>
             <div class="help-section">
@@ -671,11 +675,25 @@
               <p><b>File → Save</b> — auto-save runs, but manual save works too.</p>
             </div>
             <div class="help-section">
+              <h4>🌙 Display Options</h4>
+              <p><b>Dark mode</b> — 🌙/☀️ toggle in the formatting toolbar. Persists across sessions.</p>
+              <p><b>Font size</b> — A↑/A↓ buttons in the toolbar. Range: 70%–150%.</p>
+              <p><b>Collapsible sections</b> — click P&L, IR, or Tax headers to collapse/expand. Collapsed shows key stats inline.</p>
+            </div>
+            <div class="help-section">
               <h4>💡 Strategy Tips</h4>
               <p>Focus spending on the <b>highest tier you can afford</b> — lower tiers become irrelevant fast.</p>
               <p><b>Automate early</b> — the sooner a dept runs itself, the sooner you can focus elsewhere.</p>
               <p><b>Beat earnings guidance</b> to earn RE — conservative guidance is safer but earns less RE.</p>
               <p><b>Growth Initiative</b> compounds — 10 purchases = +21.9% total revenue.</p>
+            </div>
+            <div class="help-section">
+              <h4>🎨 Reading the Colors</h4>
+              <p>The collapsed P&L and IR rows use <b>color-coded cells</b> to show urgency at a glance:</p>
+              <p><b>Earnings/Tax countdown:</b> Gray = relaxed, Yellow = watch it, Orange = tight, Red = danger.</p>
+              <p><b>Earnings streak:</b> ✅→🔥→🔥🔥→🚀→👑 (beats) | 😬→❄️→💀 (misses). Color matches intensity.</p>
+              <p><b>Analyst expectation:</b> Green (&lt;1×) = easy, Gray = normal, Yellow/Orange = hard, Red (&gt;2×) = near impossible.</p>
+              <p><b>Tax and earnings are offset by 45 days</b> — like real fiscal vs calendar years. There's always something coming up.</p>
             </div>
           </div>
         </div>
@@ -695,7 +713,7 @@
     </div>
   </div>
 
-  <script src="game.js?v=138"></script>
+  <script src="game.js?v=139"></script>
   <script>
     if (location.hostname === 'kpa-clawbot.github.io') {
       var s = document.createElement('script');
