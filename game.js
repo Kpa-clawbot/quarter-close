@@ -2586,14 +2586,23 @@ function updateTaxPanel() {
   let rowNum = sourceCount + 3;
   let html = '';
 
-  // ===== P&L SECTION (collapsible) =====
-  const pnlCollapsed = gameState.pnlCollapsed || false;
+  // ===== P&L SECTION (collapsible, default collapsed) =====
+  const pnlCollapsed = gameState.pnlCollapsed !== false; // default true
   const pnlArrow = pnlCollapsed ? '▶' : '▼';
 
   const currentDay = Math.floor(gameState.gameElapsedSecs / SECS_PER_DAY);
   const daysIntoQuarter = currentDay - gameState.lastQuarterDay;
   const daysToTax = Math.max(0, 90 - daysIntoQuarter);
   const garnishActive = gameState.taxDebts && gameState.taxDebts.some(d => d.stage === 'garnish');
+
+  // Compute P&L summary (needed for both collapsed and expanded views)
+  const totalExpenses = gameState.totalSpentHires + gameState.totalSpentUpgrades + gameState.totalSpentAuto;
+  const qNet = gameState.quarterRevenue - gameState.quarterExpenses - gameState.quarterTaxPaid;
+  const ltNet = gameState.totalEarned - totalExpenses - gameState.totalTaxPaid;
+  const qNetColor = dm(qNet >= 0 ? '#217346' : '#c00');
+  const ltNetColor = dm(ltNet >= 0 ? '#217346' : '#c00');
+  const qNetStr = qNet < 0 ? '(' + formatCompact(-qNet) + ')' : formatCompact(qNet);
+  const ltNetStr = ltNet < 0 ? '(' + formatCompact(-ltNet) + ')' : formatCompact(ltNet);
 
   // Separator
   html += `<div class="grid-row sep-row">
@@ -2605,9 +2614,13 @@ function updateTaxPanel() {
   </div>`;
 
   // P&L Header (clickable to collapse)
+  const collapsedSummary = pnlCollapsed
+    ? `<span style="font-weight:400;font-size:0.625rem;color:${dm('#666')}"> │ </span><span style="font-size:0.625rem;color:${qNetColor}">Q: ${qNetStr}</span><span style="font-weight:400;font-size:0.625rem;color:${dm('#666')}"> │ </span><span style="font-size:0.625rem;color:${ltNetColor}">All-Time: ${ltNetStr}</span><span style="font-weight:400;font-size:0.625rem;color:${dm('#666')}"> │ </span><span style="font-size:0.625rem;color:${dm('#888')}">Tax in ${daysToTax}d</span>`
+    : '';
+
   html += `<div class="grid-row pnl-header">
     <div class="row-num">${rowNum++}</div>
-    <div class="cell cell-a" style="font-weight:700;color:${dm('#333')};cursor:pointer" data-toggle-pnl>${pnlArrow} PROFIT &amp; LOSS</div>
+    <div class="cell cell-a" style="font-weight:700;color:${dm('#333')};cursor:pointer;overflow:visible;white-space:nowrap" data-toggle-pnl>${pnlArrow} P&amp;L${collapsedSummary}</div>
     <div class="cell cell-b"></div>
     <div class="cell cell-c" style="font-size:0.625rem;color:${dm('#888')};justify-content:flex-end">${pnlCollapsed ? '' : 'This Qtr'}</div>
     <div class="cell cell-d" style="font-size:0.625rem;color:${dm('#888')};justify-content:flex-end">${pnlCollapsed ? '' : 'Lifetime'}</div>
@@ -2618,7 +2631,6 @@ function updateTaxPanel() {
   </div>`;
 
   if (!pnlCollapsed) {
-    const totalExpenses = gameState.totalSpentHires + gameState.totalSpentUpgrades + gameState.totalSpentAuto;
     const qDepreciation = getQuarterlyDepreciation();
 
     // Revenue
@@ -2702,17 +2714,12 @@ function updateTaxPanel() {
     </div>`;
 
     // Net Income
-    const qNet = gameState.quarterRevenue - gameState.quarterExpenses - gameState.quarterTaxPaid;
-    const ltNet = gameState.totalEarned - totalExpenses - gameState.totalTaxPaid;
-    const qColor = dm(qNet >= 0 ? '#217346' : '#c00');
-    const ltColor = dm(ltNet >= 0 ? '#217346' : '#c00');
-
     html += `<div class="grid-row pnl-net">
       <div class="row-num">${rowNum++}</div>
       <div class="cell cell-a" style="font-weight:700;color:${dm('#333')};padding-left:16px">Net Income</div>
       <div class="cell cell-b"></div>
-      <div class="cell cell-c" style="color:${qColor};font-family:Consolas,monospace;font-size:0.6875rem;font-weight:700;justify-content:flex-end;border-top:1px solid ${dm('#333')};border-bottom:3px double ${dm('#333')}">${qNet < 0 ? '(' + formatMoney(-qNet) + ')' : formatMoney(qNet)}</div>
-      <div class="cell cell-d" style="color:${ltColor};font-family:Consolas,monospace;font-size:0.6875rem;font-weight:700;justify-content:flex-end;border-top:1px solid ${dm('#333')};border-bottom:3px double ${dm('#333')}">${ltNet < 0 ? '(' + formatMoney(-ltNet) + ')' : formatMoney(ltNet)}</div>
+      <div class="cell cell-c" style="color:${qNetColor};font-family:Consolas,monospace;font-size:0.6875rem;font-weight:700;justify-content:flex-end;border-top:1px solid ${dm('#333')};border-bottom:3px double ${dm('#333')}">${qNet < 0 ? '(' + formatMoney(-qNet) + ')' : formatMoney(qNet)}</div>
+      <div class="cell cell-d" style="color:${ltNetColor};font-family:Consolas,monospace;font-size:0.6875rem;font-weight:700;justify-content:flex-end;border-top:1px solid ${dm('#333')};border-bottom:3px double ${dm('#333')}">${ltNet < 0 ? '(' + formatMoney(-ltNet) + ')' : formatMoney(ltNet)}</div>
       <div class="cell cell-e"></div><div class="cell cell-f"></div>
       <div class="cell cell-g"></div><div class="cell cell-h"></div>
     </div>`;
@@ -5141,7 +5148,7 @@ function init() {
     // P&L collapse toggle
     const togglePnl = e.target.closest('[data-toggle-pnl]');
     if (togglePnl) {
-      gameState.pnlCollapsed = !gameState.pnlCollapsed;
+      gameState.pnlCollapsed = gameState.pnlCollapsed === false; // toggle: default true
       _lastTaxPanelHash = ''; // force rebuild
       updateTaxPanel();
       return;
