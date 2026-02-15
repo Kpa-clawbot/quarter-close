@@ -1727,12 +1727,12 @@ function buildGrid() {
   overtimeRow.innerHTML = `
     <div class="row-num">${otRowNum}</div>
     <div class="cell cell-a" style="font-weight:600;color:${dm('#555')}">⏰ Overtime</div>
-    <div class="cell cell-b" id="overtime-clicks" style="font-size:11px;color:${dm('#888')}"></div>
-    <div class="cell cell-c" id="overtime-next" style="font-family:Consolas,monospace;font-size:11px;color:${dm('#217346')};justify-content:flex-end"></div>
+    <div class="cell cell-b" id="overtime-clicks" style="font-size:0.6875rem;color:${dm('#888')}"></div>
+    <div class="cell cell-c" id="overtime-next" style="font-family:Consolas,monospace;font-size:0.6875rem;color:${dm('#217346')};justify-content:flex-end"></div>
     <div class="cell cell-d">
       <button class="cell-btn btn-collect" id="overtime-btn" onclick="clickOvertime()" title="Instant cash (5s of revenue). Diminishing returns per quarter.">Push It</button>
     </div>
-    <div class="cell cell-e" id="overtime-diminish" style="font-size:10px;color:${dm('#999')}"></div>
+    <div class="cell cell-e" id="overtime-diminish" style="font-size:0.625rem;color:${dm('#999')}"></div>
     <div class="cell cell-f"></div>
     <div class="cell cell-g"></div>
     <div class="cell cell-h empty-cell"></div>
@@ -1808,12 +1808,12 @@ function updateGridValues() {
 
     // Name (clickable for focus)
     const nameCell = row.querySelector('[data-field="name"]');
-    const prestigeTag = (state.prestigeLevel || 0) > 0 ? ` <span style="color:${dm('#d4a017')};font-size:10px">★${state.prestigeLevel}</span>` : '';
-    const breakthroughTag = (state.breakthroughMult || 1) > 1 ? ` <span style="color:${dm('#2e7d32')};font-size:10px">🔬×${state.breakthroughMult}</span>` : '';
+    const prestigeTag = (state.prestigeLevel || 0) > 0 ? ` <span style="color:${dm('#d4a017')};font-size:0.625rem">★${state.prestigeLevel}</span>` : '';
+    const breakthroughTag = (state.breakthroughMult || 1) > 1 ? ` <span style="color:${dm('#2e7d32')};font-size:0.625rem">🔬×${state.breakthroughMult}</span>` : '';
     const focusLevel = state.focus || 0;
     const focusable = isFeatureEnabled('managementFocus') && state.automated;
     const focusIcon = focusable ? `<span class="focus-icon${focusLevel > 0 ? ' focus-active' : ''}" title="Click to boost revenue (+5% per click, max +50%)">🎯</span>` : '';
-    const tags = (state.upgradeLevel > 0 ? `<span style="color:${dm('#999')};font-size:10px">Lv${state.upgradeLevel}</span>` : '') + prestigeTag + breakthroughTag;
+    const tags = (state.upgradeLevel > 0 ? `<span style="color:${dm('#999')};font-size:0.625rem">Lv${state.upgradeLevel}</span>` : '') + prestigeTag + breakthroughTag;
     nameCell.innerHTML = `<span style="display:flex;align-items:center;justify-content:space-between;width:100%"><span>${focusIcon}${src.name}</span><span style="white-space:nowrap">${tags}</span></span>`;
     if (focusable) {
       nameCell.style.cursor = 'pointer';
@@ -1917,11 +1917,11 @@ function updateDisplay() {
     ptEl.innerHTML = `<span style="color:${dm('#c00')};font-weight:700">⚡ $0.00/day</span>`;
   } else if (hasPenalty) {
     const pct = Math.round((1 - gameState.revPenalty.mult) * 100);
-    ptEl.innerHTML = `<span style="color:${dm('#c00')}">${formatPerTick(perTick)}/day</span> <span style="color:${dm('#c00')};font-size:9px">▼${pct}%</span>`;
+    ptEl.innerHTML = `<span style="color:${dm('#c00')}">${formatPerTick(perTick)}/day</span> <span style="color:${dm('#c00')};font-size:0.5625rem">▼${pct}%</span>`;
   } else if (hasDbOut) {
-    ptEl.innerHTML = `<span style="color:${dm('#e65100')}">${formatPerTick(perTick)}/day</span> <span style="color:${dm('#e65100')};font-size:9px">💾</span>`;
+    ptEl.innerHTML = `<span style="color:${dm('#e65100')}">${formatPerTick(perTick)}/day</span> <span style="color:${dm('#e65100')};font-size:0.5625rem">💾</span>`;
   } else if (hasBonus) {
-    ptEl.innerHTML = `<span style="color:${dm('#217346')};font-weight:600">${formatPerTick(perTick)}/day</span> <span style="color:${dm('#217346')};font-size:9px">▲×${gameState.revBonus.mult}</span>`;
+    ptEl.innerHTML = `<span style="color:${dm('#217346')};font-weight:600">${formatPerTick(perTick)}/day</span> <span style="color:${dm('#217346')};font-size:0.5625rem">▲×${gameState.revBonus.mult}</span>`;
   } else {
     ptEl.textContent = formatPerTick(perTick) + '/day';
   }
@@ -1931,7 +1931,7 @@ function updateDisplay() {
   if (stockCell) {
     if (gameState.isPublic) {
       const sp = getStockPrice();
-      stockCell.innerHTML = `<span style="font-size:9px;color:${dm('#888')}">Stock: </span><span style="font-weight:700;color:${dm('#0078d4')};font-family:Consolas,monospace;font-size:12px">${formatMoney(sp)}</span>`;
+      stockCell.innerHTML = `<span style="font-size:0.5625rem;color:${dm('#888')}">Stock: </span><span style="font-weight:700;color:${dm('#0078d4')};font-family:Consolas,monospace;font-size:0.75rem">${formatMoney(sp)}</span>`;
     } else {
       stockCell.innerHTML = '';
     }
@@ -2609,10 +2609,10 @@ function updateTaxPanel() {
     <div class="row-num">${rowNum++}</div>
     <div class="cell cell-a" style="font-weight:700;color:${dm('#333')};cursor:pointer" data-toggle-pnl>${pnlArrow} PROFIT &amp; LOSS</div>
     <div class="cell cell-b"></div>
-    <div class="cell cell-c" style="font-size:10px;color:${dm('#888')};justify-content:flex-end">${pnlCollapsed ? '' : 'This Qtr'}</div>
-    <div class="cell cell-d" style="font-size:10px;color:${dm('#888')};justify-content:flex-end">${pnlCollapsed ? '' : 'Lifetime'}</div>
+    <div class="cell cell-c" style="font-size:0.625rem;color:${dm('#888')};justify-content:flex-end">${pnlCollapsed ? '' : 'This Qtr'}</div>
+    <div class="cell cell-d" style="font-size:0.625rem;color:${dm('#888')};justify-content:flex-end">${pnlCollapsed ? '' : 'Lifetime'}</div>
     <div class="cell cell-e"></div>
-    <div class="cell cell-f" style="font-size:10px;color:${dm('#888')}">${pnlCollapsed ? '' : `Tax due in ${daysToTax}d`}</div>
+    <div class="cell cell-f" style="font-size:0.625rem;color:${dm('#888')}">${pnlCollapsed ? '' : `Tax due in ${daysToTax}d`}</div>
     <div class="cell cell-g"></div>
     <div class="cell cell-h"></div>
   </div>`;
@@ -2626,8 +2626,8 @@ function updateTaxPanel() {
       <div class="row-num">${rowNum++}</div>
       <div class="cell cell-a" style="padding-left:16px;color:${dm('#444')}">Revenue</div>
       <div class="cell cell-b"></div>
-      <div class="cell cell-c" style="color:${dm('#217346')};font-family:Consolas,monospace;font-size:11px;justify-content:flex-end">${formatMoney(gameState.quarterRevenue)}</div>
-      <div class="cell cell-d" style="color:${dm('#217346')};font-family:Consolas,monospace;font-size:11px;justify-content:flex-end">${formatMoney(gameState.totalEarned)}</div>
+      <div class="cell cell-c" style="color:${dm('#217346')};font-family:Consolas,monospace;font-size:0.6875rem;justify-content:flex-end">${formatMoney(gameState.quarterRevenue)}</div>
+      <div class="cell cell-d" style="color:${dm('#217346')};font-family:Consolas,monospace;font-size:0.6875rem;justify-content:flex-end">${formatMoney(gameState.totalEarned)}</div>
       <div class="cell cell-e"></div><div class="cell cell-f"></div>
       <div class="cell cell-g"></div><div class="cell cell-h"></div>
     </div>`;
@@ -2638,9 +2638,9 @@ function updateTaxPanel() {
         <div class="row-num">${rowNum++}</div>
         <div class="cell cell-a" style="padding-left:16px;color:${dm('#c00')}">🔴 IRS Garnishment</div>
         <div class="cell cell-b"></div>
-        <div class="cell cell-c" style="color:${dm('#c00')};font-family:Consolas,monospace;font-size:11px;justify-content:flex-end">−15%</div>
+        <div class="cell cell-c" style="color:${dm('#c00')};font-family:Consolas,monospace;font-size:0.6875rem;justify-content:flex-end">−15%</div>
         <div class="cell cell-d"></div>
-        <div class="cell cell-e"></div><div class="cell cell-f" style="font-size:9px;color:${dm('#c00')}">settle debt to remove</div>
+        <div class="cell cell-e"></div><div class="cell cell-f" style="font-size:0.5625rem;color:${dm('#c00')}">settle debt to remove</div>
         <div class="cell cell-g"></div><div class="cell cell-h"></div>
       </div>`;
     }
@@ -2650,9 +2650,9 @@ function updateTaxPanel() {
       <div class="row-num">${rowNum++}</div>
       <div class="cell cell-a" style="padding-left:16px;color:${dm('#444')}">Capital Spending</div>
       <div class="cell cell-b"></div>
-      <div class="cell cell-c" style="color:${dm('#c00')};font-family:Consolas,monospace;font-size:11px;justify-content:flex-end">(${formatMoney(gameState.quarterExpenses)})</div>
-      <div class="cell cell-d" style="color:${dm('#c00')};font-family:Consolas,monospace;font-size:11px;justify-content:flex-end">(${formatMoney(totalExpenses)})</div>
-      <div class="cell cell-e"></div><div class="cell cell-f" style="font-size:9px;color:${dm('#999')}">not tax-deductible</div>
+      <div class="cell cell-c" style="color:${dm('#c00')};font-family:Consolas,monospace;font-size:0.6875rem;justify-content:flex-end">(${formatMoney(gameState.quarterExpenses)})</div>
+      <div class="cell cell-d" style="color:${dm('#c00')};font-family:Consolas,monospace;font-size:0.6875rem;justify-content:flex-end">(${formatMoney(totalExpenses)})</div>
+      <div class="cell cell-e"></div><div class="cell cell-f" style="font-size:0.5625rem;color:${dm('#999')}">not tax-deductible</div>
       <div class="cell cell-g"></div><div class="cell cell-h"></div>
     </div>`;
 
@@ -2662,9 +2662,9 @@ function updateTaxPanel() {
       <div class="row-num">${rowNum++}</div>
       <div class="cell cell-a" style="padding-left:16px;color:${dm('#444')}">Depreciation</div>
       <div class="cell cell-b"></div>
-      <div class="cell cell-c" style="color:${dm('#c00')};font-family:Consolas,monospace;font-size:11px;justify-content:flex-end">(${formatMoney(qDepreciation)})</div>
+      <div class="cell cell-c" style="color:${dm('#c00')};font-family:Consolas,monospace;font-size:0.6875rem;justify-content:flex-end">(${formatMoney(qDepreciation)})</div>
       <div class="cell cell-d"></div>
-      <div class="cell cell-e"></div><div class="cell cell-f" style="font-size:9px;color:${dm('#999')}">${capCount} assets depreciating</div>
+      <div class="cell cell-e"></div><div class="cell cell-f" style="font-size:0.5625rem;color:${dm('#999')}">${capCount} assets depreciating</div>
       <div class="cell cell-g"></div><div class="cell cell-h"></div>
     </div>`;
 
@@ -2673,8 +2673,8 @@ function updateTaxPanel() {
       <div class="row-num">${rowNum++}</div>
       <div class="cell cell-a" style="padding-left:16px;color:${dm('#444')}">Taxes Paid</div>
       <div class="cell cell-b"></div>
-      <div class="cell cell-c" style="color:${dm('#c00')};font-family:Consolas,monospace;font-size:11px;justify-content:flex-end">(${formatMoney(gameState.quarterTaxPaid)})</div>
-      <div class="cell cell-d" style="color:${dm('#c00')};font-family:Consolas,monospace;font-size:11px;justify-content:flex-end">(${formatMoney(gameState.totalTaxPaid)})</div>
+      <div class="cell cell-c" style="color:${dm('#c00')};font-family:Consolas,monospace;font-size:0.6875rem;justify-content:flex-end">(${formatMoney(gameState.quarterTaxPaid)})</div>
+      <div class="cell cell-d" style="color:${dm('#c00')};font-family:Consolas,monospace;font-size:0.6875rem;justify-content:flex-end">(${formatMoney(gameState.totalTaxPaid)})</div>
       <div class="cell cell-e"></div><div class="cell cell-f"></div>
       <div class="cell cell-g"></div><div class="cell cell-h"></div>
     </div>`;
@@ -2693,11 +2693,11 @@ function updateTaxPanel() {
     const taxableNote = amtApplies ? `⚠️ AMT floor (${amtRatePct}% of revenue)` : 'rev − depreciation';
     html += `<div class="grid-row pnl-row">
       <div class="row-num">${rowNum++}</div>
-      <div class="cell cell-a" style="padding-left:16px;color:${dm(amtApplies ? '#c60' : '#888')};font-size:10px">${taxableLabel}</div>
+      <div class="cell cell-a" style="padding-left:16px;color:${dm(amtApplies ? '#c60' : '#888')};font-size:0.625rem">${taxableLabel}</div>
       <div class="cell cell-b"></div>
-      <div class="cell cell-c" style="color:${dm(amtApplies ? '#c60' : '#888')};font-family:Consolas,monospace;font-size:10px;justify-content:flex-end">${formatMoney(effectiveTaxable)}</div>
+      <div class="cell cell-c" style="color:${dm(amtApplies ? '#c60' : '#888')};font-family:Consolas,monospace;font-size:0.625rem;justify-content:flex-end">${formatMoney(effectiveTaxable)}</div>
       <div class="cell cell-d"></div>
-      <div class="cell cell-e"></div><div class="cell cell-f" style="font-size:9px;color:${dm(amtApplies ? '#c60' : '#999')}">${taxableNote}</div>
+      <div class="cell cell-e"></div><div class="cell cell-f" style="font-size:0.5625rem;color:${dm(amtApplies ? '#c60' : '#999')}">${taxableNote}</div>
       <div class="cell cell-g"></div><div class="cell cell-h"></div>
     </div>`;
 
@@ -2711,8 +2711,8 @@ function updateTaxPanel() {
       <div class="row-num">${rowNum++}</div>
       <div class="cell cell-a" style="font-weight:700;color:${dm('#333')};padding-left:16px">Net Income</div>
       <div class="cell cell-b"></div>
-      <div class="cell cell-c" style="color:${qColor};font-family:Consolas,monospace;font-size:11px;font-weight:700;justify-content:flex-end;border-top:1px solid ${dm('#333')};border-bottom:3px double ${dm('#333')}">${qNet < 0 ? '(' + formatMoney(-qNet) + ')' : formatMoney(qNet)}</div>
-      <div class="cell cell-d" style="color:${ltColor};font-family:Consolas,monospace;font-size:11px;font-weight:700;justify-content:flex-end;border-top:1px solid ${dm('#333')};border-bottom:3px double ${dm('#333')}">${ltNet < 0 ? '(' + formatMoney(-ltNet) + ')' : formatMoney(ltNet)}</div>
+      <div class="cell cell-c" style="color:${qColor};font-family:Consolas,monospace;font-size:0.6875rem;font-weight:700;justify-content:flex-end;border-top:1px solid ${dm('#333')};border-bottom:3px double ${dm('#333')}">${qNet < 0 ? '(' + formatMoney(-qNet) + ')' : formatMoney(qNet)}</div>
+      <div class="cell cell-d" style="color:${ltColor};font-family:Consolas,monospace;font-size:0.6875rem;font-weight:700;justify-content:flex-end;border-top:1px solid ${dm('#333')};border-bottom:3px double ${dm('#333')}">${ltNet < 0 ? '(' + formatMoney(-ltNet) + ')' : formatMoney(ltNet)}</div>
       <div class="cell cell-e"></div><div class="cell cell-f"></div>
       <div class="cell cell-g"></div><div class="cell cell-h"></div>
     </div>`;
@@ -2763,7 +2763,7 @@ function updateTaxPanel() {
       <div class="cell cell-c"></div>
       <div class="cell cell-d"></div>
       <div class="cell cell-e"></div>
-      <div class="cell cell-f" style="font-size:10px;color:${dm('#888')}">Earnings in ${earningsDaysLeft}d</div>
+      <div class="cell cell-f" style="font-size:0.625rem;color:${dm('#888')}">Earnings in ${earningsDaysLeft}d</div>
       <div class="cell cell-g"></div>
       <div class="cell cell-h"></div>
     </div>`;
@@ -2774,7 +2774,7 @@ function updateTaxPanel() {
       <div class="cell cell-a" style="padding-left:16px;color:${dm('#444')}">Quarter</div>
       <div class="cell cell-b" style="font-weight:600;color:${dm('#0078d4')}">${earningsQLabel}</div>
       <div class="cell cell-c"></div>
-      <div class="cell cell-d" style="font-size:10px;color:${dm('#888')}">Days Left</div>
+      <div class="cell cell-d" style="font-size:0.625rem;color:${dm('#888')}">Days Left</div>
       <div class="cell cell-e" style="font-weight:600;color:${dm('#333')}">${earningsDaysLeft}</div>
       <div class="cell cell-f"></div>
       <div class="cell cell-g"></div>
@@ -2786,8 +2786,8 @@ function updateTaxPanel() {
       <div class="row-num">${rowNum++}</div>
       <div class="cell cell-a" style="padding-left:16px;color:${dm('#444')}">Revenue vs Target</div>
       <div class="cell cell-b" style="font-weight:700;color:${trackColor}">${trackLabel}</div>
-      <div class="cell cell-c" style="font-family:Consolas,monospace;font-size:10px;color:${trackColor}">${trackPct >= 0 ? '+' : ''}${trackPct.toFixed(1)}%</div>
-      <div class="cell cell-d" style="font-size:10px;color:${dm('#888')}">${formatCompact(qRev)} / ${formatCompact(target)}</div>
+      <div class="cell cell-c" style="font-family:Consolas,monospace;font-size:0.625rem;color:${trackColor}">${trackPct >= 0 ? '+' : ''}${trackPct.toFixed(1)}%</div>
+      <div class="cell cell-d" style="font-size:0.625rem;color:${dm('#888')}">${formatCompact(qRev)} / ${formatCompact(target)}</div>
       <div class="cell cell-e"></div>
       <div class="cell cell-f"></div>
       <div class="cell cell-g"></div>
@@ -2798,10 +2798,10 @@ function updateTaxPanel() {
       <div class="row-num">${rowNum++}</div>
       <div class="cell cell-a" style="padding-left:16px;color:${dm('#444')}">Guidance</div>
       <div class="cell cell-b" style="font-weight:600;color:${dm('#333')}">${guidanceLevel.emoji} ${guidanceLevel.label}</div>
-      <div class="cell cell-c" style="font-size:10px;color:${dm('#888')};justify-content:flex-end">${guidanceLevel.reMult}× RE</div>
-      <div class="cell cell-d" style="font-size:10px;color:${dm('#888')}">Target: ${formatCompact(gameState.guidanceTarget)}</div>
+      <div class="cell cell-c" style="font-size:0.625rem;color:${dm('#888')};justify-content:flex-end">${guidanceLevel.reMult}× RE</div>
+      <div class="cell cell-d" style="font-size:0.625rem;color:${dm('#888')}">Target: ${formatCompact(gameState.guidanceTarget)}</div>
       <div class="cell cell-e"></div>
-      <div class="cell cell-f" style="font-size:10px;color:${dm('#999')}">${gameState.activeCFOLevel > 0 ? 'Set by CFO' : 'Set at earnings'}</div>
+      <div class="cell cell-f" style="font-size:0.625rem;color:${dm('#999')}">${gameState.activeCFOLevel > 0 ? 'Set by CFO' : 'Set at earnings'}</div>
       <div class="cell cell-g"></div>
       <div class="cell cell-h"></div>
     </div>`;
@@ -2812,8 +2812,8 @@ function updateTaxPanel() {
       <div class="cell cell-a" style="padding-left:16px;color:${dm('#444')}">Streak</div>
       <div class="cell cell-b" style="color:${dm('#333')}">${streakStr}</div>
       <div class="cell cell-c"></div>
-      <div class="cell cell-d" style="font-size:10px;color:${dm('#888')}">Analyst Exp</div>
-      <div class="cell cell-e" style="font-family:Consolas,monospace;font-size:11px;color:${dm('#333')}">${(gameState.analystBaseline).toFixed(2)}×</div>
+      <div class="cell cell-d" style="font-size:0.625rem;color:${dm('#888')}">Analyst Exp</div>
+      <div class="cell cell-e" style="font-family:Consolas,monospace;font-size:0.6875rem;color:${dm('#333')}">${(gameState.analystBaseline).toFixed(2)}×</div>
       <div class="cell cell-f"></div>
       <div class="cell cell-g"></div>
       <div class="cell cell-h"></div>
@@ -2823,10 +2823,10 @@ function updateTaxPanel() {
     html += `<div class="grid-row ir-row">
       <div class="row-num">${rowNum++}</div>
       <div class="cell cell-a" style="padding-left:16px;color:${dm('#444')}">Stock Price</div>
-      <div class="cell cell-b" style="font-weight:700;color:${dm('#0078d4')};font-family:Consolas,monospace;font-size:12px">${formatMoney(stockPrice)}</div>
+      <div class="cell cell-b" style="font-weight:700;color:${dm('#0078d4')};font-family:Consolas,monospace;font-size:0.75rem">${formatMoney(stockPrice)}</div>
       <div class="cell cell-c"></div>
-      <div class="cell cell-d" style="font-size:10px;color:${dm('#888')}">QTD</div>
-      <div class="cell cell-e" style="font-weight:600;color:${qtdColor};font-family:Consolas,monospace;font-size:11px">${qtdStr}</div>
+      <div class="cell cell-d" style="font-size:0.625rem;color:${dm('#888')}">QTD</div>
+      <div class="cell cell-e" style="font-weight:600;color:${qtdColor};font-family:Consolas,monospace;font-size:0.6875rem">${qtdStr}</div>
       <div class="cell cell-f"></div>
       <div class="cell cell-g"></div>
       <div class="cell cell-h"></div>
@@ -2863,11 +2863,11 @@ function updateTaxPanel() {
     html += `<div class="grid-row ir-row">
       <div class="row-num">${rowNum++}</div>
       <div class="cell cell-a" style="padding-left:16px;color:${dm('#444')}">Retained Earnings</div>
-      <div class="cell cell-b" style="font-weight:700;color:${dm('#7b1fa2')};font-family:Consolas,monospace;font-size:12px">${gameState.retainedEarnings.toLocaleString()} RE</div>
-      <div class="cell cell-c" style="font-size:10px;color:${dm('#7b1fa2')}">${lastQStr}</div>
+      <div class="cell cell-b" style="font-weight:700;color:${dm('#7b1fa2')};font-family:Consolas,monospace;font-size:0.75rem">${gameState.retainedEarnings.toLocaleString()} RE</div>
+      <div class="cell cell-c" style="font-size:0.625rem;color:${dm('#7b1fa2')}">${lastQStr}</div>
       <div class="cell cell-d"></div>
       <div class="cell cell-e"></div>
-      <div class="cell cell-f" style="font-size:9px;color:${dm('#888')};white-space:nowrap">${etaStr}</div>
+      <div class="cell cell-f" style="font-size:0.5625rem;color:${dm('#888')};white-space:nowrap">${etaStr}</div>
       <div class="cell cell-g"></div>
       <div class="cell cell-h"></div>
     </div>`;
@@ -2899,9 +2899,9 @@ function updateTaxPanel() {
 
     // Shared button style
     const csBtnStyle = (active) => active
-      ? `cursor:pointer;font-weight:700;color:${dm('#fff')};background:${dm('#0078d4')};padding:1px 6px;border-radius:2px;font-size:11px;margin-right:3px;touch-action:manipulation`
-      : `cursor:pointer;color:${dm('#0078d4')};border:1px solid ${dm('#0078d4')};padding:1px 5px;border-radius:2px;font-size:10px;margin-right:3px;background:transparent;touch-action:manipulation`;
-    const csLockedStyle = `color:${dm('#aaa')};border:1px solid ${dm('#ddd')};padding:1px 5px;border-radius:2px;font-size:10px;margin-right:3px;background:${dm('#f5f5f5')};cursor:default`;
+      ? `cursor:pointer;font-weight:700;color:${dm('#fff')};background:${dm('#0078d4')};padding:1px 6px;border-radius:2px;font-size:0.6875rem;margin-right:3px;touch-action:manipulation`
+      : `cursor:pointer;color:${dm('#0078d4')};border:1px solid ${dm('#0078d4')};padding:1px 5px;border-radius:2px;font-size:0.625rem;margin-right:3px;background:transparent;touch-action:manipulation`;
+    const csLockedStyle = `color:${dm('#aaa')};border:1px solid ${dm('#ddd')};padding:1px 5px;border-radius:2px;font-size:0.625rem;margin-right:3px;background:${dm('#f5f5f5')};cursor:default`;
 
     // CFO row (if Finance Dept owned)
     const maxCFOLevel = getFinanceDeptLevel();
@@ -2936,8 +2936,8 @@ function updateTaxPanel() {
         <div class="cell cell-a" style="padding-left:16px;color:${dm('#444')}">CFO</div>
         <div class="cell cell-b" style="display:flex;align-items:center">${cfoManual}</div>
         <div class="cell cell-c" style="display:flex;align-items:center">${cfoLevels}</div>
-        <div class="cell cell-d" style="font-size:10px;color:${dm('#888')}">${activeCFO > 0 ? 'Record' : ''}</div>
-        <div class="cell cell-e" style="font-family:Consolas,monospace;font-size:11px;color:${recordColor}">${recordStr}</div>
+        <div class="cell cell-d" style="font-size:0.625rem;color:${dm('#888')}">${activeCFO > 0 ? 'Record' : ''}</div>
+        <div class="cell cell-e" style="font-family:Consolas,monospace;font-size:0.6875rem;color:${recordColor}">${recordStr}</div>
         <div class="cell cell-f"></div>
         <div class="cell cell-g"></div>
         <div class="cell cell-h"></div>
@@ -2971,9 +2971,9 @@ function updateTaxPanel() {
         <div class="cell cell-c" style="display:flex;align-items:center">${ctoLevels}</div>
         <div class="cell cell-d"></div>
         <div class="cell cell-e"></div>
-        <div class="cell cell-f" style="font-size:9px;color:${dm('#888')}">${activeCTO > 0 ? `Upgrades: ${gameState.ctoUpgradeCount || 0}` : ''}</div>
+        <div class="cell cell-f" style="font-size:0.5625rem;color:${dm('#888')}">${activeCTO > 0 ? `Upgrades: ${gameState.ctoUpgradeCount || 0}` : ''}</div>
         <div class="cell cell-g"></div>
-        <div class="cell cell-h" style="font-size:8px;color:${dm('#999')};white-space:nowrap">${activeCTO > 0 && gameState.ctoTarget ? `Next: ${gameState.ctoTarget}` : ''}</div>
+        <div class="cell cell-h" style="font-size:0.5rem;color:${dm('#999')};white-space:nowrap">${activeCTO > 0 && gameState.ctoTarget ? `Next: ${gameState.ctoTarget}` : ''}</div>
       </div>`;
 
       // CTO Budget sub-row (only when CTO is active)
@@ -2999,14 +2999,14 @@ function updateTaxPanel() {
 
         html += `<div class="grid-row ir-row cto-budget-row">
           <div class="row-num">${rowNum++}</div>
-          <div class="cell cell-a" style="padding-left:28px;color:${dm('#666')};font-size:10px">Budget</div>
+          <div class="cell cell-a" style="padding-left:28px;color:${dm('#666')};font-size:0.625rem">Budget</div>
           <div class="cell cell-b" style="display:flex;align-items:center;gap:4px">
             <input type="range" min="0" max="100" step="5" value="${budgetPct}" class="cto-budget-slider" ${sliderDisabled} oninput="setCtoBudgetPct(this.value)" title="% of revenue skimmed into CTO budget pool">
             <span class="cto-budget-pct">${budgetPct}%</span>
           </div>
-          <div class="cell cell-c" style="font-family:Consolas,monospace;font-size:10px;color:${barColor}" title="${progress}% toward next upgrade">${bar}</div>
-          <div class="cell cell-d" style="font-size:10px;color:${dm('#666')};white-space:nowrap">${poolStr} / ${costStr}</div>
-          <div class="cell cell-e" style="font-size:10px">${autoLabel}</div>
+          <div class="cell cell-c" style="font-family:Consolas,monospace;font-size:0.625rem;color:${barColor}" title="${progress}% toward next upgrade">${bar}</div>
+          <div class="cell cell-d" style="font-size:0.625rem;color:${dm('#666')};white-space:nowrap">${poolStr} / ${costStr}</div>
+          <div class="cell cell-e" style="font-size:0.625rem">${autoLabel}</div>
           <div class="cell cell-f"></div>
           <div class="cell cell-g"></div>
           <div class="cell cell-h"></div>
@@ -3041,9 +3041,9 @@ function updateTaxPanel() {
         <div class="cell cell-c" style="display:flex;align-items:center">${cooLevels}</div>
         <div class="cell cell-d"></div>
         <div class="cell cell-e"></div>
-        <div class="cell cell-f" style="font-size:9px;color:${dm('#888')}">${activeCOO > 0 ? `Hires: ${gameState.cooHireCount || 0}` : ''}</div>
+        <div class="cell cell-f" style="font-size:0.5625rem;color:${dm('#888')}">${activeCOO > 0 ? `Hires: ${gameState.cooHireCount || 0}` : ''}</div>
         <div class="cell cell-g"></div>
-        <div class="cell cell-h" style="font-size:8px;color:${dm('#999')};white-space:nowrap">${activeCOO > 0 && gameState.cooTarget ? `Next: ${gameState.cooTarget}` : ''}</div>
+        <div class="cell cell-h" style="font-size:0.5rem;color:${dm('#999')};white-space:nowrap">${activeCOO > 0 && gameState.cooTarget ? `Next: ${gameState.cooTarget}` : ''}</div>
       </div>`;
 
       // COO Budget sub-row
@@ -3066,14 +3066,14 @@ function updateTaxPanel() {
 
         html += `<div class="grid-row ir-row cto-budget-row">
           <div class="row-num">${rowNum++}</div>
-          <div class="cell cell-a" style="padding-left:28px;color:${dm('#666')};font-size:10px">Budget</div>
+          <div class="cell cell-a" style="padding-left:28px;color:${dm('#666')};font-size:0.625rem">Budget</div>
           <div class="cell cell-b" style="display:flex;align-items:center;gap:4px">
             <input type="range" min="0" max="100" step="5" value="${cooPct}" class="cto-budget-slider" ${cooSliderDisabled} oninput="setCooBudgetPct(this.value)" title="% of revenue skimmed into COO hiring pool">
             <span class="cto-budget-pct">${cooPct}%</span>
           </div>
-          <div class="cell cell-c" style="font-family:Consolas,monospace;font-size:10px;color:${cooBarColor}" title="${cooProgress}% toward next hire">${cooBar}</div>
-          <div class="cell cell-d" style="font-size:10px;color:${dm('#666')};white-space:nowrap">${cooPoolStr} / ${cooCostStr}</div>
-          <div class="cell cell-e" style="font-size:10px">${cooAutoLabel}</div>
+          <div class="cell cell-c" style="font-family:Consolas,monospace;font-size:0.625rem;color:${cooBarColor}" title="${cooProgress}% toward next hire">${cooBar}</div>
+          <div class="cell cell-d" style="font-size:0.625rem;color:${dm('#666')};white-space:nowrap">${cooPoolStr} / ${cooCostStr}</div>
+          <div class="cell cell-e" style="font-size:0.625rem">${cooAutoLabel}</div>
           <div class="cell cell-f"></div>
           <div class="cell cell-g"></div>
           <div class="cell cell-h"></div>
@@ -3102,12 +3102,12 @@ function updateTaxPanel() {
     html += `<div class="grid-row tax-grid-header">
       <div class="row-num">${rowNum++}</div>
       <div class="cell cell-a" style="font-weight:600;color:${dm('#900')}">TAX LIABILITY</div>
-      <div class="cell cell-b" style="font-weight:600;color:${dm('#666')};font-size:10px">Original</div>
-      <div class="cell cell-c" style="font-weight:600;color:${dm('#666')};font-size:10px;justify-content:flex-end">Interest</div>
-      <div class="cell cell-d" style="font-weight:600;color:${dm('#666')};font-size:10px;justify-content:flex-end">Total Due</div>
-      <div class="cell cell-e" style="font-weight:600;color:${dm('#666')};font-size:10px">Age</div>
-      <div class="cell cell-f" style="font-weight:600;color:${dm('#666')};font-size:10px">Status</div>
-      <div class="cell cell-g" style="font-weight:600;color:${dm('#666')};font-size:10px">Next</div>
+      <div class="cell cell-b" style="font-weight:600;color:${dm('#666')};font-size:0.625rem">Original</div>
+      <div class="cell cell-c" style="font-weight:600;color:${dm('#666')};font-size:0.625rem;justify-content:flex-end">Interest</div>
+      <div class="cell cell-d" style="font-weight:600;color:${dm('#666')};font-size:0.625rem;justify-content:flex-end">Total Due</div>
+      <div class="cell cell-e" style="font-weight:600;color:${dm('#666')};font-size:0.625rem">Age</div>
+      <div class="cell cell-f" style="font-weight:600;color:${dm('#666')};font-size:0.625rem">Status</div>
+      <div class="cell cell-g" style="font-weight:600;color:${dm('#666')};font-size:0.625rem">Next</div>
       <div class="cell cell-h"></div>
     </div>`;
 
@@ -3126,12 +3126,12 @@ function updateTaxPanel() {
       html += `<div class="grid-row tax-debt-row">
         <div class="row-num">${rowNum++}</div>
         <div class="cell cell-a" style="color:${dm('#900')}">${qLabel} Assessment</div>
-        <div class="cell cell-b" style="font-family:Consolas,monospace;font-size:11px;color:${dm('#c00')}">${formatMoney(d.original)}</div>
-        <div class="cell cell-c" style="font-family:Consolas,monospace;font-size:11px;color:${dm('#c00')};justify-content:flex-end">${formatMoney(interest)}</div>
-        <div class="cell cell-d" style="font-family:Consolas,monospace;font-size:11px;color:${dm('#c00')};font-weight:700;justify-content:flex-end">${formatMoney(d.current)}</div>
-        <div class="cell cell-e" style="color:${dm('#888')};font-size:11px">${d.daysOverdue}d</div>
-        <div class="cell cell-f" style="font-size:10px">${stageLabels[d.stage]}</div>
-        <div class="cell cell-g" style="font-size:10px;color:${dm('#888')}">${nextText}</div>
+        <div class="cell cell-b" style="font-family:Consolas,monospace;font-size:0.6875rem;color:${dm('#c00')}">${formatMoney(d.original)}</div>
+        <div class="cell cell-c" style="font-family:Consolas,monospace;font-size:0.6875rem;color:${dm('#c00')};justify-content:flex-end">${formatMoney(interest)}</div>
+        <div class="cell cell-d" style="font-family:Consolas,monospace;font-size:0.6875rem;color:${dm('#c00')};font-weight:700;justify-content:flex-end">${formatMoney(d.current)}</div>
+        <div class="cell cell-e" style="color:${dm('#888')};font-size:0.6875rem">${d.daysOverdue}d</div>
+        <div class="cell cell-f" style="font-size:0.625rem">${stageLabels[d.stage]}</div>
+        <div class="cell cell-g" style="font-size:0.625rem;color:${dm('#888')}">${nextText}</div>
         <div class="cell cell-h"><button class="cell-btn btn-max" data-settle="${i}">Settle</button></div>
       </div>`;
     }
@@ -3143,7 +3143,7 @@ function updateTaxPanel() {
       <div class="cell cell-a" style="font-weight:700;color:${dm('#900')}">TOTAL OWED</div>
       <div class="cell cell-b"></div>
       <div class="cell cell-c"></div>
-      <div class="cell cell-d" style="font-family:Consolas,monospace;font-size:12px;color:${dm('#c00')};font-weight:700;justify-content:flex-end">${formatMoney(total)}</div>
+      <div class="cell cell-d" style="font-family:Consolas,monospace;font-size:0.75rem;color:${dm('#c00')};font-weight:700;justify-content:flex-end">${formatMoney(total)}</div>
       <div class="cell cell-e"></div><div class="cell cell-f"></div>
       <div class="cell cell-g"></div>
       <div class="cell cell-h"><button class="cell-btn btn-max" data-settle-all style="${settleAllVis}">Settle All</button></div>
@@ -3560,7 +3560,7 @@ function toggleDebugEventDropdown() {
   dd.innerHTML = '';
   EVENTS.forEach((event) => {
     const btn = document.createElement('div');
-    btn.style.cssText = `padding:5px 10px;cursor:pointer;font-size:11px;border-bottom:1px solid ${dm('#eee')};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:${dm('#333')}`;
+    btn.style.cssText = `padding:5px 10px;cursor:pointer;font-size:0.6875rem;border-bottom:1px solid ${dm('#eee')};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:${dm('#333')}`;
     btn.textContent = event.debugLabel || `${event.sender || 'Dynamic'} — ${(event.subject || '(dynamic event)').replace(/[\u{1F300}-\u{1FAFF}]/gu, '').trim()}`;
     btn.onmouseenter = () => btn.style.background = dm('#e8f0fe');
     btn.onmouseleave = () => btn.style.background = '';
@@ -3904,7 +3904,7 @@ function showOfflineModal(elapsedSeconds, earnings) {
     <p>Your team worked while you were away!</p>
     <p>⏱ Time elapsed: <strong>${formatDuration(elapsedSeconds)}</strong></p>
     <p>💰 Earnings: <strong>${formatMoney(earnings)}</strong></p>
-    ${elapsedSeconds >= 8 * 3600 ? `<p style="color:${dm('#999')};font-size:11px">(Capped at 8 hours overtime)</p>` : ''}
+    ${elapsedSeconds >= 8 * 3600 ? `<p style="color:${dm('#999')};font-size:0.6875rem">(Capped at 8 hours overtime)</p>` : ''}
   `;
   document.getElementById('offline-modal').classList.remove('hidden');
 }
@@ -4869,11 +4869,11 @@ function buildBoardRoom() {
   html += `<div class="grid-row br-header-row">
     <div class="row-num">${rowNum++}</div>
     <div class="cell cell-a" style="font-weight:700;color:${dm('#7b1fa2')}">BOARD ROOM</div>
-    <div class="cell cell-b" style="font-weight:600;color:${dm('#666')};font-size:10px">Category</div>
-    <div class="cell cell-c" style="font-weight:600;color:${dm('#666')};font-size:10px;justify-content:flex-end">Cost</div>
-    <div class="cell cell-d" style="font-weight:600;color:${dm('#666')};font-size:10px;justify-content:flex-end">Status</div>
+    <div class="cell cell-b" style="font-weight:600;color:${dm('#666')};font-size:0.625rem">Category</div>
+    <div class="cell cell-c" style="font-weight:600;color:${dm('#666')};font-size:0.625rem;justify-content:flex-end">Cost</div>
+    <div class="cell cell-d" style="font-weight:600;color:${dm('#666')};font-size:0.625rem;justify-content:flex-end">Status</div>
     <div class="cell cell-e"></div>
-    <div class="cell cell-f" style="font-weight:700;color:${dm('#7b1fa2')};font-family:Consolas,monospace;font-size:12px">${gameState.retainedEarnings.toLocaleString()} RE</div>
+    <div class="cell cell-f" style="font-weight:700;color:${dm('#7b1fa2')};font-family:Consolas,monospace;font-size:0.75rem">${gameState.retainedEarnings.toLocaleString()} RE</div>
     <div class="cell cell-g"></div>
     <div class="cell cell-h"></div>
   </div>`;
@@ -4918,7 +4918,7 @@ function buildBoardRoom() {
     // Category header row
     html += `<div class="grid-row br-category-row">
       <div class="row-num">${rowNum++}</div>
-      <div class="cell cell-a" style="font-weight:700;color:${dm('#555')};font-size:11px;border-bottom:1px solid ${dm('#ccc')}">${categoryLabels[cat] || cat}</div>
+      <div class="cell cell-a" style="font-weight:700;color:${dm('#555')};font-size:0.6875rem;border-bottom:1px solid ${dm('#ccc')}">${categoryLabels[cat] || cat}</div>
       <div class="cell cell-b" style="border-bottom:1px solid ${dm('#ccc')}"></div>
       <div class="cell cell-c" style="border-bottom:1px solid ${dm('#ccc')}"></div>
       <div class="cell cell-d" style="border-bottom:1px solid ${dm('#ccc')}"></div>
@@ -4975,10 +4975,10 @@ function buildBoardRoom() {
     html += `<div class="${rowClass}">
       <div class="row-num">${rowNum++}</div>
       <div class="cell cell-a" style="font-weight:500;${isLocked ? `color:${dm('#bbb')}` : ''}">${upgrade.name}</div>
-      <div class="cell cell-b" style="font-size:10px;color:${dm('#888')}">${upgrade.category}</div>
-      <div class="cell cell-c" style="font-family:Consolas,monospace;font-size:11px;color:${costColor};justify-content:flex-end">${costLabel}</div>
+      <div class="cell cell-b" style="font-size:0.625rem;color:${dm('#888')}">${upgrade.category}</div>
+      <div class="cell cell-c" style="font-family:Consolas,monospace;font-size:0.6875rem;color:${costColor};justify-content:flex-end">${costLabel}</div>
       <div class="cell cell-d" style="justify-content:flex-end">${statusCell}</div>
-      <div class="cell cell-e" style="font-size:10px;color:${dm('#888')};white-space:normal;line-height:1.3">${desc}</div>
+      <div class="cell cell-e" style="font-size:0.625rem;color:${dm('#888')};white-space:normal;line-height:1.3">${desc}</div>
       <div class="cell cell-f"></div>
       <div class="cell cell-g"></div>
       <div class="cell cell-h"></div>
@@ -5064,21 +5064,21 @@ function purchaseBoardRoomUpgrade(id) {
 
 // ===== INITIALIZATION =====
 // ===== DARK MODE =====
-// ===== FONT SIZE (ZOOM) =====
-const ZOOM_MIN = 70;
-const ZOOM_MAX = 150;
-const ZOOM_STEP = 10;
-let currentZoom = parseInt(localStorage.getItem('qc-zoom') || '100');
+// ===== FONT SIZE (ROOT FONT-SIZE) =====
+const FONT_SIZES = [12, 13, 14, 15, 16, 17, 18];
+let fontSizeIdx = parseInt(localStorage.getItem('qc-font-idx') || '2'); // default 14px base
 
 function changeFontSize(dir) {
-  currentZoom = Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, currentZoom + dir * ZOOM_STEP));
-  document.getElementById('game-view').style.zoom = (currentZoom / 100).toString();
-  localStorage.setItem('qc-zoom', currentZoom.toString());
+  fontSizeIdx = Math.max(0, Math.min(FONT_SIZES.length - 1, fontSizeIdx + dir));
+  const size = FONT_SIZES[fontSizeIdx];
+  document.documentElement.style.fontSize = size + 'px';
+  localStorage.setItem('qc-font-idx', fontSizeIdx.toString());
 }
 
 function initZoom() {
-  if (currentZoom !== 100) {
-    document.getElementById('game-view').style.zoom = (currentZoom / 100).toString();
+  const size = FONT_SIZES[fontSizeIdx];
+  if (size !== 14) {
+    document.documentElement.style.fontSize = size + 'px';
   }
 }
 window.changeFontSize = changeFontSize;

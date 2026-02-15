@@ -357,6 +357,11 @@
    Quarter Close — Spreadsheet Disguise CSS
    ============================================ */
 
+/* Root font-size — responsive scaling */
+html {
+  font-size: clamp(12px, 1.5vw, 16px);
+}
+
 /* Reset & Base */
 * {
   margin: 0;
@@ -366,7 +371,7 @@
 
 body {
   font-family: 'Segoe UI', Calibri, Arial, sans-serif;
-  font-size: 12px;
+  font-size: 0.75rem;
   color: var(--text-primary);
   background: var(--bg-main);
   overflow: hidden;
@@ -391,7 +396,7 @@ body {
   color: var(--text-on-accent);
   height: 30px;
   padding: 0 8px;
-  font-size: 12px;
+  font-size: 0.75rem;
 }
 
 #title-left, #boss-title-left {
@@ -412,7 +417,7 @@ body {
   width: 46px;
   height: 30px;
   cursor: pointer;
-  font-size: 12px;
+  font-size: 0.75rem;
 }
 
 .title-btn:hover {
@@ -438,7 +443,7 @@ body {
 .menu-item {
   padding: 4px 12px;
   cursor: pointer;
-  font-size: 12px;
+  font-size: 0.75rem;
   color: var(--text-body);
   border-radius: 2px;
   position: relative;
@@ -475,7 +480,7 @@ body {
   justify-content: space-between;
   padding: 6px 16px;
   cursor: pointer;
-  font-size: 12px;
+  font-size: 0.75rem;
   color: var(--text-secondary);
   white-space: nowrap;
 }
@@ -486,7 +491,7 @@ body {
 
 .menu-dropdown-item .shortcut {
   color: var(--text-faint);
-  font-size: 11px;
+  font-size: 0.6875rem;
   margin-left: 24px;
 }
 
@@ -501,7 +506,7 @@ body {
   display: inline-block;
   width: 16px;
   margin-right: 4px;
-  font-size: 11px;
+  font-size: 0.6875rem;
   color: var(--accent-green);
 }
 
@@ -531,13 +536,13 @@ body {
 }
 
 #about-content h3 {
-  font-size: 18px;
+  font-size: 1.125rem;
   color: var(--accent-green);
   margin-bottom: 8px;
 }
 
 #about-content p {
-  font-size: 12px;
+  font-size: 0.75rem;
   color: var(--text-muted);
   margin-bottom: 6px;
 }
@@ -550,7 +555,7 @@ body {
   padding: 6px 20px;
   border-radius: 3px;
   cursor: pointer;
-  font-size: 12px;
+  font-size: 0.75rem;
 }
 
 #about-content button:hover {
@@ -589,7 +594,7 @@ body {
 }
 
 .help-header h3 {
-  font-size: 16px;
+  font-size: 1rem;
   color: var(--accent-green);
   margin: 0;
 }
@@ -597,7 +602,7 @@ body {
 .help-close {
   background: none;
   border: none;
-  font-size: 16px;
+  font-size: 1rem;
   color: var(--text-faint);
   cursor: pointer;
   padding: 2px 6px;
@@ -617,7 +622,7 @@ body {
 
 .help-tab {
   padding: 6px 14px;
-  font-size: 11px;
+  font-size: 0.6875rem;
   font-family: 'Segoe UI', Arial, sans-serif;
   color: var(--text-muted);
   cursor: pointer;
@@ -644,7 +649,7 @@ body {
 .help-body {
   padding: 16px 20px;
   overflow-y: auto;
-  font-size: 12px;
+  font-size: 0.75rem;
   line-height: 1.6;
   color: var(--text-body);
 }
@@ -662,7 +667,7 @@ body {
 }
 
 .help-section h4 {
-  font-size: 13px;
+  font-size: 0.8125rem;
   color: var(--accent-green);
   margin: 0 0 6px;
 }
@@ -708,7 +713,7 @@ body {
 }
 
 #confirm-content p {
-  font-size: 13px;
+  font-size: 0.8125rem;
   color: var(--text-secondary);
   margin-bottom: 16px;
 }
@@ -723,7 +728,7 @@ body {
   padding: 6px 20px;
   border-radius: 3px;
   cursor: pointer;
-  font-size: 12px;
+  font-size: 0.75rem;
   border: 1px solid var(--border-medium);
   background: var(--bg-modal);
   color: var(--text-secondary);
@@ -771,7 +776,7 @@ body {
   border: 1px solid transparent;
   background: transparent;
   cursor: pointer;
-  font-size: 13px;
+  font-size: 0.8125rem;
   color: var(--text-label);
   border-radius: 2px;
 }
@@ -785,7 +790,7 @@ body {
   height: 24px;
   border: 1px solid var(--border-medium);
   background: var(--bg-cell);
-  font-size: 11px;
+  font-size: 0.6875rem;
   color: var(--text-secondary);
   padding: 0 4px;
   border-radius: 2px;
@@ -810,7 +815,7 @@ body {
   background: var(--bg-cell);
   border-bottom: 1px solid var(--border-frame);
   height: 26px;
-  font-size: 12px;
+  font-size: 0.75rem;
 }
 
 #cell-ref, .boss-cell-ref {
@@ -823,7 +828,7 @@ body {
   justify-content: center;
   background: var(--bg-cell-alt);
   color: var(--text-secondary);
-  font-size: 11px;
+  font-size: 0.6875rem;
 }
 
 #fx-label, .boss-fx {
@@ -868,7 +873,7 @@ body {
 
 .col-header {
   text-align: center;
-  font-size: 11px;
+  font-size: 0.6875rem;
   color: var(--text-muted);
   border-right: 1px solid var(--border-frame);
   height: 100%;
@@ -928,7 +933,7 @@ body {
 .row-num {
   text-align: center;
   color: var(--text-dim);
-  font-size: 11px;
+  font-size: 0.6875rem;
   border-right: 1px solid var(--border-light);
   background: var(--bg-row-alt);
   height: 100%;
@@ -939,7 +944,7 @@ body {
 
 .cell {
   padding: 2px 6px;
-  font-size: 12px;
+  font-size: 0.75rem;
   border-right: 1px solid var(--bg-highlight);
   height: 100%;
   display: flex;
@@ -952,10 +957,10 @@ body {
 
 .cell-a { color: var(--text-primary); }
 .cell-b { justify-content: center; color: var(--text-body); }
-.cell-c { justify-content: flex-end; color: var(--accent-green); font-family: 'Consolas', 'Courier New', monospace; font-size: 11px; }
-.cell-d { justify-content: flex-end; color: var(--accent-green); font-family: 'Consolas', 'Courier New', monospace; font-size: 11px; }
+.cell-c { justify-content: flex-end; color: var(--accent-green); font-family: 'Consolas', 'Courier New', monospace; font-size: 0.6875rem; }
+.cell-d { justify-content: flex-end; color: var(--accent-green); font-family: 'Consolas', 'Courier New', monospace; font-size: 0.6875rem; }
 .cell-e, .cell-f { justify-content: center; }
-.cell-g { justify-content: flex-end; color: var(--accent-green); font-family: 'Consolas', 'Courier New', monospace; font-size: 11px; }
+.cell-g { justify-content: flex-end; color: var(--accent-green); font-family: 'Consolas', 'Courier New', monospace; font-size: 0.6875rem; }
 .cell-h { border-right: none; }
 
 .empty-cell { border-right: 1px solid var(--bg-highlight); }
@@ -963,7 +968,7 @@ body {
 .header-cell {
   font-weight: 600;
   color: var(--text-secondary) !important;
-  font-size: 11px;
+  font-size: 0.6875rem;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
@@ -981,26 +986,26 @@ body {
 .cash-value {
   font-weight: 700;
   color: var(--accent-green-text) !important;
-  font-size: 13px !important;
+  font-size: 0.8125rem !important;
   font-family: 'Consolas', 'Courier New', monospace;
 }
 
 .rev-label {
   justify-content: flex-end;
   color: var(--text-muted);
-  font-size: 11px;
+  font-size: 0.6875rem;
 }
 
 .rev-value {
   color: var(--accent-green) !important;
   font-family: 'Consolas', 'Courier New', monospace;
-  font-size: 11px;
+  font-size: 0.6875rem;
 }
 
 .per-tick-value {
   font-weight: 700;
   color: var(--accent-blue) !important;
-  font-size: 12px !important;
+  font-size: 0.75rem !important;
   font-family: 'Consolas', 'Courier New', monospace;
   animation: tick-pulse 1s ease-in-out infinite alternate;
 }
@@ -1013,14 +1018,14 @@ body {
 .stats-header {
   font-weight: 600;
   color: var(--text-label);
-  font-size: 10px;
+  font-size: 0.625rem;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
 .stats-label {
   color: var(--text-dim);
-  font-size: 10px;
+  font-size: 0.625rem;
   justify-content: flex-end;
   padding-right: 4px !important;
 }
@@ -1028,7 +1033,7 @@ body {
 .stats-val {
   color: var(--text-secondary);
   font-family: 'Consolas', 'Courier New', monospace;
-  font-size: 11px;
+  font-size: 0.6875rem;
 }
 
 .sep-cell {
@@ -1067,7 +1072,7 @@ body {
   border: 1px solid var(--border-medium);
   background: var(--bg-btn);
   cursor: pointer;
-  font-size: 10px;
+  font-size: 0.625rem;
   border-radius: 2px;
   color: var(--text-secondary);
   font-family: 'Segoe UI', Arial, sans-serif;
@@ -1110,7 +1115,7 @@ body {
   background: none;
   border: none;
   color: var(--max-btn);
-  font-size: 9px;
+  font-size: 0.5625rem;
   padding: 0 3px;
   margin-right: 2px;
   text-decoration: underline;
@@ -1126,7 +1131,7 @@ body {
   background: var(--settle-bg) !important;
   color: var(--accent-red) !important;
   border-color: var(--accent-red) !important;
-  font-size: 8px !important;
+  font-size: 0.5rem !important;
   animation: settle-shake 0.3s ease;
 }
 
@@ -1175,7 +1180,7 @@ body {
   background: var(--bg-prestige);
   border-color: var(--border-prestige);
   color: var(--text-prestige);
-  font-size: 9px;
+  font-size: 0.5625rem;
 }
 
 .cell-btn.btn-prestige:hover,
@@ -1195,7 +1200,7 @@ body {
 
 /* Auto indicator */
 .auto-badge {
-  font-size: 9px;
+  font-size: 0.5625rem;
   color: var(--auto-badge);
   font-weight: 600;
   margin-left: 4px;
@@ -1213,7 +1218,7 @@ body {
 
 .filler-row .row-num {
   color: var(--text-ghost);
-  font-size: 10px;
+  font-size: 0.625rem;
 }
 
 .filler-row .cell {
@@ -1249,7 +1254,7 @@ body {
   padding: 3px 12px;
   background: var(--bg-main);
   border-top: 1px solid var(--border-cell);
-  font-size: 11px;
+  font-size: 0.6875rem;
   font-family: 'Consolas', 'Courier New', monospace;
 }
 
@@ -1265,7 +1270,7 @@ body {
 
 .rb-sep {
   color: var(--text-ghost);
-  font-size: 10px;
+  font-size: 0.625rem;
 }
 
 #sheet-tabs, #boss-sheet-tabs {
@@ -1285,7 +1290,7 @@ body {
   border-bottom: none;
   border-radius: 4px 4px 0 0;
   cursor: pointer;
-  font-size: 11px;
+  font-size: 0.6875rem;
   color: var(--text-label);
   margin-top: 4px;
 }
@@ -1308,7 +1313,7 @@ body {
   background: transparent;
   border: none;
   color: var(--text-dim);
-  font-size: 14px;
+  font-size: 0.875rem;
   padding: 2px 10px;
 }
 
@@ -1324,7 +1329,7 @@ body {
   color: var(--text-on-accent);
   height: 24px;
   padding: 0 12px;
-  font-size: 11px;
+  font-size: 0.6875rem;
 }
 
 #status-left { flex: 1; }
@@ -1345,7 +1350,7 @@ body {
 
 .status-indicator {
   opacity: 0.9;
-  font-size: 10px;
+  font-size: 0.625rem;
 }
 
 #boss-status-bar {
@@ -1399,7 +1404,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 11px;
+  font-size: 0.6875rem;
   color: var(--text-muted);
 }
 
@@ -1410,7 +1415,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 10px;
+  font-size: 0.625rem;
   color: var(--text-faint);
 }
 
@@ -1433,7 +1438,7 @@ body {
   border-radius: 4px;
   box-shadow: 0 4px 20px var(--shadow-xl);
   z-index: 1000;
-  font-size: 12px;
+  font-size: 0.75rem;
   animation: fadeIn 0.2s ease-out;
 }
 
@@ -1457,7 +1462,7 @@ body {
   gap: 6px;
 }
 
-#toast-icon { font-size: 14px; }
+#toast-icon { font-size: 0.875rem; }
 #toast-title {
   font-weight: 600;
   color: var(--accent-blue);
@@ -1467,7 +1472,7 @@ body {
 #toast-close {
   cursor: pointer;
   color: var(--text-dim);
-  font-size: 14px;
+  font-size: 0.875rem;
   padding: 2px 6px;
   border-radius: 2px;
 }
@@ -1497,7 +1502,7 @@ body {
   display: flex;
   justify-content: space-between;
   padding: 3px 0;
-  font-size: 12px;
+  font-size: 0.75rem;
 }
 
 .er-label {
@@ -1526,7 +1531,7 @@ body {
 }
 
 .er-prompt {
-  font-size: 11px;
+  font-size: 0.6875rem;
   color: var(--text-dim);
   margin-top: 4px;
 }
@@ -1549,13 +1554,13 @@ body {
   border-radius: 4px;
   box-shadow: 0 4px 16px var(--shadow-lg);
   z-index: 900;
-  font-size: 12px;
+  font-size: 0.75rem;
   animation: fadeIn 0.2s ease-out;
 }
 
 #deal-header {
   font-weight: 600;
-  font-size: 13px;
+  font-size: 0.8125rem;
   color: var(--accent-green);
   padding: 8px 12px 4px;
   cursor: move;
@@ -1568,7 +1573,7 @@ body {
 }
 
 #deal-progress-text {
-  font-size: 11px;
+  font-size: 0.6875rem;
   color: var(--text-muted);
   text-align: center;
   padding: 0 12px 4px;
@@ -1602,7 +1607,7 @@ body {
   border: 1px solid var(--border-medium);
   background: var(--bg-toast-btn);
   cursor: pointer;
-  font-size: 11px;
+  font-size: 0.6875rem;
   border-radius: 2px;
   color: var(--text-secondary);
 }
@@ -1669,7 +1674,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 11px;
+  font-size: 0.6875rem;
   font-weight: 600;
   color: white;
   text-shadow: 0 1px 2px rgba(0,0,0,0.3);
@@ -1700,14 +1705,14 @@ body {
 }
 
 #offline-header {
-  font-size: 18px;
+  font-size: 1.125rem;
   font-weight: 600;
   margin-bottom: 12px;
   color: var(--accent-green);
 }
 
 #offline-body {
-  font-size: 13px;
+  font-size: 0.8125rem;
   color: var(--text-label);
   line-height: 1.6;
   margin-bottom: 16px;
@@ -1720,7 +1725,7 @@ body {
   border: none;
   border-radius: 3px;
   cursor: pointer;
-  font-size: 13px;
+  font-size: 0.8125rem;
 }
 
 #offline-ok:hover {
@@ -1753,7 +1758,7 @@ body {
 #series-a-header {
   background: var(--bg-surface);
   padding: 14px 20px;
-  font-size: 14px;
+  font-size: 0.875rem;
   font-weight: 600;
   border-bottom: 1px solid var(--border-light);
   color: var(--accent-blue);
@@ -1761,7 +1766,7 @@ body {
 
 #series-a-body {
   padding: 20px;
-  font-size: 13px;
+  font-size: 0.8125rem;
   color: var(--text-body);
   line-height: 1.6;
 }
@@ -1774,14 +1779,14 @@ body {
 
 .series-a-teaser {
   text-align: center;
-  font-size: 15px;
+  font-size: 0.9375rem;
   margin-top: 8px !important;
 }
 
 .series-a-sub {
   text-align: center;
   color: var(--text-dim) !important;
-  font-size: 12px !important;
+  font-size: 0.75rem !important;
 }
 
 #series-a-ok {
@@ -1793,7 +1798,7 @@ body {
   border: none;
   border-radius: 3px;
   cursor: pointer;
-  font-size: 13px;
+  font-size: 0.8125rem;
   width: calc(100% - 40px);
 }
 
@@ -1876,14 +1881,14 @@ body {
 }
 
 #arc-title {
-  font-size: 24px;
+  font-size: 1.5rem;
   font-weight: 600;
   color: var(--accent-green);
   margin-bottom: 4px;
 }
 
 #arc-subtitle {
-  font-size: 14px;
+  font-size: 0.875rem;
   color: var(--text-muted);
 }
 
@@ -1907,25 +1912,25 @@ body {
 }
 
 .arc-icon {
-  font-size: 28px;
+  font-size: 1.75rem;
   margin-bottom: 6px;
 }
 
 .arc-name {
-  font-size: 15px;
+  font-size: 0.9375rem;
   font-weight: 600;
   color: var(--text-secondary);
   margin-bottom: 2px;
 }
 
 .arc-desc {
-  font-size: 12px;
+  font-size: 0.75rem;
   color: var(--text-muted);
   margin-bottom: 6px;
 }
 
 .arc-first {
-  font-size: 10px;
+  font-size: 0.625rem;
   color: var(--text-faint);
   font-style: italic;
 }
@@ -1933,7 +1938,7 @@ body {
 #arc-footer {
   text-align: center;
   margin-top: 24px;
-  font-size: 11px;
+  font-size: 0.6875rem;
   color: var(--text-disabled);
   font-style: italic;
 }
@@ -1948,7 +1953,7 @@ body {
   padding: 4px 12px 4px 36px;
   background: var(--bg-mini-task);
   border-bottom: 1px solid var(--border-mini-task);
-  font-size: 12px;
+  font-size: 0.75rem;
   max-width: 600px;
 }
 
@@ -1959,7 +1964,7 @@ body {
 #mini-task-reward {
   color: var(--accent-green);
   font-weight: 600;
-  font-size: 12px;
+  font-size: 0.75rem;
 }
 
 .mini-task-btn {
@@ -1969,7 +1974,7 @@ body {
   padding: 3px 10px;
   border-radius: 3px;
   cursor: pointer;
-  font-size: 11px;
+  font-size: 0.6875rem;
   font-weight: 600;
 }
 
@@ -1984,7 +1989,7 @@ body {
   padding: 2px 6px;
   border-radius: 3px;
   cursor: pointer;
-  font-size: 11px;
+  font-size: 0.6875rem;
 }
 
 .mini-task-skip:hover {
@@ -2000,7 +2005,7 @@ body {
   padding: 8px 16px;
   background: var(--timescale-bg);
   color: var(--text-on-accent);
-  font-size: 14px;
+  font-size: 0.875rem;
   font-weight: 600;
   letter-spacing: 0.5px;
 }
@@ -2091,7 +2096,7 @@ body {
 }
 
 .chart-title {
-  font-size: 11px;
+  font-size: 0.6875rem;
   font-weight: 600;
   color: var(--text-secondary);
   text-align: center;
@@ -2115,7 +2120,7 @@ body {
 }
 
 .ir-guidance-btn {
-  font-size: 9px !important;
+  font-size: 0.5625rem !important;
   padding: 2px 5px !important;
   background: var(--bg-btn);
   border: 1px solid var(--border-medium);
@@ -2189,12 +2194,12 @@ body {
 .br-owned-badge {
   color: var(--accent-green);
   font-weight: 600;
-  font-size: 11px;
+  font-size: 0.6875rem;
 }
 
 .br-locked-badge {
   color: var(--text-placeholder);
-  font-size: 10px;
+  font-size: 0.625rem;
   font-style: italic;
 }
 
@@ -2245,7 +2250,7 @@ body {
   position: absolute;
   top: 12px;
   right: 16px;
-  font-size: 11px;
+  font-size: 0.6875rem;
   color: var(--text-disabled);
   font-family: 'Segoe UI', Calibri, Arial, sans-serif;
 }
@@ -2262,12 +2267,12 @@ body {
 }
 #splash-filename {
   font-family: 'Segoe UI', Calibri, Arial, sans-serif;
-  font-size: 14px;
+  font-size: 0.875rem;
   color: var(--text-muted);
 }
 #splash-title {
   font-family: 'Segoe UI', Calibri, Arial, sans-serif;
-  font-size: 48px;
+  font-size: 3rem;
   font-weight: 300;
   color: var(--text-secondary);
   margin: 0 0 12px;
@@ -2280,7 +2285,7 @@ body {
 }
 #splash-tagline {
   font-family: 'Segoe UI', Calibri, Arial, sans-serif;
-  font-size: 15px;
+  font-size: 0.9375rem;
   font-weight: 700;
   color: var(--accent-green);
   letter-spacing: 3px;
@@ -2303,7 +2308,7 @@ body {
   z-index: 2;
   text-align: center;
   font-family: 'Segoe UI', Calibri, Arial, sans-serif;
-  font-size: 12px;
+  font-size: 0.75rem;
   color: var(--text-faint);
   margin: 0;
   padding: 10px 0 14px;
@@ -2340,7 +2345,7 @@ body {
 }
 #options-content .help-header h3 {
   margin: 0;
-  font-size: 14px;
+  font-size: 0.875rem;
   font-weight: 600;
   color: var(--text-secondary);
 }
@@ -2349,13 +2354,13 @@ body {
   overflow-y: auto;
 }
 .options-section h4 {
-  font-size: 13px;
+  font-size: 0.8125rem;
   font-weight: 600;
   color: var(--accent-green);
   margin: 0 0 4px;
 }
 .options-desc {
-  font-size: 11px;
+  font-size: 0.6875rem;
   color: var(--text-dim);
   margin: 0 0 12px;
 }
@@ -2376,13 +2381,13 @@ body {
   accent-color: var(--accent-green);
 }
 .option-name {
-  font-size: 12px;
+  font-size: 0.75rem;
   font-weight: 600;
   color: var(--text-secondary);
   flex: 1;
 }
 .option-info {
-  font-size: 11px;
+  font-size: 0.6875rem;
   color: var(--text-dim);
   width: 100%;
   padding-left: 24px;
@@ -2400,7 +2405,7 @@ body {
   padding: 6px 24px;
   border-radius: 2px;
   cursor: pointer;
-  font-size: 12px;
+  font-size: 0.75rem;
 }
 .options-footer button:hover {
   background: var(--accent-green-light);
@@ -2408,7 +2413,7 @@ body {
 
 /* ===== MANAGEMENT FOCUS ===== */
 .focus-tag {
-  font-size: 10px;
+  font-size: 0.625rem;
   padding: 0 3px;
   border-radius: 2px;
   font-weight: 600;
@@ -2426,14 +2431,14 @@ body {
 
 /* Focus bonus in rev/day column */
 .focus-bonus {
-  font-size: 9px;
+  font-size: 0.5625rem;
   color: var(--accent-green);
   font-weight: 600;
 }
 
 /* Focus icon next to dept name */
 .focus-icon {
-  font-size: 10px;
+  font-size: 0.625rem;
   margin-right: 3px;
   opacity: 0.4;
   display: inline-block;
@@ -2515,14 +2520,14 @@ body {
 
 .cto-budget-pct {
   font-family: Consolas, monospace;
-  font-size: 10px;
+  font-size: 0.625rem;
   color: var(--text-muted);
   min-width: 28px;
   text-align: right;
 }
 
 .cto-auto-label {
-  font-size: 10px;
+  font-size: 0.625rem;
   color: var(--text-muted);
   cursor: pointer;
   display: flex;
@@ -2544,6 +2549,6 @@ body {
 
 /* ===== DARK MODE TOGGLE ===== */
 #dark-mode-toggle {
-  font-size: 14px;
+  font-size: 0.875rem;
   cursor: pointer;
 }
