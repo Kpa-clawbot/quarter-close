@@ -1723,7 +1723,7 @@ function buildGrid() {
   overtimeRow.className = 'grid-row source-row';
   overtimeRow.id = 'overtime-row';
   overtimeRow.style.display = 'none';
-  const otRowNum = SOURCE_STATS.length + 4;
+  const otRowNum = SOURCE_STATS.length + 3;
   overtimeRow.innerHTML = `
     <div class="row-num">${otRowNum}</div>
     <div class="cell cell-a" style="font-weight:600;color:${dm('#555')}">⏰ Overtime</div>
@@ -2647,7 +2647,8 @@ function updateTaxPanel() {
   panel.classList.remove('hidden');
 
   const sourceCount = SOURCE_STATS.length;
-  let rowNum = sourceCount + 3;
+  const overtimeVisible = document.getElementById('overtime-row') && document.getElementById('overtime-row').style.display !== 'none';
+  let rowNum = sourceCount + 3 + (overtimeVisible ? 1 : 0);
   let html = '';
 
   // ===== P&L SECTION (collapsible, default collapsed) =====
