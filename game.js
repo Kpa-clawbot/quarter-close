@@ -4962,11 +4962,13 @@ function switchTab(tab) {
   const tabBR = document.getElementById('tab-board-room');
 
   const gridArea = document.getElementById('grid-container');
+  const deptHeader = document.getElementById('row-1');
 
   if (tab === 'boardroom') {
     revenueRows.classList.add('hidden');
     taxPanel.classList.add('hidden');
     fillerRows.classList.add('hidden');
+    if (deptHeader) deptHeader.classList.add('hidden');
     boardRoom.classList.remove('hidden');
     tabOps.classList.remove('active');
     tabBR.classList.add('active');
@@ -4976,6 +4978,7 @@ function switchTab(tab) {
     revenueRows.classList.remove('hidden');
     taxPanel.classList.remove('hidden');
     fillerRows.classList.remove('hidden');
+    if (deptHeader) deptHeader.classList.remove('hidden');
     boardRoom.classList.add('hidden');
     tabOps.classList.add('active');
     tabBR.classList.remove('active');
