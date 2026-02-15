@@ -2880,6 +2880,7 @@ function updateTaxPanel() {
       else { earningsBg = dm('#fffde7', '#33301a'); earningsFg = dm('#888'); }
     }
     const earningsCellStyle = `font-size:0.625rem;color:${earningsFg}${earningsBg ? `;background:${earningsBg};border-radius:3px;padding:1px 4px` : ''}`;
+    const analystVal = gameState.analystBaseline;
 
     // IR Header
     html += `<div class="grid-row ir-header">
@@ -2890,7 +2891,13 @@ function updateTaxPanel() {
       <div class="cell cell-d" style="font-size:0.625rem;color:${irCollapsed ? trackColor : dm('#888')}">${irCollapsed ? trackPctStr : ''}</div>
       <div class="cell cell-e" style="font-size:0.625rem;color:${streakColor}">${irCollapsed ? `Streak: ${shortStreak}` : ''}</div>
       <div class="cell cell-f" style="${earningsCellStyle}">${earningsLabel}</div>
-      <div class="cell cell-g" style="font-size:0.625rem;color:${dm('#888')}">${irCollapsed ? `Analyst: ${gameState.analystBaseline.toFixed(2)}×` : ''}</div>
+      <div class="cell cell-g" style="font-size:0.625rem;color:${
+        analystVal >= 2.0 ? dm('#c00', '#ef5350') :
+        analystVal >= 1.5 ? dm('#e65100', '#ffab40') :
+        analystVal >= 1.2 ? dm('#f9a825', '#fdd835') :
+        analystVal >= 1.0 ? dm('#888') :
+        dm('#217346')
+      }">${irCollapsed ? `Analyst: ${analystVal.toFixed(2)}×` : ''}</div>
       <div class="cell cell-h"></div>
     </div>`;
 
@@ -2940,7 +2947,13 @@ function updateTaxPanel() {
       <div class="cell cell-b" style="color:${streakColor}">${streakStr}</div>
       <div class="cell cell-c"></div>
       <div class="cell cell-d" style="font-size:0.625rem;color:${dm('#888')}">Analyst Exp</div>
-      <div class="cell cell-e" style="font-family:Consolas,monospace;font-size:0.6875rem;color:${dm('#333')}">${(gameState.analystBaseline).toFixed(2)}×</div>
+      <div class="cell cell-e" style="font-family:Consolas,monospace;font-size:0.6875rem;color:${
+        analystVal >= 2.0 ? dm('#c00', '#ef5350') :
+        analystVal >= 1.5 ? dm('#e65100', '#ffab40') :
+        analystVal >= 1.2 ? dm('#f9a825', '#fdd835') :
+        analystVal >= 1.0 ? dm('#888') :
+        dm('#217346')
+      }">${analystVal.toFixed(2)}×</div>
       <div class="cell cell-f"></div>
       <div class="cell cell-g"></div>
       <div class="cell cell-h"></div>
