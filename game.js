@@ -2669,15 +2669,40 @@ function updateTaxPanel() {
   const qNetStr = qNet < 0 ? '(' + formatCompact(-qNet) + ')' : formatCompact(qNet);
   const ltNetStr = ltNet < 0 ? '(' + formatCompact(-ltNet) + ')' : formatCompact(ltNet);
 
+  // Estimate upcoming tax for reactive coloring
+  const estTaxableIncome = gameState.quarterRevenue - getQuarterlyDepreciation();
+  const estTaxRate = getBoardRoomTaxRate();
+  const estRegularTax = Math.max(0, Math.floor(estTaxableIncome * estTaxRate));
+  const estAMT = Math.floor(gameState.quarterRevenue * getBoardRoomAMTRate());
+  const estTax = Math.max(estRegularTax, estAMT);
+  // Project to full quarter if we're partway through
+  const qProgress = daysIntoQuarter > 0 ? Math.min(1, 90 / Math.max(1, daysIntoQuarter)) : 1;
+  const projectedTax = Math.floor(estTax * qProgress);
+  let taxBg, taxFg;
+  if (daysToTax <= 0) {
+    taxBg = dm('#ffebee', '#4a1515'); taxFg = dm('#c00', '#ef5350');
+  } else if (projectedTax <= 0 || gameState.cash >= projectedTax * 2) {
+    taxBg = ''; taxFg = dm('#888');
+  } else if (gameState.cash >= projectedTax) {
+    if (daysToTax <= 14) { taxBg = dm('#fff8e1', '#3d3520'); taxFg = dm('#e65100', '#ffab40'); }
+    else { taxBg = ''; taxFg = dm('#888'); }
+  } else if (gameState.cash >= projectedTax * 0.5) {
+    taxBg = dm('#fff3e0', '#3d2e1a'); taxFg = dm('#e65100', '#ffab40');
+  } else {
+    taxBg = dm('#ffebee', '#4a1515'); taxFg = dm('#c00', '#ef5350');
+  }
+  const taxLabel = daysToTax <= 0 ? 'Tax due today' : `Tax: ${daysToTax}d`;
+  const taxCellStyle = `font-size:0.625rem;color:${taxFg}${taxBg ? `;background:${taxBg};border-radius:3px;padding:1px 4px` : ''}`;
+
   // P&L Header (clickable to collapse)
   html += `<div class="grid-row pnl-header">
     <div class="row-num">${rowNum++}</div>
     <div class="cell cell-a" style="font-weight:700;color:${dm('#333')};cursor:pointer" data-toggle-pnl>${pnlArrow} ${pnlCollapsed ? 'P&amp;L' : 'PROFIT &amp; LOSS'}</div>
     <div class="cell cell-b" style="font-size:0.625rem;color:${qNetColor};font-weight:600">${pnlCollapsed ? `Quarter: ${qNetStr}` : ''}</div>
     <div class="cell cell-c" style="font-size:0.625rem;color:${pnlCollapsed ? ltNetColor : dm('#888')};justify-content:flex-end;font-weight:${pnlCollapsed ? '600' : '400'}">${pnlCollapsed ? `Lifetime: ${ltNetStr}` : 'This Qtr'}</div>
-    <div class="cell cell-d" style="font-size:0.625rem;color:${dm('#888')};justify-content:flex-end">${pnlCollapsed ? `Tax in ${daysToTax} days` : 'Lifetime'}</div>
+    <div class="cell cell-d" style="font-size:0.625rem;color:${dm('#888')};justify-content:flex-end">${pnlCollapsed ? '' : 'Lifetime'}</div>
     <div class="cell cell-e"></div>
-    <div class="cell cell-f" style="font-size:0.625rem;color:${dm('#888')}">${pnlCollapsed ? '' : `Tax due in ${daysToTax}d`}</div>
+    <div class="cell cell-f" style="${taxCellStyle}">${pnlCollapsed ? taxLabel : `Tax due in ${daysToTax}d`}</div>
     <div class="cell cell-g"></div>
     <div class="cell cell-h"></div>
   </div>`;
