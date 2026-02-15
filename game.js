@@ -2803,20 +2803,21 @@ function updateTaxPanel() {
     const streakVal = gameState.earningsStreak;
     const irStreakMult = streakVal >= 1 ? Math.min(2.0, 1 + streakVal * 0.1) : 1;
 
-    // Reactive streak emoji + color
-    let streakEmoji, streakColor;
-    if (streakVal >= 10) { streakEmoji = '👑'; streakColor = dm('#b8860b', '#ffd700'); }
-    else if (streakVal >= 7) { streakEmoji = '🚀'; streakColor = dm('#1565c0', '#64b5f6'); }
-    else if (streakVal >= 4) { streakEmoji = '🔥🔥'; streakColor = dm('#e65100', '#ff9800'); }
-    else if (streakVal >= 2) { streakEmoji = '🔥'; streakColor = dm('#e65100', '#ffab40'); }
-    else if (streakVal === 1) { streakEmoji = '✅'; streakColor = dm('#217346'); }
-    else if (streakVal === 0) { streakEmoji = ''; streakColor = dm('#888'); }
-    else if (streakVal === -1) { streakEmoji = '😬'; streakColor = dm('#e65100', '#ffab40'); }
-    else if (streakVal >= -3) { streakEmoji = '❄️'; streakColor = dm('#1565c0', '#64b5f6'); }
-    else { streakEmoji = '💀'; streakColor = dm('#c00', '#ef5350'); }
+    // Reactive streak emoji, label + color
+    let streakEmoji, streakLabel, streakColor;
+    if (streakVal >= 10) { streakEmoji = '👑'; streakLabel = 'Perfect'; streakColor = dm('#b8860b', '#ffd700'); }
+    else if (streakVal >= 7) { streakEmoji = '🚀'; streakLabel = 'Unstoppable'; streakColor = dm('#1565c0', '#64b5f6'); }
+    else if (streakVal >= 4) { streakEmoji = '🔥🔥'; streakLabel = 'On fire'; streakColor = dm('#e65100', '#ff9800'); }
+    else if (streakVal >= 2) { streakEmoji = '🔥'; streakLabel = 'Hot streak'; streakColor = dm('#e65100', '#ffab40'); }
+    else if (streakVal === 1) { streakEmoji = '✅'; streakLabel = ''; streakColor = dm('#217346'); }
+    else if (streakVal === 0) { streakEmoji = ''; streakLabel = ''; streakColor = dm('#888'); }
+    else if (streakVal === -1) { streakEmoji = '😬'; streakLabel = ''; streakColor = dm('#e65100', '#ffab40'); }
+    else if (streakVal >= -3) { streakEmoji = '❄️'; streakLabel = 'Cold streak'; streakColor = dm('#1565c0', '#64b5f6'); }
+    else { streakEmoji = '💀'; streakLabel = 'Freefall'; streakColor = dm('#c00', '#ef5350'); }
 
-    const streakStr = streakVal > 0 ? `${streakEmoji} ${streakVal} beat${streakVal > 1 ? 's' : ''} (${irStreakMult.toFixed(1)}× RE)` :
-                      streakVal < 0 ? `${streakEmoji} ${Math.abs(streakVal)} miss${Math.abs(streakVal) > 1 ? 'es' : ''}` : '—';
+    const streakPrefix = streakLabel ? `${streakLabel}: ` : '';
+    const streakStr = streakVal > 0 ? `${streakEmoji} ${streakPrefix}${streakVal} beat${streakVal > 1 ? 's' : ''} (${irStreakMult.toFixed(1)}× RE)` :
+                      streakVal < 0 ? `${streakEmoji} ${streakPrefix}${Math.abs(streakVal)} miss${Math.abs(streakVal) > 1 ? 'es' : ''}` : '—';
 
     // IR collapsed state
     const irCollapsed = gameState.irCollapsed !== false; // default true
@@ -2824,8 +2825,8 @@ function updateTaxPanel() {
 
     // Collapsed summary values
     const trackPctStr = `${trackPct >= 0 ? '+' : ''}${trackPct.toFixed(1)}%`;
-    const shortStreak = streakVal > 0 ? `${streakEmoji} ${streakVal} (${irStreakMult.toFixed(1)}× RE)` :
-                        streakVal < 0 ? `${streakEmoji} ${Math.abs(streakVal)}` : '—';
+    const shortStreak = streakVal > 0 ? `${streakEmoji} ${streakPrefix}${irStreakMult.toFixed(1)}× RE` :
+                        streakVal < 0 ? `${streakEmoji} ${streakPrefix}${Math.abs(streakVal)} miss${Math.abs(streakVal) > 1 ? 'es' : ''}` : '—';
 
     // Reactive earnings color based on time + tracking
     const wayAhead = trackPct > 20;
@@ -4624,6 +4625,7 @@ function executeIPO() {
   gameState.ipoDay = currentDay;
   gameState.sharesOutstanding = 1000000000;
   gameState.lastEarningsDay = currentDay;
+  gameState.lastQuarterDay = currentDay - 45; // Tax quarter offset 45 days from earnings (fiscal vs calendar year)
   gameState.earningsQuarterRevenue = 0;
   gameState.currentGuidance = 'in-line';
   gameState.analystBaseline = 1.0;
