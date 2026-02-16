@@ -2696,7 +2696,6 @@ function updateDisplay() {
       stockCell.innerHTML = '';
     }
   }
-  }
 
   // Revenue breakdown stats (real-time rates accounting for slowdown)
   const slow = gameState.tickSlowdown || 1;
