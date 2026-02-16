@@ -3208,10 +3208,19 @@ function gameTick() {
 
       if (state.automated) {
         // Skim CTO + COO budgets from revenue before adding to cash
-        const ctoSkim = (gameState.activeCTOLevel > 0 && gameState.ctoBudgetPct > 0)
-          ? rev * (gameState.ctoBudgetPct / 100) : 0;
-        const cooSkim = (gameState.activeCOOLevel > 0 && gameState.cooBudgetPct > 0)
-          ? rev * (gameState.cooBudgetPct / 100) : 0;
+        let ctoPct = (gameState.activeCTOLevel > 0 && gameState.ctoBudgetPct > 0)
+          ? gameState.ctoBudgetPct : 0;
+        let cooPct = (gameState.activeCOOLevel > 0 && gameState.cooBudgetPct > 0)
+          ? gameState.cooBudgetPct : 0;
+        // Proportional normalization: if combined > 100%, scale both down
+        const totalPct = ctoPct + cooPct;
+        if (totalPct > 100) {
+          const scale = 100 / totalPct;
+          ctoPct *= scale;
+          cooPct *= scale;
+        }
+        const ctoSkim = rev * (ctoPct / 100);
+        const cooSkim = rev * (cooPct / 100);
         gameState.cash += rev - ctoSkim - cooSkim;
         gameState.ctoBudgetPool = (gameState.ctoBudgetPool || 0) + ctoSkim;
         gameState.cooBudgetPool = (gameState.cooBudgetPool || 0) + cooSkim;
@@ -4944,12 +4953,17 @@ function buildCSuiteHTML(rowNum) {
       const sliderDisabled = gameState.ctoBudgetAuto ? 'disabled style="opacity:0.5"' : '';
       const autoLabel = hasCapEx ? `<label class="cto-auto-label" title="CFO manages budget automatically"><input type="checkbox" ${autoChecked} onchange="toggleCtoBudgetAuto(this.checked)"> Auto</label>` : '';
 
+      // Show effective % if normalization is active
+      const ctoCooPctTotal = budgetPct + (gameState.cooBudgetPct || 0);
+      const ctoEffective = ctoCooPctTotal > 100 ? Math.round(budgetPct * 100 / ctoCooPctTotal) : budgetPct;
+      const ctoEffLabel = ctoCooPctTotal > 100 ? ` <span style="color:${dm('#c90')};font-size:0.5rem" title="Combined CTO+COO exceeds 100%, normalized proportionally">(eff ${ctoEffective}%)</span>` : '';
+
       html += `<div class="grid-row ir-row cto-budget-row">
         <div class="row-num">${rowNum++}</div>
         <div class="cell cell-a" style="padding-left:28px;color:${dm('#666')};font-size:0.625rem">Budget</div>
         <div class="cell cell-b" style="display:flex;align-items:center;gap:4px">
           <input type="range" min="0" max="100" step="5" value="${budgetPct}" class="cto-budget-slider" ${sliderDisabled} oninput="setCtoBudgetPct(this.value)" title="% of revenue skimmed into CTO budget pool">
-          <span class="cto-budget-pct">${budgetPct}%</span>
+          <span class="cto-budget-pct">${budgetPct}%${ctoEffLabel}</span>
         </div>
         <div class="cell cell-c" style="font-family:Consolas,monospace;font-size:0.625rem;color:${barColor}" title="${progress}% toward next upgrade">${bar}</div>
         <div class="cell cell-d" style="font-size:0.625rem;color:${dm('#666')};white-space:nowrap">${poolStr} / ${costStr}</div>
@@ -5011,12 +5025,17 @@ function buildCSuiteHTML(rowNum) {
       const cooSliderDisabled = gameState.cooBudgetAuto ? 'disabled style="opacity:0.5"' : '';
       const cooAutoLabel = hasCapEx ? `<label class="cto-auto-label" title="CFO manages hiring budget automatically"><input type="checkbox" ${cooAutoChecked} onchange="toggleCooBudgetAuto(this.checked)"> Auto</label>` : '';
 
+      // Show effective % if normalization is active
+      const cooCtoPctTotal = cooPct + (gameState.ctoBudgetPct || 0);
+      const cooEffective = cooCtoPctTotal > 100 ? Math.round(cooPct * 100 / cooCtoPctTotal) : cooPct;
+      const cooEffLabel = cooCtoPctTotal > 100 ? ` <span style="color:${dm('#c90')};font-size:0.5rem" title="Combined CTO+COO exceeds 100%, normalized proportionally">(eff ${cooEffective}%)</span>` : '';
+
       html += `<div class="grid-row ir-row cto-budget-row">
         <div class="row-num">${rowNum++}</div>
         <div class="cell cell-a" style="padding-left:28px;color:${dm('#666')};font-size:0.625rem">Budget</div>
         <div class="cell cell-b" style="display:flex;align-items:center;gap:4px">
           <input type="range" min="0" max="100" step="5" value="${cooPct}" class="cto-budget-slider" ${cooSliderDisabled} oninput="setCooBudgetPct(this.value)" title="% of revenue skimmed into COO hiring pool">
-          <span class="cto-budget-pct">${cooPct}%</span>
+          <span class="cto-budget-pct">${cooPct}%${cooEffLabel}</span>
         </div>
         <div class="cell cell-c" style="font-family:Consolas,monospace;font-size:0.625rem;color:${cooBarColor}" title="${cooProgress}% toward next hire">${cooBar}</div>
         <div class="cell cell-d" style="font-size:0.625rem;color:${dm('#666')};white-space:nowrap">${cooPoolStr} / ${cooCostStr}</div>
