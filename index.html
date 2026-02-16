@@ -20,7 +20,7 @@
   <meta name="description" content="An idle tycoon game disguised as a spreadsheet. Look busy. Get rich.">
   <title>Q4 Financials - Operations.xlsx - Quarter Close</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='4' fill='%23217346'/><rect x='4' y='4' width='7' height='5' rx='1' fill='white'/><rect x='13' y='4' width='7' height='5' rx='1' fill='white'/><rect x='22' y='4' width='7' height='5' rx='1' fill='white'/><rect x='4' y='11' width='7' height='5' rx='1' fill='white' opacity='0.8'/><rect x='13' y='11' width='7' height='5' rx='1' fill='white' opacity='0.8'/><rect x='22' y='11' width='7' height='5' rx='1' fill='white' opacity='0.8'/><rect x='4' y='18' width='7' height='5' rx='1' fill='white' opacity='0.6'/><rect x='13' y='18' width='7' height='5' rx='1' fill='white' opacity='0.6'/><rect x='22' y='18' width='7' height='5' rx='1' fill='white' opacity='0.6'/><rect x='4' y='25' width='7' height='5' rx='1' fill='white' opacity='0.4'/><rect x='13' y='25' width='7' height='5' rx='1' fill='white' opacity='0.4'/><rect x='22' y='25' width='7' height='5' rx='1' fill='white' opacity='0.4'/></svg>">
-  <link rel="stylesheet" href="style.css?v=77">
+  <link rel="stylesheet" href="style.css?v=78">
 </head>
 <body>
   <!-- ===== SPLASH SCREEN ===== -->
@@ -178,13 +178,13 @@
       <!-- Column Headers (inside grid for shared column sizing) -->
       <div id="col-headers" class="grid-row">
         <div class="row-num-header"></div>
-        <div class="col-header">A</div>
-        <div class="col-header">B</div>
-        <div class="col-header">C</div>
-        <div class="col-header">D</div>
-        <div class="col-header">E</div>
-        <div class="col-header">F</div>
-        <div class="col-header col-g">G</div>
+        <div class="col-header">A<div class="col-resize" data-col="0"></div></div>
+        <div class="col-header">B<div class="col-resize" data-col="1"></div></div>
+        <div class="col-header">C<div class="col-resize" data-col="2"></div></div>
+        <div class="col-header">D<div class="col-resize" data-col="3"></div></div>
+        <div class="col-header">E<div class="col-resize" data-col="4"></div></div>
+        <div class="col-header">F<div class="col-resize" data-col="5"></div></div>
+        <div class="col-header col-g">G<div class="col-resize" data-col="6"></div></div>
         <div class="col-header col-h">H</div>
       </div>
       <!-- Row 1: Header / Cash -->
@@ -204,13 +204,13 @@
       <!-- Row 2: Column headers -->
       <div class="grid-row header-row" id="row-1">
         <div class="row-num">2</div>
-        <div class="cell cell-a header-cell">DEPARTMENT<div class="col-resize" data-col="0"></div></div>
-        <div class="cell cell-b header-cell">Staff<div class="col-resize" data-col="1"></div></div>
-        <div class="cell cell-c header-cell">Rev/day<div class="col-resize" data-col="2"></div></div>
-        <div class="cell cell-d header-cell">Hire<div class="col-resize" data-col="3"></div></div>
-        <div class="cell cell-e header-cell">Upgrade<div class="col-resize" data-col="4"></div></div>
-        <div class="cell cell-f header-cell">Actions<div class="col-resize" data-col="5"></div></div>
-        <div class="cell cell-g header-cell">Rev/yr<div class="col-resize" data-col="6"></div></div>
+        <div class="cell cell-a header-cell">DEPARTMENT</div>
+        <div class="cell cell-b header-cell">Staff</div>
+        <div class="cell cell-c header-cell">Rev/day</div>
+        <div class="cell cell-d header-cell">Hire</div>
+        <div class="cell cell-e header-cell">Upgrade</div>
+        <div class="cell cell-f header-cell">Actions</div>
+        <div class="cell cell-g header-cell">Rev/yr</div>
         <div class="cell cell-h empty-cell"></div>
       </div>
 
@@ -685,7 +685,7 @@
     </div>
   </div>
 
-  <script src="game.js?v=153"></script>
+  <script src="game.js?v=154"></script>
   <script>
     if (location.hostname === 'kpa-clawbot.github.io') {
       var s = document.createElement('script');

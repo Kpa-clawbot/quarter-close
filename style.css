@@ -968,6 +968,8 @@ html[data-theme="dark"] .tax-notice .tax-alert-btn:hover {
   align-items: center;
   justify-content: center;
   background: var(--bg-main);
+  position: relative;
+  overflow: visible;
 }
 
 /* ============================================
@@ -1058,8 +1060,6 @@ html[data-theme="dark"] .tax-notice .tax-alert-btn:hover {
   font-size: 0.6875rem;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  position: relative;
-  overflow: visible;
 }
 
 /* Column resize handles */
