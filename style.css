@@ -1065,19 +1065,30 @@ html[data-theme="dark"] .tax-notice .tax-alert-btn:hover {
 /* Column resize handles */
 .col-resize {
   position: absolute;
-  right: -3px;
+  right: -14px;
   top: 0;
   bottom: 0;
-  width: 6px;
+  width: 28px;
   cursor: col-resize;
   z-index: 10;
   background: transparent;
   touch-action: none;
 }
-.col-resize:hover,
-.col-resize.active {
+.col-resize::after {
+  content: '';
+  position: absolute;
+  right: 12px;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: transparent;
+  transition: background 0.15s;
+}
+.col-resize:hover::after,
+.col-resize:active::after,
+.col-resize.active::after {
   background: var(--accent-primary, #217346);
-  opacity: 0.5;
+  opacity: 0.6;
 }
 body.col-resizing {
   cursor: col-resize !important;

@@ -5699,14 +5699,17 @@ function initColumnResize() {
       const clientX = e.touches ? e.touches[0].clientX : e.clientX;
       const cell = handle.parentElement;
       startX = clientX;
-      startWidth = cell.getBoundingClientRect().width;
+      // Use actual rendered width if no custom width set yet
+      const widths = getColumnWidths();
+      startWidth = widths[col] || cell.getBoundingClientRect().width;
       handle.classList.add('active');
       document.body.classList.add('col-resizing');
 
-      document.addEventListener('mousemove', onMove);
+      document.addEventListener('mousemove', onMove, { passive: false });
       document.addEventListener('mouseup', onEnd);
       document.addEventListener('touchmove', onMove, { passive: false });
       document.addEventListener('touchend', onEnd);
+      document.addEventListener('touchcancel', onEnd);
     }
 
     function onMove(e) {
@@ -5722,6 +5725,19 @@ function initColumnResize() {
 
     function onEnd() {
       handle.classList.remove('active');
+      document.body.classList.remove('col-resizing');
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup', onEnd);
+      document.removeEventListener('touchmove', onMove);
+      document.removeEventListener('touchend', onEnd);
+      document.removeEventListener('touchcancel', onEnd);
+      saveGame();
+    }
+
+    handle.addEventListener('mousedown', onStart);
+    handle.addEventListener('touchstart', onStart, { passive: false });
+  });
+}
       document.body.classList.remove('col-resizing');
       document.removeEventListener('mousemove', onMove);
       document.removeEventListener('mouseup', onEnd);
