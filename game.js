@@ -2683,18 +2683,19 @@ function updateDisplay() {
   } else {
     ptEl.textContent = formatPerTick(perTick) + '/day';
   }
+  // Append rev/Q to cell C
+  ptEl.innerHTML += ` <span style="color:${dm('#888')};font-size:0.5625rem">│</span> <span style="font-size:0.6875rem;color:${dm('#217346')}">${formatCompact(gameState.quarterRevenue)}/Q</span>`;
 
   // Stock price in header (Phase 2.1)
   const stockCell = document.getElementById('stock-price-cell');
-  // Stock price + Rev/Q in cell H
   if (stockCell) {
-    let cellH = '';
     if (gameState.isPublic) {
       const sp = getStockPrice();
-      cellH += `<span style="font-size:0.5625rem;color:${dm('#888')}">Stock: </span><span style="font-weight:700;color:${dm('#0078d4')};font-family:Consolas,monospace;font-size:0.75rem">${formatMoney(sp)}</span> `;
+      stockCell.innerHTML = `<span style="font-size:0.5625rem;color:${dm('#888')}">Stock: </span><span style="font-weight:700;color:${dm('#0078d4')};font-family:Consolas,monospace;font-size:0.75rem">${formatMoney(sp)}</span>`;
+    } else {
+      stockCell.innerHTML = '';
     }
-    cellH += `<span style="font-size:0.5625rem;color:${dm('#888')}">${gameState.isPublic ? 'Qtr: ' : 'Qtr Rev: '}</span><span style="font-weight:600;color:${dm('#217346')};font-family:Consolas,monospace;font-size:0.6875rem">${formatCompact(gameState.quarterRevenue)}</span>`;
-    stockCell.innerHTML = cellH;
+  }
   }
 
   // Revenue breakdown stats (real-time rates accounting for slowdown)
