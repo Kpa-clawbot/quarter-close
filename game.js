@@ -2686,19 +2686,23 @@ function updateDisplay() {
 
   // Stock price in header (Phase 2.1)
   const stockCell = document.getElementById('stock-price-cell');
+  // Stock price + Rev/Q in cell H
   if (stockCell) {
+    let cellH = '';
     if (gameState.isPublic) {
       const sp = getStockPrice();
-      stockCell.innerHTML = `<span style="font-size:0.5625rem;color:${dm('#888')}">Stock: </span><span style="font-weight:700;color:${dm('#0078d4')};font-family:Consolas,monospace;font-size:0.75rem">${formatMoney(sp)}</span>`;
-    } else {
-      stockCell.innerHTML = '';
+      cellH += `<span style="font-size:0.5625rem;color:${dm('#888')}">Stock: </span><span style="font-weight:700;color:${dm('#0078d4')};font-family:Consolas,monospace;font-size:0.75rem">${formatMoney(sp)}</span> `;
     }
+    cellH += `<span style="font-size:0.5625rem;color:${dm('#888')}">${gameState.isPublic ? 'Qtr: ' : 'Qtr Rev: '}</span><span style="font-weight:600;color:${dm('#217346')};font-family:Consolas,monospace;font-size:0.6875rem">${formatCompact(gameState.quarterRevenue)}</span>`;
+    stockCell.innerHTML = cellH;
   }
 
-  // Revenue breakdown stats
-  document.getElementById('stat-sec').textContent = formatStatMoney(totalRev / SECS_PER_YEAR) + '/sec';
-  document.getElementById('stat-min').textContent = formatStatMoney(totalRev / SECS_PER_YEAR * 60) + '/min';
-  document.getElementById('stat-hr').textContent = formatStatMoney(totalRev / SECS_PER_YEAR * 3600) + '/hr';
+  // Revenue breakdown stats (real-time rates accounting for slowdown)
+  const slow = gameState.tickSlowdown || 1;
+  const realPerSec = totalRev / SECS_PER_YEAR / slow;
+  document.getElementById('stat-sec').textContent = formatStatMoney(realPerSec) + '/sec';
+  document.getElementById('stat-min').textContent = formatStatMoney(realPerSec * 60) + '/min';
+  document.getElementById('stat-hr').textContent = formatStatMoney(realPerSec * 3600) + '/hr';
   document.getElementById('stat-day').textContent = formatStatMoney(perTick) + '/day';
 
   updateTimescaleDisplay();
