@@ -2,7 +2,7 @@
 
 All notable changes to Quarter Close.
 
-## [v0.5.1] — 2026-02-16 — QoL Polish
+## [v0.6.0] — 2026-02-16 — Quality of Life
 
 ### 🎮 Playback Controls
 - **Pause & Speed controls moved to toolbar** — bigger, more prominent, right-aligned next to formatting buttons
