@@ -2,6 +2,14 @@
 
 All notable changes to Quarter Close.
 
+## [v0.4.2] — 2026-02-16
+
+### 🔧 Budget Normalization Fix
+- **Fixed negative cash** when CTO + COO budgets exceeded 100% combined
+- Proportional normalization: if combined budget > 100%, both scale down proportionally (e.g. 100% + 100% → 50%/50%)
+- Budget percentage turns gold when normalization is active, showing effective rate
+- Hover/long-press shows full context ("Set 100% → effective 50%")
+
 ## [v0.4.1] — 2026-02-15
 
 Balance and UX fixes.

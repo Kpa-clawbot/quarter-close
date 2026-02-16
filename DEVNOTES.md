@@ -397,3 +397,8 @@ Level/prestige/breakthrough tags right-justified via flexbox. Name left, tags ri
 - CapEx (hires/upgrades) costs more than the revenue it adds at high tiers, reducing valuation
 - RE upgrade options run dry — not enough meaningful late-game sinks
 - Potential solutions: acquisitions, mega-projects, new prestige layers, expanded Board Room
+
+**Budget normalization (v0.4.2)**
+- CTO + COO budget sliders previously allowed combined >100%, causing negative cash
+- Fixed with proportional normalization: combined total capped at 100%, both scaled proportionally
+- Effective % shown in gold when normalization active; hover shows set vs effective values

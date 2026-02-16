@@ -136,6 +136,7 @@ function ctoAutoUpgrade(level):
 - Display in C-Suite: "CTO: 💻2 | Budget: $2.3M / $5M (46%) [===----] 15%"
 - Player can set to 0% to pause upgrades without switching to Manual
 - Player can set to 100% to let CTO spend everything — they're the CEO
+- **Budget normalization:** If CTO + COO combined budget exceeds 100%, both are proportionally scaled down so total never exceeds 100% of revenue. Display shows effective % in gold when normalization is active.
 
 ### CapEx Planning Upgrade (Board Room, Finance category)
 - Cost: 15,000 RE
@@ -162,7 +163,7 @@ function ctoAutoUpgrade(level):
 ## What This Does NOT Do
 
 - **No hiring automation** — separate future role
-- **No cash reserve management** — intentional design choice. CTO will spend you dry if you let it. Managing that tension is the gameplay.
+- **No cash reserve management** — budget normalization prevents negative cash (combined CTO+COO capped at 100%), but CTO will still spend aggressively within its share. Managing that tension is the gameplay.
 - **No per-department control** — upgrades all departments equally based on tier logic
 - **No interaction with Focus** — CTO doesn't know about or prioritize focused departments (could be a Lv3 enhancement later)
 
