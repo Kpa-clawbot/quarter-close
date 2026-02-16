@@ -65,9 +65,24 @@ When VP is active, mini-task completions show in status bar:
 - Fades after 2s (same as manual task completion)
 - No bar, no grid shift, just a quiet status update
 
----
+### Stats Tracking (Board Room display)
 
-## 2. Automation Hint System
+VP of Ops row in Board Room shows lifetime stats:
+
+| Stat | Display | Purpose |
+|------|---------|---------|
+| Tasks Completed | `1,247 tasks` | Volume indicator |
+| Total Revenue | `$4.2T earned` | Shows value of the automation |
+| Revenue Missed | `$2.1T left on table` | Only at Lv1/Lv2 — pressure to upgrade |
+| Longest Streak | `🔥 23` | Bragging rights, shows Lv2 cap vs Lv3 |
+| Tasks/Quarter | `~42/qtr` | Pacing awareness |
+
+- **Revenue Missed** = sum of `(fullReward - actualReward)` over all auto-completed tasks
+- Only shown at Lv1 (50%) and Lv2 (75%) — at Lv3 it's always 0, so hide it
+- Stored in `gameState.vpOpsStats: { tasksCompleted, totalRevenue, revenueMissed, longestStreak, quarterTasks }`
+- Persisted in save file
+
+---
 
 **Problem:** Players don't realize automation exists. They suffer through annoying mechanics without knowing there's a Board Room upgrade to fix it.
 
