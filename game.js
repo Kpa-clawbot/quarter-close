@@ -2651,11 +2651,12 @@ function updateDisplay() {
   if (reEl) {
     if (gameState.isPublic) {
       reEl.textContent = gameState.retainedEarnings ? formatCompact(gameState.retainedEarnings) : '0';
-      reEl.style.display = '';
-      if (reLabel) reLabel.style.display = '';
+      reEl.style.visibility = '';
+      if (reLabel) { reLabel.textContent = '⭐ RE'; reLabel.style.visibility = ''; }
     } else {
-      reEl.style.display = 'none';
-      if (reLabel) reLabel.style.display = 'none';
+      reEl.textContent = '';
+      reEl.style.visibility = 'hidden';
+      if (reLabel) { reLabel.textContent = ''; reLabel.style.visibility = 'hidden'; }
     }
   }
 
