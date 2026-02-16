@@ -216,6 +216,21 @@ function buildSaveData() {
     columnWidths: gameState.columnWidths || null,
     chartVisible: gameState.chartVisible !== false,
     chartPosition: gameState.chartPosition || null,
+    // Automation hints
+    hintMiniTaskCount: gameState.hintMiniTaskCount || 0,
+    hintTaxSettleCount: gameState.hintTaxSettleCount || 0,
+    hintMissedEarnings: gameState.hintMissedEarnings || 0,
+    hintManualHireCount: gameState.hintManualHireCount || 0,
+    hintShown_vpOps: gameState.hintShown_vpOps || false,
+    hintShown_cpa: gameState.hintShown_cpa || false,
+    hintShown_cfo: gameState.hintShown_cfo || false,
+    hintShown_coo: gameState.hintShown_coo || false,
+    // VP of Operations
+    vpOpsStats: gameState.vpOpsStats || { tasksCompleted: 0, totalRevenue: 0, revenueMissed: 0, longestStreak: 0, quarterTasks: 0 },
+    vpOpsEnabled: gameState.vpOpsEnabled !== false,
+    vpOpsStreak: gameState.vpOpsStreak || 0,
+    // Slowdown
+    tickSlowdown: gameState.tickSlowdown || 1,
     savedAt: Date.now(),
   };
 }
@@ -1262,7 +1277,90 @@ const BOARD_ROOM_UPGRADES = [
     maxCount: 1,
     category: 'Talent',
   },
+  // VP of Operations — auto-handles mini-tasks
+  {
+    id: 'vp_ops_1',
+    name: 'VP of Ops Lv1',
+    desc: 'Junior VP — auto-approves tasks at 50% reward. No streaks.',
+    cost: 500,
+    requires: null,
+    maxCount: 1,
+    category: 'Operations',
+  },
+  {
+    id: 'vp_ops_2',
+    name: 'VP of Ops Lv2',
+    desc: 'Senior VP — auto-approves at 75% reward. Streak cap: 5 (2× max).',
+    cost: 2000,
+    requires: 'vp_ops_1',
+    maxCount: 1,
+    category: 'Operations',
+  },
+  {
+    id: 'vp_ops_3',
+    name: 'VP of Ops Lv3',
+    desc: 'Executive VP — auto-approves at 100% reward. Full streaks.',
+    cost: 8000,
+    requires: 'vp_ops_2',
+    maxCount: 1,
+    category: 'Operations',
+  },
 ];
+
+// ===== AUTOMATION HINTS (email nudges toward Board Room upgrades) =====
+const AUTOMATION_HINTS = [
+  {
+    id: 'vpOps',
+    trigger: () => gameState.hintMiniTaskCount >= 10 && !hasBoardRoomUpgrade('vp_ops_1') && gameState.isPublic,
+    flag: 'hintShown_vpOps',
+    sender: 'Operations Department',
+    subject: '📋 RE: Approval Request Backlog',
+    body: 'Sir, these approval requests are piling up and eating into everyone\'s time. A VP of Operations could handle routine approvals automatically. Worth looking into — check the Board Room.',
+  },
+  {
+    id: 'cpa',
+    trigger: () => gameState.hintTaxSettleCount >= 5 && !hasBoardRoomUpgrade('cpa') && gameState.isPublic,
+    flag: 'hintShown_cpa',
+    sender: 'Accounting Department',
+    subject: '💰 RE: Quarterly Tax Settlements',
+    body: 'We\'ve been manually handling tax payments every quarter and it\'s getting out of hand. Have you considered putting a CPA on retainer? They could handle settlements automatically. Check the Board Room.',
+  },
+  {
+    id: 'cfo',
+    trigger: () => gameState.hintMissedEarnings >= 3 && !hasBoardRoomUpgrade('finance_dept_1') && gameState.isPublic,
+    flag: 'hintShown_cfo',
+    sender: 'Board of Directors',
+    subject: '📊 RE: Earnings Guidance Strategy',
+    body: 'The board is concerned about our earnings track record. We recommend hiring a Finance team to manage quarterly guidance — they\'d handle analyst expectations automatically. See the Board Room.',
+  },
+  {
+    id: 'coo',
+    trigger: () => gameState.hintManualHireCount >= 15 && !hasBoardRoomUpgrade('ops_dept_1') && gameState.isPublic,
+    flag: 'hintShown_coo',
+    sender: 'HR Department',
+    subject: '👥 RE: Staffing Requests',
+    body: 'We\'re drowning in hiring paperwork. Every position requires manual approval and it\'s slowing us down. A COO could streamline the whole process — check the Board Room for Operations upgrades.',
+  },
+];
+
+function checkAutomationHints() {
+  for (const hint of AUTOMATION_HINTS) {
+    if (gameState[hint.flag]) continue; // already shown
+    if (hint.trigger()) {
+      gameState[hint.flag] = true;
+      showEventToast(hint.sender, hint.subject, hint.body);
+      return; // one at a time
+    }
+  }
+}
+
+// ===== VP OF OPS HELPERS =====
+function getVPOpsLevel() {
+  if (hasBoardRoomUpgrade('vp_ops_3')) return 3;
+  if (hasBoardRoomUpgrade('vp_ops_2')) return 2;
+  if (hasBoardRoomUpgrade('vp_ops_1')) return 1;
+  return 0;
+}
 
 function hasBoardRoomUpgrade(id) {
   return (gameState.boardRoomPurchases[id] || 0) > 0;
@@ -1709,6 +1807,21 @@ let gameState = {
   lastQuarterRE: 0,        // RE earned last quarter (for ETA display)
   chartVisible: true,      // whether the valuation chart is visible (persisted across reloads)
   chartPosition: null,     // { left, top, width, height } for floating chart position
+  // Automation hint tracking
+  hintMiniTaskCount: 0,
+  hintTaxSettleCount: 0,
+  hintMissedEarnings: 0,
+  hintManualHireCount: 0,
+  hintShown_vpOps: false,
+  hintShown_cpa: false,
+  hintShown_cfo: false,
+  hintShown_coo: false,
+  // VP of Operations
+  vpOpsStats: { tasksCompleted: 0, totalRevenue: 0, revenueMissed: 0, longestStreak: 0, quarterTasks: 0 },
+  vpOpsEnabled: true,
+  vpOpsStreak: 0,
+  // Slowdown speed control
+  tickSlowdown: 1,
 };
 
 let gridBuilt = false;
@@ -2071,6 +2184,77 @@ function trySpawnMiniTask() {
   if (gameState.miniTaskBlocked && Date.now() < gameState.miniTaskBlocked.until) return; // email server down
   if (gameState.miniTaskCooldown > 0) { gameState.miniTaskCooldown--; return; }
 
+  // VP of Ops auto-handling
+  const vpLevel = getVPOpsLevel();
+  if (vpLevel > 0 && gameState.vpOpsEnabled) {
+    // Still roll for spawn chance normally
+    const passiveIncome = totalRevPerTick();
+    const spawnChance = passiveIncome > 500 ? 0.02 : passiveIncome > 50 ? 0.04 : 0.06;
+    if (Math.random() > spawnChance) return;
+
+    // Pick a task
+    const maxTier = gameState.sources.reduce((max, s) => s.unlocked ? Math.max(max, s.id) : max, 0);
+    const eligible = MINI_TASKS.filter(t => t.minTier <= maxTier);
+    const task = eligible[Math.floor(Math.random() * eligible.length)];
+
+    // Calculate reward with VP efficiency
+    const efficiency = vpLevel === 1 ? 0.5 : vpLevel === 2 ? 0.75 : 1.0;
+
+    // Streak handling
+    let streakMult = 1;
+    if (vpLevel >= 2) {
+      const streak = gameState.vpOpsStreak;
+      streakMult = streak >= 10 ? 3 : streak >= 5 ? 2 : streak >= 3 ? 1.5 : 1;
+      gameState.vpOpsStreak = Math.min(gameState.vpOpsStreak + 1, vpLevel === 2 ? 5 : 999);
+    }
+    // Lv1: no streak
+    if (vpLevel === 1) {
+      gameState.vpOpsStreak = 0;
+      streakMult = 1;
+    }
+
+    const dailyRev = totalAnnualRev() / 365.25;
+    const low = task.rewardMult[0];
+    const high = task.rewardMult[1];
+    const mult = low + Math.random() * (high - low);
+    const fullReward = Math.max(1, Math.floor(dailyRev * mult * streakMult));
+    const actualReward = Math.floor(fullReward * efficiency);
+
+    // Apply reward
+    gameState.cash += actualReward;
+    gameState.totalEarned += actualReward;
+    gameState.quarterRevenue += actualReward;
+    trackEarningsRevenue(actualReward);
+
+    // Update stats
+    if (!gameState.vpOpsStats) gameState.vpOpsStats = { tasksCompleted: 0, totalRevenue: 0, revenueMissed: 0, longestStreak: 0, quarterTasks: 0 };
+    gameState.vpOpsStats.tasksCompleted++;
+    gameState.vpOpsStats.totalRevenue += actualReward;
+    gameState.vpOpsStats.revenueMissed += (fullReward - actualReward);
+    gameState.vpOpsStats.quarterTasks++;
+    if (gameState.vpOpsStreak > gameState.vpOpsStats.longestStreak) {
+      gameState.vpOpsStats.longestStreak = gameState.vpOpsStreak;
+    }
+
+    // Cooldown (same as manual)
+    gameState.miniTaskCooldown = 15 + Math.floor(Math.random() * 15);
+
+    // Brief status bar message
+    const tierLabels = { low: '📋', mid: '📊', high: '💼' };
+    const tierLabel = tierLabels[task.tier] || '📋';
+    document.getElementById('status-text').textContent = `${tierLabel} VP handled: +${formatMoney(actualReward)}`;
+    setTimeout(() => {
+      if (!gameState.paused) document.getElementById('status-text').textContent = 'Ready';
+    }, 2000);
+
+    // Count for hints (even auto-handled counts)
+    gameState.hintMiniTaskCount = (gameState.hintMiniTaskCount || 0) + 1;
+
+    flashCash();
+    updateDisplay();
+    return; // Don't show the bar
+  }
+
   // Frequency decreases as passive income grows
   const passiveIncome = totalRevPerTick();
   const spawnChance = passiveIncome > 500 ? 0.02 : passiveIncome > 50 ? 0.04 : 0.06;
@@ -2128,6 +2312,7 @@ function completeMiniTask() {
   trackEarningsRevenue(reward);
   gameState.totalClicks++;
   gameState.miniTaskStreak++;
+  gameState.hintMiniTaskCount = (gameState.hintMiniTaskCount || 0) + 1;
   bar.classList.add('hidden');
   gameState.miniTaskActive = false;
   gameState.miniTaskCooldown = 15 + Math.floor(Math.random() * 15); // 15-30s cooldown
@@ -2150,6 +2335,7 @@ function skipMiniTask() {
   bar.classList.add('hidden');
   gameState.miniTaskActive = false;
   gameState.miniTaskCooldown = 10;
+  gameState.hintMiniTaskCount = (gameState.hintMiniTaskCount || 0) + 1;
   if (gameState.miniTaskStreak > 0) {
     document.getElementById('status-text').textContent = `💔 Streak lost! (was ${gameState.miniTaskStreak})`;
     setTimeout(() => { document.getElementById('status-text').textContent = 'Ready'; }, 2000);
@@ -2646,6 +2832,7 @@ function hireEmployee(index) {
   state.employees++;
   addCapitalExpense(cost);
   gameState.totalSpentHires += cost;
+  gameState.hintManualHireCount = (gameState.hintManualHireCount || 0) + 1;
   updateGridValues();
   updateDisplay();
   flashCash();
@@ -2669,6 +2856,7 @@ function hireMax(index) {
   if (hired > 0) {
     addCapitalExpense(totalCost);
     gameState.totalSpentHires += totalCost;
+    gameState.hintManualHireCount = (gameState.hintManualHireCount || 0) + hired;
     updateGridValues();
     updateDisplay();
     flashCash();
@@ -3094,6 +3282,7 @@ function settleTaxDebt(index) {
   gameState.quarterTaxPaid += debt.current;
   gameState.totalTaxPaid += debt.current;
   gameState.taxDebts.splice(index, 1);
+  gameState.hintTaxSettleCount = (gameState.hintTaxSettleCount || 0) + 1;
   _lastTaxPanelHash = ''; // force rebuild
   updateTaxPanel();
   updateDisplay();
@@ -3743,6 +3932,16 @@ function togglePause() {
 
 function gameTick() {
   if (gameState.paused) return;
+
+  // Slowdown: skip ticks based on slowdown factor
+  if (gameState.tickSlowdown > 1) {
+    gameState._slowdownCounter = (gameState._slowdownCounter || 0) + 1;
+    if (gameState._slowdownCounter % gameState.tickSlowdown !== 0) {
+      // Still update display (clock ticks) but skip game logic
+      return;
+    }
+  }
+
   for (let _speedIter = 0; _speedIter < gameSpeed; _speedIter++) {
   if (!gameState.arc) return;
   if (gameState.earningsPaused) return;
@@ -3818,6 +4017,7 @@ function gameTick() {
     processQuarterlyTax();
     gameState.lastQuarterDay = currentDay;
     gameState.overtimeClicks = 0; // reset overtime each quarter
+    if (gameState.vpOpsStats) gameState.vpOpsStats.quarterTasks = 0; // reset VP Ops quarter counter
   }
 
   // Tax debt processing (each tick = 1 day)
@@ -3841,6 +4041,11 @@ function gameTick() {
   // Mini-task system
   trySpawnMiniTask();
   trySpawnGoldenCell();
+
+  // Automation hint check (every ~30 ticks)
+  if (gameState.gameElapsedSecs % 30 === 0) {
+    checkAutomationHints();
+  }
 
   // CTO auto-upgrade
   ctoAutoUpgrade();
@@ -4286,6 +4491,21 @@ function loadGame(slotId) {
     gameState.columnWidths = data.columnWidths || null;
     gameState.chartVisible = data.chartVisible !== false;
     gameState.chartPosition = data.chartPosition || null;
+    // Automation hints
+    gameState.hintMiniTaskCount = data.hintMiniTaskCount || 0;
+    gameState.hintTaxSettleCount = data.hintTaxSettleCount || 0;
+    gameState.hintMissedEarnings = data.hintMissedEarnings || 0;
+    gameState.hintManualHireCount = data.hintManualHireCount || 0;
+    gameState.hintShown_vpOps = data.hintShown_vpOps || false;
+    gameState.hintShown_cpa = data.hintShown_cpa || false;
+    gameState.hintShown_cfo = data.hintShown_cfo || false;
+    gameState.hintShown_coo = data.hintShown_coo || false;
+    // VP of Operations
+    gameState.vpOpsStats = data.vpOpsStats || { tasksCompleted: 0, totalRevenue: 0, revenueMissed: 0, longestStreak: 0, quarterTasks: 0 };
+    gameState.vpOpsEnabled = data.vpOpsEnabled !== false;
+    gameState.vpOpsStreak = data.vpOpsStreak || 0;
+    // Slowdown
+    gameState.tickSlowdown = data.tickSlowdown || 1;
     gameState.activeTab = 'operations';
 
     // Rebuild sources for selected arc
@@ -5567,6 +5787,7 @@ function processEarnings() {
       gameState.analystBaseline *= 0.97;
     } else {
       result = 'MISS';
+      gameState.hintMissedEarnings = (gameState.hintMissedEarnings || 0) + 1;
       const missMargin = Math.abs(margin);
       stockChange = -(0.05 + missMargin * 0.4 + (guidanceLevel.reMult - 0.5) * 0.02);
       stockChange = Math.max(stockChange, -0.25);
@@ -6106,6 +6327,28 @@ function buildBoardRoom() {
     } // end upgrade loop
   } // end category loop
 
+  // VP of Ops stats display
+  if (getVPOpsLevel() > 0) {
+    const stats = gameState.vpOpsStats || { tasksCompleted: 0, totalRevenue: 0, revenueMissed: 0, longestStreak: 0, quarterTasks: 0 };
+    const enabledLabel = gameState.vpOpsEnabled ? '✅ ON' : '❌ OFF';
+    const enabledColor = gameState.vpOpsEnabled ? dm('#2e7d32') : dm('#c00');
+    const statsText = `✅ ${stats.tasksCompleted} tasks | 💰 ${formatMoney(stats.totalRevenue)} earned` +
+      (getVPOpsLevel() < 3 && stats.revenueMissed > 0 ? ` | 📉 ${formatMoney(stats.revenueMissed)} left on table` : '') +
+      ` | 🔥 Best streak: ${stats.longestStreak}`;
+    html += `<div class="grid-row br-upgrade-row br-owned">
+      <div class="row-num">${rowNum++}</div>
+      <div class="cell cell-a" style="font-size:0.625rem;color:${dm('#888')}">VP of Ops Stats</div>
+      <div class="cell cell-b" style="font-size:0.5625rem;color:${dm('#666')};white-space:normal;line-height:1.3">${statsText}</div>
+      <div class="cell cell-c"></div>
+      <div class="cell cell-d" style="justify-content:flex-end"><button class="cell-btn" onclick="gameState.vpOpsEnabled=!gameState.vpOpsEnabled;_lastBoardRoomHash='';buildBoardRoom();saveGame()" style="font-size:0.5625rem;color:${enabledColor}">${enabledLabel}</button></div>
+      <div class="cell cell-e"></div>
+      <div class="cell cell-f"></div>
+      <div class="cell cell-g"></div>
+      <div class="cell cell-h"></div>
+    </div>`;
+    totalUpgradeRows++;
+  }
+
   // Filler rows for the board room view
   const ROW_HEIGHT = 28;
   const gridBottom = container.getBoundingClientRect().top || 300;
@@ -6338,6 +6581,7 @@ function init() {
   initDarkMode();
   initZoom();
   initChartMode();
+  initSlowdown();
   initColumnResize();
   generateBossGrid();
   initToastDrag();
@@ -6520,6 +6764,38 @@ function closeChart() {
   gameState.chartVisible = false;
 }
 window.closeChart = closeChart;
+
+// ===== SLOWDOWN SPEED CONTROL =====
+function cycleSlowdown() {
+  const speeds = [1, 2, 4, 8];
+  const labels = ['▶', '◁', '◁◁', '◁◁◁'];
+  const titles = ['Normal speed', '½ speed', '¼ speed', '⅛ speed'];
+  const idx = speeds.indexOf(gameState.tickSlowdown);
+  const next = (idx + 1) % speeds.length;
+  gameState.tickSlowdown = speeds[next];
+  const btn = document.getElementById('slowdown-btn');
+  btn.textContent = labels[next];
+  btn.title = titles[next];
+  if (speeds[next] > 1) {
+    btn.classList.add('slowed');
+  } else {
+    btn.classList.remove('slowed');
+  }
+  saveGame();
+}
+
+function initSlowdown() {
+  const speeds = [1, 2, 4, 8];
+  const labels = ['▶', '◁', '◁◁', '◁◁◁'];
+  const titles = ['Normal speed', '½ speed', '¼ speed', '⅛ speed'];
+  const idx = speeds.indexOf(gameState.tickSlowdown || 1);
+  const btn = document.getElementById('slowdown-btn');
+  if (btn) {
+    btn.textContent = labels[idx];
+    btn.title = titles[idx];
+    if (speeds[idx] > 1) btn.classList.add('slowed');
+  }
+}
 
 function initChartMode() {
   if (localStorage.getItem('qc-chart-float') === '1') {
