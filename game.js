@@ -3989,6 +3989,7 @@ function saveGame() {
     eventFreqMult: EVENT_FREQ_MULT,
     overtimeClicks: gameState.overtimeClicks || 0,
     focusTipShown: gameState.focusTipShown || false,
+    columnWidths: gameState.columnWidths || null,
     savedAt: Date.now(),
   };
 
@@ -4078,6 +4079,7 @@ function loadGame() {
     EVENT_FREQ_MULT = data.eventFreqMult != null ? data.eventFreqMult : 1.0;
     gameState.overtimeClicks = data.overtimeClicks || 0;
     gameState.focusTipShown = data.focusTipShown || false;
+    gameState.columnWidths = data.columnWidths || null;
     gameState.activeTab = 'operations';
 
     // Rebuild sources for selected arc
@@ -4133,6 +4135,7 @@ function loadGame() {
     document.getElementById('game-view').classList.remove('hidden');
     try {
       buildGrid();
+      if (gameState.columnWidths) applyColumnWidths(gameState.columnWidths);
       updateDisplay();
       updateTaxPanel();
       updateBoardRoomTab();
@@ -4210,6 +4213,7 @@ function resetGame() {
   EVENT_FREQ_MULT = 1.0;
   gameState.overtimeClicks = 0;
   gameState.focusTipShown = false;
+  gameState.columnWidths = null;
   gameState.eventCooldown = 0;
   gameState.miniTaskCooldown = 0;
   gameState.miniTaskActive = false;
@@ -5152,6 +5156,7 @@ function switchTab(tab) {
     tabOps.classList.remove('active');
     tabBR.classList.add('active');
     gridArea.classList.add('boardroom-layout');
+    gridArea.style.gridTemplateColumns = ''; // let CSS class handle boardroom columns
     buildBoardRoom();
   } else {
     revenueRows.classList.remove('hidden');
@@ -5162,6 +5167,7 @@ function switchTab(tab) {
     tabOps.classList.add('active');
     tabBR.classList.remove('active');
     gridArea.classList.remove('boardroom-layout');
+    if (gameState.columnWidths) applyColumnWidths(gameState.columnWidths);
     _lastTaxPanelHash = ''; // force rebuild
     updateTaxPanel();
     buildFillerRows();
@@ -5661,10 +5667,79 @@ function dm(lightColor, darkOverride) {
 
 window.toggleDarkMode = toggleDarkMode;
 
+// ===== COLUMN RESIZE =====
+const DEFAULT_COL_WIDTHS = [200, 120, 128, 190, 160, 130, 120]; // px equivalents of default rem widths (A-G)
+const MIN_COL_WIDTH = 40;
+
+function getColumnWidths() {
+  return gameState.columnWidths || DEFAULT_COL_WIDTHS.slice();
+}
+
+function applyColumnWidths(widths) {
+  const grid = document.getElementById('grid-container');
+  if (!grid || gameState.activeTab === 'boardroom') return;
+  const cols = ['2.5rem']; // row-num column stays fixed
+  for (let i = 0; i < 7; i++) {
+    cols.push((widths[i] || DEFAULT_COL_WIDTHS[i]) + 'px');
+  }
+  cols.push('1fr'); // col H stays flexible
+  grid.style.gridTemplateColumns = cols.join(' ');
+}
+
+function initColumnResize() {
+  const handles = document.querySelectorAll('.col-resize');
+  handles.forEach(handle => {
+    const col = parseInt(handle.dataset.col);
+    let startX = 0;
+    let startWidth = 0;
+
+    function onStart(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+      const cell = handle.parentElement;
+      startX = clientX;
+      startWidth = cell.getBoundingClientRect().width;
+      handle.classList.add('active');
+      document.body.classList.add('col-resizing');
+
+      document.addEventListener('mousemove', onMove);
+      document.addEventListener('mouseup', onEnd);
+      document.addEventListener('touchmove', onMove, { passive: false });
+      document.addEventListener('touchend', onEnd);
+    }
+
+    function onMove(e) {
+      e.preventDefault();
+      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+      const delta = clientX - startX;
+      const newWidth = Math.max(MIN_COL_WIDTH, Math.round(startWidth + delta));
+      const widths = getColumnWidths();
+      widths[col] = newWidth;
+      gameState.columnWidths = widths;
+      applyColumnWidths(widths);
+    }
+
+    function onEnd() {
+      handle.classList.remove('active');
+      document.body.classList.remove('col-resizing');
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup', onEnd);
+      document.removeEventListener('touchmove', onMove);
+      document.removeEventListener('touchend', onEnd);
+      saveGame();
+    }
+
+    handle.addEventListener('mousedown', onStart);
+    handle.addEventListener('touchstart', onStart, { passive: false });
+  });
+}
+
 function init() {
   initDarkMode();
   initZoom();
   initChartMode();
+  initColumnResize();
   generateBossGrid();
   initToastDrag();
   initDebugTap();
