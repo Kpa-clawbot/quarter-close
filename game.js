@@ -1430,6 +1430,7 @@ let gameState = {
   arc: null,  // selected arc key
   cash: 0,
   totalEarned: 0,
+  paused: false,
   sources: [],
   revPenalty: null,
   revBonus: null,
@@ -3509,7 +3510,24 @@ function showEventToast(sender, subject, body, actions, opts) {
   showEvent({ sender, subject, body, actions, ...opts });
 }
 
+function togglePause() {
+  gameState.paused = !gameState.paused;
+  const btn = document.getElementById('pause-btn');
+  if (gameState.paused) {
+    btn.textContent = '⏸';
+    btn.classList.add('paused');
+    btn.title = 'Resume';
+    document.getElementById('status-text').textContent = 'Paused';
+  } else {
+    btn.textContent = '▶';
+    btn.classList.remove('paused');
+    btn.title = 'Pause/Resume';
+    document.getElementById('status-text').textContent = 'Ready';
+  }
+}
+
 function gameTick() {
+  if (gameState.paused) return;
   for (let _speedIter = 0; _speedIter < gameSpeed; _speedIter++) {
   if (!gameState.arc) return;
   if (gameState.earningsPaused) return;
@@ -4214,6 +4232,7 @@ function resetGame() {
   gameState.overtimeClicks = 0;
   gameState.focusTipShown = false;
   gameState.columnWidths = null;
+  gameState.paused = false;
   gameState.eventCooldown = 0;
   gameState.miniTaskCooldown = 0;
   gameState.miniTaskActive = false;

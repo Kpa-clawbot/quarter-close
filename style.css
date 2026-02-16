@@ -1504,6 +1504,25 @@ body.col-resizing * {
 
 .status-sep { opacity: 0.5; }
 
+#pause-btn {
+  background: none;
+  border: 1px solid var(--border-medium);
+  border-radius: 3px;
+  color: var(--text-primary);
+  font-size: 0.6875rem;
+  padding: 0 0.3rem;
+  cursor: pointer;
+  line-height: 1.2;
+  vertical-align: middle;
+}
+#pause-btn:hover {
+  background: var(--bg-highlight);
+}
+#pause-btn.paused {
+  color: #e74c3c;
+  border-color: #e74c3c;
+}
+
 .status-indicator {
   opacity: 0.9;
   font-size: 0.625rem;
