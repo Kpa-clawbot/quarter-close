@@ -2815,13 +2815,17 @@ function updateDisplay() {
   if (gameState.activeTab === 'boardroom') {
     buildBoardRoom();
   }
+
+  // Check cash milestones
+  checkCashMilestone();
 }
 
 // ===== GAME ACTIONS =====
 function unlockSource(index) {
   const src = getSourceDef(index);
   const state = gameState.sources[index];
-  if (state.unlocked || gameState.cash < src.unlockCost) return;
+  if (state.unlocked) return;
+  if (gameState.cash < src.unlockCost) { showInsufficientFunds(); return; }
   if (!isNextUnlock(index)) return;
 
   gameState.cash -= src.unlockCost;
@@ -2830,7 +2834,9 @@ function unlockSource(index) {
   state.employees = 1;
   buildGrid();
   updateDisplay();
-  flashCash();
+  flashCash('spend');
+  floatingNumber(src.unlockCost, document.getElementById('cash-display'), true);
+  showFormulaEcho('=UNLOCK("' + src.name + '")');
 }
 
 function hireEmployee(index) {
@@ -2838,7 +2844,7 @@ function hireEmployee(index) {
   if (!state.unlocked) return;
   if (gameState.hireFrozen && Date.now() < gameState.hireFrozen) return;
   const cost = hireCost(state);
-  if (gameState.cash < cost) return;
+  if (gameState.cash < cost) { showInsufficientFunds(); return; }
 
   gameState.cash -= cost;
   state.employees++;
@@ -2847,7 +2853,9 @@ function hireEmployee(index) {
   gameState.hintManualHireCount = (gameState.hintManualHireCount || 0) + 1;
   updateGridValues();
   updateDisplay();
-  flashCash();
+  flashCash('spend');
+  floatingNumber(cost, document.getElementById('cash-display'), true);
+  showFormulaEcho('=HIRE("' + getSourceDef(index).name + '", 1)');
 }
 
 function hireMax(index) {
@@ -2871,7 +2879,9 @@ function hireMax(index) {
     gameState.hintManualHireCount = (gameState.hintManualHireCount || 0) + hired;
     updateGridValues();
     updateDisplay();
-    flashCash();
+    flashCash('spend');
+    floatingNumber(totalCost, document.getElementById('cash-display'), true);
+    showFormulaEcho('=HIRE_MAX("' + getSourceDef(index).name + '", ' + hired + ')');
   }
 }
 
@@ -2893,7 +2903,9 @@ function upgradeMax(index) {
     gameState.totalSpentUpgrades += totalCost;
     updateGridValues();
     updateDisplay();
-    flashCash();
+    flashCash('spend');
+    floatingNumber(totalCost, document.getElementById('cash-display'), true);
+    showFormulaEcho('=UPGRADE_MAX("' + getSourceDef(index).name + '", +' + upgraded + ')');
   }
 }
 
@@ -2901,7 +2913,7 @@ function upgradeSource(index) {
   const state = gameState.sources[index];
   if (!state.unlocked) return;
   const cost = upgradeCost(state);
-  if (gameState.cash < cost) return;
+  if (gameState.cash < cost) { showInsufficientFunds(); return; }
 
   gameState.cash -= cost;
   state.upgradeLevel++;
@@ -2909,14 +2921,16 @@ function upgradeSource(index) {
   gameState.totalSpentUpgrades += cost;
   updateGridValues();
   updateDisplay();
-  flashCash();
+  flashCash('spend');
+  floatingNumber(cost, document.getElementById('cash-display'), true);
+  showFormulaEcho('=UPGRADE("' + getSourceDef(index).name + '", Lv' + state.upgradeLevel + ')');
 }
 
 function automateSource(index) {
   const state = gameState.sources[index];
   if (!state.unlocked || state.automated) return;
   const cost = automateCost(state);
-  if (gameState.cash < cost) return;
+  if (gameState.cash < cost) { showInsufficientFunds(); return; }
 
   gameState.cash -= cost;
   state.automated = true;
@@ -2929,7 +2943,9 @@ function automateSource(index) {
   state.pendingCollect = 0;
   updateGridValues();
   updateDisplay();
-  flashCash();
+  flashCash('spend');
+  floatingNumber(cost, document.getElementById('cash-display'), true);
+  showFormulaEcho('=AUTOMATE("' + getSourceDef(index).name + '")');
 
   // Focus tip — show once per game after first automate
   if (isFeatureEnabled('managementFocus') && !gameState.focusTipShown) {
@@ -3001,11 +3017,116 @@ function tickDepreciation() {
   });
 }
 
-function flashCash() {
+function flashCash(direction) {
   const el = document.getElementById('cash-display');
+  // Scale bump (existing behavior)
   el.classList.remove('cash-bump');
   void el.offsetWidth;
   el.classList.add('cash-bump');
+  // Direction-aware color flash
+  const flashClass = direction === 'spend' ? 'cell-downtick' : 'cell-uptick';
+  el.classList.remove('cell-uptick', 'cell-downtick');
+  void el.offsetWidth;
+  el.classList.add(flashClass);
+}
+
+// Floating number effect (damage numbers)
+function floatingNumber(amount, element, isSpend) {
+  const span = document.createElement('span');
+  span.className = 'floating-number ' + (isSpend ? 'spend' : 'earn');
+  span.textContent = (isSpend ? '-' : '+') + formatMoney(Math.abs(amount));
+  element.appendChild(span);
+  span.addEventListener('animationend', () => span.remove());
+}
+
+// Big Number Pop — milestone tracking
+const CASH_MILESTONES = [1e3, 1e4, 1e5, 1e6, 1e7, 1e8, 1e9, 1e10, 1e11, 1e12, 1e13, 1e14, 1e15];
+function checkCashMilestone() {
+  const cash = gameState.cash;
+  const last = gameState._lastCashMilestone || 0;
+  for (let i = CASH_MILESTONES.length - 1; i >= 0; i--) {
+    if (cash >= CASH_MILESTONES[i] && CASH_MILESTONES[i] > last) {
+      gameState._lastCashMilestone = CASH_MILESTONES[i];
+      const el = document.getElementById('cash-display');
+      el.classList.remove('cash-milestone');
+      void el.offsetWidth;
+      el.classList.add('cash-milestone');
+      return;
+    }
+  }
+  // Reset milestone if cash dropped (prestige)
+  if (cash < last) {
+    let newMilestone = 0;
+    for (let i = 0; i < CASH_MILESTONES.length; i++) {
+      if (cash >= CASH_MILESTONES[i]) newMilestone = CASH_MILESTONES[i];
+    }
+    gameState._lastCashMilestone = newMilestone;
+  }
+}
+
+// Insufficient funds feedback
+function showInsufficientFunds() {
+  const el = document.getElementById('cash-display');
+  // Shake
+  el.classList.remove('cash-shake');
+  void el.offsetWidth;
+  el.classList.add('cash-shake');
+  // Red flash
+  el.classList.remove('cell-downtick');
+  void el.offsetWidth;
+  el.classList.add('cell-downtick');
+  // Formula bar error
+  showFormulaError();
+}
+
+function showFormulaError() {
+  const fb = document.getElementById('formula-input');
+  if (!fb) return;
+  if (fb._errorTimeout) clearTimeout(fb._errorTimeout);
+  if (fb._echoTimeout) clearTimeout(fb._echoTimeout);
+  if (fb._echoInterval) clearInterval(fb._echoInterval);
+  const original = fb._savedText || fb.textContent;
+  fb._savedText = fb._savedText || original;
+  fb.textContent = '#VALUE! — Insufficient Funds';
+  fb.classList.add('formula-error');
+  fb.classList.remove('formula-echo');
+  fb._errorTimeout = setTimeout(() => {
+    fb.textContent = original;
+    fb.classList.remove('formula-error');
+    fb._savedText = null;
+    fb._errorTimeout = null;
+  }, 1500);
+}
+
+// Formula Bar Echo
+function showFormulaEcho(text) {
+  const fb = document.getElementById('formula-input');
+  if (!fb) return;
+  // Clear any existing echo or error
+  if (fb._echoTimeout) clearTimeout(fb._echoTimeout);
+  if (fb._echoInterval) clearInterval(fb._echoInterval);
+  if (fb._errorTimeout) clearTimeout(fb._errorTimeout);
+  const original = fb._savedText || fb.textContent;
+  fb._savedText = fb._savedText || original;
+  fb.textContent = '';
+  fb.classList.add('formula-echo');
+  fb.classList.remove('formula-error');
+  let i = 0;
+  fb._echoInterval = setInterval(() => {
+    if (i < text.length) {
+      fb.textContent += text[i];
+      i++;
+    } else {
+      clearInterval(fb._echoInterval);
+      fb._echoInterval = null;
+      fb._echoTimeout = setTimeout(() => {
+        fb.textContent = original;
+        fb.classList.remove('formula-echo');
+        fb._savedText = null;
+        fb._echoTimeout = null;
+      }, 1000);
+    }
+  }, 30);
 }
 
 // ===== GAME LOOP (1 second ticks) =====
