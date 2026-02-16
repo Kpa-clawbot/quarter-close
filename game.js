@@ -2692,9 +2692,7 @@ function updateDisplay() {
   document.getElementById('stat-hr').textContent = formatStatMoney(totalRev / SECS_PER_YEAR * 3600) + '/hr';
   document.getElementById('stat-day').textContent = formatStatMoney(perTick) + '/day';
 
-  document.getElementById('status-timescale').textContent = gameSpeed > 1
-    ? `⏩ ${gameSpeed}× (${gameSpeed} days/s)`
-    : `▶ ${TIME_LABEL_BASE}`;
+  updateTimescaleDisplay();
 
   // In-game date
   const gameDate = new Date(gameState.gameStartDate + gameState.gameElapsedSecs * 1000);
@@ -6768,8 +6766,8 @@ window.closeChart = closeChart;
 // ===== SLOWDOWN SPEED CONTROL =====
 function cycleSlowdown() {
   const speeds = [1, 2, 4, 8];
-  const labels = ['▶', '◁', '◁◁', '◁◁◁'];
-  const titles = ['Normal speed', '½ speed', '¼ speed', '⅛ speed'];
+  const labels = ['1×', '½×', '¼×', '⅛×'];
+  const titles = ['Normal speed', '½ speed — click to slow more', '¼ speed — click to slow more', '⅛ speed — click for normal'];
   const idx = speeds.indexOf(gameState.tickSlowdown);
   const next = (idx + 1) % speeds.length;
   gameState.tickSlowdown = speeds[next];
@@ -6781,19 +6779,36 @@ function cycleSlowdown() {
   } else {
     btn.classList.remove('slowed');
   }
+  updateTimescaleDisplay();
   saveGame();
 }
 
 function initSlowdown() {
   const speeds = [1, 2, 4, 8];
-  const labels = ['▶', '◁', '◁◁', '◁◁◁'];
-  const titles = ['Normal speed', '½ speed', '¼ speed', '⅛ speed'];
+  const labels = ['1×', '½×', '¼×', '⅛×'];
+  const titles = ['Normal speed', '½ speed — click to slow more', '¼ speed — click to slow more', '⅛ speed — click for normal'];
   const idx = speeds.indexOf(gameState.tickSlowdown || 1);
   const btn = document.getElementById('slowdown-btn');
   if (btn) {
     btn.textContent = labels[idx];
     btn.title = titles[idx];
     if (speeds[idx] > 1) btn.classList.add('slowed');
+  }
+}
+
+function updateTimescaleDisplay() {
+  const el = document.getElementById('status-timescale');
+  if (!el) return;
+  const slow = gameState.tickSlowdown || 1;
+  if (gameSpeed > 1) {
+    el.textContent = `⏩ ${gameSpeed}× (${gameSpeed} days/s)`;
+  } else if (slow > 1) {
+    const frac = slow === 2 ? '½' : slow === 4 ? '¼' : '⅛';
+    el.textContent = `🐢 ${frac} day/tick`;
+    el.style.color = '#4a90d9';
+  } else {
+    el.textContent = `▶ ${TIME_LABEL_BASE}`;
+    el.style.color = '';
   }
 }
 
