@@ -216,6 +216,7 @@ function buildSaveData() {
     columnWidths: gameState.columnWidths || null,
     chartVisible: gameState.chartVisible !== false,
     chartPosition: gameState.chartPosition || null,
+    juiceEnabled: gameState.juiceEnabled !== false,
     // Automation hints
     hintMiniTaskCount: gameState.hintMiniTaskCount || 0,
     hintTaxSettleCount: gameState.hintTaxSettleCount || 0,
@@ -1807,6 +1808,7 @@ let gameState = {
   lastQuarterRE: 0,        // RE earned last quarter (for ETA display)
   chartVisible: true,      // whether the valuation chart is visible (persisted across reloads)
   chartPosition: null,     // { left, top, width, height } for floating chart position
+  juiceEnabled: true,      // visual effects (floating numbers, milestone pops, formula echo, etc.)
   // Automation hint tracking
   hintMiniTaskCount: 0,
   hintTaxSettleCount: 0,
@@ -3019,19 +3021,22 @@ function tickDepreciation() {
 
 function flashCash(direction) {
   const el = document.getElementById('cash-display');
-  // Scale bump (existing behavior)
+  // Scale bump (always on — basic tactile feedback)
   el.classList.remove('cash-bump');
   void el.offsetWidth;
   el.classList.add('cash-bump');
-  // Direction-aware color flash
-  const flashClass = direction === 'spend' ? 'cell-downtick' : 'cell-uptick';
-  el.classList.remove('cell-uptick', 'cell-downtick');
-  void el.offsetWidth;
-  el.classList.add(flashClass);
+  // Direction-aware color flash (juice)
+  if (gameState.juiceEnabled) {
+    const flashClass = direction === 'spend' ? 'cell-downtick' : 'cell-uptick';
+    el.classList.remove('cell-uptick', 'cell-downtick');
+    void el.offsetWidth;
+    el.classList.add(flashClass);
+  }
 }
 
 // Floating number effect (damage numbers)
 function floatingNumber(amount, element, isSpend) {
+  if (!gameState.juiceEnabled) return;
   const span = document.createElement('span');
   span.className = 'floating-number ' + (isSpend ? 'spend' : 'earn');
   span.textContent = (isSpend ? '-' : '+') + formatMoney(Math.abs(amount));
@@ -3042,6 +3047,7 @@ function floatingNumber(amount, element, isSpend) {
 // Big Number Pop — milestone tracking
 const CASH_MILESTONES = [1e3, 1e4, 1e5, 1e6, 1e7, 1e8, 1e9, 1e10, 1e11, 1e12, 1e13, 1e14, 1e15];
 function checkCashMilestone() {
+  if (!gameState.juiceEnabled) return;
   const cash = gameState.cash;
   const last = gameState._lastCashMilestone || 0;
   for (let i = CASH_MILESTONES.length - 1; i >= 0; i--) {
@@ -3066,6 +3072,7 @@ function checkCashMilestone() {
 
 // Insufficient funds feedback
 function showInsufficientFunds() {
+  if (!gameState.juiceEnabled) return;
   const el = document.getElementById('cash-display');
   // Shake
   el.classList.remove('cash-shake');
@@ -3100,6 +3107,7 @@ function showFormulaError() {
 
 // Formula Bar Echo
 function showFormulaEcho(text) {
+  if (!gameState.juiceEnabled) return;
   const fb = document.getElementById('formula-input');
   if (!fb) return;
   // Clear any existing echo or error
@@ -4624,6 +4632,7 @@ function loadGame(slotId) {
     gameState.columnWidths = data.columnWidths || null;
     gameState.chartVisible = data.chartVisible !== false;
     gameState.chartPosition = data.chartPosition || null;
+    gameState.juiceEnabled = data.juiceEnabled !== false;
     // Automation hints
     gameState.hintMiniTaskCount = data.hintMiniTaskCount || 0;
     gameState.hintTaxSettleCount = data.hintTaxSettleCount || 0;
@@ -4776,6 +4785,7 @@ function resetGame() {
   gameState.columnWidths = null;
   gameState.chartPosition = null;
   gameState.chartVisible = true;
+  gameState.juiceEnabled = true;
   gameState.paused = false;
   gameState.eventCooldown = 0;
   gameState.miniTaskCooldown = 0;
@@ -5100,10 +5110,16 @@ function showGameOptions() {
   document.getElementById('toggle-deals').checked = toggles.closeTheDeals !== false;
   document.getElementById('toggle-overtime').checked = toggles.overtime !== false;
   document.getElementById('toggle-focus').checked = toggles.managementFocus !== false;
+  document.getElementById('toggle-juice').checked = gameState.juiceEnabled !== false;
   document.getElementById('event-freq-slider').value = Math.round(EVENT_FREQ_MULT * 100);
   const initTag = EVENT_FREQ_MULT === 0 ? 'off' : EVENT_FREQ_MULT <= 1 ? '' : EVENT_FREQ_MULT <= 3 ? '🔥' : EVENT_FREQ_MULT <= 6 ? '💀' : '☠️';
   document.getElementById('event-freq-label').textContent = `📬 Events: ${EVENT_FREQ_MULT.toFixed(1)}× ${initTag}`;
   document.getElementById('options-modal').classList.remove('hidden');
+}
+
+function toggleJuice(enabled) {
+  gameState.juiceEnabled = enabled;
+  saveGame();
 }
 
 function dismissOptions() {
