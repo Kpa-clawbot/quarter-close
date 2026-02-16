@@ -359,7 +359,7 @@
 
 /* Root font-size — responsive scaling */
 html {
-  font-size: clamp(12px, 1.5vw, 16px);
+  font-size: clamp(14px, 1.8vw, 18px);
 }
 
 /* Reset & Base */
