@@ -20,7 +20,7 @@
   <meta name="description" content="An idle tycoon game disguised as a spreadsheet. Look busy. Get rich.">
   <title>Q4 Financials - Operations.xlsx - Quarter Close</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='4' fill='%23217346'/><rect x='4' y='4' width='7' height='5' rx='1' fill='white'/><rect x='13' y='4' width='7' height='5' rx='1' fill='white'/><rect x='22' y='4' width='7' height='5' rx='1' fill='white'/><rect x='4' y='11' width='7' height='5' rx='1' fill='white' opacity='0.8'/><rect x='13' y='11' width='7' height='5' rx='1' fill='white' opacity='0.8'/><rect x='22' y='11' width='7' height='5' rx='1' fill='white' opacity='0.8'/><rect x='4' y='18' width='7' height='5' rx='1' fill='white' opacity='0.6'/><rect x='13' y='18' width='7' height='5' rx='1' fill='white' opacity='0.6'/><rect x='22' y='18' width='7' height='5' rx='1' fill='white' opacity='0.6'/><rect x='4' y='25' width='7' height='5' rx='1' fill='white' opacity='0.4'/><rect x='13' y='25' width='7' height='5' rx='1' fill='white' opacity='0.4'/><rect x='22' y='25' width='7' height='5' rx='1' fill='white' opacity='0.4'/></svg>">
-  <link rel="stylesheet" href="style.css?v=83">
+  <link rel="stylesheet" href="style.css?v=84">
 </head>
 <body>
   <!-- ===== SPLASH SCREEN ===== -->
@@ -161,6 +161,11 @@
         <div class="toolbar-sep"></div>
         <button class="tool-btn" id="dark-mode-toggle" onclick="toggleDarkMode()" title="Toggle dark mode">🌙</button>
       </div>
+      <div class="toolbar-group toolbar-playback">
+        <button class="tool-btn playback-btn" id="pause-btn" onclick="togglePause()" title="Pause">⏸</button>
+        <button class="tool-btn playback-btn" id="slowdown-btn" onclick="cycleSlowdown()" title="Slow down game speed">1×</button>
+        <span id="status-timescale" class="playback-label">▶ 1 day/tick</span>
+      </div>
     </div>
 
     <!-- Formula Bar -->
@@ -277,13 +282,7 @@
       <div id="status-left">
         <span id="status-text">Ready</span>
         <span class="status-sep">|</span>
-        <button id="pause-btn" onclick="togglePause()" title="Pause">⏸</button>
-        <span class="status-sep">|</span>
-        <button id="slowdown-btn" onclick="cycleSlowdown()" title="Slow down game speed">1×</button>
-        <span class="status-sep">|</span>
         <span id="game-date">Jan 1, 2024</span>
-        <span class="status-sep">|</span>
-        <span id="status-timescale">⏩⏩ 1 day/s</span>
       </div>
       <div id="status-center">
         <span id="status-save" class="status-indicator">💾 Saved</span>
@@ -744,7 +743,7 @@
     </div>
   </div>
 
-  <script src="game.js?v=164"></script>
+  <script src="game.js?v=165"></script>
   <script>
     if (location.hostname === 'kpa-clawbot.github.io') {
       var s = document.createElement('script');

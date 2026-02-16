@@ -1152,6 +1152,7 @@ body {
 #toolbar {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   background: var(--bg-cell-alt);
   border-bottom: 1px solid var(--border-frame);
   height: 2.25rem;
@@ -1901,15 +1902,7 @@ body.col-resizing * {
 .status-sep { opacity: 0.5; }
 
 #pause-btn {
-  background: none;
-  border: 1px solid var(--border-medium);
-  border-radius: 3px;
-  color: var(--text-primary);
-  font-size: 0.6875rem;
-  padding: 0 0.3rem;
-  cursor: pointer;
-  line-height: 1.2;
-  vertical-align: middle;
+  font-size: 0.8125rem;
 }
 #pause-btn:hover {
   background: var(--bg-highlight);
@@ -3218,22 +3211,29 @@ body.col-resizing * {
 }
 
 /* ===== SLOWDOWN BUTTON ===== */
-#slowdown-btn {
-  background: none;
-  border: 1px solid var(--border-medium);
-  color: var(--text-primary);
-  cursor: pointer;
-  padding: 0 0.3rem;
+.toolbar-playback {
+  gap: 0.25rem;
+  margin-left: auto;
+}
+.playback-btn {
+  font-size: 0.8125rem !important;
+  min-width: 2rem;
+  font-weight: 600;
+}
+.playback-label {
   font-size: 0.6875rem;
-  border-radius: 3px;
-  line-height: 1.2;
-  vertical-align: middle;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  padding: 0 0.25rem;
+}
+#slowdown-btn {
+  font-size: 0.8125rem;
 }
 #slowdown-btn:hover {
   background: var(--bg-highlight);
 }
 #slowdown-btn.slowed {
-  background: var(--bg-highlight);
   color: #4a90d9;
   font-weight: bold;
+  border-color: #4a90d9;
 }
