@@ -10,13 +10,36 @@ It looks exactly like Excel/Google Sheets. But you're secretly building a busine
 ## Visual Design
 
 - Styled like Excel/Google Sheets — grid lines, cell references (A1, B2), formula bar, sheet tabs at bottom
-- Menus look like File/Edit/View/Insert
+- Menus look like File/Edit/View/Insert — functional menus (File, Data, Help) full brightness; decorative menus (Home, Insert, Page Layout, Formulas, Review, View) dimmed to 45% opacity
+- Toolbar has functional buttons (A↓, A↑, dark mode, pause, speed) at full brightness; decorative buttons (Undo, Redo, Bold, font selects, etc.) dimmed to 35% opacity with pointer-events disabled
 - "Save" = Ctrl+S (saves to localStorage)
 - Status bar shows "Ready" like real Excel
 - Favicon = green spreadsheet icon
 - Stock ticker in corner (post-IPO)
 - Resizable columns — drag A-G letter headers, widths persist
-- Pause/resume button in status bar (⏸/▶)
+- Default font: `clamp(14px, 1.8vw, 18px)` — responsive root sizing, everything in rem
+- Font size controls (A↓/A↑): 12-26px range, default index 6 = 18px
+
+### Header Row (Row 1)
+- Cell A: 💰 Cash label
+- Cell B: Cash amount
+- Cell C: Rev/day │ Rev/Q (quarterly revenue in green)
+- Cell D: ⭐ RE label (hidden pre-IPO via visibility:hidden)
+- Cell E: RE amount (hidden pre-IPO)
+- Cell F: Rev/yr label
+- Cell G: Rev/yr amount
+- Cell H: Stock price (post-IPO only)
+
+### Playback Controls (Toolbar)
+- **Pause button** (⏸/▶): right side of toolbar, shows ⏸ when running, ▶ on red background when paused
+- **Speed toggle** (1×/½×/¼×/⅛×): cycles through slowdown factors, blue text when slowed
+- **Timescale label**: shows current effective speed (▶ 1 day/tick, 🐢 ½ day/tick, ⏩ 3× etc.)
+- **Auto-pause**: game pauses when any menu or modal is open, resumes on close, respects manual pause
+
+### Revenue Breakdown (Status Bar)
+- Shows: Revenue: /sec │ /min │ /hr │ /day │ /Q
+- /sec, /min, /hr account for slowdown factor (real-time rates)
+- /Q shown in green, matches header row
 
 ## Save System
 

@@ -2,6 +2,29 @@
 
 All notable changes to Quarter Close.
 
+## [v0.5.1] — 2026-02-16 — QoL Polish
+
+### 🎮 Playback Controls
+- **Pause & Speed controls moved to toolbar** — bigger, more prominent, right-aligned next to formatting buttons
+- **Auto-pause on menus/modals** — game pauses when browsing File/Data menus, Help, About, Save As, Manage Saves, or Game Options; resumes on close; respects manual pause
+- **Speed toggle labels** — clear text (1×/½×/¼×/⅛×) instead of confusing arrow symbols
+- **Timescale indicator** — shows current effective speed next to controls (🐢 ½ day/tick, ⏩ 3× etc.)
+
+### 📊 Revenue Display
+- **Quarterly revenue in header** — cell C now shows rev/day │ rev/Q side by side
+- **Quarterly revenue in status bar** — revenue breakdown adds /Q at the end (/sec │ /min │ /hr │ /day │ /Q)
+- **Revenue rates account for slowdown** — /sec, /min, /hr reflect actual real-time rates when slowed
+
+### 🎨 UI Clarity
+- **Decorative elements dimmed** — non-functional toolbar buttons (Undo, Redo, Bold, font selects, etc.) faded to 35% opacity; unused menu items (Home, Insert, Formulas, etc.) at 45%
+- **Tooltips everywhere** — all buttons and menu items have descriptive tooltips; decorative ones say "Decorative"
+- **Default font size increased** — base font bumped from 12-16px to 14-18px range
+- **Font size controls fixed** — A↓/A↑ aligned to new 18px default; first click adjusts by 1px instead of jumping
+
+### 🔧 Fixes
+- **RE display layout fix** — RE hidden pre-IPO using `visibility: hidden` instead of `display: none` (which collapsed grid cells and broke row 1 layout)
+- **Rev/yr label shortened** — "Total Rev/yr:" → "Rev/yr:" for cleaner header
+
 ## [v0.5.0] — 2026-02-16 — "Ripped from the Headlines"
 
 ### 📰 "Ripped From the Headlines" Events

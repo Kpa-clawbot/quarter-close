@@ -116,6 +116,26 @@
 - **New Game flow**: Creates new slot, saves current game first, prompts for name via `_pendingSlotName` mechanism
 - **Storage tracking**: `JSON.stringify(data).length * 2` bytes (UTF-16) per slot, shown in Manage Saves modal
 
+### Playback Controls (v0.5.1)
+- **Toolbar location**: Pause + speed buttons in `.toolbar-playback` group, right-aligned in `#toolbar` via `margin-left: auto`
+- **Auto-pause**: `menuPause()` / `menuResume()` with `_menuPausedGame` flag — pauses on menu/modal open, resumes on close, won't unpause if player manually paused first
+- **Speed toggle**: `cycleSlowdown()` cycles `gameState.tickSlowdown` through [1, 2, 4, 8] with text labels ['1×', '½×', '¼×', '⅛×']
+- **Timescale display**: `updateTimescaleDisplay()` shared function updates `#status-timescale` for all speed states
+- **Revenue rates**: Status bar /sec /min /hr divide by `tickSlowdown` to show real-time rates
+
+### Decorative UI Elements (v0.5.1)
+- **`.decorative` class**: Applied to non-functional toolbar buttons and menu items
+- **Toolbar buttons**: `opacity: 0.35`, `pointer-events: none` — visually faded and non-clickable
+- **Menu items**: `opacity: 0.45`, `cursor: default` — slightly less faded (still readable)
+- **Tooltips**: All elements have `title` attribute; decorative ones say "Decorative"
+
+### Font Size System (v0.5.1)
+- **Root CSS**: `html { font-size: clamp(14px, 1.8vw, 18px); }` — auto viewport scaling
+- **FONT_SIZES array**: `[12, 13, 14, 15, 16, 17, 18, 19, 20, 22, 24, 26]`
+- **Default index**: 6 (= 18px, matching CSS clamp max)
+- **`initZoom()`**: Only overrides CSS if user has stored preference; otherwise CSS clamp handles it
+- **RE display pre-IPO**: Uses `visibility: hidden` (NOT `display: none`) to preserve grid cell positions
+
 ### Phase 2.1: IPO + Earnings System
 - **IPO trigger**: `checkIPOTrigger()` fires when `getCompanyValuation() >= 5e12`, shows accept/decline toast (expiresMs: 0)
 - **Stock price**: `getStockPrice() = getCompanyValuation() / sharesOutstanding` — displayed in status bar and IR section
