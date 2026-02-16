@@ -5738,18 +5738,6 @@ function initColumnResize() {
     handle.addEventListener('touchstart', onStart, { passive: false });
   });
 }
-      document.body.classList.remove('col-resizing');
-      document.removeEventListener('mousemove', onMove);
-      document.removeEventListener('mouseup', onEnd);
-      document.removeEventListener('touchmove', onMove);
-      document.removeEventListener('touchend', onEnd);
-      saveGame();
-    }
-
-    handle.addEventListener('mousedown', onStart);
-    handle.addEventListener('touchstart', onStart, { passive: false });
-  });
-}
 
 function init() {
   initDarkMode();
