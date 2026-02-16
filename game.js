@@ -2645,10 +2645,18 @@ function updateDisplay() {
   const cashEl = document.getElementById('cash-display');
   cashEl.textContent = formatMoney(gameState.cash);
 
-  // RE display
+  // RE display — only show after IPO
   const reEl = document.getElementById('re-display');
+  const reLabel = document.querySelector('.re-label');
   if (reEl) {
-    reEl.textContent = gameState.retainedEarnings ? formatCompact(gameState.retainedEarnings) : '0';
+    if (gameState.isPublic) {
+      reEl.textContent = gameState.retainedEarnings ? formatCompact(gameState.retainedEarnings) : '0';
+      reEl.style.display = '';
+      if (reLabel) reLabel.style.display = '';
+    } else {
+      reEl.style.display = 'none';
+      if (reLabel) reLabel.style.display = 'none';
+    }
   }
 
   const totalRev = totalAnnualRev();
