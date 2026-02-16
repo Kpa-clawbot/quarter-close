@@ -30,6 +30,30 @@ All notable changes to Quarter Close.
 - Budget percentage turns gold when normalization is active, showing effective rate
 - Hover/long-press shows full context ("Set 100% → effective 50%")
 
+### 💾 Multi-Slot Save System
+- **Unlimited named save slots** — create as many saves as you want
+- **File → Save As...** — name your saves, create new slots
+- **File → Manage Saves...** — modal showing all slots with Load, Rename, Export, Delete buttons and storage size per slot
+- **File → Export to File...** — download save as .json file with SHA-256 checksum
+- **File → Import from File...** — preview modal with save details, checksum validation, import as new slot
+- Old single-save format auto-migrates to slot 1
+- New Game creates a new slot (no longer wipes existing saves)
+
+### 📐 Resizable Columns
+- **Drag column headers (A–G) to resize** — just like Excel/Google Sheets
+- Column widths saved automatically and persist across sessions
+- Touch-friendly handles for iPad/mobile
+- Column H stays flexible
+
+### ⏸ Pause Button
+- Pause/Resume button in status bar
+- Shows ⏸ while running, ▶ on red background when paused
+- Status text changes to "Paused"
+
+### 📊 Chart Persistence
+- Floating chart **visibility** now persists — close it, and it stays closed on reload
+- Floating chart **position and size** now persist across reloads
+
 ## [v0.4.1] — 2026-02-15
 
 Balance and UX fixes.

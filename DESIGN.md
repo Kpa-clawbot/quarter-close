@@ -15,6 +15,51 @@ It looks exactly like Excel/Google Sheets. But you're secretly building a busine
 - Status bar shows "Ready" like real Excel
 - Favicon = green spreadsheet icon
 - Stock ticker in corner (post-IPO)
+- Resizable columns — drag A-G letter headers, widths persist
+- Pause/resume button in status bar (⏸/▶)
+
+## Save System
+
+Multi-slot save system with file export/import.
+
+### Save Slots
+- Unlimited named slots in localStorage
+- Slot IDs start at 1
+- Each slot stores full gameState + metadata (name, game date, cash, storage size)
+- Active slot shown in Manage Saves modal
+- Auto-save targets active slot
+
+### File Menu
+| Item | Description |
+|------|-------------|
+| Save (Ctrl+S) | Save to active slot |
+| Save As... | Create new named slot or overwrite current |
+| Manage Saves... | Modal: list all slots with Load/Rename/Export/Delete |
+| Export to File... | Download save as .json with SHA-256 checksum |
+| Import from File... | File picker → preview modal → import as new slot |
+| Auto-save | Toggle auto-save on/off |
+| New Game | Create new slot (old slots preserved) |
+| About | Version info |
+
+### Export/Import Format
+```json
+{
+  "version": "0.5.0",
+  "name": "My Game",
+  "exportedAt": 1739712000000,
+  "checksum": "sha256...",
+  "data": { ...gameState... }
+}
+```
+
+### Anti-Tampering
+- SHA-256 hash of save data + salt (`qc_2026_s4lt`)
+- Tampered files show warning but can still be loaded
+- Not security — just prevents casual JSON editing
+
+### Chart Persistence
+- Chart visibility (open/closed) persists across reloads
+- Floating chart position and size persist across reloads
 
 ## Core Loop
 

@@ -105,6 +105,17 @@
 - No need to clear saves between code changes
 - Only need New Game to switch arcs
 
+### Multi-Slot Save System (v0.5.0)
+- **localStorage keys**: `quarterClose_slots` (metadata array), `quarterClose_activeSlot` (int), `quarterClose_slot_N` (save data per slot)
+- **Slot IDs start at 1** (not 0)
+- **Migration**: Old `quarterClose_save` key auto-migrates to slot 1 on first load with new code
+- **`buildSaveData()`**: Extracted shared function used by saveGame, Save As, and Export
+- **SHA-256 checksum**: `crypto.subtle.digest()` with salt `qc_2026_s4lt` — anti-casual-editing, warns but allows load on mismatch
+- **File format**: `{ version, name, exportedAt, checksum, data: {...gameState} }`
+- **Import**: Always creates a new slot (never overwrites existing)
+- **New Game flow**: Creates new slot, saves current game first, prompts for name via `_pendingSlotName` mechanism
+- **Storage tracking**: `JSON.stringify(data).length * 2` bytes (UTF-16) per slot, shown in Manage Saves modal
+
 ### Phase 2.1: IPO + Earnings System
 - **IPO trigger**: `checkIPOTrigger()` fires when `getCompanyValuation() >= 5e12`, shows accept/decline toast (expiresMs: 0)
 - **Stock price**: `getStockPrice() = getCompanyValuation() / sharesOutstanding` — displayed in status bar and IR section
