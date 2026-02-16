@@ -6445,11 +6445,12 @@ function saveChartPosition() {
   const container = document.getElementById('valuation-chart-container');
   const rect = container.getBoundingClientRect();
   gameState.chartPosition = {
-    left: parseInt(container.style.left) || rect.left,
-    top: parseInt(container.style.top) || rect.top,
+    left: parseInt(container.style.left) || Math.round(rect.left),
+    top: parseInt(container.style.top) || Math.round(rect.top),
     width: container.offsetWidth,
     height: container.offsetHeight
   };
+  saveGame(); // persist immediately so position survives reload
 }
 
 function floatChart() {
