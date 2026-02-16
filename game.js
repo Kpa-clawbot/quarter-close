@@ -215,6 +215,7 @@ function buildSaveData() {
     focusTipShown: gameState.focusTipShown || false,
     columnWidths: gameState.columnWidths || null,
     chartVisible: gameState.chartVisible !== false,
+    chartPosition: gameState.chartPosition || null,
     savedAt: Date.now(),
   };
 }
@@ -1707,6 +1708,7 @@ let gameState = {
   revenueHistory: [],      // last 3 quarterly revenues for trend analysis
   lastQuarterRE: 0,        // RE earned last quarter (for ETA display)
   chartVisible: true,      // whether the valuation chart is visible (persisted across reloads)
+  chartPosition: null,     // { left, top, width, height } for floating chart position
 };
 
 let gridBuilt = false;
@@ -4283,6 +4285,7 @@ function loadGame(slotId) {
     gameState.focusTipShown = data.focusTipShown || false;
     gameState.columnWidths = data.columnWidths || null;
     gameState.chartVisible = data.chartVisible !== false;
+    gameState.chartPosition = data.chartPosition || null;
     gameState.activeTab = 'operations';
 
     // Rebuild sources for selected arc
@@ -4418,6 +4421,8 @@ function resetGame() {
   gameState.overtimeClicks = 0;
   gameState.focusTipShown = false;
   gameState.columnWidths = null;
+  gameState.chartPosition = null;
+  gameState.chartVisible = true;
   gameState.paused = false;
   gameState.eventCooldown = 0;
   gameState.miniTaskCooldown = 0;
@@ -6435,6 +6440,18 @@ function toggleChartOverlay() {
 }
 window.toggleChartOverlay = toggleChartOverlay;
 
+function saveChartPosition() {
+  if (!chartFloating) return;
+  const container = document.getElementById('valuation-chart-container');
+  const rect = container.getBoundingClientRect();
+  gameState.chartPosition = {
+    left: parseInt(container.style.left) || rect.left,
+    top: parseInt(container.style.top) || rect.top,
+    width: container.offsetWidth,
+    height: container.offsetHeight
+  };
+}
+
 function floatChart() {
   const overlay = document.getElementById('chart-overlay');
   const container = document.getElementById('valuation-chart-container');
@@ -6443,9 +6460,14 @@ function floatChart() {
   document.getElementById('game-view').appendChild(container);
   container.classList.add('chart-floating');
   container.classList.remove('hidden');
-  // Position to the right of column G
+  // Restore saved position or default to right of column G
   const cell = document.querySelector('#row-1 .cell-g');
-  if (cell) {
+  if (gameState.chartPosition) {
+    container.style.left = gameState.chartPosition.left + 'px';
+    container.style.top = gameState.chartPosition.top + 'px';
+    container.style.width = gameState.chartPosition.width + 'px';
+    container.style.height = gameState.chartPosition.height + 'px';
+  } else if (cell) {
     const gRect = cell.getBoundingClientRect();
     container.style.left = (gRect.right + 12) + 'px';
     container.style.top = gRect.top + 'px';
@@ -6500,12 +6522,12 @@ window.closeChart = closeChart;
 
 function initChartMode() {
   if (localStorage.getItem('qc-chart-float') === '1') {
-    // Delay float until game renders so cell positions exist
+    const wasVisible = gameState.chartVisible; // save BEFORE floatChart overwrites it
     setTimeout(() => {
       floatChart();
-      // Respect saved chart visibility — hide if player had closed it
-      if (gameState.chartVisible === false) {
+      if (wasVisible === false) {
         document.getElementById('valuation-chart-container').classList.add('hidden');
+        gameState.chartVisible = false; // restore after floatChart set it true
       }
     }, 500);
   }
@@ -6571,8 +6593,8 @@ function initChartDrag() {
     }
   }, { passive: true });
 
-  document.addEventListener('mouseup', () => { chartDragState = null; });
-  document.addEventListener('touchend', () => { chartDragState = null; });
+  document.addEventListener('mouseup', () => { if (chartDragState) saveChartPosition(); chartDragState = null; });
+  document.addEventListener('touchend', () => { if (chartDragState) saveChartPosition(); chartDragState = null; });
 }
 
 function drawValuationSparkline() {
