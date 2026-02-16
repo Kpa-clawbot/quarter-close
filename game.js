@@ -1494,6 +1494,7 @@ let gameState = {
   cfoRecords: {},          // { 1: {beats:0,total:0}, 2: {...}, 3: {...} }
   revenueHistory: [],      // last 3 quarterly revenues for trend analysis
   lastQuarterRE: 0,        // RE earned last quarter (for ETA display)
+  chartVisible: true,      // whether the valuation chart is visible (persisted across reloads)
 };
 
 let gridBuilt = false;
@@ -4008,6 +4009,7 @@ function saveGame() {
     overtimeClicks: gameState.overtimeClicks || 0,
     focusTipShown: gameState.focusTipShown || false,
     columnWidths: gameState.columnWidths || null,
+    chartVisible: gameState.chartVisible !== false,
     savedAt: Date.now(),
   };
 
@@ -4098,6 +4100,7 @@ function loadGame() {
     gameState.overtimeClicks = data.overtimeClicks || 0;
     gameState.focusTipShown = data.focusTipShown || false;
     gameState.columnWidths = data.columnWidths || null;
+    gameState.chartVisible = data.chartVisible !== false;
     gameState.activeTab = 'operations';
 
     // Rebuild sources for selected arc
@@ -5862,15 +5865,18 @@ function toggleChartOverlay() {
     // Toggle floating chart visibility
     const container = document.getElementById('valuation-chart-container');
     container.classList.toggle('hidden');
-    if (!container.classList.contains('hidden')) drawValuationChart();
+    gameState.chartVisible = !container.classList.contains('hidden');
+    if (gameState.chartVisible) drawValuationChart();
     return;
   }
   const overlay = document.getElementById('chart-overlay');
   if (overlay.classList.contains('hidden')) {
     overlay.classList.remove('hidden');
+    gameState.chartVisible = true;
     drawValuationChart();
   } else {
     overlay.classList.add('hidden');
+    gameState.chartVisible = false;
   }
 }
 window.toggleChartOverlay = toggleChartOverlay;
@@ -5898,6 +5904,7 @@ function floatChart() {
     container.style.height = '200px';
   }
   chartFloating = true;
+  gameState.chartVisible = true;
   localStorage.setItem('qc-chart-float', '1');
   document.getElementById('chart-float-btn').style.display = 'none';
   initChartDrag();
@@ -5921,6 +5928,7 @@ function dockChart() {
   container.classList.remove('hidden');
   overlay.classList.remove('hidden');
   chartFloating = false;
+  gameState.chartVisible = true;
   localStorage.setItem('qc-chart-float', '0');
   document.getElementById('chart-float-btn').style.display = '';
 }
@@ -5932,13 +5940,20 @@ function closeChart() {
   } else {
     document.getElementById('chart-overlay').classList.add('hidden');
   }
+  gameState.chartVisible = false;
 }
 window.closeChart = closeChart;
 
 function initChartMode() {
   if (localStorage.getItem('qc-chart-float') === '1') {
     // Delay float until game renders so cell positions exist
-    setTimeout(() => floatChart(), 500);
+    setTimeout(() => {
+      floatChart();
+      // Respect saved chart visibility — hide if player had closed it
+      if (gameState.chartVisible === false) {
+        document.getElementById('valuation-chart-container').classList.add('hidden');
+      }
+    }, 500);
   }
 }
 
