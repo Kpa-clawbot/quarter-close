@@ -468,6 +468,345 @@ const EVENTS = [
       };
     },
   },
+  // ===== "RIPPED FROM THE HEADLINES" EVENTS =====
+  // Healthcare CEO Incident (inspired by Luigi Mangione)
+  {
+    weight: 1,
+    debugLabel: 'Healthcare CEO Incident',
+    sender: 'Breaking News',
+    subject: '🔫 BREAKING: Executive Shot Outside Conference',
+    body: 'Your Chief Health Benefits Officer was shot outside the annual investor conference. The suspect left shell casings engraved with "DENY", "DEFEND", "DEPOSE". Social media is... complicated.',
+    actions: [
+      { label: '🙏 Thoughts & prayers', effect: (gs) => {
+        // Employees secretly cheer — dark but realistic
+        gs.revBonus = { mult: 1.05, until: Date.now() + 90000 };
+        const stockHit = Math.max(100, Math.floor(gs.cash * 0.10));
+        gs.cash -= stockHit;
+        return '🙏 Stock dips 10%. Employee Slack is suspiciously quiet. Productivity... up 5%?';
+      }},
+      { label: '🛡️ Hire security detail (8% cash)', effect: (gs) => {
+        const cost = Math.max(500, Math.floor(gs.cash * 0.08));
+        gs.cash -= cost;
+        gs.execSecurity = true;
+        return `Spent ${formatMoney(cost)} on executive security. C-suite sleeps better. Employees mutter "must be nice."`;
+      }},
+      { label: '💊 Review benefits package (5% rev cut)', effect: (gs) => {
+        // Costs ongoing revenue but improves everything else
+        gs.revPenalty = { mult: 0.95, until: Date.now() + 120000 };
+        gs.revBonus = { mult: 1.10, until: Date.now() + 180000 };
+        return '💊 Healthcare costs up, but employee retention improved. Stock rallies on "corporate responsibility." Revenue +10% after initial 5% dip.';
+      }},
+    ]
+  },
+  // Congressional Hearing
+  {
+    weight: 1,
+    debugLabel: 'Congressional Hearing',
+    generate: () => {
+      const topics = ['monopolistic practices', 'AI safety concerns', 'user data privacy', 'anti-competitive behavior', 'election interference'];
+      const topic = topics[Math.floor(Math.random() * topics.length)];
+      return {
+        sender: 'Legal Department',
+        subject: '🏛️ URGENT: Congressional Subpoena Received',
+        body: `Congress wants your CEO to testify about "${topic}". Senator is doing their angry face on CNN. Your stock is already sliding.`,
+        actions: [
+          { label: '🤵 Send the CEO', effect: (gs) => {
+            // CEO goes, productivity hit but PR boost
+            gs.revPenalty = { mult: 0.85, until: Date.now() + 60000 };
+            gs.revBonus = { mult: 1.15, until: Date.now() + 120000 };
+            return '🏛️ CEO testified. Memes were made. Stock dipped then rallied on "transparency." Net positive.';
+          }},
+          { label: '👔 Send a lawyer instead', effect: (gs) => {
+            const cost = Math.max(200, Math.floor(gs.cash * 0.03));
+            gs.cash -= cost;
+            gs.revPenalty = { mult: 0.9, until: Date.now() + 45000 };
+            return `Sent outside counsel (${formatMoney(cost)}). Senator called it "corporate arrogance." Revenue -10% for 45s from bad PR.`;
+          }},
+          { label: '🖕 Plead the Fifth', effect: (gs) => {
+            gs.revPenalty = { mult: 0.7, until: Date.now() + 90000 };
+            return '🖕 "I respectfully invoke my Fifth Amendment rights." Twitter is ON FIRE. Revenue -30% for 90s.';
+          }},
+        ]
+      };
+    },
+  },
+  // Work From Home Revolt
+  {
+    weight: 2,
+    debugLabel: 'WFH Revolt',
+    generate: () => {
+      const unlocked = gameState.sources.map((s, i) => ({ s, i })).filter(x => x.s.unlocked && x.s.employees > 1);
+      if (unlocked.length === 0) return null;
+      const pick = unlocked[Math.floor(Math.random() * unlocked.length)];
+      const arc = ARCS[gameState.arc];
+      const name = arc.sources[pick.i].name || getSourceDef(pick.i).name;
+      const quitCount = Math.max(1, Math.floor(pick.s.employees * 0.25));
+      return {
+        sender: 'HR Department',
+        subject: '🏠 URGENT: Mass WFH Petition Received',
+        body: `${pick.s.employees} employees in ${name} are threatening to quit over the return-to-office mandate. A Blind post with 2,000 upvotes calls your policy "boomer energy."`,
+        actions: [
+          { label: '🏠 Allow WFH (rev -10%, 90s)', effect: (gs) => {
+            gs.revPenalty = { mult: 0.9, until: Date.now() + 90000 };
+            return `🏠 WFH approved for ${name}. Productivity dipped 10% but everyone kept their job. Glassdoor rating: ⬆️`;
+          }},
+          { label: '🏢 Enforce RTO', effect: (gs) => {
+            gs.sources[pick.i].employees = Math.max(1, gs.sources[pick.i].employees - quitCount);
+            return `🏢 RTO enforced. ${quitCount} employees in ${name} quit. LinkedIn posts incoming.`;
+          }},
+          { label: '🤝 Hybrid compromise', effect: (gs) => {
+            gs.revPenalty = { mult: 0.95, until: Date.now() + 45000 };
+            return '🤝 3 days in office, 2 remote. Nobody\'s happy, but nobody quit. Welcome to corporate compromise.';
+          }},
+        ]
+      };
+    },
+  },
+  // Short Seller Attack
+  {
+    weight: 1,
+    debugLabel: 'Short Seller Attack',
+    sender: 'Investor Relations',
+    subject: '📉 ALERT: Short Seller Report Published',
+    body: 'Hindenburg Research just published a hit piece calling your company "a house of cards built on fraudulent accounting." Stock is cratering. Your board is calling.',
+    actions: [
+      { label: '📊 Publish rebuttal (3% cash)', effect: (gs) => {
+        const cost = Math.max(100, Math.floor(gs.cash * 0.03));
+        gs.cash -= cost;
+        gs.revPenalty = { mult: 0.85, until: Date.now() + 30000 };
+        return `Published detailed rebuttal (${formatMoney(cost)}). Stock recovering. Hindenburg moving on to their next victim.`;
+      }},
+      { label: '🤫 No comment', effect: (gs) => {
+        gs.revPenalty = { mult: 0.7, until: Date.now() + 90000 };
+        return '📉 "No comment" was the wrong call. Stock down 30% for 90s. Shorts are feasting.';
+      }},
+      { label: '⚖️ Sue them (10% cash)', effect: (gs) => {
+        const cost = Math.max(500, Math.floor(gs.cash * 0.10));
+        gs.cash -= cost;
+        // 50% chance the lawsuit backfires (Streisand effect)
+        if (Math.random() < 0.5) {
+          gs.revBonus = { mult: 1.2, until: Date.now() + 60000 };
+          return `Sued Hindenburg (${formatMoney(cost)}). Discovery revealed THEY had errors. Stock rallied +20%!`;
+        } else {
+          gs.revPenalty = { mult: 0.8, until: Date.now() + 60000 };
+          return `Sued Hindenburg (${formatMoney(cost)}). Streisand effect — everyone read the report. Revenue -20% for 60s.`;
+        }
+      }},
+    ]
+  },
+  // AI Replaces Workers
+  {
+    weight: 2,
+    debugLabel: 'AI Disruption',
+    generate: () => {
+      const unlocked = gameState.sources.map((s, i) => ({ s, i })).filter(x => x.s.unlocked && x.s.employees > 2);
+      if (unlocked.length === 0) return null;
+      const pick = unlocked[Math.floor(Math.random() * unlocked.length)];
+      const arc = ARCS[gameState.arc];
+      const name = arc.sources[pick.i].name || getSourceDef(pick.i).name;
+      const fireCount = Math.max(1, Math.floor(pick.s.employees * 0.20));
+      return {
+        sender: 'Strategy Team',
+        subject: '🤖 AI Automation Opportunity',
+        body: `New AI tool can replace ${fireCount} employees in ${name}. Board is excited. Employees are terrified. Twitter is writing think pieces.`,
+        actions: [
+          { label: '🤖 Adopt AI (lose employees, +15% rev)', effect: (gs) => {
+            gs.sources[pick.i].employees = Math.max(1, gs.sources[pick.i].employees - fireCount);
+            gs.revBonus = { mult: 1.15, until: Date.now() + 120000 };
+            return `🤖 Deployed AI in ${name}. ${fireCount} employees "transitioned out." Efficiency up 15% for 2 min. LinkedIn is calling you a visionary (and a monster).`;
+          }},
+          { label: '👥 Keep humans', effect: (gs) => {
+            gs.revPenalty = { mult: 0.95, until: Date.now() + 60000 };
+            return '👥 "We believe in our people." Competitor adopted AI instead. You\'re 5% behind for 60s.';
+          }},
+          { label: '🤝 Retrain employees (5% cash)', effect: (gs) => {
+            const cost = Math.max(100, Math.floor(gs.cash * 0.05));
+            gs.cash -= cost;
+            gs.revBonus = { mult: 1.08, until: Date.now() + 90000 };
+            return `Spent ${formatMoney(cost)} retraining ${fireCount} employees to work WITH AI. Revenue +8% for 90s. Best of both worlds.`;
+          }},
+        ]
+      };
+    },
+  },
+  // CEO Posts Something Stupid
+  {
+    weight: 2,
+    debugLabel: 'CEO Tweet',
+    generate: () => {
+      const tweets = [
+        { text: '"funding secured" with no context', consequence: 'SEC investigation' },
+        { text: 'a meme about a competitor\'s CEO', consequence: 'defamation lawsuit threat' },
+        { text: '"AI will replace all our employees by Q3"', consequence: 'mass panic in engineering' },
+        { text: '"if you don\'t come to office, you don\'t believe in the mission"', consequence: 'Glassdoor score dropped to 2.1' },
+        { text: 'a photo of himself on a yacht during layoffs', consequence: 'PR nightmare' },
+        { text: '"we\'re a family here" right before announcing layoffs', consequence: 'the meme writes itself' },
+      ];
+      const tweet = tweets[Math.floor(Math.random() * tweets.length)];
+      return {
+        sender: 'PR Emergency',
+        subject: '🐦 CEO TWEETED SOMETHING STUPID',
+        body: `Your CEO just posted ${tweet.text}. Result: ${tweet.consequence}. Comms team is in crisis mode.`,
+        actions: [
+          { label: '🗑️ Delete & apologize (2% cash)', effect: (gs) => {
+            const cost = Math.max(50, Math.floor(gs.cash * 0.02));
+            gs.cash -= cost;
+            gs.revPenalty = { mult: 0.95, until: Date.now() + 30000 };
+            return `Deleted tweet, issued apology (${formatMoney(cost)} in crisis PR). Internet never forgets though. -5% rev for 30s.`;
+          }},
+          { label: '🤷 Double down', effect: (gs) => {
+            // 30% chance it works (Elon energy)
+            if (Math.random() < 0.3) {
+              gs.revBonus = { mult: 1.3, until: Date.now() + 30000 };
+              return '🤷 CEO doubled down. Somehow it worked?! Stock up 30% on "authentic leadership." The timeline is broken.';
+            } else {
+              gs.revPenalty = { mult: 0.7, until: Date.now() + 60000 };
+              return '🤷 CEO doubled down. It did not work. Revenue -30% for 60s. Board is "scheduling a call."';
+            }
+          }},
+          { label: '📵 Revoke CEO\'s Twitter access', effect: (gs) => {
+            const cost = Math.max(100, Math.floor(gs.cash * 0.01));
+            gs.cash -= cost;
+            return `Revoked CEO social media access (${formatMoney(cost)} for the social media manager they should\'ve hired months ago). Crisis contained.`;
+          }},
+        ]
+      };
+    },
+  },
+  // Bank Collapse
+  {
+    weight: 1,
+    debugLabel: 'Bank Collapse',
+    sender: 'Treasury Department',
+    subject: '🏦 URGENT: Your Corporate Bank Just Failed',
+    body: 'Your bank collapsed overnight. FDIC covers $250K. You had... significantly more than that in there. Federal regulators are "working to ensure orderly resolution." Sure they are.',
+    actions: [
+      { label: '😱 Check the damage', effect: (gs) => {
+        const excess = Math.max(0, gs.cash - 250000);
+        const loss = Math.floor(excess * 0.3); // Lose 30% of uninsured deposits
+        gs.cash -= loss;
+        return `🏦 Lost ${formatMoney(loss)} in uninsured deposits. FDIC covered $250K. Maybe don\'t keep everything in one bank next time.`;
+      }},
+    ]
+  },
+  // Activist Investor
+  {
+    weight: 1,
+    debugLabel: 'Activist Investor',
+    generate: () => {
+      const names = ['Carl Icahn', 'Bill Ackman', 'Dan Loeb', 'Nelson Peltz', 'Elliott Management'];
+      const name = names[Math.floor(Math.random() * names.length)];
+      const unlocked = gameState.sources.map((s, i) => ({ s, i })).filter(x => x.s.unlocked && x.s.employees > 2);
+      const hasDepts = unlocked.length > 0;
+      return {
+        sender: 'Board of Directors',
+        subject: '💰 Activist Investor Has Taken a Position',
+        body: `${name} just disclosed an 8% stake in your company. They\'re demanding "sweeping changes to unlock shareholder value." Translation: they want you to fire people and cut costs.`,
+        actions: [
+          { label: '🪓 Cut costs (fire 15% across the board)', effect: (gs) => {
+            if (hasDepts) {
+              unlocked.forEach(({ s }) => {
+                const cut = Math.max(0, Math.floor(s.employees * 0.15));
+                s.employees = Math.max(1, s.employees - cut);
+              });
+            }
+            gs.revBonus = { mult: 1.1, until: Date.now() + 90000 };
+            return `🪓 Laid off 15% of staff. ${name} is "pleased with the direction." Stock up 10% for 90s. Morale is in the toilet.`;
+          }},
+          { label: '🛡️ Poison pill defense (8% cash)', effect: (gs) => {
+            const cost = Math.max(500, Math.floor(gs.cash * 0.08));
+            gs.cash -= cost;
+            return `Adopted poison pill defense (${formatMoney(cost)}). ${name} backed off. Board drama averted. Lawyers got richer.`;
+          }},
+          { label: '🤝 Negotiate a board seat', effect: (gs) => {
+            gs.revPenalty = { mult: 0.9, until: Date.now() + 60000 };
+            gs.revBonus = { mult: 1.05, until: Date.now() + 180000 };
+            return `🤝 Gave ${name} a board seat. Short-term disruption (-10% 60s), but their operational expertise helps long-term (+5% 3min).`;
+          }},
+        ]
+      };
+    },
+  },
+  // Supply Chain Crisis
+  {
+    weight: 2,
+    debugLabel: 'Supply Chain Crisis',
+    generate: () => {
+      const crises = [
+        { what: 'A ship got stuck in a canal. Again.', detail: 'Ever Given 2: Electric Boogaloo.' },
+        { what: 'Port workers went on strike.', detail: 'They want a 40% raise. Honestly, fair.' },
+        { what: 'A semiconductor fab caught fire.', detail: 'Lead times just went from 12 weeks to 52 weeks.' },
+        { what: 'China banned exports of rare earth minerals.', detail: 'Your supply chain just got geopolitical.' },
+      ];
+      const crisis = crises[Math.floor(Math.random() * crises.length)];
+      return {
+        sender: 'Supply Chain',
+        subject: '🚢 SUPPLY CHAIN DISRUPTION',
+        body: `${crisis.what} ${crisis.detail} Revenue impact expected for the next quarter.`,
+        actions: [
+          { label: '💰 Pay for expedited shipping (5% cash)', effect: (gs) => {
+            const cost = Math.max(200, Math.floor(gs.cash * 0.05));
+            gs.cash -= cost;
+            gs.revPenalty = { mult: 0.95, until: Date.now() + 30000 };
+            return `Paid ${formatMoney(cost)} for air freight. Only -5% impact for 30s instead of the full hit.`;
+          }},
+          { label: '⏳ Wait it out', effect: (gs) => {
+            gs.revPenalty = { mult: 0.75, until: Date.now() + 90000 };
+            return '⏳ Waiting for the canal/port/fab/embargo to resolve. Revenue -25% for 90s. Patience is a virtue. An expensive one.';
+          }},
+        ]
+      };
+    },
+  },
+  // Pandemic
+  {
+    weight: 1,
+    debugLabel: 'Pandemic',
+    sender: 'WHO Alert',
+    subject: '🦠 NEW PANDEMIC: Markets in Freefall',
+    body: 'A new virus is spreading globally. WHO declared a public health emergency. Markets tanked 20%. Your employees are panic-buying toilet paper.',
+    actions: [
+      { label: '🏠 Go fully remote immediately', effect: (gs) => {
+        gs.revPenalty = { mult: 0.8, until: Date.now() + 60000 };
+        gs.revBonus = { mult: 1.1, until: Date.now() + 180000 };
+        return '🏠 Went remote Day 1. Rough first 60s (-20%), but adapted faster than competitors. +10% for 3 min after.';
+      }},
+      { label: '🏢 "It\'s just the flu"', effect: (gs) => {
+        // Revenue initially fine, then crashes
+        gs.revPenalty = { mult: 0.5, until: Date.now() + 120000 };
+        return '🏢 "It\'s just the flu." It was not just the flu. 50% of staff out sick. Revenue halved for 2 minutes.';
+      }},
+      { label: '😷 Masks, tests, and hazard pay (8% cash)', effect: (gs) => {
+        const cost = Math.max(500, Math.floor(gs.cash * 0.08));
+        gs.cash -= cost;
+        gs.revPenalty = { mult: 0.9, until: Date.now() + 45000 };
+        return `Spent ${formatMoney(cost)} on PPE, testing, and hazard pay. Only -10% disruption for 45s. Employees actually feel valued for once.`;
+      }},
+    ]
+  },
+  // CEO Health Scare
+  {
+    weight: 1,
+    debugLabel: 'CEO Health Scare',
+    sender: 'Board of Directors',
+    subject: '💊 CONFIDENTIAL: CEO Hospitalized',
+    body: 'Your CEO was rushed to the hospital. The board is in emergency session. Stock is dropping on "leadership uncertainty." CNBC is already speculating.',
+    actions: [
+      { label: '📋 Announce COO as interim', effect: (gs) => {
+        if (gs.activeCOOLevel > 0) {
+          gs.revPenalty = { mult: 0.95, until: Date.now() + 30000 };
+          return '📋 COO stepped up seamlessly. Markets barely flinched. This is why succession planning exists.';
+        } else {
+          gs.revPenalty = { mult: 0.8, until: Date.now() + 60000 };
+          return '📋 No COO?! Board scrambles to appoint interim leadership. Stock -20% for 60s. Should\'ve hired that COO.';
+        }
+      }},
+      { label: '🤫 Say nothing', effect: (gs) => {
+        gs.revPenalty = { mult: 0.85, until: Date.now() + 90000 };
+        return '🤫 Silence breeds speculation. CNBC: "Sources say CEO may be stepping down." Revenue -15% for 90s on rumor mill.';
+      }},
+    ]
+  },
 ];
 
 // ===== BOARD ROOM UPGRADES (Phase 2.2) =====

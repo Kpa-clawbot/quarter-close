@@ -10,6 +10,20 @@ All notable changes to Quarter Close.
 - Budget percentage turns gold when normalization is active, showing effective rate
 - Hover/long-press shows full context ("Set 100% → effective 50%")
 
+### 📰 "Ripped From the Headlines" Events
+11 new corporate drama events inspired by real-world news:
+- **🔫 Healthcare CEO Incident** — executive shot outside conference, shell casings engraved with "DENY, DEFEND, DEPOSE"
+- **🏛️ Congressional Hearing** — CEO subpoenaed, topics rotate (monopoly, AI safety, data privacy)
+- **🏠 WFH Revolt** — employees threaten to quit over RTO mandate
+- **📉 Short Seller Attack** — Hindenburg publishes a hit piece on your company
+- **🤖 AI Disruption** — AI can replace 20% of a department's workers
+- **🐦 CEO Tweets Something Stupid** — 6 possible tweets, each terrible
+- **🏦 Bank Collapse** — your corporate bank fails, FDIC covers $250K
+- **💰 Activist Investor** — Carl Icahn or friends demand "shareholder value"
+- **🚢 Supply Chain Crisis** — stuck ships, port strikes, fab fires
+- **🦠 Pandemic** — new virus, markets crash, toilet paper shortage
+- **💊 CEO Health Scare** — CEO hospitalized, COO succession matters
+
 ## [v0.4.1] — 2026-02-15
 
 Balance and UX fixes.
