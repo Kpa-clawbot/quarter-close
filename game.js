@@ -2705,6 +2705,7 @@ function updateDisplay() {
   document.getElementById('stat-min').textContent = formatStatMoney(realPerSec * 60) + '/min';
   document.getElementById('stat-hr').textContent = formatStatMoney(realPerSec * 3600) + '/hr';
   document.getElementById('stat-day').textContent = formatStatMoney(perTick) + '/day';
+  document.getElementById('stat-qtr').textContent = formatStatMoney(gameState.quarterRevenue) + '/Q';
 
   updateTimescaleDisplay();
 

@@ -264,6 +264,8 @@
       <span class="rb-val" id="stat-hr"></span>
       <span class="rb-sep">│</span>
       <span class="rb-val" id="stat-day"></span>
+      <span class="rb-sep">│</span>
+      <span class="rb-val" id="stat-qtr" style="color:#217346;font-weight:600"></span>
       <span style="margin-left:auto" id="debug-tools" class="hidden"><button class="cell-btn btn-max" onclick="triggerIRS()" style="color:#c00">🧪 IRS</button> <button class="cell-btn btn-max" onclick="triggerBonus()" style="color:#217346">🧪 5×</button> <button class="cell-btn btn-max" onclick="forceIPO()" style="color:#0078d4">🧪 IPO</button> <button class="cell-btn btn-max" onclick="resetBoardRoom()" style="color:#7b1fa2">🧪 Reset BR</button> <span style="position:relative;display:inline-block"><button class="cell-btn btn-max" onclick="toggleDebugEventDropdown()" style="color:#e65100">🧪 Event ▾</button><div id="debug-event-dropdown" class="hidden" style="position:absolute;bottom:100%;right:0;background:#fff;border:1px solid #ccc;border-radius:4px;box-shadow:0 2px 8px rgba(0,0,0,.2);max-height:300px;overflow-y:auto;z-index:999;width:320px;margin-bottom:2px"></div></span> <span style="margin-left:6px;border-left:1px solid #ccc;padding-left:6px"><button class="cell-btn btn-max speed-btn" id="speed-1" onclick="setGameSpeed(1)" style="color:#333;font-weight:700">1×</button> <button class="cell-btn btn-max speed-btn" id="speed-2" onclick="setGameSpeed(2)">2×</button> <button class="cell-btn btn-max speed-btn" id="speed-3" onclick="setGameSpeed(3)">3×</button> <button class="cell-btn btn-max speed-btn" id="speed-5" onclick="setGameSpeed(5)">5×</button> <button class="cell-btn btn-max speed-btn" id="speed-10" onclick="setGameSpeed(10)">10×</button></span></span>
     </div>
 
@@ -743,7 +745,7 @@
     </div>
   </div>
 
-  <script src="game.js?v=170"></script>
+  <script src="game.js?v=171"></script>
   <script>
     if (location.hostname === 'kpa-clawbot.github.io') {
       var s = document.createElement('script');
