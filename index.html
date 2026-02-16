@@ -20,7 +20,7 @@
   <meta name="description" content="An idle tycoon game disguised as a spreadsheet. Look busy. Get rich.">
   <title>Q4 Financials - Operations.xlsx - Quarter Close</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='4' fill='%23217346'/><rect x='4' y='4' width='7' height='5' rx='1' fill='white'/><rect x='13' y='4' width='7' height='5' rx='1' fill='white'/><rect x='22' y='4' width='7' height='5' rx='1' fill='white'/><rect x='4' y='11' width='7' height='5' rx='1' fill='white' opacity='0.8'/><rect x='13' y='11' width='7' height='5' rx='1' fill='white' opacity='0.8'/><rect x='22' y='11' width='7' height='5' rx='1' fill='white' opacity='0.8'/><rect x='4' y='18' width='7' height='5' rx='1' fill='white' opacity='0.6'/><rect x='13' y='18' width='7' height='5' rx='1' fill='white' opacity='0.6'/><rect x='22' y='18' width='7' height='5' rx='1' fill='white' opacity='0.6'/><rect x='4' y='25' width='7' height='5' rx='1' fill='white' opacity='0.4'/><rect x='13' y='25' width='7' height='5' rx='1' fill='white' opacity='0.4'/><rect x='22' y='25' width='7' height='5' rx='1' fill='white' opacity='0.4'/></svg>">
-  <link rel="stylesheet" href="style.css?v=80">
+  <link rel="stylesheet" href="style.css?v=81">
 </head>
 <body>
   <!-- ===== SPLASH SCREEN ===== -->
@@ -94,6 +94,12 @@
       <span class="menu-item" id="file-menu" onclick="toggleFileMenu(event)">File
         <div class="menu-dropdown" id="file-dropdown">
           <div class="menu-dropdown-item" onclick="saveGame()">Save <span class="shortcut">Ctrl+S</span></div>
+          <div class="menu-dropdown-item" onclick="showSaveAs()">Save As...</div>
+          <div class="menu-dropdown-sep"></div>
+          <div class="menu-dropdown-item" onclick="showManageSaves()">Manage Saves...</div>
+          <div class="menu-dropdown-sep"></div>
+          <div class="menu-dropdown-item" onclick="exportCurrentGame()">Export to File...</div>
+          <div class="menu-dropdown-item" onclick="importFromFile()">Import from File...</div>
           <div class="menu-dropdown-sep"></div>
           <div class="menu-dropdown-item toggle" id="autosave-toggle" onclick="toggleAutosave(event)">Auto-save</div>
           <div class="menu-dropdown-sep"></div>
@@ -687,7 +693,49 @@
     </div>
   </div>
 
-  <script src="game.js?v=158"></script>
+  <!-- ===== SAVE AS MODAL ===== -->
+  <div id="saveas-modal" class="hidden">
+    <div id="saveas-content">
+      <h3 id="saveas-title">Save As</h3>
+      <input type="text" id="saveas-name-input" placeholder="Save name..." maxlength="50">
+      <div class="saveas-buttons">
+        <button class="saveas-btn" onclick="dismissSaveAs()">Cancel</button>
+        <button class="saveas-btn saveas-btn-primary" id="saveas-ok">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== MANAGE SAVES MODAL ===== -->
+  <div id="manage-saves-modal" class="hidden">
+    <div id="manage-saves-content">
+      <div class="ms-header">
+        <h3>💾 Manage Saves</h3>
+        <button class="ms-close" onclick="dismissManageSaves()">✕</button>
+      </div>
+      <div id="manage-saves-list"></div>
+      <div class="ms-footer">
+        <span id="manage-saves-total">0 B used</span>
+        <div class="ms-footer-btns">
+          <button class="ms-btn ms-btn-new" onclick="dismissManageSaves();confirmNewGame()">New Game</button>
+          <button class="ms-btn ms-btn-close" onclick="dismissManageSaves()">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== IMPORT PREVIEW MODAL ===== -->
+  <div id="import-modal" class="hidden">
+    <div id="import-content">
+      <h3>📥 Import Save File</h3>
+      <div id="import-body"></div>
+      <div class="import-buttons">
+        <button class="import-btn" onclick="dismissImport()">Cancel</button>
+        <button class="import-btn import-btn-primary" id="import-ok">Import to New Slot</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="game.js?v=159"></script>
   <script>
     if (location.hostname === 'kpa-clawbot.github.io') {
       var s = document.createElement('script');

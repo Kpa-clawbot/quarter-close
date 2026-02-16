@@ -107,6 +107,218 @@ const SECS_PER_YEAR = 365.25 * SECS_PER_DAY;
 let gameSpeed = 1;
 const TIME_LABEL_BASE = '1 day/tick';
 
+// ===== SAVE SYSTEM =====
+const SAVE_SALT = 'qc_2026_s4lt';
+let activeSlotId = 0; // 0 = no slot loaded yet; valid IDs start at 1
+
+function getSlotsMeta() {
+  try {
+    const raw = localStorage.getItem('quarterClose_slots');
+    return raw ? JSON.parse(raw) : [];
+  } catch (e) { return []; }
+}
+
+function setSlotsMeta(slots) {
+  localStorage.setItem('quarterClose_slots', JSON.stringify(slots));
+}
+
+function getActiveSlotId() {
+  if (activeSlotId > 0) return activeSlotId;
+  const stored = parseInt(localStorage.getItem('quarterClose_activeSlot'));
+  return stored > 0 ? stored : 0;
+}
+
+function setActiveSlotId(id) {
+  activeSlotId = id;
+  localStorage.setItem('quarterClose_activeSlot', String(id));
+}
+
+function nextSlotId() {
+  const slots = getSlotsMeta();
+  if (slots.length === 0) return 1;
+  return Math.max(...slots.map(s => s.id)) + 1;
+}
+
+function getGameDateString() {
+  const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const gameDate = new Date(gameState.gameStartDate + gameState.gameElapsedSecs * 1000);
+  return monthNames[gameDate.getUTCMonth()] + ' ' + gameDate.getUTCDate() + ', ' + gameDate.getUTCFullYear();
+}
+
+function getGameDay() {
+  return Math.floor(gameState.gameElapsedSecs / SECS_PER_DAY);
+}
+
+function buildSaveData() {
+  return {
+    arc: gameState.arc,
+    cash: gameState.cash,
+    totalEarned: gameState.totalEarned,
+    sources: gameState.sources.map(s => ({
+      id: s.id,
+      unlocked: s.unlocked,
+      employees: s.employees,
+      upgradeLevel: s.upgradeLevel,
+      automated: s.automated,
+      pendingCollect: s.pendingCollect,
+      prestigeLevel: s.prestigeLevel || 0,
+      breakthroughMult: s.breakthroughMult || 1,
+    })),
+    seriesAShown: gameState.seriesAShown,
+    totalPlayTime: gameState.totalPlayTime,
+    totalClicks: gameState.totalClicks,
+    miniTaskStreak: gameState.miniTaskStreak,
+    gameStartDate: gameState.gameStartDate,
+    gameElapsedSecs: gameState.gameElapsedSecs,
+    taxDebts: gameState.taxDebts || [],
+    quarterRevenue: gameState.quarterRevenue,
+    quarterExpenses: gameState.quarterExpenses,
+    quarterTaxPaid: gameState.quarterTaxPaid,
+    totalTaxPaid: gameState.totalTaxPaid,
+    totalSpentHires: gameState.totalSpentHires,
+    totalSpentUpgrades: gameState.totalSpentUpgrades,
+    totalSpentAuto: gameState.totalSpentAuto,
+    lastQuarterDay: gameState.lastQuarterDay,
+    capitalExpenses: gameState.capitalExpenses || [],
+    valuationHistory: gameState.valuationHistory || [],
+    isPublic: gameState.isPublic || false,
+    ipoDay: gameState.ipoDay || 0,
+    sharesOutstanding: gameState.sharesOutstanding || 1000000000,
+    retainedEarnings: gameState.retainedEarnings || 0,
+    analystBaseline: gameState.analystBaseline || 1.0,
+    earningsStreak: gameState.earningsStreak || 0,
+    currentGuidance: gameState.currentGuidance || null,
+    guidanceTarget: gameState.guidanceTarget || 0,
+    lastEarningsDay: gameState.lastEarningsDay || 0,
+    earningsQuarterRevenue: gameState.earningsQuarterRevenue || 0,
+    ipoStockPriceStart: gameState.ipoStockPriceStart || 0,
+    _earningsMultiplier: gameState._earningsMultiplier || 1.0,
+    boardRoomPurchases: gameState.boardRoomPurchases || {},
+    activeCFOLevel: gameState.activeCFOLevel || 0,
+    activeCTOLevel: gameState.activeCTOLevel || 0,
+    ctoBudgetPct: gameState.ctoBudgetPct != null ? gameState.ctoBudgetPct : 15,
+    ctoSpentThisQuarter: gameState.ctoSpentThisQuarter || 0,
+    ctoBudgetPool: gameState.ctoBudgetPool || 0,
+    ctoBudgetAuto: gameState.ctoBudgetAuto || false,
+    activeCOOLevel: gameState.activeCOOLevel || 0,
+    cooBudgetPct: gameState.cooBudgetPct != null ? gameState.cooBudgetPct : 15,
+    cooSpentThisQuarter: gameState.cooSpentThisQuarter || 0,
+    cooBudgetPool: gameState.cooBudgetPool || 0,
+    cooBudgetAuto: gameState.cooBudgetAuto || false,
+    cooHireCount: gameState.cooHireCount || 0,
+    cfoRecords: gameState.cfoRecords || {},
+    revenueHistory: gameState.revenueHistory || [],
+    lastQuarterRE: gameState.lastQuarterRE || 0,
+    featureToggles: gameState.featureToggles || DEFAULT_FEATURES,
+    eventFreqMult: EVENT_FREQ_MULT,
+    overtimeClicks: gameState.overtimeClicks || 0,
+    focusTipShown: gameState.focusTipShown || false,
+    columnWidths: gameState.columnWidths || null,
+    chartVisible: gameState.chartVisible !== false,
+    savedAt: Date.now(),
+  };
+}
+
+function updateSlotMeta(slotId, saveData, name) {
+  const slots = getSlotsMeta();
+  const existing = slots.find(s => s.id === slotId);
+  const gameDateStr = getGameDateString();
+  const meta = {
+    id: slotId,
+    name: name || (existing ? existing.name : 'Game - ' + gameDateStr),
+    savedAt: Date.now(),
+    gameDate: gameDateStr,
+    gameDateRaw: getGameDay(),
+    cash: saveData.cash,
+    totalRevenue: saveData.totalEarned,
+    sizeBytes: JSON.stringify(saveData).length * 2,
+  };
+  if (existing) {
+    Object.assign(existing, meta);
+  } else {
+    slots.push(meta);
+  }
+  setSlotsMeta(slots);
+}
+
+function formatBytes(bytes) {
+  if (bytes < 1024) return bytes + ' B';
+  return (bytes / 1024).toFixed(1) + ' KB';
+}
+
+function migrateLegacySave() {
+  // Migration: move old quarterClose_save to slot 1
+  const oldSave = localStorage.getItem('quarterClose_save');
+  const newSlots = localStorage.getItem('quarterClose_slots');
+  if (oldSave && !newSlots) {
+    try {
+      const data = JSON.parse(oldSave);
+      if (data.arc) {
+        localStorage.setItem('quarterClose_slot_1', oldSave);
+        // Build game date from save data
+        const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+        const gd = new Date((data.gameStartDate || Date.now()) + (data.gameElapsedSecs || 0) * 1000);
+        const dateStr = monthNames[gd.getUTCMonth()] + ' ' + gd.getUTCDate() + ', ' + gd.getUTCFullYear();
+        const meta = [{
+          id: 1,
+          name: 'Game - ' + dateStr,
+          savedAt: data.savedAt || Date.now(),
+          gameDate: dateStr,
+          gameDateRaw: Math.floor((data.gameElapsedSecs || 0) / SECS_PER_DAY),
+          cash: data.cash || 0,
+          totalRevenue: data.totalEarned || 0,
+          sizeBytes: oldSave.length * 2,
+        }];
+        setSlotsMeta(meta);
+        setActiveSlotId(1);
+        localStorage.removeItem('quarterClose_save');
+        console.log('[Save System] Migrated legacy save to slot 1');
+      }
+    } catch (e) {
+      console.error('[Save System] Migration failed:', e);
+    }
+  }
+}
+
+async function computeChecksum(data) {
+  try {
+    const str = JSON.stringify(data) + SAVE_SALT;
+    const buf = new TextEncoder().encode(str);
+    const hash = await crypto.subtle.digest('SHA-256', buf);
+    return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join('');
+  } catch (e) {
+    console.warn('crypto.subtle unavailable, skipping checksum');
+    return null;
+  }
+}
+
+function sanitizeFilename(name) {
+  return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'save';
+}
+
+function downloadJSON(data, filename) {
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function openFilePicker(callback) {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = '.json';
+  input.onchange = (e) => {
+    const file = e.target.files[0];
+    if (file) callback(file);
+  };
+  input.click();
+}
+
 // ===== MINI-TASK DEFINITIONS =====
 // tier: 'low' (clerical), 'mid' (management), 'high' (executive)
 // rewardMult: multiplier × daily revenue
@@ -3941,97 +4153,67 @@ function toggleBossMode() {
 }
 
 // ===== SAVE / LOAD =====
-function saveGame() {
+function saveGame(slotId) {
   if (!gameState.arc) return;
-  const saveData = {
-    arc: gameState.arc,
-    cash: gameState.cash,
-    totalEarned: gameState.totalEarned,
-    sources: gameState.sources.map(s => ({
-      id: s.id,
-      unlocked: s.unlocked,
-      employees: s.employees,
-      upgradeLevel: s.upgradeLevel,
-      automated: s.automated,
-      pendingCollect: s.pendingCollect,
-      prestigeLevel: s.prestigeLevel || 0,
-      breakthroughMult: s.breakthroughMult || 1,
-    })),
-    seriesAShown: gameState.seriesAShown,
-    totalPlayTime: gameState.totalPlayTime,
-    totalClicks: gameState.totalClicks,
-    miniTaskStreak: gameState.miniTaskStreak,
-    gameStartDate: gameState.gameStartDate,
-    gameElapsedSecs: gameState.gameElapsedSecs,
-    taxDebts: gameState.taxDebts || [],
-    quarterRevenue: gameState.quarterRevenue,
-    quarterExpenses: gameState.quarterExpenses,
-    quarterTaxPaid: gameState.quarterTaxPaid,
-    totalTaxPaid: gameState.totalTaxPaid,
-    totalSpentHires: gameState.totalSpentHires,
-    totalSpentUpgrades: gameState.totalSpentUpgrades,
-    totalSpentAuto: gameState.totalSpentAuto,
-    lastQuarterDay: gameState.lastQuarterDay,
-    capitalExpenses: gameState.capitalExpenses || [],
-    valuationHistory: gameState.valuationHistory || [],
-    // Phase 2.1
-    isPublic: gameState.isPublic || false,
-    ipoDay: gameState.ipoDay || 0,
-    sharesOutstanding: gameState.sharesOutstanding || 1000000000,
-    retainedEarnings: gameState.retainedEarnings || 0,
-    analystBaseline: gameState.analystBaseline || 1.0,
-    earningsStreak: gameState.earningsStreak || 0,
-    currentGuidance: gameState.currentGuidance || null,
-    guidanceTarget: gameState.guidanceTarget || 0,
-    lastEarningsDay: gameState.lastEarningsDay || 0,
-    earningsQuarterRevenue: gameState.earningsQuarterRevenue || 0,
-    ipoStockPriceStart: gameState.ipoStockPriceStart || 0,
-    _earningsMultiplier: gameState._earningsMultiplier || 1.0,
-    // Phase 2.2: Board Room
-    boardRoomPurchases: gameState.boardRoomPurchases || {},
-    activeCFOLevel: gameState.activeCFOLevel || 0,
-    activeCTOLevel: gameState.activeCTOLevel || 0,
-    ctoBudgetPct: gameState.ctoBudgetPct != null ? gameState.ctoBudgetPct : 15,
-    ctoSpentThisQuarter: gameState.ctoSpentThisQuarter || 0,
-    ctoBudgetPool: gameState.ctoBudgetPool || 0,
-    ctoBudgetAuto: gameState.ctoBudgetAuto || false,
-    activeCOOLevel: gameState.activeCOOLevel || 0,
-    cooBudgetPct: gameState.cooBudgetPct != null ? gameState.cooBudgetPct : 15,
-    cooSpentThisQuarter: gameState.cooSpentThisQuarter || 0,
-    cooBudgetPool: gameState.cooBudgetPool || 0,
-    cooBudgetAuto: gameState.cooBudgetAuto || false,
-    cooHireCount: gameState.cooHireCount || 0,
-    cfoRecords: gameState.cfoRecords || {},
-    revenueHistory: gameState.revenueHistory || [],
-    lastQuarterRE: gameState.lastQuarterRE || 0,
-    featureToggles: gameState.featureToggles || DEFAULT_FEATURES,
-    eventFreqMult: EVENT_FREQ_MULT,
-    overtimeClicks: gameState.overtimeClicks || 0,
-    focusTipShown: gameState.focusTipShown || false,
-    columnWidths: gameState.columnWidths || null,
-    chartVisible: gameState.chartVisible !== false,
-    savedAt: Date.now(),
-  };
+  const saveData = buildSaveData();
 
-  try {
-    localStorage.setItem('quarterClose_save', JSON.stringify(saveData));
-    gameState.lastSave = Date.now();
+  // Use pending slot name if set (from New Game flow)
+  const pendingName = _pendingSlotName;
+  _pendingSlotName = null;
 
-    const saveEl = document.getElementById('status-save');
+  const sid = slotId || getActiveSlotId();
+  if (!sid || sid < 1) {
+    // First save — create slot
+    const newId = nextSlotId();
+    setActiveSlotId(newId);
+    try {
+      localStorage.setItem('quarterClose_slot_' + newId, JSON.stringify(saveData));
+      updateSlotMeta(newId, saveData, pendingName);
+      gameState.lastSave = Date.now();
+    } catch (e) {
+      console.error('Save failed:', e);
+      return;
+    }
+  } else {
+    try {
+      localStorage.setItem('quarterClose_slot_' + sid, JSON.stringify(saveData));
+      updateSlotMeta(sid, saveData, pendingName);
+      gameState.lastSave = Date.now();
+    } catch (e) {
+      console.error('Save failed:', e);
+      return;
+    }
+  }
+
+  const saveEl = document.getElementById('status-save');
+  if (saveEl) {
     saveEl.textContent = '💾 Saved!';
     setTimeout(() => { saveEl.textContent = '💾 Saved'; }, 1500);
-  } catch (e) {
-    console.error('Save failed:', e);
   }
 }
 
-function loadGame() {
+function loadGame(slotId) {
   try {
-    const raw = localStorage.getItem('quarterClose_save');
+    // Run migration first
+    migrateLegacySave();
+
+    const sid = slotId || getActiveSlotId();
+    if (!sid || sid < 1) {
+      // Check if any slots exist
+      const slots = getSlotsMeta();
+      if (slots.length === 0) return false;
+      // Load the most recent slot
+      const sorted = [...slots].sort((a, b) => (b.savedAt || 0) - (a.savedAt || 0));
+      return loadGame(sorted[0].id);
+    }
+
+    const raw = localStorage.getItem('quarterClose_slot_' + sid);
     if (!raw) return false;
 
     const data = JSON.parse(raw);
     if (!data.arc) return false;
+
+    setActiveSlotId(sid);
 
     const now = Date.now();
     const elapsed = Math.min((now - data.savedAt) / 1000, 8 * 3600);
@@ -4172,7 +4354,8 @@ function loadGame() {
 }
 
 function resetGame() {
-  localStorage.removeItem('quarterClose_save');
+  // Don't delete slots — resetGame is called to clear state before loading arc select
+  // The current active slot's save remains in localStorage until overwritten
   gameState.arc = null;
   gameState.cash = 0;
   gameState.totalEarned = 0;
@@ -4770,13 +4953,41 @@ let pendingConfirmAction = null;
 
 function confirmNewGame() {
   closeFileMenu();
-  document.getElementById('confirm-text').textContent = 'Start a new game? All progress will be lost.';
-  document.getElementById('confirm-modal').classList.remove('hidden');
-  pendingConfirmAction = () => {
-    resetGame();
-    dismissConfirm();
-  };
+  // Save current game first, then prompt for new game name
+  if (gameState.arc) saveGame();
+  showNewGamePrompt();
 }
+
+function showNewGamePrompt() {
+  const modal = document.getElementById('saveas-modal');
+  const input = document.getElementById('saveas-name-input');
+  const title = document.getElementById('saveas-title');
+  const okBtn = document.getElementById('saveas-ok');
+  title.textContent = 'New Game';
+  input.value = '';
+  input.placeholder = 'Enter save name...';
+  okBtn.textContent = 'Start New Game';
+  okBtn.className = 'saveas-btn saveas-btn-primary';
+  okBtn.onclick = () => {
+    const name = input.value.trim() || ('Game - ' + new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }));
+    dismissSaveAs();
+    startNewGameWithSlot(name);
+  };
+  modal.classList.remove('hidden');
+  input.focus();
+  input.onkeydown = (e) => { if (e.key === 'Enter') okBtn.click(); if (e.key === 'Escape') dismissSaveAs(); };
+}
+
+function startNewGameWithSlot(name) {
+  // Create a new slot
+  const newId = nextSlotId();
+  setActiveSlotId(newId);
+  resetGame();
+  // Store the pending name so first save uses it
+  _pendingSlotName = name;
+}
+
+let _pendingSlotName = null;
 
 function confirmAction() {
   if (pendingConfirmAction) pendingConfirmAction();
@@ -4786,6 +4997,349 @@ function confirmAction() {
 function dismissConfirm() {
   document.getElementById('confirm-modal').classList.add('hidden');
   pendingConfirmAction = null;
+  // Clean up any extra buttons added dynamically
+  const noSaveBtn = document.getElementById('confirm-nosave');
+  if (noSaveBtn) noSaveBtn.remove();
+  // Reset confirm button styling
+  const okBtn = document.getElementById('confirm-ok');
+  if (okBtn) {
+    okBtn.textContent = 'Yes, start over';
+    okBtn.className = 'confirm-danger';
+  }
+}
+
+// ===== SAVE AS =====
+function showSaveAs() {
+  closeFileMenu();
+  const modal = document.getElementById('saveas-modal');
+  const input = document.getElementById('saveas-name-input');
+  const title = document.getElementById('saveas-title');
+  const okBtn = document.getElementById('saveas-ok');
+  title.textContent = 'Save As';
+  const slots = getSlotsMeta();
+  const currentSlot = slots.find(s => s.id === getActiveSlotId());
+  input.value = currentSlot ? currentSlot.name : getGameDateString();
+  input.placeholder = 'Save name...';
+  okBtn.textContent = 'Save';
+  okBtn.className = 'saveas-btn saveas-btn-primary';
+  okBtn.onclick = () => {
+    const name = input.value.trim() || getGameDateString();
+    dismissSaveAs();
+    // Check if name matches current slot
+    const sid = getActiveSlotId();
+    if (currentSlot && name === currentSlot.name) {
+      // Overwrite current slot
+      const saveData = buildSaveData();
+      localStorage.setItem('quarterClose_slot_' + sid, JSON.stringify(saveData));
+      updateSlotMeta(sid, saveData, name);
+      gameState.lastSave = Date.now();
+      const saveEl = document.getElementById('status-save');
+      if (saveEl) {
+        saveEl.textContent = '💾 Saved!';
+        setTimeout(() => { saveEl.textContent = '💾 Saved'; }, 1500);
+      }
+    } else {
+      // Create new slot
+      const newId = nextSlotId();
+      setActiveSlotId(newId);
+      const saveData = buildSaveData();
+      localStorage.setItem('quarterClose_slot_' + newId, JSON.stringify(saveData));
+      updateSlotMeta(newId, saveData, name);
+      gameState.lastSave = Date.now();
+      const saveEl = document.getElementById('status-save');
+      if (saveEl) {
+        saveEl.textContent = '💾 Saved!';
+        setTimeout(() => { saveEl.textContent = '💾 Saved'; }, 1500);
+      }
+    }
+  };
+  modal.classList.remove('hidden');
+  input.focus();
+  input.select();
+  input.onkeydown = (e) => { if (e.key === 'Enter') okBtn.click(); if (e.key === 'Escape') dismissSaveAs(); };
+}
+
+function dismissSaveAs() {
+  document.getElementById('saveas-modal').classList.remove('hidden');
+  document.getElementById('saveas-modal').classList.add('hidden');
+}
+
+// ===== MANAGE SAVES MODAL =====
+function showManageSaves() {
+  closeFileMenu();
+  renderManageSaves();
+  document.getElementById('manage-saves-modal').classList.remove('hidden');
+}
+
+function dismissManageSaves() {
+  document.getElementById('manage-saves-modal').classList.add('hidden');
+}
+
+function renderManageSaves() {
+  const slots = getSlotsMeta();
+  const activeId = getActiveSlotId();
+  const listEl = document.getElementById('manage-saves-list');
+  const totalEl = document.getElementById('manage-saves-total');
+
+  if (slots.length === 0) {
+    listEl.innerHTML = '<div class="ms-empty">No saved games</div>';
+    totalEl.textContent = '0 B used';
+    return;
+  }
+
+  // Sort by most recent first
+  const sorted = [...slots].sort((a, b) => (b.savedAt || 0) - (a.savedAt || 0));
+  let totalBytes = 0;
+
+  listEl.innerHTML = sorted.map(slot => {
+    const isActive = slot.id === activeId;
+    totalBytes += slot.sizeBytes || 0;
+    const savedTime = slot.savedAt ? new Date(slot.savedAt).toLocaleString() : 'Unknown';
+    return `<div class="ms-slot${isActive ? ' ms-active' : ''}" data-slot-id="${slot.id}">
+      <div class="ms-slot-header">
+        <span class="ms-slot-name" id="ms-name-${slot.id}">${escapeHtml(slot.name)}${isActive ? ' <span class="ms-active-badge">◀ active</span>' : ''}</span>
+        <span class="ms-slot-size">${formatBytes(slot.sizeBytes || 0)}</span>
+      </div>
+      <div class="ms-slot-info">${slot.gameDate || '?'} · ${formatMoney(slot.cash || 0)} · Saved ${savedTime}</div>
+      <div class="ms-slot-actions">
+        ${isActive ? '<button class="ms-btn ms-btn-disabled" disabled>Load</button>' : `<button class="ms-btn ms-btn-load" onclick="loadSlotFromManage(${slot.id})">Load</button>`}
+        <button class="ms-btn" onclick="renameSlot(${slot.id})">Rename</button>
+        <button class="ms-btn" onclick="exportSlot(${slot.id})">Export</button>
+        ${isActive ? '<button class="ms-btn ms-btn-disabled" disabled title="Cannot delete active slot">Delete</button>' : `<button class="ms-btn ms-btn-danger" onclick="deleteSlot(${slot.id})">Delete</button>`}
+      </div>
+    </div>`;
+  }).join('');
+
+  totalEl.textContent = formatBytes(totalBytes) + ' used';
+}
+
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+function loadSlotFromManage(slotId) {
+  // Confirm: save current game first?
+  document.getElementById('confirm-text').textContent = 'Save current game before loading?';
+  document.getElementById('confirm-ok').textContent = 'Save & Load';
+  document.getElementById('confirm-modal').classList.remove('hidden');
+  pendingConfirmAction = () => {
+    if (gameState.arc) saveGame();
+    dismissConfirm();
+    dismissManageSaves();
+    performSlotLoad(slotId);
+  };
+  // Add a "Don't Save" button dynamically
+  const btnContainer = document.getElementById('confirm-buttons');
+  const existingNoSave = document.getElementById('confirm-nosave');
+  if (existingNoSave) existingNoSave.remove();
+  const noSaveBtn = document.createElement('button');
+  noSaveBtn.id = 'confirm-nosave';
+  noSaveBtn.textContent = "Don't Save";
+  noSaveBtn.onclick = () => {
+    dismissConfirm();
+    dismissManageSaves();
+    performSlotLoad(slotId);
+  };
+  btnContainer.insertBefore(noSaveBtn, btnContainer.firstChild);
+}
+
+function performSlotLoad(slotId) {
+  try {
+    const raw = localStorage.getItem('quarterClose_slot_' + slotId);
+    if (!raw) { alert('Save data not found!'); return; }
+    const data = JSON.parse(raw);
+    if (!data.arc) { alert('Invalid save data!'); return; }
+    setActiveSlotId(slotId);
+    // Full page reload to cleanly load the new save
+    location.reload();
+  } catch (e) {
+    console.error('Load slot failed:', e);
+    alert('Failed to load save: ' + e.message);
+  }
+}
+
+function renameSlot(slotId) {
+  const slots = getSlotsMeta();
+  const slot = slots.find(s => s.id === slotId);
+  if (!slot) return;
+
+  const nameEl = document.getElementById('ms-name-' + slotId);
+  if (!nameEl) return;
+
+  const oldName = slot.name;
+  const isActive = slotId === getActiveSlotId();
+  nameEl.innerHTML = `<input type="text" class="ms-rename-input" id="ms-rename-${slotId}" value="${escapeHtml(oldName)}" maxlength="50">`;
+  const input = document.getElementById('ms-rename-' + slotId);
+  input.focus();
+  input.select();
+
+  function finishRename() {
+    const newName = input.value.trim() || oldName;
+    slot.name = newName;
+    setSlotsMeta(slots);
+    renderManageSaves();
+  }
+
+  input.addEventListener('blur', finishRename);
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); finishRename(); }
+    if (e.key === 'Escape') { input.value = oldName; finishRename(); }
+  });
+}
+
+function deleteSlot(slotId) {
+  const slots = getSlotsMeta();
+  const slot = slots.find(s => s.id === slotId);
+  if (!slot) return;
+  if (slotId === getActiveSlotId()) return; // Can't delete active
+
+  document.getElementById('confirm-text').textContent = `Delete "${slot.name}"? This cannot be undone.`;
+  document.getElementById('confirm-ok').textContent = 'Delete';
+  document.getElementById('confirm-ok').className = 'confirm-danger';
+  document.getElementById('confirm-modal').classList.remove('hidden');
+  pendingConfirmAction = () => {
+    localStorage.removeItem('quarterClose_slot_' + slotId);
+    const updated = slots.filter(s => s.id !== slotId);
+    setSlotsMeta(updated);
+    dismissConfirm();
+    renderManageSaves();
+  };
+}
+
+// ===== EXPORT =====
+async function exportSlot(slotId) {
+  const sid = slotId || getActiveSlotId();
+  if (!sid) return;
+
+  // If exporting current active game, save first
+  if (sid === getActiveSlotId() && gameState.arc) {
+    saveGame(sid);
+  }
+
+  const raw = localStorage.getItem('quarterClose_slot_' + sid);
+  if (!raw) { alert('No save data to export!'); return; }
+
+  const data = JSON.parse(raw);
+  const slots = getSlotsMeta();
+  const slotMeta = slots.find(s => s.id === sid);
+  const slotName = slotMeta ? slotMeta.name : 'Save';
+
+  const checksum = await computeChecksum(data);
+
+  const exportData = {
+    version: '0.5.0',
+    name: slotName,
+    exportedAt: Date.now(),
+    checksum: checksum,
+    data: data,
+  };
+
+  const filename = 'quarter-close-' + sanitizeFilename(slotName) + '.json';
+  downloadJSON(exportData, filename);
+}
+
+async function exportCurrentGame() {
+  closeFileMenu();
+  await exportSlot(getActiveSlotId());
+}
+
+// ===== IMPORT =====
+function importFromFile() {
+  closeFileMenu();
+  openFilePicker(handleImportFile);
+}
+
+async function handleImportFile(file) {
+  try {
+    const text = await file.text();
+    let parsed;
+    try {
+      parsed = JSON.parse(text);
+    } catch (e) {
+      alert('Invalid JSON file. Please select a valid Quarter Close save file.');
+      return;
+    }
+
+    // Validate structure
+    if (!parsed.data || !parsed.data.arc) {
+      alert('This file doesn\'t appear to be a valid Quarter Close save file.');
+      return;
+    }
+
+    // Verify checksum
+    let checksumOk = true;
+    if (parsed.checksum) {
+      const computed = await computeChecksum(parsed.data);
+      checksumOk = computed === parsed.checksum;
+    } else {
+      checksumOk = false; // no checksum present
+    }
+
+    showImportPreview(parsed, checksumOk);
+  } catch (e) {
+    console.error('Import failed:', e);
+    alert('Failed to read file: ' + e.message);
+  }
+}
+
+function showImportPreview(parsed, checksumOk) {
+  const modal = document.getElementById('import-modal');
+  const body = document.getElementById('import-body');
+
+  const data = parsed.data;
+  const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const gd = new Date((data.gameStartDate || Date.now()) + (data.gameElapsedSecs || 0) * 1000);
+  const dateStr = monthNames[gd.getUTCMonth()] + ' ' + gd.getUTCDate() + ', ' + gd.getUTCFullYear();
+  const dayNum = Math.floor((data.gameElapsedSecs || 0) / SECS_PER_DAY);
+  const exportedStr = parsed.exportedAt ? new Date(parsed.exportedAt).toLocaleString() : 'Unknown';
+
+  body.innerHTML = `
+    <div class="import-field"><span class="import-label">Name:</span> <span>${escapeHtml(parsed.name || 'Unknown')}</span></div>
+    <div class="import-field"><span class="import-label">Game Day:</span> <span>${dateStr} (Day ${dayNum})</span></div>
+    <div class="import-field"><span class="import-label">Cash:</span> <span>${formatMoney(data.cash || 0)}</span></div>
+    <div class="import-field"><span class="import-label">Total Revenue:</span> <span>${formatMoney(data.totalEarned || 0)}</span></div>
+    <div class="import-field"><span class="import-label">Exported:</span> <span>${exportedStr}</span></div>
+    <div class="import-field"><span class="import-label">Version:</span> <span>${parsed.version || '?'}</span></div>
+    ${!checksumOk ? '<div class="import-warning">⚠️ Checksum mismatch — this file may have been modified.</div>' : ''}
+    <div class="import-name-field">
+      <label for="import-name-input">Import as:</label>
+      <input type="text" id="import-name-input" value="${escapeHtml(parsed.name || 'Imported Game')}" maxlength="50">
+    </div>
+  `;
+
+  const importBtn = document.getElementById('import-ok');
+  importBtn.onclick = () => {
+    const name = document.getElementById('import-name-input').value.trim() || parsed.name || 'Imported Game';
+    performImport(data, name);
+    dismissImport();
+  };
+
+  modal.classList.remove('hidden');
+  setTimeout(() => {
+    const input = document.getElementById('import-name-input');
+    if (input) { input.focus(); input.select(); }
+  }, 100);
+}
+
+function performImport(data, name) {
+  // Save current game first
+  if (gameState.arc) saveGame();
+
+  // Create new slot
+  const newId = nextSlotId();
+  data.savedAt = Date.now(); // update save time
+  localStorage.setItem('quarterClose_slot_' + newId, JSON.stringify(data));
+  updateSlotMeta(newId, data, name);
+  setActiveSlotId(newId);
+
+  // Reload to load the imported save
+  location.reload();
+}
+
+function dismissImport() {
+  document.getElementById('import-modal').classList.add('hidden');
 }
 
 // Close file menu when clicking anywhere else
@@ -6281,6 +6835,17 @@ window.dismissAbout = dismissAbout;
 window.confirmNewGame = confirmNewGame;
 window.confirmAction = confirmAction;
 window.dismissConfirm = dismissConfirm;
+window.showSaveAs = showSaveAs;
+window.dismissSaveAs = dismissSaveAs;
+window.showManageSaves = showManageSaves;
+window.dismissManageSaves = dismissManageSaves;
+window.loadSlotFromManage = loadSlotFromManage;
+window.renameSlot = renameSlot;
+window.deleteSlot = deleteSlot;
+window.exportSlot = exportSlot;
+window.exportCurrentGame = exportCurrentGame;
+window.importFromFile = importFromFile;
+window.dismissImport = dismissImport;
 window.showHelp = showHelp;
 window.dismissHelp = dismissHelp;
 window.switchTab = switchTab;

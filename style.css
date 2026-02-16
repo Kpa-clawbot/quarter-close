@@ -751,6 +751,402 @@ body {
 }
 
 /* ============================================
+   Save As Modal
+   ============================================ */
+#saveas-modal {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: var(--shadow-overlay);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+}
+
+#saveas-content {
+  background: var(--bg-modal);
+  border: 1px solid var(--border-cell);
+  border-radius: 6px;
+  padding: 24px 32px;
+  max-width: 360px;
+  width: 90vw;
+  box-shadow: 0 4px 16px var(--shadow-lg);
+}
+
+#saveas-content h3 {
+  font-size: 1rem;
+  color: var(--accent-green);
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+#saveas-name-input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid var(--border-cell);
+  border-radius: 3px;
+  font-size: 0.8125rem;
+  background: var(--bg-input);
+  color: var(--text-primary);
+  box-sizing: border-box;
+  margin-bottom: 16px;
+}
+
+#saveas-name-input:focus {
+  outline: none;
+  border-color: var(--accent-green);
+}
+
+.saveas-buttons {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.saveas-btn {
+  padding: 6px 20px;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 0.75rem;
+  border: 1px solid var(--border-medium);
+  background: var(--bg-modal);
+  color: var(--text-secondary);
+}
+
+.saveas-btn:hover {
+  background: var(--bg-main);
+}
+
+.saveas-btn-primary {
+  background: var(--accent-green);
+  color: var(--text-on-accent);
+  border-color: var(--accent-green);
+}
+
+.saveas-btn-primary:hover {
+  background: var(--accent-green-light);
+}
+
+/* ============================================
+   Manage Saves Modal
+   ============================================ */
+#manage-saves-modal {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: var(--shadow-overlay);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+}
+
+#manage-saves-content {
+  background: var(--bg-modal);
+  border: 1px solid var(--border-cell);
+  border-radius: 6px;
+  max-width: 540px;
+  width: 95vw;
+  max-height: 80vh;
+  box-shadow: 0 4px 16px var(--shadow-lg);
+  display: flex;
+  flex-direction: column;
+}
+
+.ms-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px 12px;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.ms-header h3 {
+  font-size: 1rem;
+  color: var(--accent-green);
+  margin: 0;
+}
+
+.ms-close {
+  background: none;
+  border: none;
+  font-size: 1.125rem;
+  cursor: pointer;
+  color: var(--text-muted);
+  padding: 4px 8px;
+  border-radius: 3px;
+}
+
+.ms-close:hover {
+  background: var(--bg-highlight);
+  color: var(--text-primary);
+}
+
+#manage-saves-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px 0;
+}
+
+.ms-empty {
+  text-align: center;
+  color: var(--text-muted);
+  padding: 32px 20px;
+  font-size: 0.8125rem;
+}
+
+.ms-slot {
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--border-faint);
+}
+
+.ms-slot:last-child {
+  border-bottom: none;
+}
+
+.ms-slot.ms-active {
+  background: var(--bg-row-hover);
+}
+
+.ms-slot-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.ms-slot-name {
+  font-weight: 600;
+  font-size: 0.8125rem;
+  color: var(--text-primary);
+}
+
+.ms-active-badge {
+  font-weight: 400;
+  font-size: 0.6875rem;
+  color: var(--accent-green);
+  margin-left: 6px;
+}
+
+.ms-slot-size {
+  font-size: 0.6875rem;
+  color: var(--text-muted);
+}
+
+.ms-slot-info {
+  font-size: 0.6875rem;
+  color: var(--text-dim);
+  margin-bottom: 8px;
+}
+
+.ms-slot-actions {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.ms-btn {
+  padding: 4px 12px;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 0.6875rem;
+  border: 1px solid var(--border-medium);
+  background: var(--bg-modal);
+  color: var(--text-secondary);
+}
+
+.ms-btn:hover {
+  background: var(--bg-main);
+}
+
+.ms-btn-load {
+  background: var(--accent-green);
+  color: var(--text-on-accent);
+  border-color: var(--accent-green);
+}
+
+.ms-btn-load:hover {
+  background: var(--accent-green-light);
+}
+
+.ms-btn-danger {
+  color: var(--accent-red);
+  border-color: var(--accent-red);
+}
+
+.ms-btn-danger:hover {
+  background: var(--accent-red-danger);
+  color: var(--text-on-accent);
+}
+
+.ms-btn-disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.ms-btn-disabled:hover {
+  background: var(--bg-modal);
+}
+
+.ms-btn-new {
+  background: var(--accent-green);
+  color: var(--text-on-accent);
+  border-color: var(--accent-green);
+}
+
+.ms-btn-new:hover {
+  background: var(--accent-green-light);
+}
+
+.ms-btn-close {
+  border-color: var(--border-medium);
+}
+
+.ms-rename-input {
+  width: calc(100% - 16px);
+  padding: 2px 6px;
+  border: 1px solid var(--accent-green);
+  border-radius: 2px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  background: var(--bg-input);
+  color: var(--text-primary);
+  outline: none;
+}
+
+.ms-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 20px;
+  border-top: 1px solid var(--border-light);
+  font-size: 0.6875rem;
+  color: var(--text-muted);
+}
+
+.ms-footer-btns {
+  display: flex;
+  gap: 8px;
+}
+
+/* ============================================
+   Import Preview Modal
+   ============================================ */
+#import-modal {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: var(--shadow-overlay);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+}
+
+#import-content {
+  background: var(--bg-modal);
+  border: 1px solid var(--border-cell);
+  border-radius: 6px;
+  padding: 24px 28px;
+  max-width: 420px;
+  width: 90vw;
+  box-shadow: 0 4px 16px var(--shadow-lg);
+}
+
+#import-content h3 {
+  font-size: 1rem;
+  color: var(--accent-green);
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+.import-field {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8125rem;
+  color: var(--text-body);
+  padding: 4px 0;
+  border-bottom: 1px solid var(--border-faint);
+}
+
+.import-label {
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.import-warning {
+  background: #fff3cd;
+  border: 1px solid #ffc107;
+  border-radius: 3px;
+  padding: 8px 12px;
+  font-size: 0.75rem;
+  color: #856404;
+  margin-top: 12px;
+}
+
+.dark-mode .import-warning {
+  background: #3e2e00;
+  border-color: #665000;
+  color: #ffc107;
+}
+
+.import-name-field {
+  margin-top: 16px;
+}
+
+.import-name-field label {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+
+.import-name-field input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid var(--border-cell);
+  border-radius: 3px;
+  font-size: 0.8125rem;
+  background: var(--bg-input);
+  color: var(--text-primary);
+  box-sizing: border-box;
+}
+
+.import-name-field input:focus {
+  outline: none;
+  border-color: var(--accent-green);
+}
+
+.import-buttons {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  margin-top: 20px;
+}
+
+.import-btn {
+  padding: 6px 20px;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 0.75rem;
+  border: 1px solid var(--border-medium);
+  background: var(--bg-modal);
+  color: var(--text-secondary);
+}
+
+.import-btn:hover {
+  background: var(--bg-main);
+}
+
+.import-btn-primary {
+  background: var(--accent-green);
+  color: var(--text-on-accent);
+  border-color: var(--accent-green);
+}
+
+.import-btn-primary:hover {
+  background: var(--accent-green-light);
+}
+
+/* ============================================
    Toolbar
    ============================================ */
 #toolbar {
