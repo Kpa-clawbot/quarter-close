@@ -6434,8 +6434,10 @@ function purchaseBoardRoomUpgrade(id) {
 // ===== INITIALIZATION =====
 // ===== DARK MODE =====
 // ===== FONT SIZE (ROOT FONT-SIZE) =====
-const FONT_SIZES = [10, 11, 12, 13, 14, 15, 16, 17, 18, 20, 22, 24];
-let fontSizeIdx = parseInt(localStorage.getItem('qc-font-idx') || '4'); // default 14px base
+const FONT_SIZES = [12, 13, 14, 15, 16, 17, 18, 19, 20, 22, 24, 26];
+const FONT_SIZE_DEFAULT = 6; // index 6 = 18px (matches CSS clamp max)
+let fontSizeIdx = parseInt(localStorage.getItem('qc-font-idx') ?? FONT_SIZE_DEFAULT);
+if (fontSizeIdx < 0 || fontSizeIdx >= FONT_SIZES.length) fontSizeIdx = FONT_SIZE_DEFAULT;
 
 function changeFontSize(dir) {
   fontSizeIdx = Math.max(0, Math.min(FONT_SIZES.length - 1, fontSizeIdx + dir));
@@ -6445,10 +6447,12 @@ function changeFontSize(dir) {
 }
 
 function initZoom() {
-  const size = FONT_SIZES[fontSizeIdx];
-  if (size !== 14) {
+  const stored = localStorage.getItem('qc-font-idx');
+  if (stored !== null) {
+    const size = FONT_SIZES[fontSizeIdx];
     document.documentElement.style.fontSize = size + 'px';
   }
+  // If no stored preference, let CSS clamp handle it
 }
 window.changeFontSize = changeFontSize;
 
