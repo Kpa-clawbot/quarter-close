@@ -1902,7 +1902,7 @@ body.col-resizing * {
 .status-sep { opacity: 0.5; }
 
 #pause-btn {
-  font-size: 0.8125rem;
+  font-size: 1rem;
 }
 #pause-btn:hover {
   background: var(--bg-highlight);
@@ -3216,18 +3216,18 @@ body.col-resizing * {
   margin-left: auto;
 }
 .playback-btn {
-  font-size: 0.8125rem !important;
-  min-width: 2rem;
+  font-size: 1rem !important;
+  min-width: 2.25rem;
   font-weight: 600;
 }
 .playback-label {
-  font-size: 0.6875rem;
+  font-size: 0.875rem;
   color: var(--text-secondary);
   white-space: nowrap;
   padding: 0 0.25rem;
 }
 #slowdown-btn {
-  font-size: 0.8125rem;
+  font-size: 1rem;
 }
 #slowdown-btn:hover {
   background: var(--bg-highlight);
