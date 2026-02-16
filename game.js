@@ -4868,6 +4868,27 @@ let autosaveInterval = setInterval(() => { saveGame(); }, 30000);
 // ===== FILE MENU =====
 let fileMenuOpen = false;
 
+// ===== MENU PAUSE =====
+let _menuPausedGame = false; // true if WE paused the game for menu browsing
+
+function menuPause() {
+  if (!gameState.paused) {
+    gameState.paused = true;
+    _menuPausedGame = true;
+  }
+}
+
+function menuResume() {
+  if (_menuPausedGame) {
+    gameState.paused = false;
+    _menuPausedGame = false;
+    // Update pause button visual
+    const btn = document.getElementById('pause-btn');
+    if (btn) { btn.textContent = '⏸'; btn.classList.remove('paused'); btn.title = 'Pause'; }
+    document.getElementById('status-text').textContent = 'Ready';
+  }
+}
+
 function toggleFileMenu(e) {
   e.stopPropagation();
   fileMenuOpen = !fileMenuOpen;
@@ -4875,12 +4896,14 @@ function toggleFileMenu(e) {
   dropdown.classList.toggle('open', fileMenuOpen);
   updateAutosaveToggle();
   closeDataMenu();
+  if (fileMenuOpen) menuPause(); else if (!dataMenuOpen) menuResume();
 }
 
 function closeFileMenu() {
   fileMenuOpen = false;
   const dropdown = document.getElementById('file-dropdown');
   if (dropdown) dropdown.classList.remove('open');
+  if (!dataMenuOpen) menuResume();
 }
 
 function toggleAutosave(e) {
@@ -4911,12 +4934,14 @@ function toggleDataMenu(e) {
   const dropdown = document.getElementById('data-dropdown');
   dropdown.classList.toggle('open', dataMenuOpen);
   closeFileMenu();
+  if (dataMenuOpen) menuPause(); else if (!fileMenuOpen) menuResume();
 }
 
 function closeDataMenu() {
   dataMenuOpen = false;
   const dropdown = document.getElementById('data-dropdown');
   if (dropdown) dropdown.classList.remove('open');
+  if (!fileMenuOpen) menuResume();
 }
 
 // ===== FEATURE TOGGLES =====
@@ -4944,6 +4969,7 @@ function toggleFeature(key, enabled) {
 // ===== GAME OPTIONS MODAL =====
 function showGameOptions() {
   closeDataMenu();
+  menuPause();
   const toggles = getFeatureToggles();
   document.getElementById('toggle-deals').checked = toggles.closeTheDeals !== false;
   document.getElementById('toggle-overtime').checked = toggles.overtime !== false;
@@ -4956,6 +4982,7 @@ function showGameOptions() {
 
 function dismissOptions() {
   document.getElementById('options-modal').classList.add('hidden');
+  menuResume();
 }
 
 // ===== MANAGEMENT FOCUS =====
@@ -5155,20 +5182,24 @@ function updateOvertimeRow() {
 
 function showAbout() {
   closeFileMenu();
+  menuPause();
   document.getElementById('about-modal').classList.remove('hidden');
 }
 
 function dismissAbout() {
   document.getElementById('about-modal').classList.add('hidden');
+  menuResume();
 }
 
 function showHelp() {
   closeFileMenu();
+  menuPause();
   document.getElementById('help-modal').classList.remove('hidden');
 }
 
 function dismissHelp() {
   document.getElementById('help-modal').classList.add('hidden');
+  menuResume();
 }
 
 function showHelpTab(tabId) {
@@ -5243,6 +5274,7 @@ function dismissConfirm() {
 // ===== SAVE AS =====
 function showSaveAs() {
   closeFileMenu();
+  menuPause();
   const modal = document.getElementById('saveas-modal');
   const input = document.getElementById('saveas-name-input');
   const title = document.getElementById('saveas-title');
@@ -5294,17 +5326,20 @@ function showSaveAs() {
 function dismissSaveAs() {
   document.getElementById('saveas-modal').classList.remove('hidden');
   document.getElementById('saveas-modal').classList.add('hidden');
+  menuResume();
 }
 
 // ===== MANAGE SAVES MODAL =====
 function showManageSaves() {
   closeFileMenu();
+  menuPause();
   renderManageSaves();
   document.getElementById('manage-saves-modal').classList.remove('hidden');
 }
 
 function dismissManageSaves() {
   document.getElementById('manage-saves-modal').classList.add('hidden');
+  menuResume();
 }
 
 function renderManageSaves() {
