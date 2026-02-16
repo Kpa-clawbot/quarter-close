@@ -3514,14 +3514,14 @@ function togglePause() {
   gameState.paused = !gameState.paused;
   const btn = document.getElementById('pause-btn');
   if (gameState.paused) {
-    btn.textContent = '⏸';
+    btn.textContent = '▶';
     btn.classList.add('paused');
     btn.title = 'Resume';
     document.getElementById('status-text').textContent = 'Paused';
   } else {
-    btn.textContent = '▶';
+    btn.textContent = '⏸';
     btn.classList.remove('paused');
-    btn.title = 'Pause/Resume';
+    btn.title = 'Pause';
     document.getElementById('status-text').textContent = 'Ready';
   }
 }

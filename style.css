@@ -1519,7 +1519,8 @@ body.col-resizing * {
   background: var(--bg-highlight);
 }
 #pause-btn.paused {
-  color: #e74c3c;
+  color: #fff;
+  background: #e74c3c;
   border-color: #e74c3c;
 }
 
