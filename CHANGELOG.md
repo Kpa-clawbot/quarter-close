@@ -18,6 +18,12 @@ All notable changes to Quarter Close.
 - **🦠 Pandemic** — new virus, markets crash, toilet paper shortage
 - **💊 CEO Health Scare** — CEO hospitalized, COO succession matters
 
+### 📐 Resizable Columns
+- **Drag column headers (A–G) to resize** — just like Excel/Google Sheets
+- Column widths saved automatically and persist across sessions
+- Touch-friendly handles for iPad/mobile
+- Column H stays flexible
+
 ### 🔧 Budget Normalization Fix
 - **Fixed negative cash** when CTO + COO budgets exceeded 100% combined
 - Proportional normalization: if combined budget > 100%, both scale down proportionally (e.g. 100% + 100% → 50%/50%)
