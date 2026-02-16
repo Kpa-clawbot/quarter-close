@@ -114,8 +114,8 @@ Events use weighted random selection. Higher weight = more frequent. Global freq
 |--------|----------|--------|
 | 4 | Very Common | Angry Customer, Password Reset |
 | 3 | Common | Mom, Email Server Down, P0 Bug, Big Client |
-| 2 | Regular | Power Outage, Cloud Outage, Laptop Recall, TikTok, Reddit, Local News, Forbes, R&D Breakthrough |
-| 1 | Rare | College Buddy, Ransomware, DDoS, DB Corruption |
+| 2 | Regular | Power Outage, Cloud Outage, Laptop Recall, TikTok, Reddit, Local News, Forbes, R&D Breakthrough, WFH Revolt, AI Disruption, CEO Tweet, Supply Chain Crisis |
+| 1 | Rare | College Buddy, Ransomware, DDoS, DB Corruption, Healthcare CEO Incident, Congressional Hearing, Short Seller Attack, Bank Collapse, Activist Investor, Pandemic, CEO Health Scare |
 
 At 1× frequency: ~1 event per quarter (~95s between events). At 10×: ~10 events per quarter. Cooldown AND roll chance both scale.
 
@@ -143,6 +143,23 @@ At 1× frequency: ~1 event per quarter (~95s between events). At 10×: ~10 event
 ### Negative (Business)
 - **Angry Customer** — refund (lose cash) or ignore (20% revenue penalty 30s, hiring frozen 15s)
 - **Google Alerts / PR Team / Social Media / Marketing** — various revenue penalties
+
+### "Ripped from the Headlines" (v0.4.2)
+Real-world inspired corporate drama events with meaningful multi-choice tradeoffs:
+
+| Event | Weight | Key Mechanic |
+|-------|--------|-------------|
+| 🔫 Healthcare CEO Incident | 1 | Thoughts & prayers / security / review benefits (expensive but correct) |
+| 🏛️ Congressional Hearing | 1 | Send CEO (PR+) / lawyer (cheaper) / plead Fifth (risky) |
+| 🏠 WFH Revolt | 2 | Allow WFH / enforce RTO (employees quit) / compromise |
+| 📉 Short Seller Attack | 1 | Rebuttal / silence / sue (50% backfire) |
+| 🤖 AI Disruption | 2 | Replace workers / keep humans / retrain (best outcome) |
+| 🐦 CEO Tweet | 2 | Delete / double down (30% works) / revoke access |
+| 🏦 Bank Collapse | 1 | Lose 30% of uninsured deposits above $250K |
+| 💰 Activist Investor | 1 | Cut 15% staff / poison pill / board seat |
+| 🚢 Supply Chain Crisis | 2 | Expedited shipping / wait it out |
+| 🦠 Pandemic | 1 | Go remote / "just the flu" / masks+hazard pay |
+| 💊 CEO Health Scare | 1 | Having COO = minor disruption; no COO = major |
 
 ## Departments (Sheet Tabs)
 

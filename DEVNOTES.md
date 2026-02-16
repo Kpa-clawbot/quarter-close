@@ -402,3 +402,14 @@ Level/prestige/breakthrough tags right-justified via flexbox. Name left, tags ri
 - CTO + COO budget sliders previously allowed combined >100%, causing negative cash
 - Fixed with proportional normalization: combined total capped at 100%, both scaled proportionally
 - Effective % shown in gold when normalization active; hover shows set vs effective values
+
+**"Ripped from the Headlines" events (v0.4.2)**
+- 11 new real-world inspired events added to EVENTS array
+- Use `generate` pattern for dynamic content (employee counts, department names, random topics)
+- Static events (Healthcare CEO, Bank Collapse) use standard sender/subject/body/actions
+- All have `debugLabel` for debug dropdown testing
+- Events with employee firing use `Math.max(1, employees - N)` to prevent zeroing out departments
+- CEO Health Scare checks `activeCOOLevel` for branching consequence — having COO = less damage
+- CEO Tweet has 30% "double down works" chance (Elon energy)
+- Short Seller lawsuit has 50% Streisand effect backfire
+- Weight 1 for rare events (bank, pandemic, activist, healthcare), weight 2 for moderate (WFH, AI, supply chain, CEO tweet)
