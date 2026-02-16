@@ -1198,6 +1198,18 @@ body {
 .font-select { width: 7.5rem; }
 .size-select { width: 3.125rem; }
 
+/* Decorative (non-functional) elements — dimmed to hint they're cosmetic */
+.tool-btn.decorative,
+.tool-select.decorative {
+  opacity: 0.35;
+  cursor: default;
+  pointer-events: none;
+}
+.menu-item.decorative {
+  opacity: 0.45;
+  cursor: default;
+}
+
 .toolbar-sep {
   width: 1px;
   height: 1.25rem;
