@@ -1527,6 +1527,13 @@ body.col-resizing * {
   background: var(--bg-stats-row);
 }
 
+#row-cash > * {
+  position: sticky;
+  top: 1.375rem;
+  z-index: 2;
+  background: var(--bg-stats-row);
+}
+
 .cash-label {
   font-weight: 700;
   color: var(--text-secondary);
