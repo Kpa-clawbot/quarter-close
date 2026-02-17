@@ -4466,9 +4466,17 @@ function gameTick() {
 
   } // end speed loop
 
+  // Preserve scroll position across DOM updates (sticky rows can trigger reset)
+  const gc = document.getElementById('grid-container');
+  const scrollBefore = gc ? gc.scrollTop : 0;
+
   updateToastButtons();
   updateGridValues();
   updateDisplay();
+
+  if (gc && Math.abs(gc.scrollTop - scrollBefore) > 1) {
+    gc.scrollTop = scrollBefore;
+  }
 }
 
 // ===== EVENTS =====
