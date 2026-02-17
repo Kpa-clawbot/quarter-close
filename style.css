@@ -3273,12 +3273,22 @@ body.col-resizing * {
    Game Juice — Quick Win Effects
    ============================================ */
 
+/* Tunable juice variables (debug knobs override these) */
+:root {
+  --juice-flash-dur: 0.4s;
+  --juice-float-dur: 0.8s;
+  --juice-float-size: 0.6875rem;
+  --juice-float-dist: -40px;
+  --juice-pop-dur: 0.6s;
+  --juice-pop-scale: 1.2;
+}
+
 /* 1. Cell Value Flash (uptick/downtick) */
 .cell-uptick {
-  animation: uptick-flash 0.4s ease-out;
+  animation: uptick-flash var(--juice-flash-dur) ease-out;
 }
 .cell-downtick {
-  animation: downtick-flash 0.4s ease-out;
+  animation: downtick-flash var(--juice-flash-dur) ease-out;
 }
 @keyframes uptick-flash {
   0% { background-color: var(--flash-uptick); }
@@ -3295,13 +3305,13 @@ body.col-resizing * {
   top: 0;
   left: 50%;
   transform: translateX(-50%);
-  font-size: 0.6875rem;
+  font-size: var(--juice-float-size);
   font-weight: 700;
   font-family: 'Consolas', 'Courier New', monospace;
   pointer-events: none;
   white-space: nowrap;
   z-index: 100;
-  animation: float-up 0.8s ease-out forwards;
+  animation: float-up var(--juice-float-dur) ease-out forwards;
 }
 .floating-number.spend {
   color: var(--float-spend);
@@ -3311,16 +3321,16 @@ body.col-resizing * {
 }
 @keyframes float-up {
   0% { opacity: 1; transform: translateX(-50%) translateY(0); }
-  100% { opacity: 0; transform: translateX(-50%) translateY(-40px); }
+  100% { opacity: 0; transform: translateX(-50%) translateY(var(--juice-float-dist)); }
 }
 
 /* 4. Big Number Pop (Milestone) */
 .cash-milestone {
-  animation: milestone-pop 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+  animation: milestone-pop var(--juice-pop-dur) cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
 }
 @keyframes milestone-pop {
   0% { transform: scale(1); text-shadow: none; }
-  30% { transform: scale(1.2); text-shadow: 0 0 8px #ffd700, 0 0 16px #ffa500; }
+  30% { transform: scale(var(--juice-pop-scale, 1.2)); text-shadow: 0 0 8px #ffd700, 0 0 16px #ffa500; }
   100% { transform: scale(1); text-shadow: none; }
 }
 

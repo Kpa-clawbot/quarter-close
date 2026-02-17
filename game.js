@@ -4498,7 +4498,117 @@ document.addEventListener('click', (e) => {
   if (dd && !dd.classList.contains('hidden') && !e.target.closest('#debug-event-dropdown') && !e.target.textContent.includes('Event ▾')) {
     dd.classList.add('hidden');
   }
+  const jk = document.getElementById('juice-knobs-dropdown');
+  if (jk && !jk.classList.contains('hidden') && !e.target.closest('#juice-knobs-dropdown') && !e.target.textContent.includes('Knobs')) {
+    jk.classList.add('hidden');
+  }
 });
+
+// ===== JUICE DEBUG: Test All Effects =====
+function testAllJuice() {
+  const el = document.getElementById('cash-display');
+  if (!el) return;
+  const saved = gameState.juiceEnabled;
+  gameState.juiceEnabled = true;
+
+  // 1. Green flash (earn)
+  flashCash();
+  floatingNumber(Math.max(1000, gameState.cash * 0.01), el, false);
+
+  // 2. Red flash (spend) after 600ms
+  setTimeout(() => {
+    flashCash('spend');
+    floatingNumber(Math.max(500, gameState.cash * 0.005), el, true);
+  }, 800);
+
+  // 3. Formula bar echo after 1.5s
+  setTimeout(() => {
+    showFormulaEcho('=TEST_JUICE("All Effects", 100%)');
+  }, 1500);
+
+  // 4. Milestone pop after 2.5s
+  setTimeout(() => {
+    el.classList.remove('cash-milestone');
+    void el.offsetWidth;
+    el.classList.add('cash-milestone');
+    el.addEventListener('animationend', () => el.classList.remove('cash-milestone'), { once: true });
+  }, 2500);
+
+  // 5. Insufficient funds shake after 3.5s
+  setTimeout(() => {
+    showInsufficientFunds();
+  }, 3500);
+
+  // Restore juice setting
+  setTimeout(() => { gameState.juiceEnabled = saved; }, 5000);
+
+  document.getElementById('status-text').textContent = '🧃 Testing all juice effects...';
+  setTimeout(() => { document.getElementById('status-text').textContent = 'Ready'; }, 5000);
+}
+
+// ===== JUICE DEBUG: Tuning Knobs =====
+const JUICE_KNOBS = [
+  { id: 'flash-dur', label: 'Flash Duration', prop: '--juice-flash-dur', min: 0.1, max: 2.0, step: 0.1, default: 0.4, unit: 's' },
+  { id: 'float-dur', label: 'Float Duration', prop: '--juice-float-dur', min: 0.3, max: 3.0, step: 0.1, default: 0.8, unit: 's' },
+  { id: 'float-size', label: 'Float Font Size', prop: '--juice-float-size', min: 0.5, max: 2.0, step: 0.125, default: 0.6875, unit: 'rem' },
+  { id: 'float-dist', label: 'Float Distance', prop: '--juice-float-dist', min: -120, max: -10, step: 5, default: -40, unit: 'px' },
+  { id: 'pop-dur', label: 'Milestone Duration', prop: '--juice-pop-dur', min: 0.2, max: 2.0, step: 0.1, default: 0.6, unit: 's' },
+  { id: 'pop-scale', label: 'Milestone Scale', prop: '--juice-pop-scale', min: 1.05, max: 2.0, step: 0.05, default: 1.2, unit: '' },
+];
+
+function toggleJuiceKnobs() {
+  const dd = document.getElementById('juice-knobs-dropdown');
+  if (!dd.classList.contains('hidden')) {
+    dd.classList.add('hidden');
+    return;
+  }
+  dd.innerHTML = `<div style="font-weight:700;margin-bottom:6px;color:${dm('#e91e63')}">🎛️ Juice Tuning</div>`;
+  JUICE_KNOBS.forEach(k => {
+    const current = getComputedStyle(document.documentElement).getPropertyValue(k.prop).trim();
+    const val = parseFloat(current) || k.default;
+    const row = document.createElement('div');
+    row.style.cssText = 'margin-bottom:6px';
+    row.innerHTML = `
+      <div style="display:flex;justify-content:space-between;margin-bottom:2px">
+        <span style="color:${dm('#555')}">${k.label}</span>
+        <span id="knob-val-${k.id}" style="font-family:Consolas,monospace;color:${dm('#333')}">${val}${k.unit}</span>
+      </div>
+      <input type="range" min="${k.min}" max="${k.max}" step="${k.step}" value="${val}"
+        oninput="setJuiceKnob('${k.prop}', this.value, '${k.unit}', '${k.id}')"
+        style="width:100%;height:16px;cursor:pointer">
+    `;
+    dd.appendChild(row);
+  });
+  // Reset button
+  const resetBtn = document.createElement('button');
+  resetBtn.className = 'cell-btn btn-max';
+  resetBtn.style.cssText = `margin-top:4px;width:100%;color:${dm('#888')}`;
+  resetBtn.textContent = '↺ Reset Defaults';
+  resetBtn.onclick = () => {
+    JUICE_KNOBS.forEach(k => {
+      document.documentElement.style.setProperty(k.prop, k.default + k.unit);
+      const valEl = document.getElementById('knob-val-' + k.id);
+      if (valEl) valEl.textContent = k.default + k.unit;
+      const slider = dd.querySelector(`[oninput*="${k.prop}"]`);
+      if (slider) slider.value = k.default;
+    });
+  };
+  dd.appendChild(resetBtn);
+  // Test button
+  const testBtn = document.createElement('button');
+  testBtn.className = 'cell-btn btn-max';
+  testBtn.style.cssText = `margin-top:4px;width:100%;color:${dm('#e91e63')};font-weight:700`;
+  testBtn.textContent = '🧃 Test with these settings';
+  testBtn.onclick = () => { testAllJuice(); };
+  dd.appendChild(testBtn);
+  dd.classList.remove('hidden');
+}
+
+function setJuiceKnob(prop, value, unit, id) {
+  document.documentElement.style.setProperty(prop, value + unit);
+  const valEl = document.getElementById('knob-val-' + id);
+  if (valEl) valEl.textContent = parseFloat(value).toFixed(unit === 'rem' ? 3 : 1) + unit;
+}
 
 // ===== BOSS KEY =====
 function toggleBossMode() {
