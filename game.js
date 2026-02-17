@@ -226,12 +226,14 @@ function buildSaveData() {
     hintTaxSettleCount: gameState.hintTaxSettleCount || 0,
     hintMissedEarnings: gameState.hintMissedEarnings || 0,
     hintManualHireCount: gameState.hintManualHireCount || 0,
+    hintManualDealCount: gameState.hintManualDealCount || 0,
     hintShown_vpOps: gameState.hintShown_vpOps || false,
     hintShown_cpa: gameState.hintShown_cpa || false,
     hintShown_cfo: gameState.hintShown_cfo || false,
     hintShown_coo: gameState.hintShown_coo || false,
     // VP of Operations
     vpOpsStats: gameState.vpOpsStats || { tasksCompleted: 0, totalRevenue: 0, revenueMissed: 0, longestStreak: 0, quarterTasks: 0 },
+    salesDirStats: gameState.salesDirStats || { dealsCompleted: 0, totalRevenue: 0, revenueMissed: 0 },
     vpOpsEnabled: gameState.vpOpsEnabled !== false,
     vpOpsStreak: gameState.vpOpsStreak || 0,
     // Slowdown
@@ -1339,6 +1341,34 @@ const BOARD_ROOM_UPGRADES = [
     maxCount: 1,
     category: 'Operations',
   },
+  // Sales Director — auto-closes deals
+  {
+    id: 'sales_dir_1',
+    name: 'Sales Director Lv1',
+    desc: 'Junior — auto-closes deals at 50% value. No pressure.',
+    cost: 1000,
+    requires: null,
+    maxCount: 1,
+    category: 'Operations',
+  },
+  {
+    id: 'sales_dir_2',
+    name: 'Sales Director Lv2',
+    desc: 'Senior — auto-closes deals at 75% value.',
+    cost: 4000,
+    requires: 'sales_dir_1',
+    maxCount: 1,
+    category: 'Operations',
+  },
+  {
+    id: 'sales_dir_3',
+    name: 'Sales Director Lv3',
+    desc: 'VP of Sales — auto-closes deals at 100% value.',
+    cost: 15000,
+    requires: 'sales_dir_2',
+    maxCount: 1,
+    category: 'Operations',
+  },
 ];
 
 // ===== AUTOMATION HINTS (email nudges toward Board Room upgrades) =====
@@ -1374,6 +1404,14 @@ const AUTOMATION_HINTS = [
     sender: 'HR Department',
     subject: '👥 RE: Staffing Requests',
     body: 'We\'re drowning in hiring paperwork. Every position requires manual approval and it\'s slowing us down. A COO could streamline the whole process — check the Board Room for Operations upgrades.',
+  },
+  {
+    id: 'salesDir',
+    trigger: () => (gameState.hintManualDealCount || 0) >= 5 && !hasBoardRoomUpgrade('sales_dir_1') && gameState.isPublic,
+    flag: 'hintShown_salesDir',
+    sender: 'Sales Department',
+    subject: '🤝 RE: Enterprise Pipeline',
+    body: 'Boss, we keep losing deals because nobody\'s available to close them in time. A Sales Director could handle contract negotiations automatically. Check the Board Room.',
   },
 ];
 
@@ -1457,6 +1495,13 @@ function getOpsDeptLevel() {
   if (hasBoardRoomUpgrade('ops_dept_3')) return 3;
   if (hasBoardRoomUpgrade('ops_dept_2')) return 2;
   if (hasBoardRoomUpgrade('ops_dept_1')) return 1;
+  return 0;
+}
+
+function getSalesDirLevel() {
+  if (hasBoardRoomUpgrade('sales_dir_3')) return 3;
+  if (hasBoardRoomUpgrade('sales_dir_2')) return 2;
+  if (hasBoardRoomUpgrade('sales_dir_1')) return 1;
   return 0;
 }
 
@@ -1848,12 +1893,14 @@ let gameState = {
   hintTaxSettleCount: 0,
   hintMissedEarnings: 0,
   hintManualHireCount: 0,
+  hintManualDealCount: 0,
   hintShown_vpOps: false,
   hintShown_cpa: false,
   hintShown_cfo: false,
   hintShown_coo: false,
   // VP of Operations
   vpOpsStats: { tasksCompleted: 0, totalRevenue: 0, revenueMissed: 0, longestStreak: 0, quarterTasks: 0 },
+  salesDirStats: { dealsCompleted: 0, totalRevenue: 0, revenueMissed: 0 },
   vpOpsEnabled: true,
   vpOpsStreak: 0,
   // Slowdown speed control
@@ -4861,12 +4908,14 @@ function loadGame(slotId) {
     gameState.hintTaxSettleCount = data.hintTaxSettleCount || 0;
     gameState.hintMissedEarnings = data.hintMissedEarnings || 0;
     gameState.hintManualHireCount = data.hintManualHireCount || 0;
+    gameState.hintManualDealCount = data.hintManualDealCount || 0;
     gameState.hintShown_vpOps = data.hintShown_vpOps || false;
     gameState.hintShown_cpa = data.hintShown_cpa || false;
     gameState.hintShown_cfo = data.hintShown_cfo || false;
     gameState.hintShown_coo = data.hintShown_coo || false;
     // VP of Operations
     gameState.vpOpsStats = data.vpOpsStats || { tasksCompleted: 0, totalRevenue: 0, revenueMissed: 0, longestStreak: 0, quarterTasks: 0 };
+    gameState.salesDirStats = data.salesDirStats || { dealsCompleted: 0, totalRevenue: 0, revenueMissed: 0 };
     gameState.vpOpsEnabled = data.vpOpsEnabled !== false;
     gameState.vpOpsStreak = data.vpOpsStreak || 0;
     // Slowdown
@@ -5407,6 +5456,33 @@ function spawnDeal() {
   const seconds = 30 + Math.floor(Math.random() * 31); // 30-60s of revenue
   const amount = rev * seconds;
   const client = DEAL_CLIENTS[Math.floor(Math.random() * DEAL_CLIENTS.length)];
+
+  // Sales Director auto-closes deals
+  const salesLevel = getSalesDirLevel();
+  if (salesLevel > 0) {
+    const efficiency = salesLevel === 1 ? 0.5 : salesLevel === 2 ? 0.75 : 1.0;
+    const reward = Math.floor(amount * efficiency);
+    gameState.cash += reward;
+    gameState.totalEarned += reward;
+    gameState.quarterRevenue += reward;
+    if (gameState.isPublic) gameState.earningsQuarterRevenue += reward;
+
+    // Track stats
+    if (!gameState.salesDirStats) gameState.salesDirStats = { dealsCompleted: 0, totalRevenue: 0, revenueMissed: 0 };
+    gameState.salesDirStats.dealsCompleted++;
+    gameState.salesDirStats.totalRevenue += reward;
+    gameState.salesDirStats.revenueMissed += (amount - reward);
+
+    flashCash(); floatingNumber(reward, document.getElementById('cash-display'), false);
+    document.getElementById('status-text').textContent = `🤝 Sales Dir: ${client} — ${formatMoney(reward)}`;
+    setTimeout(() => {
+      const st = document.getElementById('status-text');
+      if (st && st.textContent.startsWith('🤝 Sales')) st.textContent = 'Ready';
+    }, 3000);
+    updateDisplay();
+    return;
+  }
+
   const clicksNeeded = Math.max(10, Math.min(30, 15 + Math.floor(Math.log10(Math.max(1, totalAnnualRev())) * 2)));
   const timeLimit = 12000; // 12 seconds
 
@@ -5473,6 +5549,7 @@ function clickDeal() {
 
     flashCash(); floatingNumber(deal.amount, document.getElementById('cash-display'), false);
     document.getElementById('status-text').textContent = `🤝 Closed ${formatMoney(deal.amount)} deal with ${deal.client}!`;
+    gameState.hintManualDealCount = (gameState.hintManualDealCount || 0) + 1;
     setTimeout(() => {
       const st = document.getElementById('status-text');
       if (st && st.textContent.startsWith('🤝')) st.textContent = 'Ready';
@@ -5490,6 +5567,7 @@ function failDeal() {
   dealTimer = null;
 
   document.getElementById('status-text').textContent = `😔 ${deal.client} walked — deal lost`;
+  gameState.hintManualDealCount = (gameState.hintManualDealCount || 0) + 1;
   setTimeout(() => {
     const st = document.getElementById('status-text');
     if (st && st.textContent.startsWith('😔')) st.textContent = 'Ready';
