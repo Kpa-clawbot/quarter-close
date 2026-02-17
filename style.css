@@ -1954,6 +1954,16 @@ body.col-resizing * {
   justify-content: space-between;
 }
 
+#boss-toolbar {
+  display: flex;
+  align-items: center;
+  background: var(--bg-cell-alt);
+  border-bottom: 1px solid var(--border-frame);
+  height: 2.25rem;
+  padding: 0 0.5rem;
+  gap: 0.125rem;
+}
+
 /* ============================================
    Game View Layout
    ============================================ */

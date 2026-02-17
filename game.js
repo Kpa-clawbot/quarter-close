@@ -3209,7 +3209,7 @@ function tickDepreciation() {
 
 // Generic cell flash — transition-based background pulse on any element
 function flashCell(el, direction) {
-  if (!el || !gameState.juiceEnabled) return;
+  if (!el || !gameState.juiceEnabled || gameState.bossMode || isCrisisBlocking()) return;
   const isDark = document.documentElement.dataset.theme === 'dark';
   const color = direction === 'spend'
     ? (isDark ? '#3a1b1b' : '#f8d7da')
@@ -3223,6 +3223,7 @@ function flashCell(el, direction) {
 }
 
 function flashCash(direction) {
+  if (gameState.bossMode || isCrisisBlocking()) return;
   const el = document.getElementById('cash-display');
   if (!el) return;
   flashCell(el, direction);
@@ -3238,7 +3239,7 @@ function flashCash(direction) {
 // Floating number effect (damage numbers)
 let _activeFloats = new Map(); // element -> count of active floats
 function floatingNumber(amount, element, isSpend, customText) {
-  if (!gameState.juiceEnabled) return;
+  if (!gameState.juiceEnabled || gameState.bossMode || isCrisisBlocking()) return;
   const rect = element.getBoundingClientRect();
   const span = document.createElement('span');
   span.className = 'floating-number ' + (isSpend ? 'spend' : 'earn');
@@ -3265,7 +3266,7 @@ const CASH_MILESTONES = [1e3, 1e4, 1e5, 1e6, 1e7, 1e8, 1e9, 1e10, 1e11, 1e12, 1e
 const RE_MILESTONES = [100, 250, 500, 1000, 2500, 5000, 10000, 25000, 50000, 100000];
 
 function checkMilestone(value, milestones, stateKey, targetEl) {
-  if (!gameState.juiceEnabled) return;
+  if (!gameState.juiceEnabled || gameState.bossMode || isCrisisBlocking()) return;
   const last = gameState[stateKey] || 0;
   for (let i = milestones.length - 1; i >= 0; i--) {
     if (value >= milestones[i] && milestones[i] > last) {
