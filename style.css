@@ -2837,6 +2837,10 @@ body.col-resizing * {
   display: contents;
 }
 
+#dashboard-rows {
+  display: contents;
+}
+
 .br-header-row > * {
   background: var(--bg-br-header) !important;
 }

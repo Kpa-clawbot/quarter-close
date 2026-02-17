@@ -7098,19 +7098,6 @@ function buildDashboard() {
     <div class="cell cell-e"></div><div class="cell cell-f"></div><div class="cell cell-g"></div><div class="cell cell-h"></div>
   </div>`;
 
-  // Debug: log role status
-  console.log('Reports tab role check:', {
-    cfoLevel: gameState.activeCFOLevel,
-    ctoLevel: getTechDeptLevel(),
-    cooLevel: getOpsDeptLevel(),
-    vpOpsLevel: getVPOpsLevel(),
-    salesDirLevel: getSalesDirLevel(),
-    hasEA: hasExecAssistant(),
-    hasPR: hasPRDirector(),
-    hasCPA: hasBoardRoomUpgrade('cpa'),
-    boardRoomPurchases: JSON.stringify(gameState.boardRoomPurchases),
-  });
-
   const anyRole = getTechDeptLevel() > 0 || getOpsDeptLevel() > 0 || getVPOpsLevel() > 0 ||
                   getSalesDirLevel() > 0 || hasExecAssistant() || hasPRDirector();
 
