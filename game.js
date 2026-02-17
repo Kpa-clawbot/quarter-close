@@ -6598,6 +6598,7 @@ function buildBoardRoom() {
     gameState.cooBudgetPct, gameState.cooBudgetPool, gameState.cooTargetCost,
     gameState.ctoBudgetAuto, gameState.cooBudgetAuto,
     gameState.ctoUpgradeCount, gameState.cooHireCount,
+    gameState.vpOpsEnabled, JSON.stringify(gameState.vpOpsStats),
   ].join('|');
   if (hashParts === _lastBoardRoomHash && container.innerHTML !== '') return;
   _lastBoardRoomHash = hashParts;
@@ -6653,7 +6654,44 @@ function buildBoardRoom() {
     const upgrades = grouped[cat];
     if (!upgrades || upgrades.length === 0) continue;
 
-    for (const upgrade of upgrades) {
+    // Filter: hide fully-owned non-repeatable upgrades
+    const visible = upgrades.filter(u => {
+      const owned = getBoardRoomUpgradeCount(u.id);
+      // Always show repeatable upgrades (Growth Initiative, Golden Parachute)
+      if (u.maxCount === Infinity) return true;
+      // Show if not yet owned
+      if (owned === 0) return true;
+      // Owned single-buy: hide UNLESS it's the latest in a chain (show as "✅ Owned")
+      // Check if any upgrade requires this one and is NOT yet owned
+      const hasUnownedDependent = upgrades.some(other => other.requires === u.id && getBoardRoomUpgradeCount(other.id) === 0);
+      if (hasUnownedDependent) return true;
+      // Check if this is the highest tier in its chain (no other upgrade requires something that requires this)
+      return true; // Show the final owned tier as a "completed" badge
+    });
+
+    // Skip entire category if every visible upgrade is owned (and none are repeatable)
+    const allOwned = visible.every(u => {
+      const owned = getBoardRoomUpgradeCount(u.id);
+      return owned > 0 && u.maxCount !== Infinity;
+    });
+    // For fully-owned categories, show a single collapsed row
+    if (allOwned && visible.length > 0) {
+      html += `<div class="grid-row br-upgrade-row br-owned" style="border-top:1px solid ${dm('#e8e8e8','#3a3a3a')}">
+        <div class="row-num">${rowNum++}</div>
+        <div class="cell cell-a" style="font-size:0.625rem;color:${dm('#999')}">${categoryLabels[cat] || cat}</div>
+        <div class="cell cell-b" style="font-size:0.5625rem;color:${dm('#2e7d32')}">✅ Complete (${visible.length}/${visible.length})</div>
+        <div class="cell cell-c"></div>
+        <div class="cell cell-d"></div>
+        <div class="cell cell-e"></div>
+        <div class="cell cell-f"></div>
+        <div class="cell cell-g"></div>
+        <div class="cell cell-h"></div>
+      </div>`;
+      totalUpgradeRows++;
+      continue;
+    }
+
+    for (const upgrade of visible) {
     const owned = getBoardRoomUpgradeCount(upgrade.id);
     const isOwned = owned > 0 && upgrade.maxCount !== Infinity;
     const requiresMet = (!upgrade.requires || hasBoardRoomUpgrade(upgrade.requires)) && (!upgrade.customRequires || upgrade.customRequires());
@@ -6711,23 +6749,58 @@ function buildBoardRoom() {
     } // end upgrade loop
   } // end category loop
 
-  // VP of Ops stats display
+  // VP of Ops stats display — expanded detail
   if (getVPOpsLevel() > 0) {
     const stats = gameState.vpOpsStats || { tasksCompleted: 0, totalRevenue: 0, revenueMissed: 0, longestStreak: 0, quarterTasks: 0 };
+    const vpLevel = getVPOpsLevel();
     const enabledLabel = gameState.vpOpsEnabled ? '✅ ON' : '❌ OFF';
     const enabledColor = gameState.vpOpsEnabled ? dm('#2e7d32') : dm('#c00');
-    const statsText = `✅ ${stats.tasksCompleted} tasks | 💰 ${formatMoney(stats.totalRevenue)} earned` +
-      (getVPOpsLevel() < 3 && stats.revenueMissed > 0 ? ` | 📉 ${formatMoney(stats.revenueMissed)} left on table` : '') +
-      ` | 🔥 Best streak: ${stats.longestStreak}`;
-    html += `<div class="grid-row br-upgrade-row br-owned">
+    const efficiency = vpLevel === 1 ? '50%' : vpLevel === 2 ? '75%' : '100%';
+    const streakCap = vpLevel === 1 ? 'None' : vpLevel === 2 ? 'Cap 5' : 'Unlimited';
+
+    // Row 1: VP level + toggle
+    html += `<div class="grid-row br-upgrade-row br-owned" style="border-top:2px solid ${dm('#e0e0e0','#444')}">
       <div class="row-num">${rowNum++}</div>
-      <div class="cell cell-a" style="font-size:0.625rem;color:${dm('#888')}">VP of Ops Stats</div>
-      <div class="cell cell-b" style="font-size:0.5625rem;color:${dm('#666')};white-space:normal;line-height:1.3">${statsText}</div>
+      <div class="cell cell-a" style="font-weight:700;color:${dm('#5c6bc0')}">📋 VP of Operations</div>
+      <div class="cell cell-b" style="font-size:0.625rem;color:${dm('#888')}">Lv${vpLevel} — ${efficiency} reward, streaks: ${streakCap}</div>
       <div class="cell cell-c"></div>
-      <div class="cell cell-d" style="justify-content:flex-end"><button class="cell-btn" onclick="gameState.vpOpsEnabled=!gameState.vpOpsEnabled;_lastBoardRoomHash='';buildBoardRoom();saveGame()" style="font-size:0.5625rem;color:${enabledColor}">${enabledLabel}</button></div>
+      <div class="cell cell-d" style="justify-content:flex-end"><button class="cell-btn" onclick="gameState.vpOpsEnabled=!gameState.vpOpsEnabled;_lastBoardRoomHash='';buildBoardRoom();saveGame()" style="font-size:0.625rem;color:${enabledColor};font-weight:700">${enabledLabel}</button></div>
       <div class="cell cell-e"></div>
       <div class="cell cell-f"></div>
       <div class="cell cell-g"></div>
+      <div class="cell cell-h"></div>
+    </div>`;
+    totalUpgradeRows++;
+
+    // Row 2: Performance stats
+    const avgPerTask = stats.tasksCompleted > 0 ? formatMoney(stats.totalRevenue / stats.tasksCompleted) : '$0';
+    const captureRate = vpLevel < 3 && stats.totalRevenue + stats.revenueMissed > 0
+      ? Math.round(stats.totalRevenue / (stats.totalRevenue + stats.revenueMissed) * 100) + '%'
+      : '100%';
+    html += `<div class="grid-row br-upgrade-row br-owned">
+      <div class="row-num">${rowNum++}</div>
+      <div class="cell cell-a" style="font-size:0.5625rem;color:${dm('#999')};padding-left:1.2rem">Tasks Completed</div>
+      <div class="cell cell-b" style="font-size:0.625rem;font-weight:600;color:${dm('#333')}">${stats.tasksCompleted.toLocaleString()}</div>
+      <div class="cell cell-c" style="font-size:0.5625rem;color:${dm('#999')}">Avg per Task</div>
+      <div class="cell cell-d" style="font-size:0.625rem;font-weight:600;color:${dm('#333')}">${avgPerTask}</div>
+      <div class="cell cell-e"></div>
+      <div class="cell cell-f" style="font-size:0.5625rem;color:${dm('#999')}">Capture Rate</div>
+      <div class="cell cell-g" style="font-size:0.625rem;font-weight:600;color:${dm(captureRate === '100%' ? '#2e7d32' : '#e65100')}">${captureRate}</div>
+      <div class="cell cell-h"></div>
+    </div>`;
+    totalUpgradeRows++;
+
+    // Row 3: Revenue stats
+    const missedColor = stats.revenueMissed > 0 && vpLevel < 3 ? dm('#c00') : dm('#999');
+    html += `<div class="grid-row br-upgrade-row br-owned">
+      <div class="row-num">${rowNum++}</div>
+      <div class="cell cell-a" style="font-size:0.5625rem;color:${dm('#999')};padding-left:1.2rem">Revenue Earned</div>
+      <div class="cell cell-b" style="font-size:0.625rem;font-weight:600;color:${dm('#2e7d32')}">${formatMoney(stats.totalRevenue)}</div>
+      <div class="cell cell-c" style="font-size:0.5625rem;color:${dm('#999')}">Left on Table</div>
+      <div class="cell cell-d" style="font-size:0.625rem;font-weight:600;color:${missedColor}">${vpLevel < 3 ? formatMoney(stats.revenueMissed) : '—'}</div>
+      <div class="cell cell-e"></div>
+      <div class="cell cell-f" style="font-size:0.5625rem;color:${dm('#999')}">Best Streak</div>
+      <div class="cell cell-g" style="font-size:0.625rem;font-weight:600;color:${dm('#e65100')}">🔥 ${stats.longestStreak}</div>
       <div class="cell cell-h"></div>
     </div>`;
     totalUpgradeRows++;
