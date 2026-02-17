@@ -3751,7 +3751,7 @@ let _lastTaxPanelHash = '';
 
 function updateTaxPanel() {
   updateTaxAlert();
-  if (gameState.activeTab === 'boardroom') return;
+  if (gameState.activeTab === 'boardroom' || gameState.activeTab === 'dashboard') return;
   const panel = document.getElementById('tax-panel');
   const hasTaxDebts = gameState.taxDebts && gameState.taxDebts.length > 0;
   const hasActivity = gameState.totalEarned > 0;
