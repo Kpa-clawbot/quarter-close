@@ -66,7 +66,8 @@ When certain extreme events fire, the entire play area gets a themed overlay tha
   ```
 - **Chrome's `net::ERR_` aesthetic** — gray page, blue links, familiar error
 - Progress bar = CloudFlare mitigation progress
-- Revenue at 50% (not 0) so overlay is semi-transparent? Or full overlay since it's still dramatic
+- **Revenue goes to 0%** (full outage, not 50%) — justifies the full overlay
+- **Event effect change**: `revPenalty.mult` changes from `0.5` to `0` (or use `powerOutage` instead)
 
 ### 4. 💾 Database Corruption → **Terminal / Recovery Console**
 - **Background**: `#0c0c0c` (terminal black)
@@ -127,6 +128,40 @@ When certain extreme events fire, the entire play area gets a themed overlay tha
 - Too minor / player has a choice to hotfix. No dramatic overlay needed.
 - Keep existing behavior (revenue penalty, text indicator)
 
+### Terminal Line Generation
+Fixed structure with randomized values. Each crisis generates a script of ~15-20 lines upfront, then reveals them one at a time every ~1.5s. Example template:
+
+```
+[root@prod-db-01 ~]# fsck -y /dev/sda1
+fsck from util-linux 2.38.1
+e2fsck 1.47.0 (5-Feb-2023)
+/dev/sda1: recovering journal
+Block bitmap differences: +(${randBlock}--${randBlock+255})
+Fix? yes
+
+Inode bitmap differences: +(${randInode}--${randInode+31})
+Fix? yes
+
+Pass 1: Checking inodes, blocks, and sizes
+Pass 2: Checking directory structure
+Pass 3: Checking directory connectivity
+Pass 4: Checking reference counts
+Pass 5: Checking group summary information
+Free blocks count wrong (${total}, counted=${total-1024}).
+Fix? yes
+
+/dev/sda1: ***** FILE SYSTEM WAS MODIFIED *****
+/dev/sda1: ${usedInodes}/${totalInodes} files, ${usedBlocks}/${totalBlocks} blocks
+```
+
+Random values: block numbers (3M-8M range), inode numbers (700K-900K range), block counts (2M-4M). Looks fresh each time but reads like real fsck output.
+
+## Resolved Questions
+- **DDoS revenue**: Changed to 0% (full outage). Justifies full overlay.
+- **Terminal lines**: Fixed structure, randomized numbers. Pre-generated on crisis start, revealed line-by-line every ~1.5s.
+- **Skip button**: No skip. Waiting IS the punishment. That's the whole point.
+- **Sound effects**: None — game has no audio.
+
 ## Technical Implementation
 
 ### Overlay Element
@@ -186,13 +221,7 @@ Each event's `effect` function sets `gameState.crisisOverlay` alongside the exis
 - **Close the Deal**: Blocked
 - **Toasts/Events**: Can still appear (stacking crises = comedy)
 
-## Open Questions
-- Should the crisis overlay have a "skip" or is waiting the whole point?
-- Sound effects? (probably not — game has no audio currently)
-- Should DDoS be full overlay (revenue is only 50%, not 0)?
-- Terminal scrolling: pre-scripted lines or procedurally generated?
-
 ---
 
 *Added: Feb 17, 2026*
-*Status: Design complete, awaiting approval to implement*
+*Status: Design complete, approved for implementation*
