@@ -2696,13 +2696,13 @@ function updateDisplay() {
   const cashEl = document.getElementById('cash-display');
   cashEl.textContent = formatMoney(gameState.cash);
 
-  // RE value display (cell E) — only show after IPO
+  // RE display (cell E) — ⭐ label + value, only post-IPO
   const reEl = document.getElementById('re-display');
   if (reEl) {
     if (gameState.isPublic) {
       const reVal = gameState.retainedEarnings || 0;
-      reEl.textContent = reVal ? formatCompact(reVal) : '0';
-      reEl.style.color = '';
+      reEl.innerHTML = `<span style="color:${dm('#d4a017')}">⭐</span> <span style="color:${dm('#d4a017')};font-family:Consolas,monospace">${reVal ? formatCompact(reVal) : '0'}</span>`;
+      reEl.style.visibility = '';
       // RE flash + float on change
       if (gameState._prevRE !== undefined && reVal !== gameState._prevRE) {
         const reDelta = reVal - gameState._prevRE;
@@ -2713,7 +2713,8 @@ function updateDisplay() {
       // RE milestones
       checkMilestone(reVal, RE_MILESTONES, '_lastREMilestone', reEl);
     } else {
-      reEl.textContent = '';
+      reEl.innerHTML = '';
+      reEl.style.visibility = 'hidden';
     }
   }
 
@@ -2749,22 +2750,16 @@ function updateDisplay() {
     ptEl.textContent = formatPerTick(perTick) + '/day';
   }
 
-  // Rev/Q in cell D (+ RE label when post-IPO) — projected: daily rev × 90
+  // Rev/Q in cell D — projected: daily rev × 90
   const revPerQ = perTick * 90;
-  const reLabel = document.querySelector('.re-label');
-  if (reLabel) {
-    if (gameState.isPublic) {
-      reLabel.innerHTML = `<span style="color:${dm('#217346')};font-weight:600">${formatCompact(revPerQ)}/Q</span> <span style="color:${dm('#888')}">│</span> <span style="color:${dm('#d4a017')}">⭐ RE</span>`;
-      reLabel.style.visibility = '';
-    } else {
-      reLabel.innerHTML = `<span style="color:${dm('#217346')};font-weight:600">${formatCompact(revPerQ)}/Q</span>`;
-      reLabel.style.visibility = '';
-    }
+  const revPerQEl = document.getElementById('rev-per-q');
+  if (revPerQEl) {
+    revPerQEl.innerHTML = `<span style="color:${dm('#217346')};font-weight:600">${formatCompact(revPerQ)}/Q</span>`;
     // Rev/Q flash + float on change
     if (gameState._prevRevPerQ !== undefined && revPerQ !== gameState._prevRevPerQ) {
-      flashCell(reLabel, revPerQ > gameState._prevRevPerQ ? 'earn' : 'spend');
+      flashCell(revPerQEl, revPerQ > gameState._prevRevPerQ ? 'earn' : 'spend');
       const delta = revPerQ - gameState._prevRevPerQ;
-      floatingNumber(delta, reLabel, delta < 0, formatMoney(Math.abs(delta)) + '/Q');
+      floatingNumber(delta, revPerQEl, delta < 0, formatMoney(Math.abs(delta)) + '/Q');
     }
     gameState._prevRevPerQ = revPerQ;
   }
@@ -3134,11 +3129,11 @@ function floatingNumber(amount, element, isSpend, customText) {
     ? ((isSpend ? '-' : '+') + customText)
     : ((isSpend ? '-' : '+') + formatMoney(Math.abs(amount)));
   span.style.left = (rect.left + rect.width / 2) + 'px';
-  // Stagger vertically if multiple floats on same element
+  // Stagger vertically — cap at 3 visible slots to avoid climbing off-screen
   const key = element.id || element;
-  const offset = (_activeFloats.get(key) || 0);
-  span.style.top = (rect.top - offset * 24) + 'px';
-  _activeFloats.set(key, offset + 1);
+  const offset = (_activeFloats.get(key) || 0) % 3;
+  span.style.top = (rect.top - offset * 22) + 'px';
+  _activeFloats.set(key, (_activeFloats.get(key) || 0) + 1);
   document.body.appendChild(span);
   span.addEventListener('animationend', () => {
     span.remove();
@@ -3265,17 +3260,17 @@ function processQuarterlyTax() {
       } else if (cfoLevel >= 2) {
         // Base on current guidance
         const guidance = gameState.currentGuidance;
-        if (guidance === 'conservative') gameState.ctoBudgetPct = 20;
-        else if (guidance === 'ambitious' || guidance === 'aggressive') gameState.ctoBudgetPct = 10;
-        else gameState.ctoBudgetPct = 15; // in-line or null
+        if (guidance === 'conservative') gameState.ctoBudgetPct = 25;
+        else if (guidance === 'ambitious' || guidance === 'aggressive') gameState.ctoBudgetPct = 12;
+        else gameState.ctoBudgetPct = 18; // in-line or null
         if (cfoLevel >= 3) {
-          // Tax debt → halve budget
+          // Tax debt → reduce by 3% (not halve — too aggressive)
           if (gameState.taxDebts && gameState.taxDebts.length > 0) {
-            gameState.ctoBudgetPct = Math.max(5, Math.floor(gameState.ctoBudgetPct / 2));
+            gameState.ctoBudgetPct = Math.max(8, gameState.ctoBudgetPct - 3);
           }
-          // High streak → reduce by 5% (analyst ratchet protection)
-          if (gameState.earningsStreak >= 5) {
-            gameState.ctoBudgetPct = Math.max(5, gameState.ctoBudgetPct - 5);
+          // Winning streak → splurge! Increase budget by 2% per streak level
+          if (gameState.earningsStreak >= 3) {
+            gameState.ctoBudgetPct = Math.min(40, gameState.ctoBudgetPct + Math.floor(gameState.earningsStreak * 2));
           }
         }
       }
@@ -3287,15 +3282,15 @@ function processQuarterlyTax() {
         gameState.cooBudgetPct = 15;
       } else if (cfoLevel >= 2) {
         const guidance = gameState.currentGuidance;
-        if (guidance === 'conservative') gameState.cooBudgetPct = 20;
-        else if (guidance === 'ambitious' || guidance === 'aggressive') gameState.cooBudgetPct = 10;
-        else gameState.cooBudgetPct = 15;
+        if (guidance === 'conservative') gameState.cooBudgetPct = 25;
+        else if (guidance === 'ambitious' || guidance === 'aggressive') gameState.cooBudgetPct = 12;
+        else gameState.cooBudgetPct = 18;
         if (cfoLevel >= 3) {
           if (gameState.taxDebts && gameState.taxDebts.length > 0) {
-            gameState.cooBudgetPct = Math.max(5, Math.floor(gameState.cooBudgetPct / 2));
+            gameState.cooBudgetPct = Math.max(8, gameState.cooBudgetPct - 3);
           }
-          if (gameState.earningsStreak >= 5) {
-            gameState.cooBudgetPct = Math.max(5, gameState.cooBudgetPct - 5);
+          if (gameState.earningsStreak >= 3) {
+            gameState.cooBudgetPct = Math.min(40, gameState.cooBudgetPct + Math.floor(gameState.earningsStreak * 2));
           }
         }
       }
@@ -6713,16 +6708,16 @@ function buildBoardRoom() {
     });
 
     // Skip entire category if every visible upgrade is owned (and none are repeatable)
-    const allOwned = visible.every(u => {
-      const owned = getBoardRoomUpgradeCount(u.id);
-      return owned > 0 && u.maxCount !== Infinity;
-    });
-    // For fully-owned categories, show a single collapsed row
-    if (allOwned && visible.length > 0) {
+    const finiteUpgrades = visible.filter(u => u.maxCount !== Infinity);
+    const repeatableUpgrades = visible.filter(u => u.maxCount === Infinity);
+    const allFiniteOwned = finiteUpgrades.length > 0 && finiteUpgrades.every(u => getBoardRoomUpgradeCount(u.id) > 0);
+
+    // For fully-owned categories with no repeatable upgrades, show a single collapsed row
+    if (allFiniteOwned && repeatableUpgrades.length === 0 && finiteUpgrades.length > 0) {
       html += `<div class="grid-row br-upgrade-row br-owned" style="border-top:1px solid ${dm('#e8e8e8','#3a3a3a')}">
         <div class="row-num">${rowNum++}</div>
         <div class="cell cell-a" style="font-size:0.625rem;color:${dm('#999')}">${categoryLabels[cat] || cat}</div>
-        <div class="cell cell-b" style="font-size:0.5625rem;color:${dm('#2e7d32')}">✅ Complete (${visible.length}/${visible.length})</div>
+        <div class="cell cell-b" style="font-size:0.5625rem;color:${dm('#2e7d32')}">✅ Complete (${finiteUpgrades.length}/${finiteUpgrades.length})</div>
         <div class="cell cell-c"></div>
         <div class="cell cell-d"></div>
         <div class="cell cell-e"></div>
@@ -6734,7 +6729,27 @@ function buildBoardRoom() {
       continue;
     }
 
-    for (const upgrade of visible) {
+    // For categories with repeatable upgrades AND all finite completed, collapse finite into summary + show repeatables
+    if (allFiniteOwned && repeatableUpgrades.length > 0 && finiteUpgrades.length > 0) {
+      html += `<div class="grid-row br-upgrade-row br-owned" style="border-top:1px solid ${dm('#e8e8e8','#3a3a3a')}">
+        <div class="row-num">${rowNum++}</div>
+        <div class="cell cell-a" style="font-size:0.625rem;color:${dm('#999')}">${categoryLabels[cat] || cat}</div>
+        <div class="cell cell-b" style="font-size:0.5625rem;color:${dm('#2e7d32')}">✅ ${finiteUpgrades.length} upgrades complete</div>
+        <div class="cell cell-c"></div>
+        <div class="cell cell-d"></div>
+        <div class="cell cell-e"></div>
+        <div class="cell cell-f"></div>
+        <div class="cell cell-g"></div>
+        <div class="cell cell-h"></div>
+      </div>`;
+      totalUpgradeRows++;
+      // Continue to show only repeatable upgrades below
+    }
+
+    // When finite upgrades are collapsed, only show repeatable ones
+    const upgradesForDisplay = (allFiniteOwned && repeatableUpgrades.length > 0) ? repeatableUpgrades : visible;
+
+    for (const upgrade of upgradesForDisplay) {
     const owned = getBoardRoomUpgradeCount(upgrade.id);
     const isOwned = owned > 0 && upgrade.maxCount !== Infinity;
     const requiresMet = (!upgrade.requires || hasBoardRoomUpgrade(upgrade.requires)) && (!upgrade.customRequires || upgrade.customRequires());
