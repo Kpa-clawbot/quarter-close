@@ -454,7 +454,7 @@ const EVENTS = [
     weight: 2,
     sender: 'IT Department',
     subject: '⚠️ POWER OUTAGE - Building 3',
-    body: 'Emergency maintenance required. All systems will be offline for approximately 15 seconds. This cannot be prevented.',
+    body: 'Emergency maintenance. Everything\'s going dark for about 15 seconds. Nothing we can do.',
     timed: true,
     timedDelay: 5000,  // 5 second countdown
     timedEffect: (gs) => {
@@ -469,7 +469,7 @@ const EVENTS = [
     weight: 1,
     sender: 'IT Security',
     subject: '🔒 RANSOMWARE DETECTED - All Systems',
-    body: 'Ransomware detected on the network. All file shares encrypted. Pay the ransom or wait for IT to rebuild from backups.',
+    body: 'Everything\'s encrypted. Some script kiddie wants Bitcoin or we rebuild from backups. Your call.',
     actions: [
       { label: '💰 Pay ransom (15% cash)', effect: (gs) => {
         const cost = Math.max(100, Math.floor(gs.cash * 0.15));
@@ -489,7 +489,7 @@ const EVENTS = [
     weight: 1,
     sender: 'Network Operations',
     subject: '🌐 DDoS ATTACK IN PROGRESS',
-    body: 'Massive distributed denial-of-service attack hitting all public-facing services. Mitigation in progress but performance is degraded.',
+    body: 'Someone\'s hammering our servers with junk traffic. Revenue\'s gone until CloudShield sorts it out.',
     actions: [
       { label: 'Nothing we can do', effect: (gs) => {
         const duration = 20000 + Math.floor(Math.random() * 10000); // 20-30s
@@ -503,7 +503,7 @@ const EVENTS = [
     weight: 1,
     sender: 'DBA Team',
     subject: '💾 CRITICAL: Database corruption detected',
-    body: 'Primary database showing consistency errors. We can do an emergency restore ($$$) or let auto-recovery run (slower).',
+    body: 'The main database is corrupted. We can throw money at an emergency restore or let it auto-recover (slower, scarier).',
     actions: [
       { label: '💰 Emergency restore (3% cash)', effect: (gs) => {
         const cost = Math.max(50, Math.floor(gs.cash * 0.03));
@@ -532,7 +532,7 @@ const EVENTS = [
     weight: 3,
     sender: 'IT Department',
     subject: '📧 Email server is DOWN',
-    body: 'Mail server is unreachable. No one can send or receive email until it\'s fixed. Approval workflows are frozen.',
+    body: 'Nobody can send or receive email. Approval workflows are dead. Productivity is tanking.',
     actions: [
       { label: 'Wait it out', effect: (gs) => {
         const duration = 45000 + Math.floor(Math.random() * 15000); // 45-60s
@@ -545,7 +545,7 @@ const EVENTS = [
     weight: 4,
     sender: 'IT Security',
     subject: '🔑 MANDATORY PASSWORD RESET',
-    body: 'Security audit requires all employees to reset passwords immediately. Productivity will be impacted.',
+    body: 'Security audit says everyone needs new passwords RIGHT NOW. Half the company is locked out of their own laptops.',
     timed: true,
     timedDelay: 3000,
     timedEffect: (gs) => {
@@ -559,7 +559,7 @@ const EVENTS = [
     weight: 2,
     sender: 'Status Page',
     subject: '☁️ CLOUD PROVIDER OUTAGE',
-    body: 'Major incident at your cloud provider. Multiple availability zones affected. ETA for resolution: "We\'re working on it." Helpful.',
+    body: 'Your cloud provider is down. Multiple regions. ETA: "We\'re working on it." Helpful.',
     actions: [
       { label: 'Welcome to the cloud', effect: (gs) => {
         const duration = 15000 + Math.floor(Math.random() * 10000); // 15-25s
@@ -573,7 +573,7 @@ const EVENTS = [
     weight: 3,
     sender: 'Engineering Lead',
     subject: '🐛 P0 BUG: Production is on fire',
-    body: 'Critical bug in prod. Customers are seeing errors. We can hotfix now (costs money for the war room) or punt to next sprint and eat the churn.',
+    body: 'Prod is on fire. Customers are seeing errors. We can spin up a war room now (costs money) or punt to next sprint and eat the churn.',
     actions: [
       { label: '🚨 Hotfix now (5% cash)', effect: (gs) => {
         const cost = Math.max(100, Math.floor(gs.cash * 0.05));
@@ -600,7 +600,7 @@ const EVENTS = [
     weight: 2,
     sender: 'IT Asset Management',
     subject: '💻 LAPTOP RECALL - Security Vulnerability',
-    body: 'Critical firmware vulnerability discovered. All company laptops must be collected for patching. Employees will work from their phones (poorly).',
+    body: 'Critical firmware bug. Every laptop needs to come in for patching. People are trying to work from their phones. It\'s not going well.',
     actions: [
       { label: 'Comply with recall', effect: (gs) => {
         const duration = 20000;
@@ -613,7 +613,7 @@ const EVENTS = [
     weight: 2,
     sender: 'Google Alerts',
     subject: '📈 Your company is trending on TikTok!',
-    body: 'A customer posted a viral video about your product. 2.3M views and counting! Revenue is spiking.',
+    body: 'Some kid made a TikTok about us and it blew up. 2.3M views. Revenue is spiking and we don\'t know why.',
     actions: [
       { label: 'Ride the wave! (3× rev, 30s)', effect: (gs) => {
         gs.revBonus = { mult: 3, until: Date.now() + 30000 };
@@ -625,7 +625,7 @@ const EVENTS = [
     weight: 2,
     sender: 'PR Team',
     subject: 'Forbes wants to feature us! 🎉',
-    body: 'Forbes is running a "30 Under 30" style piece and wants to include us. This will be huge for brand awareness.',
+    body: 'Forbes wants to put us in some kind of "rising companies" list. Free press is free press.',
     actions: [
       { label: 'Do the interview (2× rev, 60s)', effect: (gs) => {
         gs.revBonus = { mult: 2, until: Date.now() + 60000 };
@@ -638,7 +638,7 @@ const EVENTS = [
     weight: 2,
     sender: 'Social Media',
     subject: '🚀 We hit the front page of Reddit!',
-    body: 'Someone posted about us on r/technology and it exploded. Server traffic is through the roof!',
+    body: 'Someone posted about us on r/technology and it\'s on the front page. Servers are sweating.',
     actions: [
       { label: 'Scale the servers! (5× rev, 15s)', effect: (gs) => {
         gs.revBonus = { mult: 5, until: Date.now() + 15000 };
@@ -650,7 +650,7 @@ const EVENTS = [
     weight: 2,
     sender: 'Marketing',
     subject: '📺 Local news wants to do a segment on us',
-    body: 'Channel 7 heard about us and wants to do a feel-good local business story. Free advertising!',
+    body: 'Channel 7 wants to do a feel-good local business segment. Not exactly 60 Minutes, but hey, free advertising.',
     actions: [
       { label: 'Schedule the shoot (2× rev, 45s)', effect: (gs) => {
         gs.revBonus = { mult: 2, until: Date.now() + 45000 };
@@ -704,7 +704,7 @@ const EVENTS = [
       return {
         sender: 'R&D Department',
         subject: '🔬 Breakthrough Innovation!',
-        body: `Your ${name} team has made a major breakthrough! They've developed a revolutionary new process that will permanently double their revenue output.\n\nCurrent multiplier: ×${currentMult}\nNew multiplier: ×${currentMult * 2}`,
+        body: `The ${name} team just had a breakthrough — some new process that permanently doubles their output.\n\nCurrent multiplier: ×${currentMult}\nNew multiplier: ×${currentMult * 2}`,
         actions: [
           { label: `Implement (+×2 ${name})`, effect: (gs) => {
             gs.sources[pick.i].breakthroughMult = (gs.sources[pick.i].breakthroughMult || 1) * 2;
@@ -823,7 +823,7 @@ const EVENTS = [
     debugLabel: 'Short Seller Attack',
     sender: 'Investor Relations',
     subject: '📉 ALERT: Short Seller Report Published',
-    body: 'Hindenburg Research just published a hit piece calling your company "a house of cards built on fraudulent accounting." Stock is cratering. Your board is calling.',
+    body: 'Hindenburg just dropped a report calling us "a house of cards." Stock is in free fall. Board\'s blowing up your phone.',
     actions: [
       { label: '📊 Publish rebuttal (3% cash)', effect: (gs) => {
         const cost = Math.max(100, Math.floor(gs.cash * 0.03));
@@ -865,7 +865,7 @@ const EVENTS = [
       return {
         sender: 'Strategy Team',
         subject: '🤖 AI Automation Opportunity',
-        body: `New AI tool can replace ${fireCount} employees in ${name}. Board is excited. Employees are terrified. Twitter is writing think pieces.`,
+        body: `Some AI startup says they can replace ${fireCount} people in ${name}. Board loves it. Employees are updating their LinkedIn.`,
         actions: [
           { label: '🤖 Adopt AI (lose employees, +15% rev)', effect: (gs) => {
             gs.sources[pick.i].employees = Math.max(1, gs.sources[pick.i].employees - fireCount);
@@ -939,7 +939,7 @@ const EVENTS = [
     debugLabel: 'Bank Collapse',
     sender: 'Treasury Department',
     subject: '🏦 URGENT: Your Corporate Bank Just Failed',
-    body: 'Your bank collapsed overnight. FDIC covers $250K. You had... significantly more than that in there. Federal regulators are "working to ensure orderly resolution." Sure they are.',
+    body: 'Your bank went under overnight. FDIC covers $250K. You had a lot more than that in there.',
     actions: [
       { label: '😱 Check the damage', effect: (gs) => {
         const excess = Math.max(0, gs.cash - 250000);
@@ -962,7 +962,7 @@ const EVENTS = [
       return {
         sender: 'Board of Directors',
         subject: '💰 Activist Investor Has Taken a Position',
-        body: `${name} just disclosed an 8% stake in your company. They\'re demanding "sweeping changes to unlock shareholder value." Translation: they want you to fire people and cut costs.`,
+        body: `${name} just bought 8% of your company. They want "sweeping changes to unlock shareholder value." Translation: layoffs.`,
         actions: [
           { label: '🪓 Cut costs (fire 15% across the board)', effect: (gs) => {
             if (hasDepts) {
@@ -1027,7 +1027,7 @@ const EVENTS = [
     debugLabel: 'Pandemic',
     sender: 'WHO Alert',
     subject: '🦠 NEW PANDEMIC: Markets in Freefall',
-    body: 'A new virus is spreading globally. WHO declared a public health emergency. Markets tanked 20%. Your employees are panic-buying toilet paper.',
+    body: 'New virus spreading fast. WHO declared an emergency. Markets tanked 20%. Your employees are panic-buying toilet paper again.',
     actions: [
       { label: '🏠 Go fully remote immediately', effect: (gs) => {
         gs.revPenalty = { mult: 0.8, until: Date.now() + 60000 };
@@ -1054,7 +1054,7 @@ const EVENTS = [
     debugLabel: 'CEO Health Scare',
     sender: 'Board of Directors',
     subject: '💊 CONFIDENTIAL: CEO Hospitalized',
-    body: 'Your CEO was rushed to the hospital. The board is in emergency session. Stock is dropping on "leadership uncertainty." CNBC is already speculating.',
+    body: 'CEO got rushed to the hospital. Board\'s in emergency session. CNBC is already speculating about "leadership uncertainty."',
     actions: [
       { label: '📋 Announce COO as interim', effect: (gs) => {
         if (gs.activeCOOLevel > 0) {
@@ -1078,7 +1078,7 @@ const BOARD_ROOM_UPGRADES = [
   {
     id: 'finance_dept_1',
     name: 'CFO Lv1',
-    desc: 'The Intern — auto-earnings, randomizes guidance (often wrong).',
+    desc: 'Fresh out of B-school. Sets guidance by gut feeling. Wrong more often than right.',
     cost: 500,
     requires: null,
     maxCount: 1,
@@ -1087,7 +1087,7 @@ const BOARD_ROOM_UPGRADES = [
   {
     id: 'finance_dept_2',
     name: 'CFO Lv2',
-    desc: 'Competent CFO — analyzes trends, picks right ~70% of the time.',
+    desc: 'Actually reads the financials. Gets it right about 70% of the time.',
     cost: 2500,
     requires: 'finance_dept_1',
     maxCount: 1,
@@ -1096,7 +1096,7 @@ const BOARD_ROOM_UPGRADES = [
   {
     id: 'finance_dept_3',
     name: 'CFO Lv3',
-    desc: 'Elite CFO — factors in streaks, bonuses, analyst pressure. ~90% optimal.',
+    desc: 'Poached from Goldman. Tracks streaks, analyst mood, tax exposure. ~90% accurate.',
     cost: 10000,
     requires: 'finance_dept_2',
     maxCount: 1,
@@ -1105,7 +1105,7 @@ const BOARD_ROOM_UPGRADES = [
   {
     id: 'tech_dept_1',
     name: 'CTO Lv1',
-    desc: 'The Intern — auto-upgrades departments, cheapest first.',
+    desc: 'Buys whatever\'s cheapest. Not smart, but cheap.',
     cost: 2500,
     requires: null,
     maxCount: 1,
@@ -1114,7 +1114,7 @@ const BOARD_ROOM_UPGRADES = [
   {
     id: 'tech_dept_2',
     name: 'CTO Lv2',
-    desc: 'Competent CTO — prioritizes upgrades by ROI.',
+    desc: 'Picks upgrades by bang-for-buck. Actually does the math.',
     cost: 10000,
     requires: 'tech_dept_1',
     maxCount: 1,
@@ -1123,7 +1123,7 @@ const BOARD_ROOM_UPGRADES = [
   {
     id: 'tech_dept_3',
     name: 'CTO Lv3',
-    desc: 'Elite CTO — ROI-optimized with earnings timing awareness.',
+    desc: 'Times purchases around earnings. Knows when to spend and when to hoard.',
     cost: 50000,
     requires: 'tech_dept_2',
     maxCount: 1,
@@ -1132,7 +1132,7 @@ const BOARD_ROOM_UPGRADES = [
   {
     id: 'ops_dept_1',
     name: 'COO Lv1',
-    desc: 'The Recruiter — auto-hires cheapest employee first.',
+    desc: 'Hires the cheapest warm body available. Quantity over quality.',
     cost: 2500,
     requires: null,
     maxCount: 1,
@@ -1141,7 +1141,7 @@ const BOARD_ROOM_UPGRADES = [
   {
     id: 'ops_dept_2',
     name: 'COO Lv2',
-    desc: 'VP of Operations — hires where marginal revenue per employee is highest.',
+    desc: 'Figures out where one more hire would actually make money.',
     cost: 10000,
     requires: 'ops_dept_1',
     maxCount: 1,
@@ -1150,7 +1150,7 @@ const BOARD_ROOM_UPGRADES = [
   {
     id: 'ops_dept_3',
     name: 'COO Lv3',
-    desc: 'Elite COO — revenue-optimized hiring with earnings timing awareness.',
+    desc: 'Holds off hiring before earnings, splurges after. Plays the calendar.',
     cost: 50000,
     requires: 'ops_dept_2',
     maxCount: 1,
@@ -1159,7 +1159,7 @@ const BOARD_ROOM_UPGRADES = [
   {
     id: 'rev_mult_1',
     name: 'Revenue Multiplier I',
-    desc: 'Permanent 1.1× revenue multiplier.',
+    desc: '1.1× revenue. The easy win.',
     cost: 1000,
     requires: null,
     maxCount: 1,
@@ -1168,7 +1168,7 @@ const BOARD_ROOM_UPGRADES = [
   {
     id: 'rev_mult_2',
     name: 'Revenue Multiplier II',
-    desc: 'Permanent 1.25× revenue multiplier.',
+    desc: '1.25× revenue. Now we\'re cooking.',
     cost: 5000,
     requires: 'rev_mult_1',
     maxCount: 1,
@@ -1177,7 +1177,7 @@ const BOARD_ROOM_UPGRADES = [
   {
     id: 'rev_mult_3',
     name: 'Revenue Multiplier III',
-    desc: 'Permanent 1.5× revenue multiplier.',
+    desc: '1.5× revenue. Money printer goes brrr.',
     cost: 25000,
     requires: 'rev_mult_2',
     maxCount: 1,
@@ -1186,7 +1186,7 @@ const BOARD_ROOM_UPGRADES = [
   {
     id: 'lobbyist',
     name: 'Lobbyist',
-    desc: 'Tax rate reduced from 25% to 20%.',
+    desc: 'A friend in Congress. Tax rate drops from 25% to 20%.',
     cost: 1500,
     requires: null,
     maxCount: 1,
@@ -1195,7 +1195,7 @@ const BOARD_ROOM_UPGRADES = [
   {
     id: 'tax_haven',
     name: 'Tax Haven',
-    desc: 'Tax rate reduced to 15%.',
+    desc: 'The Cayman Islands special. Tax rate down to 15%.',
     cost: 8000,
     requires: 'lobbyist',
     maxCount: 1,
@@ -1204,7 +1204,7 @@ const BOARD_ROOM_UPGRADES = [
   {
     id: 'analyst_relations',
     name: 'Analyst Relations',
-    desc: 'Analyst expectation ratchet slowed by 50%.',
+    desc: 'Wine and dine the analysts. They raise the bar 50% slower.',
     cost: 2000,
     requires: null,
     maxCount: 1,
@@ -1213,7 +1213,7 @@ const BOARD_ROOM_UPGRADES = [
   {
     id: 'cpa',
     name: 'CPA on Retainer',
-    desc: 'Auto-pays taxes when affordable, auto-settles debts. No more IRS toasts.',
+    desc: 'Pays your taxes on time. Settles debts before the IRS comes knocking.',
     cost: 750,
     requires: null,
     maxCount: 1,
@@ -1222,7 +1222,7 @@ const BOARD_ROOM_UPGRADES = [
   {
     id: 'golden_parachute',
     name: 'Golden Parachute',
-    desc: 'Survive one asset seizure event (consumed on use).',
+    desc: 'Get-out-of-jail-free card. Blocks one asset seizure, then it\'s gone.',
     cost: 3000,
     requires: null,
     maxCount: Infinity,
@@ -1231,7 +1231,7 @@ const BOARD_ROOM_UPGRADES = [
   {
     id: 'growth_initiative',
     name: 'Growth Initiative',
-    desc: '+2% revenue multiplier (stacks). Cost scales 10% each.',
+    desc: '+2% revenue, stacks forever. Gets 10% pricier each time.',
     cost: 50,
     requires: null,
     maxCount: Infinity,
@@ -1241,7 +1241,7 @@ const BOARD_ROOM_UPGRADES = [
   {
     id: 'capex_planning',
     name: 'CapEx Planning',
-    desc: 'CFO automatically manages CTO and COO budgets each quarter.',
+    desc: 'Let the CFO run the CTO and COO budgets. One less thing to worry about.',
     cost: 15000,
     requires: null,
     maxCount: 1,
@@ -1252,7 +1252,7 @@ const BOARD_ROOM_UPGRADES = [
   {
     id: 'market_domestic',
     name: 'Domestic Market',
-    desc: '2× all revenue. Expand into the full domestic market.',
+    desc: '2× revenue. Stop leaving money on the table locally.',
     cost: 3000,
     requires: null,
     maxCount: 1,
@@ -1261,7 +1261,7 @@ const BOARD_ROOM_UPGRADES = [
   {
     id: 'market_international',
     name: 'International',
-    desc: '3× all revenue. Go global across developed markets.',
+    desc: '3× revenue. Open offices nobody will visit.',
     cost: 8000,
     requires: 'market_domestic',
     maxCount: 1,
@@ -1270,7 +1270,7 @@ const BOARD_ROOM_UPGRADES = [
   {
     id: 'market_emerging',
     name: 'Emerging Markets',
-    desc: '5× all revenue. Tap into rapidly growing economies.',
+    desc: '5× revenue. Cheap labor, expensive problems.',
     cost: 15000,
     requires: 'market_international',
     maxCount: 1,
@@ -1289,7 +1289,7 @@ const BOARD_ROOM_UPGRADES = [
   {
     id: 'talent_pipeline',
     name: 'Talent Pipeline',
-    desc: 'Hiring cost scaling reduced (1.15× → 1.12× per employee).',
+    desc: 'Each new hire costs less to recruit. Scaling drops from 1.15× to 1.12×.',
     cost: 5000,
     requires: null,
     maxCount: 1,
@@ -1298,7 +1298,7 @@ const BOARD_ROOM_UPGRADES = [
   {
     id: 'employer_branding',
     name: 'Employer Branding',
-    desc: 'Hiring cost scaling reduced (1.12× → 1.09× per employee).',
+    desc: 'People actually want to work here now. Scaling drops to 1.09×.',
     cost: 12000,
     requires: 'talent_pipeline',
     maxCount: 1,
@@ -1307,7 +1307,7 @@ const BOARD_ROOM_UPGRADES = [
   {
     id: 'talent_magnet',
     name: 'Talent Magnet',
-    desc: 'Hiring cost scaling reduced (1.09× → 1.06× per employee).',
+    desc: 'Top talent fights to get in. Scaling drops to 1.06×. Employee #50 costs what #20 used to.',
     cost: 25000,
     requires: 'employer_branding',
     maxCount: 1,
@@ -1317,7 +1317,7 @@ const BOARD_ROOM_UPGRADES = [
   {
     id: 'vp_ops_1',
     name: 'VP of Ops Lv1',
-    desc: 'Junior VP — auto-approves tasks at 50% reward. No streaks.',
+    desc: 'Rubber-stamps approvals at half pay. Better than nothing.',
     cost: 500,
     requires: null,
     maxCount: 1,
@@ -1326,7 +1326,7 @@ const BOARD_ROOM_UPGRADES = [
   {
     id: 'vp_ops_2',
     name: 'VP of Ops Lv2',
-    desc: 'Senior VP — auto-approves at 75% reward. Streak cap: 5 (2× max).',
+    desc: 'Actually reads what they\'re signing. 75% reward, keeps streaks up to 5.',
     cost: 2000,
     requires: 'vp_ops_1',
     maxCount: 1,
@@ -1335,7 +1335,7 @@ const BOARD_ROOM_UPGRADES = [
   {
     id: 'vp_ops_3',
     name: 'VP of Ops Lv3',
-    desc: 'Executive VP — auto-approves at 100% reward. Full streaks.',
+    desc: 'Full reward, unlimited streaks. You\'ll forget this popup exists.',
     cost: 8000,
     requires: 'vp_ops_2',
     maxCount: 1,
@@ -1345,7 +1345,7 @@ const BOARD_ROOM_UPGRADES = [
   {
     id: 'sales_dir_1',
     name: 'Sales Director Lv1',
-    desc: 'Junior — auto-closes deals at 50% value. No pressure.',
+    desc: 'Closes deals while you\'re not looking. Gets you half the money.',
     cost: 1000,
     requires: null,
     maxCount: 1,
@@ -1354,7 +1354,7 @@ const BOARD_ROOM_UPGRADES = [
   {
     id: 'sales_dir_2',
     name: 'Sales Director Lv2',
-    desc: 'Senior — auto-closes deals at 75% value.',
+    desc: 'Better negotiator. Gets 75% of the deal value.',
     cost: 4000,
     requires: 'sales_dir_1',
     maxCount: 1,
@@ -1363,7 +1363,7 @@ const BOARD_ROOM_UPGRADES = [
   {
     id: 'sales_dir_3',
     name: 'Sales Director Lv3',
-    desc: 'VP of Sales — auto-closes deals at 100% value.',
+    desc: 'Closes at full value. Basically prints money while you sleep.',
     cost: 15000,
     requires: 'sales_dir_2',
     maxCount: 1,
@@ -1378,40 +1378,40 @@ const AUTOMATION_HINTS = [
     trigger: () => gameState.hintMiniTaskCount >= 10 && !hasBoardRoomUpgrade('vp_ops_1') && gameState.isPublic,
     flag: 'hintShown_vpOps',
     sender: 'Operations Department',
-    subject: '📋 RE: Approval Request Backlog',
-    body: 'Sir, these approval requests are piling up and eating into everyone\'s time. A VP of Operations could handle routine approvals automatically. Worth looking into — check the Board Room.',
+    subject: '📋 these approval requests are killing me',
+    body: 'I\'ve got 30 of these sitting in my inbox and they all say the same thing. Can we just hire someone to rubber-stamp this stuff? Pretty sure there\'s something in the Board Room for that.',
   },
   {
     id: 'cpa',
     trigger: () => gameState.hintTaxSettleCount >= 5 && !hasBoardRoomUpgrade('cpa') && gameState.isPublic,
     flag: 'hintShown_cpa',
     sender: 'Accounting Department',
-    subject: '💰 RE: Quarterly Tax Settlements',
-    body: 'We\'ve been manually handling tax payments every quarter and it\'s getting out of hand. Have you considered putting a CPA on retainer? They could handle settlements automatically. Check the Board Room.',
+    subject: '💰 forgot to pay taxes again',
+    body: 'We just got another IRS notice. This is the fifth time I\'ve had to manually write a check. Can we please just hire an accountant? Board Room has something.',
   },
   {
     id: 'cfo',
     trigger: () => gameState.hintMissedEarnings >= 3 && !hasBoardRoomUpgrade('finance_dept_1') && gameState.isPublic,
     flag: 'hintShown_cfo',
     sender: 'Board of Directors',
-    subject: '📊 RE: Earnings Guidance Strategy',
-    body: 'The board is concerned about our earnings track record. We recommend hiring a Finance team to manage quarterly guidance — they\'d handle analyst expectations automatically. See the Board Room.',
+    subject: '📊 we need to talk about earnings',
+    body: 'Three misses in a row. The analysts are getting twitchy and frankly so are we. Hire a finance person before we all end up on CNBC for the wrong reasons. Board Room.',
   },
   {
     id: 'coo',
     trigger: () => gameState.hintManualHireCount >= 15 && !hasBoardRoomUpgrade('ops_dept_1') && gameState.isPublic,
     flag: 'hintShown_coo',
     sender: 'HR Department',
-    subject: '👥 RE: Staffing Requests',
-    body: 'We\'re drowning in hiring paperwork. Every position requires manual approval and it\'s slowing us down. A COO could streamline the whole process — check the Board Room for Operations upgrades.',
+    subject: '👥 I cannot keep doing this manually',
+    body: 'I have personally onboarded 15 people this quarter and my hand is cramping from all the paperwork. Please hire a COO. I\'m begging you. Board Room.',
   },
   {
     id: 'salesDir',
     trigger: () => (gameState.hintManualDealCount || 0) >= 5 && !hasBoardRoomUpgrade('sales_dir_1') && gameState.isPublic,
     flag: 'hintShown_salesDir',
     sender: 'Sales Department',
-    subject: '🤝 RE: Enterprise Pipeline',
-    body: 'Boss, we keep losing deals because nobody\'s available to close them in time. A Sales Director could handle contract negotiations automatically. Check the Board Room.',
+    subject: '🤝 lost another deal while you were in a meeting',
+    body: 'That\'s the third one this week that timed out because nobody picked up the phone. We need a dedicated closer. Check the Board Room before we lose another one.',
   },
 ];
 
@@ -6572,9 +6572,9 @@ function buildCSuiteHTML(rowNum) {
     let ctoManual = `<span style="${csBtnStyle(activeCTO === 0)}" onclick="setActiveCTOLevel(0)" title="Upgrade departments yourself">Manual</span>`;
     const ctoLabels = { 1: '🔧 1', 2: '💻 2', 3: '🧠 3' };
     const ctoTooltips = {
-      1: 'The Intern — auto-upgrades cheapest department first',
-      2: 'Competent CTO — prioritizes upgrades by ROI',
-      3: 'Elite CTO — ROI-optimized with earnings timing awareness'
+      1: 'Buys whatever\'s cheapest',
+      2: 'Picks upgrades by bang-for-buck',
+      3: 'Times purchases around earnings season'
     };
     let ctoLevels = '';
     for (let lvl = 1; lvl <= 3; lvl++) {
@@ -6646,9 +6646,9 @@ function buildCSuiteHTML(rowNum) {
     let cooManual = `<span style="${csBtnStyle(activeCOO === 0)}" onclick="setActiveCOOLevel(0)" title="Hire employees yourself">Manual</span>`;
     const cooLabels = { 1: '📋 1', 2: '📊 2', 3: '🧠 3' };
     const cooTooltips = {
-      1: 'The Recruiter — auto-hires cheapest employee first',
-      2: 'VP of Ops — hires where marginal revenue per employee is highest',
-      3: 'Elite COO — revenue-optimized with earnings timing awareness'
+      1: 'Hires the cheapest warm body available',
+      2: 'Picks hires by bang-for-buck',
+      3: 'Times hires around earnings season'
     };
     let cooLevels = '';
     for (let lvl = 1; lvl <= 3; lvl++) {
