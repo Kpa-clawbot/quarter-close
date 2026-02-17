@@ -254,7 +254,7 @@
 - Stock price moved from B to H.
 
 ### Help Screen Revamp
-- Tabbed layout with 5 tabs: Basics, Active Play, Events & Taxes, Board Room, Tips
+- Tabbed layout with 6 tabs: Basics, Active Play, Events & Taxes, Board Room, Reports, Tips
 - Wider modal (720px vs 520px, was single-column 520px)
 - Two-column grid (`.help-columns`) within each tab for scannable layout
 - `showHelpTab(tabId)` JS function switches tabs, `.help-page.active` shows content
@@ -491,3 +491,30 @@ Level/prestige/breakthrough tags right-justified via flexbox. Name left, tags ri
 **CTO/COO Auto-Buy Float Fix (v0.7.0)**
 - `_autoBuyActive` flag suppresses flashCash/floatingNumber on main cash display during auto-buy
 - Float triggers on `#cto-pool-display` / `#coo-pool-display` spans inside budget row instead
+
+**Executive Assistant (v0.7.0)**
+- Board Room purchase in Admin category (500 RE), auto-handles busywork events
+- Events tagged with `autoTag: 'execAssistant'` + `autoChoice: 0` (index of action to pick)
+- `showEvent()` intercepts: if autoTag matches owned upgrade, fires action silently, never shows popup
+- Formula bar echo: `showFormulaBarEcho()` + `.formula-echo` CSS class (green, 600 weight, 3s fade)
+- Stats: `gameState.execAssistantStats = { handled, cashEarned, cashSpent }` — cash delta measured via before/after
+- Auto-handled events: mom's investment (accept → +5% cash), angry customer (refund → -2% cash), college buddy (take meeting → risk/reward)
+
+**PR Director (v0.7.0)**
+- Board Room purchase in Sales category (2000 RE), auto-accepts positive media events
+- Same `autoTag: 'prDirector'` / `autoChoice: 0` pattern as EA
+- Stats: `gameState.prDirectorStats = { handled, boostsActivated }` — counts revenue boosts
+- Auto-handled events: TikTok viral, Forbes feature, Reddit front page, local news (all accept for rev boost)
+
+**Reports Tab (v0.7.0)**
+- Third tab after Operations and Board Room, appears after first Board Room purchase
+- Container: `#dashboard-rows` with `display: contents` (MUST match `#board-room-rows`)
+- `buildDashboard()` function with `_lastDashboardHash` change detection
+- Shows all purchased roles: CFO, CTO, COO, VP Ops, Sales Dir, EA, PR Dir, CPA
+- VP Ops ON/OFF toggle lives in Reports tab (not Board Room)
+- Tab persists in save data via `switchTab(gameState.activeTab)` after loadGame
+- **Critical:** `updateTaxPanel()` must skip BOTH boardroom AND dashboard tabs — otherwise it re-shows tax-panel content every tick
+
+**formatMoney Negative Numbers (v0.7.0)**
+- `formatMoney()` only checked `n >= threshold` — negative numbers fell through to raw `.toFixed(2)`
+- Fixed with `if (n < 0) return '-' + formatMoney(-n);` recursive handler at top of function

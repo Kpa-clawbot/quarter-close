@@ -15,6 +15,16 @@ When disaster strikes, your spreadsheet fights back with dramatic full-screen ov
 - Grid interactions blocked during crises (menus and Board Room still accessible)
 - DDoS now drops revenue to 0% (was 50%) — full outage justifies the dramatic overlay
 
+### 🗂️ Executive Assistant & 📣 PR Director (NEW)
+- **Executive Assistant** (500 RE, Admin) — auto-handles busywork emails: accepts mom's investment, refunds angry customers, takes college buddy meetings. Result shown as green formula bar echo.
+- **PR Director** (2,000 RE, Sales) — never says no to free press. Auto-accepts TikTok viral, Forbes features, Reddit front page, local news. Revenue boosts activate without interrupting gameplay.
+- Disaster events stay manual — those deserve your attention.
+
+### 📊 Reports Tab (NEW)
+- **Third tab** after Operations and Board Room — a performance dashboard for every role you've hired.
+- CFO: earnings beats/misses and win rate. CTO: upgrades bought, spent this quarter. COO: hires made, spent. VP Ops: tasks completed, avg reward, capture rate, best streak (with ON/OFF toggle). Sales Director: deals closed, revenue earned. EA: emails handled, cash earned/spent, net P&L. PR Director: events handled, boosts activated. CPA: total taxes paid.
+- Tab appears after your first Board Room purchase. Board Room = shop, Reports = dashboard.
+
 ### 🤝 Sales Director (NEW)
 - **New Board Room upgrade** — auto-closes "Close the Deal" popups so you never miss a contract
 - Three levels: Lv1 (1,000 RE, 50% deal value), Lv2 (4,000 RE, 75%), Lv3 (15,000 RE, 100%)
