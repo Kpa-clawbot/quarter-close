@@ -699,6 +699,7 @@ const EVENTS = [
           { label: 'File patent (5% cash)', effect: (gs) => {
             const patent = Math.max(10, Math.floor(gs.cash * 0.05));
             gs.cash += patent;
+            flashCash(); floatingNumber(patent, document.getElementById('cash-display'), false);
             return `Filed patent for ${formatMoney(patent)} instead. Your lawyers are happy.`;
           }},
         ]
@@ -719,12 +720,14 @@ const EVENTS = [
         gs.revBonus = { mult: 1.05, until: Date.now() + 90000 };
         const stockHit = Math.max(100, Math.floor(gs.cash * 0.10));
         gs.cash -= stockHit;
+        flashCash('spend'); floatingNumber(stockHit, document.getElementById('cash-display'), true);
         return '🙏 Stock dips 10%. Employee Slack is suspiciously quiet. Productivity... up 5%?';
       }},
       { label: '🛡️ Hire security detail (8% cash)', effect: (gs) => {
         const cost = Math.max(500, Math.floor(gs.cash * 0.08));
         gs.cash -= cost;
         gs.execSecurity = true;
+        flashCash('spend'); floatingNumber(cost, document.getElementById('cash-display'), true);
         return `Spent ${formatMoney(cost)} on executive security. C-suite sleeps better. Employees mutter "must be nice."`;
       }},
       { label: '💊 Review benefits package (5% rev cut)', effect: (gs) => {
@@ -757,6 +760,7 @@ const EVENTS = [
             const cost = Math.max(200, Math.floor(gs.cash * 0.03));
             gs.cash -= cost;
             gs.revPenalty = { mult: 0.9, until: Date.now() + 45000 };
+            flashCash('spend'); floatingNumber(cost, document.getElementById('cash-display'), true);
             return `Sent outside counsel (${formatMoney(cost)}). Senator called it "corporate arrogance." Revenue -10% for 45s from bad PR.`;
           }},
           { label: '🖕 Plead the Fifth', effect: (gs) => {
@@ -811,6 +815,7 @@ const EVENTS = [
         const cost = Math.max(100, Math.floor(gs.cash * 0.03));
         gs.cash -= cost;
         gs.revPenalty = { mult: 0.85, until: Date.now() + 30000 };
+        flashCash('spend'); floatingNumber(cost, document.getElementById('cash-display'), true);
         return `Published detailed rebuttal (${formatMoney(cost)}). Stock recovering. Hindenburg moving on to their next victim.`;
       }},
       { label: '🤫 No comment', effect: (gs) => {
@@ -820,6 +825,7 @@ const EVENTS = [
       { label: '⚖️ Sue them (10% cash)', effect: (gs) => {
         const cost = Math.max(500, Math.floor(gs.cash * 0.10));
         gs.cash -= cost;
+        flashCash('spend'); floatingNumber(cost, document.getElementById('cash-display'), true);
         // 50% chance the lawsuit backfires (Streisand effect)
         if (Math.random() < 0.5) {
           gs.revBonus = { mult: 1.2, until: Date.now() + 60000 };
@@ -860,6 +866,7 @@ const EVENTS = [
             const cost = Math.max(100, Math.floor(gs.cash * 0.05));
             gs.cash -= cost;
             gs.revBonus = { mult: 1.08, until: Date.now() + 90000 };
+            flashCash('spend'); floatingNumber(cost, document.getElementById('cash-display'), true);
             return `Spent ${formatMoney(cost)} retraining ${fireCount} employees to work WITH AI. Revenue +8% for 90s. Best of both worlds.`;
           }},
         ]
@@ -889,6 +896,7 @@ const EVENTS = [
             const cost = Math.max(50, Math.floor(gs.cash * 0.02));
             gs.cash -= cost;
             gs.revPenalty = { mult: 0.95, until: Date.now() + 30000 };
+            flashCash('spend'); floatingNumber(cost, document.getElementById('cash-display'), true);
             return `Deleted tweet, issued apology (${formatMoney(cost)} in crisis PR). Internet never forgets though. -5% rev for 30s.`;
           }},
           { label: '🤷 Double down', effect: (gs) => {
@@ -904,6 +912,7 @@ const EVENTS = [
           { label: '📵 Revoke CEO\'s Twitter access', effect: (gs) => {
             const cost = Math.max(100, Math.floor(gs.cash * 0.01));
             gs.cash -= cost;
+            flashCash('spend'); floatingNumber(cost, document.getElementById('cash-display'), true);
             return `Revoked CEO social media access (${formatMoney(cost)} for the social media manager they should\'ve hired months ago). Crisis contained.`;
           }},
         ]
@@ -922,6 +931,7 @@ const EVENTS = [
         const excess = Math.max(0, gs.cash - 250000);
         const loss = Math.floor(excess * 0.3); // Lose 30% of uninsured deposits
         gs.cash -= loss;
+        if (loss > 0) { flashCash('spend'); floatingNumber(loss, document.getElementById('cash-display'), true); }
         return `🏦 Lost ${formatMoney(loss)} in uninsured deposits. FDIC covered $250K. Maybe don\'t keep everything in one bank next time.`;
       }},
     ]
@@ -953,6 +963,7 @@ const EVENTS = [
           { label: '🛡️ Poison pill defense (8% cash)', effect: (gs) => {
             const cost = Math.max(500, Math.floor(gs.cash * 0.08));
             gs.cash -= cost;
+            flashCash('spend'); floatingNumber(cost, document.getElementById('cash-display'), true);
             return `Adopted poison pill defense (${formatMoney(cost)}). ${name} backed off. Board drama averted. Lawyers got richer.`;
           }},
           { label: '🤝 Negotiate a board seat', effect: (gs) => {
@@ -985,6 +996,7 @@ const EVENTS = [
             const cost = Math.max(200, Math.floor(gs.cash * 0.05));
             gs.cash -= cost;
             gs.revPenalty = { mult: 0.95, until: Date.now() + 30000 };
+            flashCash('spend'); floatingNumber(cost, document.getElementById('cash-display'), true);
             return `Paid ${formatMoney(cost)} for air freight. Only -5% impact for 30s instead of the full hit.`;
           }},
           { label: '⏳ Wait it out', effect: (gs) => {
@@ -1017,6 +1029,7 @@ const EVENTS = [
         const cost = Math.max(500, Math.floor(gs.cash * 0.08));
         gs.cash -= cost;
         gs.revPenalty = { mult: 0.9, until: Date.now() + 45000 };
+        flashCash('spend'); floatingNumber(cost, document.getElementById('cash-display'), true);
         return `Spent ${formatMoney(cost)} on PPE, testing, and hazard pay. Only -10% disruption for 45s. Employees actually feel valued for once.`;
       }},
     ]
@@ -3307,6 +3320,7 @@ function processQuarterlyTax() {
           gs.cash -= taxOwed;
           gs.quarterTaxPaid += taxOwed;
           gs.totalTaxPaid += taxOwed;
+          flashCash('spend'); floatingNumber(taxOwed, document.getElementById('cash-display'), true);
           return `Paid ${formatMoney(taxOwed)} in ${qLabel} taxes. Good standing with the IRS.`;
       }},
       { label: 'Ignore', effect: (gs) => {
@@ -3387,6 +3401,7 @@ function processTaxDebts() {
         gameState.cash -= seized;
         gameState.quarterTaxPaid += seized;
         gameState.totalTaxPaid += seized;
+        if (seized > 0) { flashCash('spend'); floatingNumber(seized, document.getElementById('cash-display'), true); }
         showEventToast('IRS', 'Asset Seizure Notice',
           `The IRS has seized ${formatMoney(penalty)} from your accounts. Tax debt of ${formatMoney(debt.current)} plus 25% penalty. This was avoidable.`,
           [{ label: 'OK', effect: () => 'Assets seized. Consider paying next time.' }]);
@@ -4829,6 +4844,7 @@ function loadGame(slotId) {
       if (offlineEarnings > 0) {
         gameState.cash += offlineEarnings;
         gameState.totalEarned += offlineEarnings;
+        flashCash(); floatingNumber(offlineEarnings, document.getElementById('cash-display'), false);
         showOfflineModal(elapsed, offlineEarnings);
       }
     }
@@ -4952,6 +4968,7 @@ function dismissOffline() {
 // ===== SERIES A =====
 function showSeriesA() {
   gameState.cash += 5000000;
+  flashCash(); floatingNumber(5000000, document.getElementById('cash-display'), false);
   document.getElementById('series-a-modal').classList.remove('hidden');
 }
 
@@ -5377,6 +5394,7 @@ function clickDeal() {
     gameState.quarterRevenue += deal.amount;
     if (gameState.isPublic) gameState.earningsQuarterRevenue += deal.amount;
 
+    flashCash(); floatingNumber(deal.amount, document.getElementById('cash-display'), false);
     document.getElementById('status-text').textContent = `🤝 Closed ${formatMoney(deal.amount)} deal with ${deal.client}!`;
     setTimeout(() => {
       const st = document.getElementById('status-text');
@@ -5422,6 +5440,7 @@ function clickOvertime() {
   if (gameState.isPublic) gameState.earningsQuarterRevenue += amount;
   gameState.overtimeClicks++;
 
+  flashCash(); floatingNumber(amount, document.getElementById('cash-display'), false);
   // Status bar feedback
   document.getElementById('status-text').textContent = `⏰ Overtime! +${formatMoney(amount)}`;
   setTimeout(() => {
