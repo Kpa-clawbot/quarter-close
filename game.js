@@ -2677,11 +2677,11 @@ function updateDisplay() {
     ptEl.innerHTML = `<span style="color:${dm('#c00')};font-weight:700">⚡ $0.00/day</span>`;
   } else if (hasPenalty) {
     const pct = Math.round((1 - gameState.revPenalty.mult) * 100);
-    ptEl.innerHTML = `<span style="color:${dm('#c00')}">${formatPerTick(perTick)}/day</span> <span style="color:${dm('#c00')};font-size:0.5625rem">▼${pct}%</span>`;
+    ptEl.innerHTML = `<span style="color:${dm('#c00')}">${formatPerTick(perTick)}/day</span> <span style="color:${dm('#c00')};font-size:0.625rem">▼${pct}%</span>`;
   } else if (hasDbOut) {
-    ptEl.innerHTML = `<span style="color:${dm('#e65100')}">${formatPerTick(perTick)}/day</span> <span style="color:${dm('#e65100')};font-size:0.5625rem">💾</span>`;
+    ptEl.innerHTML = `<span style="color:${dm('#e65100')}">${formatPerTick(perTick)}/day</span> <span style="color:${dm('#e65100')};font-size:0.625rem">💾</span>`;
   } else if (hasBonus) {
-    ptEl.innerHTML = `<span style="color:${dm('#217346')};font-weight:600">${formatPerTick(perTick)}/day</span> <span style="color:${dm('#217346')};font-size:0.5625rem">▲×${gameState.revBonus.mult}</span>`;
+    ptEl.innerHTML = `<span style="color:${dm('#217346')};font-weight:600">${formatPerTick(perTick)}/day</span> <span style="color:${dm('#217346')};font-size:0.625rem">▲×${gameState.revBonus.mult}</span>`;
   } else {
     ptEl.textContent = formatPerTick(perTick) + '/day';
   }
@@ -2690,10 +2690,10 @@ function updateDisplay() {
   const reLabel = document.querySelector('.re-label');
   if (reLabel) {
     if (gameState.isPublic) {
-      reLabel.innerHTML = `<span style="font-size:0.625rem;color:${dm('#217346')};font-weight:600">${formatCompact(gameState.quarterRevenue)}/Q</span> <span style="font-size:0.5rem;color:${dm('#888')}">│</span> <span style="font-size:0.5rem;color:${dm('#d4a017')}">⭐ RE</span>`;
+      reLabel.innerHTML = `<span style="color:${dm('#217346')};font-weight:600">${formatCompact(gameState.quarterRevenue)}/Q</span> <span style="color:${dm('#888')}">│</span> <span style="color:${dm('#d4a017')}">⭐ RE</span>`;
       reLabel.style.visibility = '';
     } else {
-      reLabel.innerHTML = `<span style="font-size:0.625rem;color:${dm('#217346')};font-weight:600">${formatCompact(gameState.quarterRevenue)}/Q</span>`;
+      reLabel.innerHTML = `<span style="color:${dm('#217346')};font-weight:600">${formatCompact(gameState.quarterRevenue)}/Q</span>`;
       reLabel.style.visibility = '';
     }
   }
@@ -2703,7 +2703,7 @@ function updateDisplay() {
   if (stockCell) {
     if (gameState.isPublic) {
       const sp = getStockPrice();
-      stockCell.innerHTML = `<span style="font-size:0.5625rem;color:${dm('#888')}">Stock: </span><span style="font-weight:700;color:${dm('#0078d4')};font-family:Consolas,monospace;font-size:0.75rem">${formatMoney(sp)}</span>`;
+      stockCell.innerHTML = `<span style="color:${dm('#888')}">Stock: </span><span style="font-weight:700;color:${dm('#0078d4')};font-family:Consolas,monospace">${formatMoney(sp)}</span>`;
     } else {
       stockCell.innerHTML = '';
     }

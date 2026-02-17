@@ -1530,12 +1530,13 @@ body.col-resizing * {
 .cash-label {
   font-weight: 700;
   color: var(--text-secondary);
+  font-size: 0.75rem;
 }
 
 .cash-value {
   font-weight: 700;
   color: var(--accent-green-text) !important;
-  font-size: 0.8125rem !important;
+  font-size: 0.75rem !important;
   font-family: 'Consolas', 'Courier New', monospace;
   position: relative;
   overflow: visible;
@@ -1544,13 +1545,13 @@ body.col-resizing * {
 .rev-label {
   justify-content: flex-end;
   color: var(--text-muted);
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
 }
 
 .rev-value {
   color: var(--accent-green) !important;
   font-family: 'Consolas', 'Courier New', monospace;
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
 }
 
 .re-label {
@@ -1563,7 +1564,7 @@ body.col-resizing * {
   font-weight: 700;
   color: #d4a017 !important;
   font-family: 'Consolas', 'Courier New', monospace;
-  font-size: 0.8125rem !important;
+  font-size: 0.75rem !important;
 }
 
 .per-tick-value {
