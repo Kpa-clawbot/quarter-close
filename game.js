@@ -2724,6 +2724,7 @@ function updateDisplay() {
   // $/day flash on change
   if (gameState._prevPerTick !== undefined && perTick !== gameState._prevPerTick) {
     flashCell(ptEl, perTick > gameState._prevPerTick ? 'earn' : 'spend');
+    floatingNumber(perTick - gameState._prevPerTick, ptEl, perTick < gameState._prevPerTick);
     // $/day milestones — use same thresholds as cash
     checkMilestone(perTick, CASH_MILESTONES, '_lastRevDayMilestone', ptEl);
   }
@@ -2757,6 +2758,30 @@ function updateDisplay() {
       reLabel.innerHTML = `<span style="color:${dm('#217346')};font-weight:600">${formatCompact(revPerQ)}/Q</span>`;
       reLabel.style.visibility = '';
     }
+    // Rev/Q flash + float on change
+    if (gameState._prevRevPerQ !== undefined && revPerQ !== gameState._prevRevPerQ) {
+      flashCell(reLabel, revPerQ > gameState._prevRevPerQ ? 'earn' : 'spend');
+      const delta = revPerQ - gameState._prevRevPerQ;
+      const rect = reLabel.getBoundingClientRect();
+      if (gameState.juiceEnabled) {
+        const span = document.createElement('span');
+        span.className = 'floating-number ' + (delta < 0 ? 'spend' : 'earn');
+        span.textContent = (delta < 0 ? '-' : '+') + formatMoney(Math.abs(delta)) + '/Q';
+        span.style.left = (rect.left + rect.width / 2) + 'px';
+        const key = 're-label';
+        const offset = (_activeFloats.get(key) || 0);
+        span.style.top = (rect.top - offset * 24) + 'px';
+        _activeFloats.set(key, offset + 1);
+        document.body.appendChild(span);
+        span.addEventListener('animationend', () => {
+          span.remove();
+          const cur = _activeFloats.get(key) || 1;
+          if (cur <= 1) _activeFloats.delete(key);
+          else _activeFloats.set(key, cur - 1);
+        });
+      }
+    }
+    gameState._prevRevPerQ = revPerQ;
   }
 
   // Stock price in header (Phase 2.1)
