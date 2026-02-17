@@ -4547,14 +4547,14 @@ function testAllJuice() {
 
 // ===== JUICE DEBUG: Tuning Knobs =====
 const JUICE_KNOBS = [
-  { id: 'flash-dur', label: 'Flash Duration', prop: '--juice-flash-dur', min: 0.1, max: 2.0, step: 0.1, default: 0.8, unit: 's' },
-  { id: 'float-dur', label: 'Float Duration', prop: '--juice-float-dur', min: 0.3, max: 3.0, step: 0.1, default: 0.8, unit: 's' },
-  { id: 'float-size', label: 'Float Font Size', prop: '--juice-float-size', min: 0.5, max: 2.0, step: 0.125, default: 0.6875, unit: 'rem' },
-  { id: 'float-dist', label: 'Float Distance', prop: '--juice-float-dist', min: -120, max: -10, step: 5, default: -40, unit: 'px' },
-  { id: 'pop-dur', label: 'Milestone Duration', prop: '--juice-pop-dur', min: 0.2, max: 2.0, step: 0.1, default: 0.6, unit: 's' },
-  { id: 'pop-scale', label: 'Milestone Scale', prop: '--juice-pop-scale', min: 1.05, max: 2.0, step: 0.05, default: 1.2, unit: '' },
-  { id: 'shake-dur', label: 'Shake Duration', prop: '--juice-shake-dur', min: 0.1, max: 1.0, step: 0.05, default: 0.3, unit: 's' },
-  { id: 'shake-dist', label: 'Shake Distance', prop: '--juice-shake-dist', min: 1, max: 15, step: 1, default: 3, unit: 'px' },
+  { id: 'flash-dur', label: 'Flash Duration', prop: '--juice-flash-dur', min: 0.1, max: 2.0, step: 0.1, default: 0.2, unit: 's' },
+  { id: 'float-dur', label: 'Float Duration', prop: '--juice-float-dur', min: 0.3, max: 3.0, step: 0.1, default: 1.8, unit: 's' },
+  { id: 'float-size', label: 'Float Font Size', prop: '--juice-float-size', min: 0.5, max: 2.0, step: 0.125, default: 1.375, unit: 'rem' },
+  { id: 'float-dist', label: 'Float Distance', prop: '--juice-float-dist', min: -120, max: -10, step: 5, default: -120, unit: 'px' },
+  { id: 'pop-dur', label: 'Milestone Duration', prop: '--juice-pop-dur', min: 0.2, max: 3.0, step: 0.1, default: 2.0, unit: 's' },
+  { id: 'pop-scale', label: 'Milestone Scale', prop: '--juice-pop-scale', min: 1.05, max: 2.0, step: 0.05, default: 2.0, unit: '' },
+  { id: 'shake-dur', label: 'Shake Duration', prop: '--juice-shake-dur', min: 0.1, max: 1.0, step: 0.05, default: 0.4, unit: 's' },
+  { id: 'shake-dist', label: 'Shake Distance', prop: '--juice-shake-dist', min: 1, max: 15, step: 1, default: 15, unit: 'px' },
 ];
 
 function toggleJuiceKnobs() {
