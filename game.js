@@ -2675,8 +2675,16 @@ function updateDisplay() {
   const reEl = document.getElementById('re-display');
   if (reEl) {
     if (gameState.isPublic) {
-      reEl.textContent = gameState.retainedEarnings ? formatCompact(gameState.retainedEarnings) : '0';
+      const reVal = gameState.retainedEarnings || 0;
+      reEl.textContent = reVal ? formatCompact(reVal) : '0';
       reEl.style.color = '';
+      // RE flash on change
+      if (gameState._prevRE !== undefined && reVal !== gameState._prevRE) {
+        flashCell(reEl, reVal > gameState._prevRE ? 'earn' : 'spend');
+      }
+      gameState._prevRE = reVal;
+      // RE milestones
+      checkMilestone(reVal, RE_MILESTONES, '_lastREMilestone', reEl);
     } else {
       reEl.textContent = '';
     }
@@ -2688,6 +2696,13 @@ function updateDisplay() {
 
   // Per-tick display (= per day, prominent) — color-coded for active effects
   const ptEl = document.getElementById('per-tick-display');
+  // $/day flash on change
+  if (gameState._prevPerTick !== undefined && perTick !== gameState._prevPerTick) {
+    flashCell(ptEl, perTick > gameState._prevPerTick ? 'earn' : 'spend');
+    // $/day milestones — use same thresholds as cash
+    checkMilestone(perTick, CASH_MILESTONES, '_lastRevDayMilestone', ptEl);
+  }
+  gameState._prevPerTick = perTick;
   const hasOutage = gameState.powerOutage && Date.now() < gameState.powerOutage.until;
   const hasPenalty = gameState.revPenalty && Date.now() < gameState.revPenalty.until;
   const hasBonus = gameState.revBonus && Date.now() < gameState.revBonus.until;
@@ -3045,22 +3060,25 @@ function tickDepreciation() {
   });
 }
 
+// Generic cell flash — transition-based background pulse on any element
+function flashCell(el, direction) {
+  if (!el || !gameState.juiceEnabled) return;
+  const isDark = document.documentElement.dataset.theme === 'dark';
+  const color = direction === 'spend'
+    ? (isDark ? '#3a1b1b' : '#f8d7da')
+    : (isDark ? '#1b3a1b' : '#d4edda');
+  const dur = getComputedStyle(document.documentElement).getPropertyValue('--juice-flash-dur').trim() || '0.2s';
+  el.style.transition = 'none';
+  el.style.backgroundColor = color;
+  void el.offsetWidth;
+  el.style.transition = 'background-color ' + dur + ' ease-out';
+  el.style.backgroundColor = '';
+}
+
 function flashCash(direction) {
   const el = document.getElementById('cash-display');
   if (!el) return;
-  // Background flash — use CSS transition instead of animation to avoid conflicts
-  if (gameState.juiceEnabled) {
-    const color = direction === 'spend'
-      ? (document.documentElement.dataset.theme === 'dark' ? '#3a1b1b' : '#f8d7da')
-      : (document.documentElement.dataset.theme === 'dark' ? '#1b3a1b' : '#d4edda');
-    const dur = getComputedStyle(document.documentElement).getPropertyValue('--juice-flash-dur').trim() || '0.8s';
-    el.style.transition = 'none';
-    el.style.backgroundColor = color;
-    // Force reflow
-    void el.offsetWidth;
-    el.style.transition = 'background-color ' + dur + ' ease-out';
-    el.style.backgroundColor = '';
-  }
+  flashCell(el, direction);
   // Scale bump via class
   el.classList.remove('cash-bump');
   void el.offsetWidth;
@@ -3083,42 +3101,53 @@ function floatingNumber(amount, element, isSpend) {
   span.addEventListener('animationend', () => span.remove());
 }
 
-// Big Number Pop — milestone tracking
+// Big Number Pop — milestone tracking (generalized)
 const CASH_MILESTONES = [1e3, 1e4, 1e5, 1e6, 1e7, 1e8, 1e9, 1e10, 1e11, 1e12, 1e13, 1e14, 1e15];
-function checkCashMilestone() {
+const RE_MILESTONES = [100, 250, 500, 1000, 2500, 5000, 10000, 25000, 50000, 100000];
+
+function checkMilestone(value, milestones, stateKey, targetEl) {
   if (!gameState.juiceEnabled) return;
-  const cash = gameState.cash;
-  const last = gameState._lastCashMilestone || 0;
-  for (let i = CASH_MILESTONES.length - 1; i >= 0; i--) {
-    if (cash >= CASH_MILESTONES[i] && CASH_MILESTONES[i] > last) {
-      gameState._lastCashMilestone = CASH_MILESTONES[i];
-      fireMilestonePop();
+  const last = gameState[stateKey] || 0;
+  for (let i = milestones.length - 1; i >= 0; i--) {
+    if (value >= milestones[i] && milestones[i] > last) {
+      gameState[stateKey] = milestones[i];
+      fireMilestoneFloat(targetEl, milestones[i], stateKey);
       return;
     }
   }
-  // Reset milestone if cash dropped (prestige)
-  if (cash < last) {
+  // Reset if value dropped (prestige)
+  if (value < last) {
     let newMilestone = 0;
-    for (let i = 0; i < CASH_MILESTONES.length; i++) {
-      if (cash >= CASH_MILESTONES[i]) newMilestone = CASH_MILESTONES[i];
+    for (let i = 0; i < milestones.length; i++) {
+      if (value >= milestones[i]) newMilestone = milestones[i];
     }
-    gameState._lastCashMilestone = newMilestone;
+    gameState[stateKey] = newMilestone;
   }
 }
 
-function fireMilestonePop() {
-  const el = document.getElementById('cash-display');
+function checkCashMilestone() {
+  checkMilestone(gameState.cash, CASH_MILESTONES, '_lastCashMilestone', document.getElementById('cash-display'));
+}
+
+function fireMilestoneFloat(el, value, stateKey) {
   if (!el) return;
-  // Golden floating milestone label
-  const milestone = gameState._lastCashMilestone || gameState.cash;
   const rect = el.getBoundingClientRect();
   const span = document.createElement('span');
   span.className = 'floating-number milestone';
-  span.textContent = '🎉 ' + formatMoney(milestone) + '!';
+  // RE milestones show as "⭐ 1,000 RE!", cash/revenue milestones show as "$1M!"
+  if (stateKey === '_lastREMilestone') {
+    span.textContent = '⭐ ' + value.toLocaleString() + ' RE!';
+  } else {
+    span.textContent = '🎉 ' + formatMoney(value) + '!';
+  }
   span.style.left = (rect.left + rect.width / 2) + 'px';
   span.style.top = rect.top + 'px';
   document.body.appendChild(span);
   span.addEventListener('animationend', () => span.remove());
+}
+
+function fireMilestonePop() {
+  fireMilestoneFloat(document.getElementById('cash-display'), gameState._lastCashMilestone || gameState.cash, '_lastCashMilestone');
 }
 
 // Insufficient funds feedback
