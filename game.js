@@ -234,8 +234,8 @@ function buildSaveData() {
     // VP of Operations
     vpOpsStats: gameState.vpOpsStats || { tasksCompleted: 0, totalRevenue: 0, revenueMissed: 0, longestStreak: 0, quarterTasks: 0 },
     salesDirStats: gameState.salesDirStats || { dealsCompleted: 0, totalRevenue: 0, revenueMissed: 0 },
-    execAssistantStats: gameState.execAssistantStats || { handled: 0 },
-    prDirectorStats: gameState.prDirectorStats || { handled: 0 },
+    execAssistantStats: gameState.execAssistantStats || { handled: 0, cashEarned: 0, cashSpent: 0 },
+    prDirectorStats: gameState.prDirectorStats || { handled: 0, boostsActivated: 0 },
     vpOpsEnabled: gameState.vpOpsEnabled !== false,
     vpOpsStreak: gameState.vpOpsStreak || 0,
     // Slowdown
@@ -1951,8 +1951,8 @@ let gameState = {
   // VP of Operations
   vpOpsStats: { tasksCompleted: 0, totalRevenue: 0, revenueMissed: 0, longestStreak: 0, quarterTasks: 0 },
   salesDirStats: { dealsCompleted: 0, totalRevenue: 0, revenueMissed: 0 },
-  execAssistantStats: { handled: 0 },
-  prDirectorStats: { handled: 0 },
+  execAssistantStats: { handled: 0, cashEarned: 0, cashSpent: 0 },
+  prDirectorStats: { handled: 0, boostsActivated: 0 },
   vpOpsEnabled: true,
   vpOpsStreak: 0,
   // Slowdown speed control
@@ -4490,17 +4490,25 @@ function showEvent(event) {
     if (canAuto) {
       const choice = event.actions[event.autoChoice || 0];
       if (choice && choice.effect) {
+        const cashBefore = gameState.cash;
         const result = choice.effect(gameState);
+        const cashDelta = gameState.cash - cashBefore;
         // Brief status bar notification instead of full popup
         const handler = event.autoTag === 'execAssistant' ? '🗂️ EA' : '📣 PR';
         showFormulaBarEcho(`${handler}: ${result}`);
         // Track stats
         if (event.autoTag === 'execAssistant') {
-          gameState.execAssistantStats = gameState.execAssistantStats || { handled: 0 };
+          gameState.execAssistantStats = gameState.execAssistantStats || { handled: 0, cashEarned: 0, cashSpent: 0 };
           gameState.execAssistantStats.handled++;
+          if (cashDelta > 0) gameState.execAssistantStats.cashEarned += cashDelta;
+          if (cashDelta < 0) gameState.execAssistantStats.cashSpent += Math.abs(cashDelta);
         } else {
-          gameState.prDirectorStats = gameState.prDirectorStats || { handled: 0 };
+          gameState.prDirectorStats = gameState.prDirectorStats || { handled: 0, boostsActivated: 0 };
           gameState.prDirectorStats.handled++;
+          // PR events are always rev boosts (revBonus), so count them
+          if (gameState.revBonus && gameState.revBonus.mult > 1) {
+            gameState.prDirectorStats.boostsActivated++;
+          }
         }
       }
       return; // skip the toast entirely
@@ -5013,8 +5021,8 @@ function loadGame(slotId) {
     // VP of Operations
     gameState.vpOpsStats = data.vpOpsStats || { tasksCompleted: 0, totalRevenue: 0, revenueMissed: 0, longestStreak: 0, quarterTasks: 0 };
     gameState.salesDirStats = data.salesDirStats || { dealsCompleted: 0, totalRevenue: 0, revenueMissed: 0 };
-    gameState.execAssistantStats = data.execAssistantStats || { handled: 0 };
-    gameState.prDirectorStats = data.prDirectorStats || { handled: 0 };
+    gameState.execAssistantStats = data.execAssistantStats || { handled: 0, cashEarned: 0, cashSpent: 0 };
+    gameState.prDirectorStats = data.prDirectorStats || { handled: 0, boostsActivated: 0 };
     gameState.vpOpsEnabled = data.vpOpsEnabled !== false;
     gameState.vpOpsStreak = data.vpOpsStreak || 0;
     // Slowdown
@@ -6814,6 +6822,10 @@ function buildBoardRoom() {
     gameState.ctoBudgetAuto, gameState.cooBudgetAuto,
     gameState.ctoUpgradeCount, gameState.cooHireCount,
     gameState.vpOpsEnabled, JSON.stringify(gameState.vpOpsStats),
+    JSON.stringify(gameState.salesDirStats),
+    JSON.stringify(gameState.execAssistantStats),
+    JSON.stringify(gameState.prDirectorStats),
+    gameState.ctoSpentThisQuarter, gameState.cooSpentThisQuarter,
   ].join('|');
   if (hashParts === _lastBoardRoomHash && container.innerHTML !== '') return;
   _lastBoardRoomHash = hashParts;
@@ -7079,6 +7091,82 @@ function buildBoardRoom() {
       <div class="cell cell-e"></div>
       <div class="cell cell-f" style="font-size:0.5625rem;color:${dm('#999')}">Capture Rate</div>
       <div class="cell cell-g" style="font-size:0.625rem;font-weight:600;color:${dm(captureRate === '100%' ? '#2e7d32' : '#e65100')}">${captureRate}</div>
+      <div class="cell cell-h"></div>
+    </div>`;
+    totalUpgradeRows++;
+  }
+
+  // CTO stats display
+  if (getTechDeptLevel() > 0) {
+    const ctoLevel = getTechDeptLevel();
+    const strategy = ctoLevel === 1 ? 'cheapest first' : ctoLevel === 2 ? 'best ROI' : 'ROI + timing';
+    const upgrades = gameState.ctoUpgradeCount || 0;
+    const spent = gameState.ctoSpentThisQuarter || 0;
+    html += `<div class="grid-row br-upgrade-row br-owned" style="border-top:2px solid ${dm('#e0e0e0','#444')}">
+      <div class="row-num">${rowNum++}</div>
+      <div class="cell cell-a" style="font-weight:700;color:${dm('#1565c0')}">🔧 CTO</div>
+      <div class="cell cell-b" style="font-size:0.625rem;color:${dm('#888')}">Lv${ctoLevel} — ${strategy}</div>
+      <div class="cell cell-c"></div>
+      <div class="cell cell-d" style="font-size:0.5625rem;color:${dm('#999')}">Upgrades Bought</div>
+      <div class="cell cell-e" style="font-size:0.625rem;font-weight:600;color:${dm('#333')}">${upgrades.toLocaleString()}</div>
+      <div class="cell cell-f" style="font-size:0.5625rem;color:${dm('#999')}">Spent This Q</div>
+      <div class="cell cell-g" style="font-size:0.625rem;font-weight:600;color:${dm('#333')}">${formatMoney(spent)}</div>
+      <div class="cell cell-h"></div>
+    </div>`;
+    totalUpgradeRows++;
+  }
+
+  // COO stats display
+  if (getOpsDeptLevel() > 0) {
+    const cooLevel = getOpsDeptLevel();
+    const strategy = cooLevel === 1 ? 'cheapest first' : cooLevel === 2 ? 'best ROI' : 'ROI + timing';
+    const hires = gameState.cooHireCount || 0;
+    const spent = gameState.cooSpentThisQuarter || 0;
+    html += `<div class="grid-row br-upgrade-row br-owned" style="border-top:2px solid ${dm('#e0e0e0','#444')}">
+      <div class="row-num">${rowNum++}</div>
+      <div class="cell cell-a" style="font-weight:700;color:${dm('#e65100')}">👥 COO</div>
+      <div class="cell cell-b" style="font-size:0.625rem;color:${dm('#888')}">Lv${cooLevel} — ${strategy}</div>
+      <div class="cell cell-c"></div>
+      <div class="cell cell-d" style="font-size:0.5625rem;color:${dm('#999')}">Hires Made</div>
+      <div class="cell cell-e" style="font-size:0.625rem;font-weight:600;color:${dm('#333')}">${hires.toLocaleString()}</div>
+      <div class="cell cell-f" style="font-size:0.5625rem;color:${dm('#999')}">Spent This Q</div>
+      <div class="cell cell-g" style="font-size:0.625rem;font-weight:600;color:${dm('#333')}">${formatMoney(spent)}</div>
+      <div class="cell cell-h"></div>
+    </div>`;
+    totalUpgradeRows++;
+  }
+
+  // Executive Assistant stats display
+  if (hasExecAssistant()) {
+    const stats = gameState.execAssistantStats || { handled: 0, cashEarned: 0, cashSpent: 0 };
+    const net = stats.cashEarned - stats.cashSpent;
+    const netColor = net >= 0 ? dm('#2e7d32') : dm('#c00');
+    html += `<div class="grid-row br-upgrade-row br-owned" style="border-top:2px solid ${dm('#e0e0e0','#444')}">
+      <div class="row-num">${rowNum++}</div>
+      <div class="cell cell-a" style="font-weight:700;color:${dm('#7b1fa2')}">🗂️ Executive Assistant</div>
+      <div class="cell cell-b" style="font-size:0.625rem;color:${dm('#888')}">Emails handled: ${stats.handled}</div>
+      <div class="cell cell-c"></div>
+      <div class="cell cell-d" style="font-size:0.5625rem;color:${dm('#999')}">Net P&L</div>
+      <div class="cell cell-e" style="font-size:0.625rem;font-weight:600;color:${netColor}">${net >= 0 ? '+' : ''}${formatMoney(net)}</div>
+      <div class="cell cell-f" style="font-size:0.5625rem;color:${dm('#999')}">Earned</div>
+      <div class="cell cell-g" style="font-size:0.625rem;font-weight:600;color:${dm('#2e7d32')}">${formatMoney(stats.cashEarned)}</div>
+      <div class="cell cell-h"></div>
+    </div>`;
+    totalUpgradeRows++;
+  }
+
+  // PR Director stats display
+  if (hasPRDirector()) {
+    const stats = gameState.prDirectorStats || { handled: 0, boostsActivated: 0 };
+    html += `<div class="grid-row br-upgrade-row br-owned" style="border-top:2px solid ${dm('#e0e0e0','#444')}">
+      <div class="row-num">${rowNum++}</div>
+      <div class="cell cell-a" style="font-weight:700;color:${dm('#00838f')}">📣 PR Director</div>
+      <div class="cell cell-b" style="font-size:0.625rem;color:${dm('#888')}">Press events: ${stats.handled}</div>
+      <div class="cell cell-c"></div>
+      <div class="cell cell-d" style="font-size:0.5625rem;color:${dm('#999')}">Boosts Activated</div>
+      <div class="cell cell-e" style="font-size:0.625rem;font-weight:600;color:${dm('#333')}">${stats.boostsActivated}</div>
+      <div class="cell cell-f"></div>
+      <div class="cell cell-g"></div>
       <div class="cell cell-h"></div>
     </div>`;
     totalUpgradeRows++;
