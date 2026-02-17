@@ -444,3 +444,27 @@ Level/prestige/breakthrough tags right-justified via flexbox. Name left, tags ri
 - CEO Tweet has 30% "double down works" chance (Elon energy)
 - Short Seller lawsuit has 50% Streisand effect backfire
 - Weight 1 for rare events (bank, pandemic, activist, healthcare), weight 2 for moderate (WFH, AI, supply chain, CEO tweet)
+
+**Visual Effects / "Juice" System (v0.6.0)**
+- All effects gated by `gameState.juiceEnabled` (toggle in Data → Game Options)
+- **flashCell(el, direction)**: Generic transition-based background pulse. Uses inline `style.backgroundColor` + CSS `transition` to avoid animation conflicts. Direction = 'earn' (green) or 'spend' (red).
+- **flashCash(direction)**: Calls `flashCell()` on `#cash-display` + adds `.cash-bump` scale animation.
+- **floatingNumber(amount, el, isSpend)**: Creates `position:fixed` span on `document.body` (NOT inside the cell — cells have `overflow:hidden`). Uses `getBoundingClientRect()` for positioning. Class `.floating-number` with `.earn`/`.spend` variants.
+- **checkMilestone(value, milestones, stateKey, targetEl)**: Generalized milestone tracker. Compares against milestone array, stores last crossed in `gameState[stateKey]`. Handles prestige resets.
+- **fireMilestoneFloat(el, value, stateKey)**: Golden `position:fixed` floater. RE milestones show `⭐ N RE!`, cash/rev milestones show `🎉 $N!`.
+- **showInsufficientFunds()**: `.cash-shake` class + red flash + formula bar `#VALUE!` error.
+- All animation durations/sizes controlled by CSS custom properties (`--juice-*`).
+- Milestone thresholds: Cash/$/day = standard powers of 10 ($1K–$1Q). RE = [100, 250, 500, 1K, 2.5K, 5K, 10K, 25K, 50K, 100K].
+- **Architecture lesson**: `#cash-display` IS the `.cell` div — cannot split parent/child animations. Flash uses CSS `transition`, bump uses CSS `animation` — they're independent properties, no conflicts.
+
+**VP of Operations (v0.6.0)**
+- Board Room purchase, auto-handles mini-tasks
+- 3 levels: Lv1 (500 RE, 50% reward), Lv2 (2000 RE, 75% reward, streak cap 5), Lv3 (8000 RE, 100% reward, full streaks)
+- Stats tracking in gameState.vpOpsStats: tasksCompleted, totalRevenue, revenueMissed, longestStreak
+- ON/OFF toggle via gameState.vpOpsEnabled
+
+**Automation Hints (v0.6.0)**
+- Email-style nudges toward Board Room automation
+- Triggers: 10 mini-tasks → VP of Ops, 5 tax settlements → CPA, 3 missed earnings → CFO, 15 manual hires → COO
+- Phase-gated (post-IPO only), fires once per hint type
+- Tracked in gameState.automationHints

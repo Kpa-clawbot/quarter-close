@@ -2,7 +2,28 @@
 
 All notable changes to Quarter Close.
 
-## [v0.6.0] — 2026-02-16 — Quality of Life
+## [v0.6.0] — 2026-02-17 — Quality of Life
+
+### ✨ Visual Effects ("Game Juice")
+- **Cell background flash** — green pulse on cash earned, red pulse on cash spent; also on $/day and RE cells when values change
+- **Floating numbers** — RPG-style `+$50K` / `-$12K` float up from the cash display on purchases, events, rewards, and tax payments
+- **Cash milestones** — golden `🎉 $1M!` floats when crossing $1K/$10K/$1M/$1B/$1T thresholds
+- **RE milestones** — golden `⭐ 1,000 RE!` floats at 100/250/500/1K/2.5K/5K/10K/25K/50K/100K
+- **$/day milestones** — same thresholds as cash, fires when revenue rate hits new highs
+- **Insufficient funds shake** — cash cell shakes when you try to buy something you can't afford
+- **Scale bump** — subtle 1.08× pop on cash value on every change
+- All effects toggleable via Data → Game Options → ✨ Visual Effects
+
+### 🤖 VP of Operations
+- **New Board Room purchase** — auto-handles mini-tasks so you don't have to
+- Three upgrade levels: Lv1 (500 RE, 50% reward), Lv2 (2000 RE, 75% reward, streak cap 5), Lv3 (8000 RE, 100% reward, full streaks)
+- Stats tracking: tasks completed, revenue earned, revenue missed, best streak
+- ON/OFF toggle to take back manual control
+
+### 💡 Automation Hints
+- **Email nudges toward Board Room automation** — the game notices when you're doing things manually and suggests upgrades
+- Triggers: 10 mini-tasks → VP of Ops, 5 tax settlements → CPA, 3 missed earnings → CFO, 15 manual hires → COO
+- Phase-gated (post-IPO only), fires once per hint type
 
 ### 🎮 Playback Controls
 - **Pause & Speed controls moved to toolbar** — bigger, more prominent, right-aligned next to formatting buttons
@@ -11,19 +32,20 @@ All notable changes to Quarter Close.
 - **Timescale indicator** — shows current effective speed next to controls (🐢 ½ day/tick, ⏩ 3× etc.)
 
 ### 📊 Revenue Display
-- **Quarterly revenue in header** — cell C now shows rev/day │ rev/Q side by side
+- **Quarterly revenue in header** — cell D shows projected rev/Q (daily rate × 90)
 - **Quarterly revenue in status bar** — revenue breakdown adds /Q at the end (/sec │ /min │ /hr │ /day │ /Q)
 - **Revenue rates account for slowdown** — /sec, /min, /hr reflect actual real-time rates when slowed
 
 ### 🎨 UI Clarity
 - **Decorative elements dimmed** — non-functional toolbar buttons (Undo, Redo, Bold, font selects, etc.) faded to 35% opacity; unused menu items (Home, Insert, Formulas, etc.) at 45%
-- **Tooltips everywhere** — all buttons and menu items have descriptive tooltips; decorative ones say "Decorative"
+- **Tooltips everywhere** — all buttons and menu items have descriptive tooltips
 - **Default font size increased** — base font bumped from 12-16px to 14-18px range
-- **Font size controls fixed** — A↓/A↑ aligned to new 18px default; first click adjusts by 1px instead of jumping
+- **RE display hidden pre-IPO** — ⭐ RE label and value hidden before IPO since it's not relevant yet
 
 ### 🔧 Fixes
-- **RE display layout fix** — RE hidden pre-IPO using `visibility: hidden` instead of `display: none` (which collapsed grid cells and broke row 1 layout)
+- **RE display layout fix** — RE hidden pre-IPO without breaking grid cell layout
 - **Rev/yr label shortened** — "Total Rev/yr:" → "Rev/yr:" for cleaner header
+- **Budget normalization** — CTO + COO budgets exceeding 100% now scale proportionally
 
 ## [v0.5.0] — 2026-02-16 — "Ripped from the Headlines"
 
@@ -87,15 +109,10 @@ Balance and UX fixes.
 - CTO buys every 37s at Lv0, slowing to ~18min at Lv50 — machine gun early, natural soft cap late
 - Lv70+ takes 1h+ per upgrade, naturally nudging toward prestige/restructuring
 
-### 🛠️ Debug Tools
-- Speed controls (1×/2×/3×/5×/10×) moved to hidden debug toolbar (tap 💰 Cash 7× to reveal)
-- Removed Debug menu from menu bar — all debug tools live in one place
-- Active speed button highlighted in blue
-
 ### 🏢 Board Room Fixes
 - Board Room now shows only Cash row + purchasable upgrades (no P&L, IR, or department headers)
 - Fixed `updateTaxPanel()` re-showing hidden panels every tick in Board Room mode
-- C-Suite section (CFO/CTO/COO + budget sliders) extracted into shared `buildCSuiteHTML()` function
+- C-Suite section (CFO/CTO/COO + budget sliders) extracted into shared function
 
 ## [v0.4.0] — 2026-02-15
 
