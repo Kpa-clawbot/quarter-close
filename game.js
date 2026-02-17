@@ -6577,6 +6577,10 @@ function switchTab(tab) {
   tabDash.classList.remove('active');
   gridArea.classList.remove('boardroom-layout');
 
+  // Cash row visible on all tabs except dashboard
+  const cashRow = document.getElementById('row-cash');
+  if (cashRow) cashRow.classList.toggle('hidden', tab === 'dashboard');
+
   if (tab === 'boardroom') {
     boardRoom.classList.remove('hidden');
     tabBR.classList.add('active');
