@@ -3052,16 +3052,19 @@ function tickDepreciation() {
 
 function flashCash(direction) {
   const el = document.getElementById('cash-display');
-  // Remove all animation classes first
-  el.classList.remove('cash-bump', 'cell-uptick', 'cell-downtick');
+  const cell = el ? el.closest('.cell') || el : el;
+  // Scale bump on the text element
+  el.classList.remove('cash-bump');
   void el.offsetWidth;
+  el.classList.add('cash-bump');
+  el.addEventListener('animationend', () => el.classList.remove('cash-bump'), { once: true });
+  // Background flash on the parent cell (no animation conflict)
   if (gameState.juiceEnabled) {
     const cls = direction === 'spend' ? 'cell-downtick' : 'cell-uptick';
-    el.classList.add(cls);
-    el.addEventListener('animationend', () => el.classList.remove(cls), { once: true });
-  } else {
-    el.classList.add('cash-bump');
-    el.addEventListener('animationend', () => el.classList.remove('cash-bump'), { once: true });
+    cell.classList.remove('cell-uptick', 'cell-downtick');
+    void cell.offsetWidth;
+    cell.classList.add(cls);
+    cell.addEventListener('animationend', () => cell.classList.remove(cls), { once: true });
   }
 }
 
