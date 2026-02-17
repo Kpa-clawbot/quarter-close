@@ -4543,36 +4543,54 @@ document.addEventListener('click', (e) => {
 
 // ===== JUICE DEBUG: Test All Effects =====
 function testAllJuice() {
-  const el = document.getElementById('cash-display');
-  if (!el) return;
+  const cashEl = document.getElementById('cash-display');
+  const ptEl = document.getElementById('per-tick-display');
+  const reEl = document.getElementById('re-display');
+  if (!cashEl) return;
   const saved = gameState.juiceEnabled;
   gameState.juiceEnabled = true;
 
-  // 1. Green flash (earn) + floating number
+  // 1. Cash: green flash + floating number
   flashCash();
-  floatingNumber(Math.max(1000, gameState.cash * 0.01), el, false);
+  floatingNumber(Math.max(1000, gameState.cash * 0.01), cashEl, false);
 
-  // 2. Red flash (spend) + floating number
+  // 2. Cash: red flash + floating number
   setTimeout(() => {
     flashCash('spend');
-    floatingNumber(Math.max(500, gameState.cash * 0.005), el, true);
+    floatingNumber(Math.max(500, gameState.cash * 0.005), cashEl, true);
   }, 1000);
 
-  // 3. Milestone pop
+  // 3. Cash milestone
   setTimeout(() => {
     fireMilestonePop();
   }, 2200);
 
-  // 4. Insufficient funds shake
+  // 4. $/day flash (green)
+  setTimeout(() => {
+    if (ptEl) flashCell(ptEl, 'earn');
+    // $/day milestone
+    const perTick = totalRevPerTick();
+    fireMilestoneFloat(ptEl, perTick, '_lastRevDayMilestone');
+  }, 3200);
+
+  // 5. RE flash + milestone
+  setTimeout(() => {
+    if (reEl) {
+      flashCell(reEl, 'earn');
+      fireMilestoneFloat(reEl, gameState.retainedEarnings || 1000, '_lastREMilestone');
+    }
+  }, 4200);
+
+  // 6. Insufficient funds shake
   setTimeout(() => {
     showInsufficientFunds();
-  }, 3500);
+  }, 5200);
 
   // Restore juice setting
-  setTimeout(() => { gameState.juiceEnabled = saved; }, 5000);
+  setTimeout(() => { gameState.juiceEnabled = saved; }, 6500);
 
   document.getElementById('status-text').textContent = '🧃 Testing all juice effects...';
-  setTimeout(() => { document.getElementById('status-text').textContent = 'Ready'; }, 5000);
+  setTimeout(() => { document.getElementById('status-text').textContent = 'Ready'; }, 6500);
 }
 
 // ===== JUICE DEBUG: Tuning Knobs =====
@@ -4585,6 +4603,7 @@ const JUICE_KNOBS = [
   { id: 'pop-scale', label: 'Milestone Scale', prop: '--juice-pop-scale', min: 1.05, max: 2.0, step: 0.05, default: 2.0, unit: '' },
   { id: 'shake-dur', label: 'Shake Duration', prop: '--juice-shake-dur', min: 0.1, max: 1.0, step: 0.05, default: 0.4, unit: 's' },
   { id: 'shake-dist', label: 'Shake Distance', prop: '--juice-shake-dist', min: 1, max: 15, step: 1, default: 15, unit: 'px' },
+  { id: 'ms-size', label: 'Milestone Size', prop: '--juice-ms-size', min: 1.0, max: 3.0, step: 0.25, default: 1.5, unit: '×' },
 ];
 
 function toggleJuiceKnobs() {

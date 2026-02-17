@@ -3283,6 +3283,7 @@ body.col-resizing * {
   --juice-pop-scale: 2;
   --juice-shake-dur: 0.4s;
   --juice-shake-dist: 15px;
+  --juice-ms-size: 1.5;
 }
 
 /* 1. Cell Value Flash (uptick/downtick) */
@@ -3326,7 +3327,7 @@ body.col-resizing * {
 
 /* 4. Big Number Pop (Milestone — golden float) */
 .floating-number.milestone {
-  font-size: calc(var(--juice-float-size) * 1.5);
+  font-size: calc(var(--juice-float-size) * var(--juice-ms-size, 1.5));
   color: #ffd700 !important;
   text-shadow: 0 0 8px rgba(255, 215, 0, 0.6), 0 0 16px rgba(255, 165, 0, 0.4);
   animation: float-up-milestone var(--juice-pop-dur) ease-out forwards;
