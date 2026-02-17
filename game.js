@@ -4223,20 +4223,20 @@ function updateTaxPanel() {
   }
 
   // Only rebuild DOM if content actually changed (prevents click-swallowing race)
+  // Hash on formatted values so tiny per-tick revenue changes don't trigger full rebuild
   const hashParts = [
-    gameState.quarterRevenue|0, gameState.totalEarned|0,
-    gameState.quarterExpenses|0, gameState.quarterTaxPaid|0, gameState.totalTaxPaid|0,
+    formatMoney(gameState.quarterRevenue), formatMoney(gameState.totalEarned),
+    formatMoney(gameState.quarterExpenses), formatMoney(gameState.quarterTaxPaid), formatMoney(gameState.totalTaxPaid),
     daysToTax,
     gameState.taxDebts ? gameState.taxDebts.map(d => `${d.current|0}:${d.stage}:${d.daysOverdue}`).join(',') : '',
     gameState.capitalExpenses ? gameState.capitalExpenses.length : 0,
     garnishActive ? 1 : 0,
-    // Phase 2.1: IR section changes
     gameState.isPublic ? 1 : 0,
-    gameState.earningsQuarterRevenue|0,
+    formatMoney(gameState.earningsQuarterRevenue),
     gameState.currentGuidance || '',
-    gameState.retainedEarnings|0,
+    formatMoney(gameState.retainedEarnings),
     gameState.earningsStreak|0,
-    gameState.isPublic ? (Math.floor(getStockPrice() * 100)|0) : 0,
+    gameState.isPublic ? formatMoney(getStockPrice()) : 0,
     // Phase 2.2: Board Room effects on display
     getBoardRoomTaxRate(),
     getBoardRoomRevMultiplier(),
@@ -4246,16 +4246,16 @@ function updateTaxPanel() {
     gameState.activeCFOLevel || 0,
     gameState.activeCTOLevel || 0,
     gameState.ctoBudgetPct || 0,
-    Math.floor(gameState.ctoSpentThisQuarter || 0),
-    Math.floor(gameState.ctoBudgetPool || 0),
+    formatMoney(gameState.ctoSpentThisQuarter || 0),
+    formatMoney(gameState.ctoBudgetPool || 0),
     gameState.ctoTarget || '',
     gameState.ctoJustBought ? 1 : 0,
     gameState.ctoBudgetAuto ? 1 : 0,
     gameState.ctoUpgradeCount || 0,
     gameState.activeCOOLevel || 0,
     gameState.cooBudgetPct || 0,
-    Math.floor(gameState.cooSpentThisQuarter || 0),
-    Math.floor(gameState.cooBudgetPool || 0),
+    formatMoney(gameState.cooSpentThisQuarter || 0),
+    formatMoney(gameState.cooBudgetPool || 0),
     gameState.cooTarget || '',
     gameState.cooJustBought ? 1 : 0,
     gameState.cooBudgetAuto ? 1 : 0,
