@@ -6519,8 +6519,8 @@ function buildCSuiteHTML(rowNum) {
       const barColor = dm(justBought ? '#217346' : progress >= 90 ? '#b8860b' : '#666');
       const hasCapEx = hasBoardRoomUpgrade('capex_planning');
       const autoChecked = gameState.ctoBudgetAuto ? 'checked' : '';
-      const sliderDisabled = gameState.ctoBudgetAuto ? 'disabled style="opacity:0.5"' : '';
-      const autoLabel = hasCapEx ? `<label class="cto-auto-label" title="CFO manages budget automatically"><input type="checkbox" ${autoChecked} onchange="toggleCtoBudgetAuto(this.checked)"> Auto</label>` : '';
+      const autoLabel = hasCapEx ? `<label class="cto-auto-label" title="CFO manages budget automatically. Uncheck for manual control."><input type="checkbox" ${autoChecked} onchange="toggleCtoBudgetAuto(this.checked)"> Auto</label>` : '';
+      const sliderTitle = gameState.ctoBudgetAuto ? 'CFO controls this — uncheck Auto for manual' : '% of revenue skimmed into CTO budget pool';
 
       // Proportional normalization display: show effective % when combined > 100%
       const ctoCooPctTotal = budgetPct + (gameState.cooBudgetPct || 0);
@@ -6533,7 +6533,7 @@ function buildCSuiteHTML(rowNum) {
         <div class="row-num">${rowNum++}</div>
         <div class="cell cell-a" style="padding-left:28px;color:${dm('#666')};font-size:0.625rem">Budget</div>
         <div class="cell cell-b" style="display:flex;align-items:center;gap:4px">
-          <input type="range" min="0" max="100" step="5" value="${budgetPct}" class="cto-budget-slider" ${sliderDisabled} oninput="setCtoBudgetPct(this.value)" title="% of revenue skimmed into CTO budget pool">
+          <input type="range" min="0" max="100" step="5" value="${budgetPct}" class="cto-budget-slider" oninput="setCtoBudgetPct(this.value); if(gameState.ctoBudgetAuto){gameState.ctoBudgetAuto=false;_lastTaxPanelHash='';}" title="${sliderTitle}">
           <span class="cto-budget-pct" style="${ctoPctColor}" ${ctoPctTitle}>${ctoEffective}%</span>
         </div>
         <div class="cell cell-c" style="font-family:Consolas,monospace;font-size:0.625rem;color:${barColor}" title="${progress}% toward next upgrade">${bar}</div>
@@ -6593,8 +6593,8 @@ function buildCSuiteHTML(rowNum) {
       const cooBarColor = dm(cooJustBought ? '#217346' : cooProgress >= 90 ? '#b8860b' : '#666');
       const hasCapEx = hasBoardRoomUpgrade('capex_planning');
       const cooAutoChecked = gameState.cooBudgetAuto ? 'checked' : '';
-      const cooSliderDisabled = gameState.cooBudgetAuto ? 'disabled style="opacity:0.5"' : '';
-      const cooAutoLabel = hasCapEx ? `<label class="cto-auto-label" title="CFO manages hiring budget automatically"><input type="checkbox" ${cooAutoChecked} onchange="toggleCooBudgetAuto(this.checked)"> Auto</label>` : '';
+      const cooAutoLabel = hasCapEx ? `<label class="cto-auto-label" title="CFO manages hiring budget automatically. Uncheck for manual control."><input type="checkbox" ${cooAutoChecked} onchange="toggleCooBudgetAuto(this.checked)"> Auto</label>` : '';
+      const cooSliderTitle = gameState.cooBudgetAuto ? 'CFO controls this — uncheck Auto for manual' : '% of revenue skimmed into COO hiring pool';
 
       // Proportional normalization display: show effective % when combined > 100%
       const cooCtoPctTotal = cooPct + (gameState.ctoBudgetPct || 0);
@@ -6607,7 +6607,7 @@ function buildCSuiteHTML(rowNum) {
         <div class="row-num">${rowNum++}</div>
         <div class="cell cell-a" style="padding-left:28px;color:${dm('#666')};font-size:0.625rem">Budget</div>
         <div class="cell cell-b" style="display:flex;align-items:center;gap:4px">
-          <input type="range" min="0" max="100" step="5" value="${cooPct}" class="cto-budget-slider" ${cooSliderDisabled} oninput="setCooBudgetPct(this.value)" title="% of revenue skimmed into COO hiring pool">
+          <input type="range" min="0" max="100" step="5" value="${cooPct}" class="cto-budget-slider" oninput="setCooBudgetPct(this.value); if(gameState.cooBudgetAuto){gameState.cooBudgetAuto=false;_lastTaxPanelHash='';}" title="${cooSliderTitle}">
           <span class="cto-budget-pct" style="${cooPctColor}" ${cooPctTitle}>${cooEffective}%</span>
         </div>
         <div class="cell cell-c" style="font-family:Consolas,monospace;font-size:0.625rem;color:${cooBarColor}" title="${cooProgress}% toward next hire">${cooBar}</div>
