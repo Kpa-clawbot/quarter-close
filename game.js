@@ -2121,6 +2121,7 @@ function totalAnnualRev() {
 
 // ===== FORMATTING =====
 function formatMoney(n) {
+  if (n < 0) return '-' + formatMoney(-n);
   if (n >= 1e33) return '$' + (n / 1e33).toFixed(2) + 'Dc';
   if (n >= 1e30) return '$' + (n / 1e30).toFixed(2) + 'No';
   if (n >= 1e27) return '$' + (n / 1e27).toFixed(2) + 'Oc';
