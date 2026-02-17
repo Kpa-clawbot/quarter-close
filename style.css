@@ -1345,17 +1345,17 @@ body {
 }
 
 /* Dark mode overrides for tax alert */
-html[data-theme="dark"] #tax-alert.tax-notice {
+.dark-mode #tax-alert.tax-notice {
   background: #5a4a00;
   color: #ffd54f;
 }
 
-html[data-theme="dark"] .tax-notice .tax-alert-btn {
+.dark-mode .tax-notice .tax-alert-btn {
   background: #ffd54f;
   color: #5a4a00;
 }
 
-html[data-theme="dark"] .tax-notice .tax-alert-btn:hover {
+.dark-mode .tax-notice .tax-alert-btn:hover {
   background: #ffca28;
 }
 
@@ -3537,28 +3537,28 @@ body.col-resizing * {
 }
 
 /* DDoS dark mode */
-html[data-theme="dark"] #crisis-overlay.crisis-ddos {
+.dark-mode #crisis-overlay.crisis-ddos {
   background: #2d2d2d;
 }
-html[data-theme="dark"] #crisis-overlay.crisis-ddos .crisis-ddos-title {
+.dark-mode #crisis-overlay.crisis-ddos .crisis-ddos-title {
   color: #e0e0e0;
 }
-html[data-theme="dark"] #crisis-overlay.crisis-ddos .crisis-ddos-subtitle {
+.dark-mode #crisis-overlay.crisis-ddos .crisis-ddos-subtitle {
   color: #aaa;
 }
-html[data-theme="dark"] #crisis-overlay.crisis-ddos .crisis-ddos-list {
+.dark-mode #crisis-overlay.crisis-ddos .crisis-ddos-list {
   color: #bbb;
 }
-html[data-theme="dark"] #crisis-overlay.crisis-ddos .crisis-ddos-err {
+.dark-mode #crisis-overlay.crisis-ddos .crisis-ddos-err {
   color: #777;
 }
-html[data-theme="dark"] #crisis-overlay.crisis-ddos .crisis-ddos-mitigate {
+.dark-mode #crisis-overlay.crisis-ddos .crisis-ddos-mitigate {
   color: #bbb;
 }
-html[data-theme="dark"] #crisis-overlay.crisis-ddos .crisis-ddos-progress {
+.dark-mode #crisis-overlay.crisis-ddos .crisis-ddos-progress {
   color: #e0e0e0;
 }
-html[data-theme="dark"] #crisis-overlay.crisis-ddos #crisis-content {
+.dark-mode #crisis-overlay.crisis-ddos #crisis-content {
   color: #e0e0e0;
 }
 
@@ -3684,28 +3684,28 @@ html[data-theme="dark"] #crisis-overlay.crisis-ddos #crisis-content {
 }
 
 /* Statuspage dark mode */
-html[data-theme="dark"] #crisis-overlay.crisis-statuspage {
+.dark-mode #crisis-overlay.crisis-statuspage {
   background: #1e1e1e;
 }
-html[data-theme="dark"] #crisis-overlay.crisis-statuspage #crisis-content {
+.dark-mode #crisis-overlay.crisis-statuspage #crisis-content {
   color: #e0e0e0;
 }
-html[data-theme="dark"] .crisis-status-provider {
+.dark-mode .crisis-status-provider {
   color: #e0e0e0;
 }
-html[data-theme="dark"] .crisis-status-desc {
+.dark-mode .crisis-status-desc {
   color: #aaa;
 }
-html[data-theme="dark"] .crisis-status-svc-name {
+.dark-mode .crisis-status-svc-name {
   color: #d0d0d0;
 }
-html[data-theme="dark"] .crisis-status-svc {
+.dark-mode .crisis-status-svc {
   border-bottom-color: #333;
 }
-html[data-theme="dark"] .crisis-status-updated {
+.dark-mode .crisis-status-updated {
   color: #777;
 }
-html[data-theme="dark"] .crisis-status-eta {
+.dark-mode .crisis-status-eta {
   color: #e0e0e0;
 }
 
