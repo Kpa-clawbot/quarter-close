@@ -234,6 +234,8 @@ function buildSaveData() {
     // VP of Operations
     vpOpsStats: gameState.vpOpsStats || { tasksCompleted: 0, totalRevenue: 0, revenueMissed: 0, longestStreak: 0, quarterTasks: 0 },
     salesDirStats: gameState.salesDirStats || { dealsCompleted: 0, totalRevenue: 0, revenueMissed: 0 },
+    execAssistantStats: gameState.execAssistantStats || { handled: 0 },
+    prDirectorStats: gameState.prDirectorStats || { handled: 0 },
     vpOpsEnabled: gameState.vpOpsEnabled !== false,
     vpOpsStreak: gameState.vpOpsStreak || 0,
     // Slowdown
@@ -393,6 +395,8 @@ const EVENTS = [
   {
     weight: 3,
     sender: 'Mom',
+    autoTag: 'execAssistant',
+    autoChoice: 0,
     subject: 'Quick investment opportunity',
     body: 'Honey, I believe in your little business! Here\'s a little something to help out.',
     actions: [
@@ -408,6 +412,8 @@ const EVENTS = [
   {
     weight: 4,
     sender: 'Angry Customer',
+    autoTag: 'execAssistant',
+    autoChoice: 0,
     subject: 'RE: TERRIBLE SERVICE!!!',
     body: 'I want a FULL REFUND or I\'m leaving a 1-star review everywhere!',
     actions: [
@@ -426,6 +432,8 @@ const EVENTS = [
   {
     weight: 1,
     sender: 'College Buddy',
+    autoTag: 'execAssistant',
+    autoChoice: 0,
     subject: 'Business proposal over beers? 🍺',
     body: 'Dude, I\'ve got this idea that could be huge. Let me pitch you — worst case we grab drinks and catch up.',
     actions: [
@@ -612,6 +620,8 @@ const EVENTS = [
   {
     weight: 2,
     sender: 'Google Alerts',
+    autoTag: 'prDirector',
+    autoChoice: 0,
     subject: '📈 Your company is trending on TikTok!',
     body: 'Some kid made a TikTok about us and it blew up. 2.3M views. Revenue is spiking and we don\'t know why.',
     actions: [
@@ -624,6 +634,8 @@ const EVENTS = [
   {
     weight: 2,
     sender: 'PR Team',
+    autoTag: 'prDirector',
+    autoChoice: 0,
     subject: 'Forbes wants to feature us! 🎉',
     body: 'Forbes wants to put us in some kind of "rising companies" list. Free press is free press.',
     actions: [
@@ -637,6 +649,8 @@ const EVENTS = [
   {
     weight: 2,
     sender: 'Social Media',
+    autoTag: 'prDirector',
+    autoChoice: 0,
     subject: '🚀 We hit the front page of Reddit!',
     body: 'Someone posted about us on r/technology and it\'s on the front page. Servers are sweating.',
     actions: [
@@ -649,6 +663,8 @@ const EVENTS = [
   {
     weight: 2,
     sender: 'Marketing',
+    autoTag: 'prDirector',
+    autoChoice: 0,
     subject: '📺 Local news wants to do a segment on us',
     body: 'Channel 7 wants to do a feel-good local business segment. Not exactly 60 Minutes, but hey, free advertising.',
     actions: [
@@ -1369,6 +1385,26 @@ const BOARD_ROOM_UPGRADES = [
     maxCount: 1,
     category: 'Sales',
   },
+  // Executive Assistant — auto-handles busywork events (mom, angry customer, college buddy)
+  {
+    id: 'exec_assistant',
+    name: 'Executive Assistant',
+    desc: 'Handles your inbox so you don\'t have to. Accepts mom\'s money, refunds karens, takes meetings.',
+    cost: 500,
+    requires: null,
+    maxCount: 1,
+    category: 'Admin',
+  },
+  // PR Director — auto-accepts positive media events
+  {
+    id: 'pr_director',
+    name: 'PR Director',
+    desc: 'Never says no to free press. Auto-accepts TikTok, Forbes, Reddit, local news.',
+    cost: 2000,
+    requires: null,
+    maxCount: 1,
+    category: 'Sales',
+  },
 ];
 
 // ===== AUTOMATION HINTS (email nudges toward Board Room upgrades) =====
@@ -1504,6 +1540,9 @@ function getSalesDirLevel() {
   if (hasBoardRoomUpgrade('sales_dir_1')) return 1;
   return 0;
 }
+
+function hasExecAssistant() { return hasBoardRoomUpgrade('exec_assistant'); }
+function hasPRDirector() { return hasBoardRoomUpgrade('pr_director'); }
 
 // CFO guidance algorithm — picks guidance based on Finance Dept level
 function pickCFOGuidance(level) {
@@ -1912,6 +1951,8 @@ let gameState = {
   // VP of Operations
   vpOpsStats: { tasksCompleted: 0, totalRevenue: 0, revenueMissed: 0, longestStreak: 0, quarterTasks: 0 },
   salesDirStats: { dealsCompleted: 0, totalRevenue: 0, revenueMissed: 0 },
+  execAssistantStats: { handled: 0 },
+  prDirectorStats: { handled: 0 },
   vpOpsEnabled: true,
   vpOpsStreak: 0,
   // Slowdown speed control
@@ -3270,6 +3311,23 @@ function showInsufficientFunds() {
   showFormulaError();
 }
 
+function showFormulaBarEcho(text) {
+  const fb = document.getElementById('formula-input');
+  if (!fb) return;
+  if (fb._errorTimeout) clearTimeout(fb._errorTimeout);
+  if (fb._echoTimeout) clearTimeout(fb._echoTimeout);
+  const original = fb._savedText || fb.textContent;
+  fb._savedText = fb._savedText || original;
+  fb.textContent = text;
+  fb.classList.add('formula-echo');
+  fb._echoTimeout = setTimeout(() => {
+    fb.textContent = original;
+    fb.classList.remove('formula-echo');
+    fb._savedText = null;
+    fb._echoTimeout = null;
+  }, 3000);
+}
+
 function showFormulaError() {
   const fb = document.getElementById('formula-input');
   if (!fb) return;
@@ -4425,6 +4483,30 @@ function showEvent(event) {
     event = { ...event, body: result.body, actions: result.actions };
   }
 
+  // Auto-handle events if player owns the right Board Room upgrade
+  if (event.autoTag && event.actions && event.actions.length > 0) {
+    const canAuto = (event.autoTag === 'execAssistant' && hasExecAssistant()) ||
+                    (event.autoTag === 'prDirector' && hasPRDirector());
+    if (canAuto) {
+      const choice = event.actions[event.autoChoice || 0];
+      if (choice && choice.effect) {
+        const result = choice.effect(gameState);
+        // Brief status bar notification instead of full popup
+        const handler = event.autoTag === 'execAssistant' ? '🗂️ EA' : '📣 PR';
+        showFormulaBarEcho(`${handler}: ${result}`);
+        // Track stats
+        if (event.autoTag === 'execAssistant') {
+          gameState.execAssistantStats = gameState.execAssistantStats || { handled: 0 };
+          gameState.execAssistantStats.handled++;
+        } else {
+          gameState.prDirectorStats = gameState.prDirectorStats || { handled: 0 };
+          gameState.prDirectorStats.handled++;
+        }
+      }
+      return; // skip the toast entirely
+    }
+  }
+
   // If a toast is already visible, queue this one and return
   const existingToast = document.getElementById('event-toast');
   if (existingToast && !existingToast.classList.contains('hidden')) {
@@ -4931,6 +5013,8 @@ function loadGame(slotId) {
     // VP of Operations
     gameState.vpOpsStats = data.vpOpsStats || { tasksCompleted: 0, totalRevenue: 0, revenueMissed: 0, longestStreak: 0, quarterTasks: 0 };
     gameState.salesDirStats = data.salesDirStats || { dealsCompleted: 0, totalRevenue: 0, revenueMissed: 0 };
+    gameState.execAssistantStats = data.execAssistantStats || { handled: 0 };
+    gameState.prDirectorStats = data.prDirectorStats || { handled: 0 };
     gameState.vpOpsEnabled = data.vpOpsEnabled !== false;
     gameState.vpOpsStreak = data.vpOpsStreak || 0;
     // Slowdown

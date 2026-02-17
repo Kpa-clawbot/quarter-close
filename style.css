@@ -3355,6 +3355,10 @@ body.col-resizing * {
   color: var(--accent-red) !important;
   font-weight: 700;
 }
+.formula-echo {
+  color: var(--formula-echo) !important;
+  font-weight: 600;
+}
 
 /* ============================================
    Crisis Overlay System
