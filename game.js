@@ -2706,14 +2706,15 @@ function updateDisplay() {
     ptEl.textContent = formatPerTick(perTick) + '/day';
   }
 
-  // Rev/Q in cell D (+ RE label when post-IPO)
+  // Rev/Q in cell D (+ RE label when post-IPO) — projected: daily rev × 90
+  const revPerQ = perTick * 90;
   const reLabel = document.querySelector('.re-label');
   if (reLabel) {
     if (gameState.isPublic) {
-      reLabel.innerHTML = `<span style="color:${dm('#217346')};font-weight:600">${formatCompact(gameState.quarterRevenue)}/Q</span> <span style="color:${dm('#888')}">│</span> <span style="color:${dm('#d4a017')}">⭐ RE</span>`;
+      reLabel.innerHTML = `<span style="color:${dm('#217346')};font-weight:600">${formatCompact(revPerQ)}/Q</span> <span style="color:${dm('#888')}">│</span> <span style="color:${dm('#d4a017')}">⭐ RE</span>`;
       reLabel.style.visibility = '';
     } else {
-      reLabel.innerHTML = `<span style="color:${dm('#217346')};font-weight:600">${formatCompact(gameState.quarterRevenue)}/Q</span>`;
+      reLabel.innerHTML = `<span style="color:${dm('#217346')};font-weight:600">${formatCompact(revPerQ)}/Q</span>`;
       reLabel.style.visibility = '';
     }
   }
@@ -2736,7 +2737,7 @@ function updateDisplay() {
   document.getElementById('stat-min').textContent = formatStatMoney(realPerSec * 60) + '/min';
   document.getElementById('stat-hr').textContent = formatStatMoney(realPerSec * 3600) + '/hr';
   document.getElementById('stat-day').textContent = formatStatMoney(perTick) + '/day';
-  document.getElementById('stat-qtr').textContent = formatStatMoney(gameState.quarterRevenue) + '/Q';
+  document.getElementById('stat-qtr').textContent = formatStatMoney(revPerQ) + '/Q';
 
   updateTimescaleDisplay();
 
