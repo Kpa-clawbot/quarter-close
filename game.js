@@ -1829,7 +1829,7 @@ let gameState = {
   lastQuarterRE: 0,        // RE earned last quarter (for ETA display)
   chartVisible: true,      // whether the valuation chart is visible (persisted across reloads)
   chartPosition: null,     // { left, top, width, height } for floating chart position
-  juiceEnabled: true,      // visual effects (floating numbers, milestone pops, formula echo, etc.)
+  juiceEnabled: true,      // visual effects (floating numbers, milestone pops, etc.)
   // Automation hint tracking
   hintMiniTaskCount: 0,
   hintTaxSettleCount: 0,
@@ -2868,7 +2868,6 @@ function unlockSource(index) {
   updateDisplay();
   flashCash('spend');
   floatingNumber(src.unlockCost, document.getElementById('cash-display'), true);
-  showFormulaEcho('=UNLOCK("' + src.name + '")');
 }
 
 function hireEmployee(index) {
@@ -2887,7 +2886,6 @@ function hireEmployee(index) {
   updateDisplay();
   flashCash('spend');
   floatingNumber(cost, document.getElementById('cash-display'), true);
-  showFormulaEcho('=HIRE("' + getSourceDef(index).name + '", 1)');
 }
 
 function hireMax(index) {
@@ -2913,7 +2911,6 @@ function hireMax(index) {
     updateDisplay();
     flashCash('spend');
     floatingNumber(totalCost, document.getElementById('cash-display'), true);
-    showFormulaEcho('=HIRE_MAX("' + getSourceDef(index).name + '", ' + hired + ')');
   }
 }
 
@@ -2937,7 +2934,6 @@ function upgradeMax(index) {
     updateDisplay();
     flashCash('spend');
     floatingNumber(totalCost, document.getElementById('cash-display'), true);
-    showFormulaEcho('=UPGRADE_MAX("' + getSourceDef(index).name + '", +' + upgraded + ')');
   }
 }
 
@@ -2955,7 +2951,6 @@ function upgradeSource(index) {
   updateDisplay();
   flashCash('spend');
   floatingNumber(cost, document.getElementById('cash-display'), true);
-  showFormulaEcho('=UPGRADE("' + getSourceDef(index).name + '", Lv' + state.upgradeLevel + ')');
 }
 
 function automateSource(index) {
@@ -2977,7 +2972,6 @@ function automateSource(index) {
   updateDisplay();
   flashCash('spend');
   floatingNumber(cost, document.getElementById('cash-display'), true);
-  showFormulaEcho('=AUTOMATE("' + getSourceDef(index).name + '")');
 
   // Focus tip — show once per game after first automate
   if (isFeatureEnabled('managementFocus') && !gameState.focusTipShown) {
@@ -3061,10 +3055,13 @@ function flashCash(direction) {
   // Background flash on the parent cell (no animation conflict)
   if (gameState.juiceEnabled) {
     const cls = direction === 'spend' ? 'cell-downtick' : 'cell-uptick';
+    const anim = direction === 'spend' ? 'downtick-flash' : 'uptick-flash';
     cell.classList.remove('cell-uptick', 'cell-downtick');
     void cell.offsetWidth;
     cell.classList.add(cls);
-    cell.addEventListener('animationend', () => cell.classList.remove(cls), { once: true });
+    cell.addEventListener('animationend', (e) => {
+      if (e.animationName === anim) cell.classList.remove(cls);
+    }, { once: true });
   }
 }
 
@@ -3108,7 +3105,10 @@ function fireMilestonePop() {
   cell.classList.remove('cash-milestone');
   void cell.offsetWidth;
   cell.classList.add('cash-milestone');
-  cell.addEventListener('animationend', () => cell.classList.remove('cash-milestone'), { once: true });
+  const handler = (e) => {
+    if (e.animationName === 'milestone-pop') cell.classList.remove('cash-milestone');
+  };
+  cell.addEventListener('animationend', handler, { once: true });
 }
 
 // Insufficient funds feedback
@@ -3144,38 +3144,6 @@ function showFormulaError() {
     fb._savedText = null;
     fb._errorTimeout = null;
   }, 1500);
-}
-
-// Formula Bar Echo
-function showFormulaEcho(text) {
-  if (!gameState.juiceEnabled) return;
-  const fb = document.getElementById('formula-input');
-  if (!fb) return;
-  // Clear any existing echo or error
-  if (fb._echoTimeout) clearTimeout(fb._echoTimeout);
-  if (fb._echoInterval) clearInterval(fb._echoInterval);
-  if (fb._errorTimeout) clearTimeout(fb._errorTimeout);
-  const original = fb._savedText || fb.textContent;
-  fb._savedText = fb._savedText || original;
-  fb.textContent = '';
-  fb.classList.add('formula-echo');
-  fb.classList.remove('formula-error');
-  let i = 0;
-  fb._echoInterval = setInterval(() => {
-    if (i < text.length) {
-      fb.textContent += text[i];
-      i++;
-    } else {
-      clearInterval(fb._echoInterval);
-      fb._echoInterval = null;
-      fb._echoTimeout = setTimeout(() => {
-        fb.textContent = original;
-        fb.classList.remove('formula-echo');
-        fb._savedText = null;
-        fb._echoTimeout = null;
-      }, 1000);
-    }
-  }, 30);
 }
 
 // ===== GAME LOOP (1 second ticks) =====
@@ -3474,7 +3442,6 @@ function settleTaxDebt(index) {
   updateDisplay();
   flashCash('spend');
   floatingNumber(debt.current, document.getElementById('cash-display'), true);
-  showFormulaEcho('=SETTLE_DEBT("' + debt.quarter + '")');
 }
 
 function settleAllTax() {
@@ -3500,7 +3467,6 @@ function settleAllTax() {
   updateDisplay();
   flashCash('spend');
   floatingNumber(total, document.getElementById('cash-display'), true);
-  showFormulaEcho('=SETTLE_ALL_DEBTS()');
 }
 
 function totalTaxOwed() {
@@ -4543,27 +4509,22 @@ function testAllJuice() {
   const saved = gameState.juiceEnabled;
   gameState.juiceEnabled = true;
 
-  // 1. Green flash (earn)
+  // 1. Green flash (earn) + floating number
   flashCash();
   floatingNumber(Math.max(1000, gameState.cash * 0.01), el, false);
 
-  // 2. Red flash (spend) after 600ms
+  // 2. Red flash (spend) + floating number
   setTimeout(() => {
     flashCash('spend');
     floatingNumber(Math.max(500, gameState.cash * 0.005), el, true);
-  }, 800);
+  }, 1000);
 
-  // 3. Formula bar echo after 1.5s
-  setTimeout(() => {
-    showFormulaEcho('=TEST_JUICE("All Effects", 100%)');
-  }, 1500);
-
-  // 4. Milestone pop after 2.5s
+  // 3. Milestone pop
   setTimeout(() => {
     fireMilestonePop();
-  }, 2500);
+  }, 2200);
 
-  // 5. Insufficient funds shake after 3.5s
+  // 4. Insufficient funds shake
   setTimeout(() => {
     showInsufficientFunds();
   }, 3500);
@@ -4577,12 +4538,14 @@ function testAllJuice() {
 
 // ===== JUICE DEBUG: Tuning Knobs =====
 const JUICE_KNOBS = [
-  { id: 'flash-dur', label: 'Flash Duration', prop: '--juice-flash-dur', min: 0.1, max: 2.0, step: 0.1, default: 0.4, unit: 's' },
+  { id: 'flash-dur', label: 'Flash Duration', prop: '--juice-flash-dur', min: 0.1, max: 2.0, step: 0.1, default: 0.8, unit: 's' },
   { id: 'float-dur', label: 'Float Duration', prop: '--juice-float-dur', min: 0.3, max: 3.0, step: 0.1, default: 0.8, unit: 's' },
   { id: 'float-size', label: 'Float Font Size', prop: '--juice-float-size', min: 0.5, max: 2.0, step: 0.125, default: 0.6875, unit: 'rem' },
   { id: 'float-dist', label: 'Float Distance', prop: '--juice-float-dist', min: -120, max: -10, step: 5, default: -40, unit: 'px' },
   { id: 'pop-dur', label: 'Milestone Duration', prop: '--juice-pop-dur', min: 0.2, max: 2.0, step: 0.1, default: 0.6, unit: 's' },
   { id: 'pop-scale', label: 'Milestone Scale', prop: '--juice-pop-scale', min: 1.05, max: 2.0, step: 0.05, default: 1.2, unit: '' },
+  { id: 'shake-dur', label: 'Shake Duration', prop: '--juice-shake-dur', min: 0.1, max: 1.0, step: 0.05, default: 0.3, unit: 's' },
+  { id: 'shake-dist', label: 'Shake Distance', prop: '--juice-shake-dist', min: 1, max: 15, step: 1, default: 3, unit: 'px' },
 ];
 
 function toggleJuiceKnobs() {
