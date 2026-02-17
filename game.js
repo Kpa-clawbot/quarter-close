@@ -7101,14 +7101,14 @@ function buildDashboard() {
   const anyRole = getTechDeptLevel() > 0 || getOpsDeptLevel() > 0 || getVPOpsLevel() > 0 ||
                   getSalesDirLevel() > 0 || hasExecAssistant() || hasPRDirector();
 
-  if (!anyRole) {
-    html += `<div class="grid-row br-upgrade-row">
-      <div class="row-num">${rowNum++}</div>
-      <div class="cell cell-a" style="color:${dm('#999')};font-style:italic">No C-suite hires yet. Purchase upgrades in the Board Room.</div>
-      <div class="cell cell-b"></div><div class="cell cell-c"></div><div class="cell cell-d"></div>
-      <div class="cell cell-e"></div><div class="cell cell-f"></div><div class="cell cell-g"></div><div class="cell cell-h"></div>
-    </div>`;
-  }
+  // Helper for "not hired" placeholder row
+  const notHiredRow = (icon, title, hint) => `<div class="grid-row br-upgrade-row" style="border-top:2px solid ${dm('#e0e0e0','#444')};opacity:0.45">
+    <div class="row-num">${rowNum++}</div>
+    <div class="cell cell-a" style="font-weight:700;color:${dm('#999')}">${icon} ${title}</div>
+    <div class="cell cell-b" style="font-size:0.625rem;color:${dm('#aaa')};font-style:italic">${hint}</div>
+    <div class="cell cell-c"></div><div class="cell cell-d"></div>
+    <div class="cell cell-e"></div><div class="cell cell-f"></div><div class="cell cell-g"></div><div class="cell cell-h"></div>
+  </div>`;
 
   // --- CFO (always present since you need CFO for earnings) ---
   const cfoLevel = gameState.activeCFOLevel || 0;
@@ -7125,6 +7125,8 @@ function buildDashboard() {
       <div class="cell cell-g" style="font-size:0.625rem;font-weight:600;color:${dm('#c00')}">${gameState.earningsMissCount || 0}</div>
       <div class="cell cell-h"></div>
     </div>`;
+  } else {
+    html += notHiredRow('📊', 'CFO', 'Not hired — Board Room → Finance');
   }
 
   // --- CTO ---
@@ -7153,6 +7155,8 @@ function buildDashboard() {
       <div class="cell cell-d" style="font-size:0.625rem;font-weight:600;color:${dm('#333')}">${gameState.ctoTargetCost ? formatMoney(gameState.ctoTargetCost) : '—'}</div>
       <div class="cell cell-e"></div><div class="cell cell-f"></div><div class="cell cell-g"></div><div class="cell cell-h"></div>
     </div>`;
+  } else {
+    html += notHiredRow('🔧', 'CTO', 'Not hired — Board Room → Technology');
   }
 
   // --- COO ---
@@ -7181,6 +7185,8 @@ function buildDashboard() {
       <div class="cell cell-d" style="font-size:0.625rem;font-weight:600;color:${dm('#333')}">${gameState.cooTargetCost ? formatMoney(gameState.cooTargetCost) : '—'}</div>
       <div class="cell cell-e"></div><div class="cell cell-f"></div><div class="cell cell-g"></div><div class="cell cell-h"></div>
     </div>`;
+  } else {
+    html += notHiredRow('👥', 'COO', 'Not hired — Board Room → Hiring');
   }
 
   // --- VP of Operations ---
@@ -7229,6 +7235,8 @@ function buildDashboard() {
       <div class="cell cell-g" style="font-size:0.625rem;font-weight:600;color:${dm('#e65100')}">🔥 ${stats.longestStreak}</div>
       <div class="cell cell-h"></div>
     </div>`;
+  } else {
+    html += notHiredRow('📋', 'VP of Operations', 'Not hired — Board Room → Admin');
   }
 
   // --- Sales Director ---
@@ -7262,6 +7270,8 @@ function buildDashboard() {
       <div class="cell cell-g" style="font-size:0.625rem;font-weight:600;color:${dm(captureRate === '100%' ? '#2e7d32' : '#e65100')}">${captureRate}</div>
       <div class="cell cell-h"></div>
     </div>`;
+  } else {
+    html += notHiredRow('🤝', 'Sales Director', 'Not hired — Board Room → Sales');
   }
 
   // --- Executive Assistant ---
@@ -7280,6 +7290,8 @@ function buildDashboard() {
       <div class="cell cell-g" style="font-size:0.625rem;font-weight:600;color:${dm('#2e7d32')}">${formatMoney(stats.cashEarned)}</div>
       <div class="cell cell-h"></div>
     </div>`;
+  } else {
+    html += notHiredRow('🗂️', 'Executive Assistant', 'Not hired — Board Room → Admin');
   }
 
   // --- PR Director ---
@@ -7294,6 +7306,8 @@ function buildDashboard() {
       <div class="cell cell-e" style="font-size:0.625rem;font-weight:600;color:${dm('#333')}">${stats.boostsActivated}</div>
       <div class="cell cell-f"></div><div class="cell cell-g"></div><div class="cell cell-h"></div>
     </div>`;
+  } else {
+    html += notHiredRow('📣', 'PR Director', 'Not hired — Board Room → Sales');
   }
 
   // --- CPA ---
@@ -7307,6 +7321,8 @@ function buildDashboard() {
       <div class="cell cell-e" style="font-size:0.625rem;font-weight:600;color:${dm('#c00')}">${formatMoney(gameState.totalTaxPaid || 0)}</div>
       <div class="cell cell-f"></div><div class="cell cell-g"></div><div class="cell cell-h"></div>
     </div>`;
+  } else {
+    html += notHiredRow('🧾', 'CPA', 'Not hired — Board Room → Tax');
   }
 
   // Filler rows
