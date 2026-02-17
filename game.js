@@ -2754,7 +2754,10 @@ function updateGridValues() {
     } else {
       const maxHires = maxAffordable(state);
       const upgradeMult = 1 + state.upgradeLevel * 0.5;
-      const hireGainPerDay = src.baseRate * upgradeMult / 365.25;
+      const prestigeMult = Math.pow(10, state.prestigeLevel || 0);
+      const breakthroughMult = state.breakthroughMult || 1;
+      const allMults = upgradeMult * prestigeMult * breakthroughMult * getBoardRoomRevMultiplier();
+      const hireGainPerDay = src.baseRate * allMults / 365.25;
       a1.innerHTML = (maxHires > 1 ? `<button class="cell-btn btn-max" onclick="hireMax(${i})" title="Hire all ${maxHires} you can afford">Max(${maxHires})</button>` : '') +
         `<button class="cell-btn btn-hire" onclick="hireEmployee(${i})" ${gameState.cash >= hCost ? '' : 'disabled'} title="Hire 1 employee — adds ${formatPerTick(hireGainPerDay)}/day">Hire ${formatMoney(hCost)} (+${formatPerTick(hireGainPerDay)}/d)</button>`;
     }
@@ -2765,7 +2768,9 @@ function updateGridValues() {
       a2.innerHTML = `<button class="cell-btn btn-automate" onclick="automateSource(${i})" ${gameState.cash >= aCost ? '' : 'disabled'} title="Revenue flows automatically">Auto ${formatMoney(aCost)}</button>`;
     } else {
       const maxUpgrades = maxAffordableUpgrades(state);
-      const revGainPerDay = state.employees * src.baseRate * 0.5 / 365.25;
+      const prestigeMult2 = Math.pow(10, state.prestigeLevel || 0);
+      const breakthroughMult2 = state.breakthroughMult || 1;
+      const revGainPerDay = state.employees * src.baseRate * 0.5 * prestigeMult2 * breakthroughMult2 * getBoardRoomRevMultiplier() / 365.25;
       a2.innerHTML = (maxUpgrades > 1 ? `<button class="cell-btn btn-max" onclick="upgradeMax(${i})" title="Buy all ${maxUpgrades} upgrades you can afford">Max(${maxUpgrades})</button>` : '') +
         `<button class="cell-btn btn-upgrade" onclick="upgradeSource(${i})" ${gameState.cash >= uCost ? '' : 'disabled'} title="+50% efficiency per employee — adds ${formatPerTick(revGainPerDay)}/day">⬆ ${formatMoney(uCost)} (+${formatPerTick(revGainPerDay)}/d)</button>`;
     }
