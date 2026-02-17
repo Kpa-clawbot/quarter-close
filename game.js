@@ -2571,6 +2571,8 @@ function clickGoldenCell(cell) {
 function buildGrid() {
   if (!gameState.arc) return;
   const container = document.getElementById('revenue-rows');
+  const gc = document.getElementById('grid-container');
+  const scrollBefore = gc ? gc.scrollTop : 0;
   container.innerHTML = '';
 
   for (let i = 0; i < SOURCE_STATS.length; i++) {
@@ -2641,10 +2643,16 @@ function buildGrid() {
 
   gridBuilt = true;
   updateGridValues();
+
+  // Restore scroll position after full grid rebuild
+  if (gc && scrollBefore > 0) gc.scrollTop = scrollBefore;
 }
 
 function buildFillerRows() {
   const filler = document.getElementById('filler-rows');
+  const gc = document.getElementById('grid-container');
+  const scrollBefore = gc ? gc.scrollTop : 0;
+
   filler.innerHTML = '';
   const taxRowCount = gameState.taxDebts && gameState.taxDebts.length > 0 ? gameState.taxDebts.length + 3 : 0;
 
@@ -2674,6 +2682,9 @@ function buildFillerRows() {
     `;
     filler.appendChild(row);
   }
+
+  // Restore scroll position after DOM rebuild
+  if (gc && scrollBefore > 0) gc.scrollTop = scrollBefore;
 }
 
 function updateGridValues() {
@@ -4267,8 +4278,11 @@ function updateTaxPanel() {
 
   if (hashParts !== _lastTaxPanelHash) {
     _lastTaxPanelHash = hashParts;
+    const gc = document.getElementById('grid-container');
+    const scrollBefore = gc ? gc.scrollTop : 0;
     panel.innerHTML = html;
     buildFillerRows();
+    if (gc && scrollBefore > 0) gc.scrollTop = scrollBefore;
   }
 }
 
