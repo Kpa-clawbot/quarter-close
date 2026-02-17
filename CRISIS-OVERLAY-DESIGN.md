@@ -62,10 +62,10 @@ When certain extreme events fire, the entire play area gets a themed overlay tha
   
   ERR_CONNECTION_TIMED_OUT
   
-  CloudFlare mitigation: 65% ████████████░░░░░░
+  CloudShield mitigation: 65% ████████████░░░░░░
   ```
 - **Chrome's `net::ERR_` aesthetic** — gray page, blue links, familiar error
-- Progress bar = CloudFlare mitigation progress
+- Progress bar = CloudShield mitigation progress
 - **Revenue goes to 0%** (full outage, not 50%) — justifies the full overlay
 - **Event effect change**: `revPenalty.mult` changes from `0.5` to `0` (or use `powerOutage` instead)
 
@@ -100,13 +100,13 @@ When certain extreme events fire, the entire play area gets a themed overlay tha
 
 ### 6. ☁️ Cloud Provider Outage → **Status Page**
 - **Background**: white/light with colored status bar
-- **Content** (styled like statuspage.io):
+- **Content** (styled like status page):
   ```
   ╔══════════════════════════════════════╗
   ║  ● MAJOR OUTAGE                      ║
   ╚══════════════════════════════════════╝
   
-  AWS US-EAST-1
+  NimbusCorp US-EAST-1
   
   Investigating — We are currently investigating 
   increased error rates in the US-EAST-1 region.

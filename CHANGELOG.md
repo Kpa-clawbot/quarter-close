@@ -8,7 +8,7 @@ All notable changes to Quarter Close.
 When disaster strikes, your spreadsheet fights back with dramatic full-screen overlays:
 - **Power Outage → Blue Screen of Death** — Windows-style BSOD with random stop codes and recovery progress bar
 - **Ransomware → Lock Screen** — dark terminal with red text, fake BTC ransom address, countdown timer
-- **DDoS Attack → Chrome Error Page** — "ERR_CONNECTION_TIMED_OUT" with CloudFlare-style recovery progress
+- **DDoS Attack → Chrome Error Page** — "ERR_CONNECTION_TIMED_OUT" with CloudShield recovery progress
 - **Database Corruption → Terminal Console** — green-on-black fsck recovery with lines appearing one by one
 - **Password Reset → (Not Responding)** — screen frosts over with blur + grayscale, title bar shows "(Not Responding)"
 - **Cloud Outage → Status Page** — corporate incident page with service-by-service status indicators

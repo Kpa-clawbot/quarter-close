@@ -495,7 +495,7 @@ const EVENTS = [
         const duration = 20000 + Math.floor(Math.random() * 10000); // 20-30s
         gs.powerOutage = { until: Date.now() + duration };
         showCrisisOverlay('ddos', Date.now() + duration, {});
-        return `⚠️ DDoS — revenue at 0% for ${Math.round(duration/1000)}s while CloudFlare mitigates.`;
+        return `⚠️ DDoS — revenue at 0% for ${Math.round(duration/1000)}s while CloudShield mitigates.`;
       }},
     ]
   },
@@ -7947,7 +7947,7 @@ function renderCrisisContent(type, progress, data, until) {
 <div class="crisis-ddos-subtitle">corp.internal.net took too long to respond.</div>
 <div class="crisis-ddos-list">Try:<br>• Checking the connection<br>• Checking the proxy and the firewall<br>• Running Windows Network Diagnostics</div>
 <div class="crisis-ddos-err">ERR_CONNECTION_TIMED_OUT</div>
-<div class="crisis-ddos-mitigate">CloudFlare mitigation: ${Math.round(progress * 100)}%</div>
+<div class="crisis-ddos-mitigate">CloudShield mitigation: ${Math.round(progress * 100)}%</div>
 <div class="crisis-ddos-progress">${bar}</div>`;
     }
 
@@ -7978,7 +7978,7 @@ function renderCrisisContent(type, progress, data, until) {
       const mm = Math.floor(secsLeft / 60);
       const ss = String(secsLeft % 60).padStart(2, '0');
       return `<div class="crisis-status-banner">● MAJOR OUTAGE</div>
-<div class="crisis-status-provider">AWS US-EAST-1</div>
+<div class="crisis-status-provider">NimbusCorp US-EAST-1</div>
 <div class="crisis-status-desc">Investigating — We are currently investigating increased error rates in the US-EAST-1 region.</div>
 <div class="crisis-status-services">${svcHtml}</div>
 <div class="crisis-status-updated">Last updated: 2 minutes ago</div>
