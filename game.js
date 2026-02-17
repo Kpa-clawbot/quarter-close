@@ -2253,6 +2253,7 @@ function trySpawnMiniTask() {
     gameState.hintMiniTaskCount = (gameState.hintMiniTaskCount || 0) + 1;
 
     flashCash();
+    floatingNumber(actualReward, document.getElementById('cash-display'), false);
     updateDisplay();
     return; // Don't show the bar
   }
@@ -2328,6 +2329,7 @@ function completeMiniTask() {
   setTimeout(() => { document.getElementById('status-text').textContent = 'Ready'; }, 2000);
 
   flashCash();
+  floatingNumber(reward, document.getElementById('cash-display'), false);
   updateDisplay();
 }
 
@@ -2411,6 +2413,7 @@ function clickGoldenCell(cell) {
   setTimeout(() => { document.getElementById('status-text').textContent = 'Ready'; }, 2000);
 
   flashCash();
+  floatingNumber(reward, document.getElementById('cash-display'), false);
   updateDisplay();
   return true;
 }
@@ -2686,7 +2689,7 @@ function updateDisplay() {
     ptEl.textContent = formatPerTick(perTick) + '/day';
   }
   // Append rev/Q to cell C
-  ptEl.innerHTML += ` <span style="color:${dm('#888')};font-size:0.5625rem">│</span> <span style="font-size:0.6875rem;color:${dm('#217346')}">${formatCompact(gameState.quarterRevenue)}/Q</span>`;
+  ptEl.innerHTML += `<span style="color:${dm('#888')};font-size:0.5625rem;margin:0 0.15rem">│</span><span style="font-size:0.625rem;color:${dm('#217346')}">${formatCompact(gameState.quarterRevenue)}/Q</span>`;
 
   // Stock price in header (Phase 2.1)
   const stockCell = document.getElementById('stock-price-cell');
@@ -2985,6 +2988,7 @@ function collectSource(index) {
   updateGridValues();
   updateDisplay();
   flashCash();
+  floatingNumber(clickEarnings, document.getElementById('cash-display'), false);
 }
 
 // ===== DEPRECIATION =====
@@ -3057,6 +3061,7 @@ function checkCashMilestone() {
       el.classList.remove('cash-milestone');
       void el.offsetWidth;
       el.classList.add('cash-milestone');
+      el.addEventListener('animationend', () => el.classList.remove('cash-milestone'), { once: true });
       return;
     }
   }
@@ -3234,7 +3239,8 @@ function processQuarterlyTax() {
       document.getElementById('status-text').textContent = `📋 CPA paid ${qLabel} taxes (${formatMoney(taxOwed)})`;
       setTimeout(() => { document.getElementById('status-text').textContent = 'Ready'; }, 4000);
       updateDisplay();
-      flashCash();
+      flashCash('spend');
+      floatingNumber(taxOwed, document.getElementById('cash-display'), true);
       return;
     } else {
       // Can't afford — CPA defers (creates debt like Ignore, but silently)
@@ -3323,7 +3329,8 @@ function processTaxDebts() {
         _lastTaxPanelHash = '';
         updateTaxPanel();
         updateDisplay();
-        flashCash();
+        flashCash('spend');
+        floatingNumber(debt.current, document.getElementById('cash-display'), true);
       }
     }
     if (gameState.taxDebts.length === 0) return;
@@ -3427,7 +3434,9 @@ function settleTaxDebt(index) {
   _lastTaxPanelHash = ''; // force rebuild
   updateTaxPanel();
   updateDisplay();
-  flashCash();
+  flashCash('spend');
+  floatingNumber(debt.current, document.getElementById('cash-display'), true);
+  showFormulaEcho('=SETTLE_DEBT("' + debt.quarter + '")');
 }
 
 function settleAllTax() {
@@ -3451,7 +3460,9 @@ function settleAllTax() {
   _lastTaxPanelHash = ''; // force rebuild
   updateTaxPanel();
   updateDisplay();
-  flashCash();
+  flashCash('spend');
+  floatingNumber(total, document.getElementById('cash-display'), true);
+  showFormulaEcho('=SETTLE_ALL_DEBTS()');
 }
 
 function totalTaxOwed() {
