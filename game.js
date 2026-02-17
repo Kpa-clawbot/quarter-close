@@ -3084,11 +3084,7 @@ function checkCashMilestone() {
   for (let i = CASH_MILESTONES.length - 1; i >= 0; i--) {
     if (cash >= CASH_MILESTONES[i] && CASH_MILESTONES[i] > last) {
       gameState._lastCashMilestone = CASH_MILESTONES[i];
-      const el = document.getElementById('cash-display');
-      el.classList.remove('cash-milestone');
-      void el.offsetWidth;
-      el.classList.add('cash-milestone');
-      el.addEventListener('animationend', () => el.classList.remove('cash-milestone'), { once: true });
+      fireMilestonePop();
       return;
     }
   }
@@ -3100,6 +3096,16 @@ function checkCashMilestone() {
     }
     gameState._lastCashMilestone = newMilestone;
   }
+}
+
+function fireMilestonePop() {
+  // Apply to the cell wrapper (cell-b), not cash-display, to avoid animation conflicts with flashCash
+  const el = document.getElementById('cash-display');
+  const cell = el ? el.closest('.cell') || el : el;
+  cell.classList.remove('cash-milestone');
+  void cell.offsetWidth;
+  cell.classList.add('cash-milestone');
+  cell.addEventListener('animationend', () => cell.classList.remove('cash-milestone'), { once: true });
 }
 
 // Insufficient funds feedback
@@ -4551,10 +4557,7 @@ function testAllJuice() {
 
   // 4. Milestone pop after 2.5s
   setTimeout(() => {
-    el.classList.remove('cash-milestone');
-    void el.offsetWidth;
-    el.classList.add('cash-milestone');
-    el.addEventListener('animationend', () => el.classList.remove('cash-milestone'), { once: true });
+    fireMilestonePop();
   }, 2500);
 
   // 5. Insufficient funds shake after 3.5s
