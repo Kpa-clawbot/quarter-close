@@ -464,7 +464,7 @@
           </label>
           <label class="option-toggle">
             <input type="checkbox" id="toggle-overtime" onchange="toggleFeature('overtime', this.checked)">
-            <span class="option-name">⏰ All-Hands Sprint</span>
+            <span class="option-name">⏰ Overtime</span>
             <span class="option-info">Click for instant revenue bursts with diminishing returns per quarter.</span>
           </label>
           <label class="option-toggle">
@@ -549,9 +549,8 @@
               <p>Works on automated departments — this is your main active play mechanic late game.</p>
             </div>
             <div class="help-section">
-              <h4>⏰ All-Hands Sprint</h4>
-              <p>The <b>"All-Hands"</b> button below your departments gives 30 days of total revenue per charge.</p>
-              <p><b>3 charges per quarter</b> — use them wisely. No diminishing returns, each charge is full power.</p>
+              <h4>⏰ Overtime</h4>
+              <p>The <b>"Overtime"</b> button below your departments gives 5 seconds of revenue per click.</p>
               <p><b>Diminishing returns:</b> each click in the same quarter gives less. Click 1 = 100%, click 5 ≈ 57%, click 10 ≈ 40%.</p>
               <p>Resets every quarter — fresh energy each Q.</p>
               <p>Shows your click count, next payout, and efficiency %.</p>
@@ -857,7 +856,7 @@
     </div>
   </div>
 
-  <script src="game.js?v=220"></script>
+  <script src="game.js?v=221"></script>
   <script>
     if (location.hostname === 'kpa-clawbot.github.io') {
       var s = document.createElement('script');

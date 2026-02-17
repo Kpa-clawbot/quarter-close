@@ -213,7 +213,7 @@ function buildSaveData() {
     lastQuarterRE: gameState.lastQuarterRE || 0,
     featureToggles: gameState.featureToggles || DEFAULT_FEATURES,
     eventFreqMult: EVENT_FREQ_MULT,
-    overtimeCharges: gameState.overtimeCharges || 0,
+    overtimeClicks: gameState.overtimeClicks || 0,
     focusTipShown: gameState.focusTipShown || false,
     columnWidths: gameState.columnWidths || null,
     boardroomColumnWidths: gameState.boardroomColumnWidths || null,
@@ -2623,11 +2623,11 @@ function buildGrid() {
   const otRowNum = SOURCE_STATS.length + 3;
   overtimeRow.innerHTML = `
     <div class="row-num">${otRowNum}</div>
-    <div class="cell cell-a" style="font-weight:600;color:${dm('#555')}">⏰ All-Hands Sprint</div>
+    <div class="cell cell-a" style="font-weight:600;color:${dm('#555')}">⏰ Overtime</div>
     <div class="cell cell-b" id="overtime-clicks" style="font-size:0.6875rem;color:${dm('#888')}"></div>
     <div class="cell cell-c" id="overtime-next" style="font-family:Consolas,monospace;font-size:0.6875rem;color:${dm('#217346')};justify-content:flex-end"></div>
     <div class="cell cell-d">
-      <button class="cell-btn btn-collect" id="overtime-btn" onclick="clickOvertime()" title="30 days of total revenue per charge. 3 charges per quarter.">All-Hands</button>
+      <button class="cell-btn btn-collect" id="overtime-btn" onclick="clickOvertime()" title="5 seconds of revenue per click, diminishing returns. Resets each quarter.">Overtime</button>
     </div>
     <div class="cell cell-e" id="overtime-diminish" style="font-size:0.625rem;color:${dm('#999')}"></div>
     <div class="cell cell-f"></div>
@@ -4388,7 +4388,7 @@ function gameTick() {
   if (currentDay - gameState.lastQuarterDay >= 90) {
     processQuarterlyTax();
     gameState.lastQuarterDay = currentDay;
-    gameState.overtimeCharges = 3; // 3 charges per quarter
+    gameState.overtimeClicks = 0; // reset overtime each quarter
     if (gameState.vpOpsStats) gameState.vpOpsStats.quarterTasks = 0; // reset VP Ops quarter counter
   }
 
@@ -5023,7 +5023,7 @@ function loadGame(slotId) {
     gameState.lastQuarterRE = data.lastQuarterRE || 0;
     gameState.featureToggles = data.featureToggles || { ...DEFAULT_FEATURES };
     EVENT_FREQ_MULT = data.eventFreqMult != null ? data.eventFreqMult : 1.0;
-    gameState.overtimeCharges = data.overtimeCharges || 0;
+    gameState.overtimeClicks = data.overtimeClicks || 0;
     gameState.focusTipShown = data.focusTipShown || false;
     gameState.columnWidths = data.columnWidths || null;
     gameState.boardroomColumnWidths = data.boardroomColumnWidths || null;
@@ -5186,7 +5186,7 @@ function resetGame() {
   gameState.lastQuarterRE = 0;
   gameState.featureToggles = { ...DEFAULT_FEATURES };
   EVENT_FREQ_MULT = 1.0;
-  gameState.overtimeCharges = 3;
+  gameState.overtimeClicks = 0; // reset overtime each quarter
   gameState.focusTipShown = false;
   gameState.columnWidths = null;
   gameState.boardroomColumnWidths = null;
@@ -5741,20 +5741,20 @@ function clickOvertime() {
   const rev = totalRevPerTick();
   if (rev <= 0) return;
 
-  const charges = gameState.overtimeCharges || 0;
-  if (charges <= 0) return;
+  if (!gameState.overtimeClicks) gameState.overtimeClicks = 0;
 
-  // Each charge = 30 days of total revenue, no diminishing
-  const amount = rev * 30;
+  // Base = 5 seconds of revenue, diminishing returns
+  const diminish = 1 / (1 + gameState.overtimeClicks * 0.15);
+  const amount = rev * 5 * diminish;
 
   gameState.cash += amount;
   gameState.totalEarned += amount;
   gameState.quarterRevenue += amount;
   if (gameState.isPublic) gameState.earningsQuarterRevenue += amount;
-  gameState.overtimeCharges--;
+  gameState.overtimeClicks++;
 
   flashCash(); floatingNumber(amount, document.getElementById('cash-display'), false);
-  document.getElementById('status-text').textContent = `⏰ All-Hands Sprint! +${formatMoney(amount)} (${gameState.overtimeCharges} left)`;
+  document.getElementById('status-text').textContent = `⏰ Overtime! +${formatMoney(amount)}`;
   setTimeout(() => {
     const st = document.getElementById('status-text');
     if (st && st.textContent.startsWith('⏰')) st.textContent = 'Ready';
@@ -5777,16 +5777,18 @@ function updateOvertimeRow() {
   }
   row.style.display = '';
 
-  const charges = gameState.overtimeCharges || 0;
+  const clicks = gameState.overtimeClicks || 0;
   const rev = totalRevPerTick();
-  const nextAmount = rev * 30;
+  const nextDiminish = 1 / (1 + clicks * 0.15);
+  const nextAmount = rev * 5 * nextDiminish;
+  const pct = Math.round(nextDiminish * 100);
 
-  document.getElementById('overtime-clicks').textContent = charges > 0 ? `${charges}/3 charges` : '0/3 — resets next Q';
-  document.getElementById('overtime-next').textContent = charges > 0 ? `+${formatMoney(nextAmount)}` : 'exhausted';
-  document.getElementById('overtime-diminish').textContent = charges > 0 ? '30 days of revenue' : '';
+  document.getElementById('overtime-clicks').textContent = clicks > 0 ? `${clicks} this Q` : '';
+  document.getElementById('overtime-next').textContent = `+${formatMoney(nextAmount)}`;
+  document.getElementById('overtime-diminish').textContent = clicks > 0 ? `${pct}% efficiency` : '';
 
   const btn = document.getElementById('overtime-btn');
-  if (btn) btn.disabled = charges <= 0;
+  if (btn) btn.disabled = false;
 }
 
 function showAbout() {
