@@ -1472,7 +1472,6 @@ html[data-theme="dark"] .tax-notice .tax-alert-btn:hover {
 .cell-c { justify-content: flex-end; color: var(--accent-green); font-family: 'Consolas', 'Courier New', monospace; font-size: 0.6875rem; }
 .cell-d { justify-content: flex-end; color: var(--accent-green); font-family: 'Consolas', 'Courier New', monospace; font-size: 0.6875rem; }
 .cell-e, .cell-f { justify-content: center; }
-.cell-e { border-right: 1px solid var(--border-medium); }
 .cell-g { justify-content: flex-end; color: var(--accent-green); font-family: 'Consolas', 'Courier New', monospace; font-size: 0.6875rem; }
 .cell-h { border-right: none; }
 

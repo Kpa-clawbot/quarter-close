@@ -2655,10 +2655,9 @@ function updateDisplay() {
   if (reEl) {
     if (gameState.isPublic) {
       reEl.textContent = gameState.retainedEarnings ? formatCompact(gameState.retainedEarnings) : '0';
-      reEl.style.visibility = '';
+      reEl.style.color = '';
     } else {
       reEl.textContent = '';
-      reEl.style.visibility = 'hidden';
     }
   }
 
