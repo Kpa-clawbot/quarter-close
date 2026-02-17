@@ -215,6 +215,9 @@ function buildSaveData() {
     focusTipShown: gameState.focusTipShown || false,
     columnWidths: gameState.columnWidths || null,
     boardroomColumnWidths: gameState.boardroomColumnWidths || null,
+    _lastCashMilestone: gameState._lastCashMilestone || 0,
+    _lastRevDayMilestone: gameState._lastRevDayMilestone || 0,
+    _lastREMilestone: gameState._lastREMilestone || 0,
     chartVisible: gameState.chartVisible !== false,
     chartPosition: gameState.chartPosition || null,
     juiceEnabled: gameState.juiceEnabled !== false,
@@ -3111,6 +3114,7 @@ function flashCash(direction) {
 }
 
 // Floating number effect (damage numbers)
+let _activeFloats = new Map(); // element -> count of active floats
 function floatingNumber(amount, element, isSpend) {
   if (!gameState.juiceEnabled) return;
   const rect = element.getBoundingClientRect();
@@ -3118,9 +3122,18 @@ function floatingNumber(amount, element, isSpend) {
   span.className = 'floating-number ' + (isSpend ? 'spend' : 'earn');
   span.textContent = (isSpend ? '-' : '+') + formatMoney(Math.abs(amount));
   span.style.left = (rect.left + rect.width / 2) + 'px';
-  span.style.top = rect.top + 'px';
+  // Stagger vertically if multiple floats on same element
+  const key = element.id || element;
+  const offset = (_activeFloats.get(key) || 0);
+  span.style.top = (rect.top - offset * 24) + 'px';
+  _activeFloats.set(key, offset + 1);
   document.body.appendChild(span);
-  span.addEventListener('animationend', () => span.remove());
+  span.addEventListener('animationend', () => {
+    span.remove();
+    const cur = _activeFloats.get(key) || 1;
+    if (cur <= 1) _activeFloats.delete(key);
+    else _activeFloats.set(key, cur - 1);
+  });
 }
 
 // Big Number Pop — milestone tracking (generalized)
@@ -4830,6 +4843,9 @@ function loadGame(slotId) {
     gameState.focusTipShown = data.focusTipShown || false;
     gameState.columnWidths = data.columnWidths || null;
     gameState.boardroomColumnWidths = data.boardroomColumnWidths || null;
+    gameState._lastCashMilestone = data._lastCashMilestone || 0;
+    gameState._lastRevDayMilestone = data._lastRevDayMilestone || 0;
+    gameState._lastREMilestone = data._lastREMilestone || 0;
     gameState.chartVisible = data.chartVisible !== false;
     gameState.chartPosition = data.chartPosition || null;
     gameState.juiceEnabled = data.juiceEnabled !== false;
@@ -6861,6 +6877,20 @@ function purchaseBoardRoomUpgrade(id) {
   gameState.retainedEarnings -= cost;
   gameState.boardRoomPurchases[id] = (gameState.boardRoomPurchases[id] || 0) + 1;
 
+  // RE spend juice — flash + floating number
+  const reEl = document.getElementById('re-display');
+  if (reEl && gameState.juiceEnabled) {
+    flashCell(reEl, 'spend');
+    const rect = reEl.getBoundingClientRect();
+    const span = document.createElement('span');
+    span.className = 'floating-number spend';
+    span.textContent = '-' + cost.toLocaleString() + ' RE';
+    span.style.left = (rect.left + rect.width / 2) + 'px';
+    span.style.top = rect.top + 'px';
+    document.body.appendChild(span);
+    span.addEventListener('animationend', () => span.remove());
+  }
+
   // Auto-activate Finance Dept when first purchased
   if (id === 'finance_dept_1' && gameState.activeCFOLevel === 0) {
     gameState.activeCFOLevel = 1;
@@ -7068,7 +7098,6 @@ function init() {
   try {
   initDarkMode();
   initZoom();
-  initChartMode();
   initSlowdown();
   initColumnResize();
   generateBossGrid();
@@ -7134,6 +7163,7 @@ function init() {
   if (!loaded) {
     showArcSelect();
   }
+  initChartMode(); // must run AFTER loadGame so chartVisible reflects saved state
   setInterval(gameTick, 1000);
 
   } catch (e) {
@@ -7304,12 +7334,12 @@ function updateTimescaleDisplay() {
 
 function initChartMode() {
   if (localStorage.getItem('qc-chart-float') === '1') {
-    const wasVisible = gameState.chartVisible; // save BEFORE floatChart overwrites it
+    const shouldShow = gameState.chartVisible;
     setTimeout(() => {
-      floatChart();
-      if (wasVisible === false) {
+      floatChart(); // sets up floating mode (always sets chartVisible = true)
+      if (!shouldShow) {
         document.getElementById('valuation-chart-container').classList.add('hidden');
-        gameState.chartVisible = false; // restore after floatChart set it true
+        gameState.chartVisible = false;
       }
     }, 500);
   }
