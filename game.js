@@ -453,6 +453,8 @@ const EVENTS = [
     timedDelay: 5000,  // 5 second countdown
     timedEffect: (gs) => {
       gs.powerOutage = { until: Date.now() + 15000 };
+      const stopCode = BSOD_STOP_CODES[Math.floor(Math.random() * BSOD_STOP_CODES.length)];
+      showCrisisOverlay('bsod', Date.now() + 15000, { stopCode: stopCode });
       return '⚡ Power outage! Revenue paused for 15 seconds.';
     },
     actions: []
@@ -472,6 +474,7 @@ const EVENTS = [
       { label: '🛡️ Refuse — rebuild from backups', effect: (gs) => {
         const duration = 30000 + Math.floor(Math.random() * 30000); // 30-60s
         gs.powerOutage = { until: Date.now() + duration };
+        showCrisisOverlay('ransomware', Date.now() + duration, {});
         return `Revenue frozen for ${Math.round(duration/1000)}s while IT rebuilds. Should\'ve had better backups.`;
       }},
     ]
@@ -484,8 +487,9 @@ const EVENTS = [
     actions: [
       { label: 'Nothing we can do', effect: (gs) => {
         const duration = 20000 + Math.floor(Math.random() * 10000); // 20-30s
-        gs.revPenalty = { mult: 0.5, until: Date.now() + duration };
-        return `⚠️ DDoS — revenue at 50% for ${Math.round(duration/1000)}s while CloudFlare mitigates.`;
+        gs.powerOutage = { until: Date.now() + duration };
+        showCrisisOverlay('ddos', Date.now() + duration, {});
+        return `⚠️ DDoS — revenue at 0% for ${Math.round(duration/1000)}s while CloudFlare mitigates.`;
       }},
     ]
   },
@@ -509,6 +513,8 @@ const EVENTS = [
           gs.dbOutage = { sourceIndex: pick.i, until: Date.now() + duration };
           const arc = ARCS[gs.arc];
           const name = arc.sources[pick.i].name || getSourceDef(pick.i).name;
+          const termLines = generateTerminalLines();
+          showCrisisOverlay('terminal', Date.now() + duration, { lines: termLines, revealed: 0, _lastReveal: Date.now() });
           return `${name} offline for ${Math.round(duration/1000)}s while database recovers.`;
         }
         console.log('DB outage: no unlocked sources');
@@ -538,6 +544,7 @@ const EVENTS = [
     timedDelay: 3000,
     timedEffect: (gs) => {
       gs.powerOutage = { until: Date.now() + 10000 };
+      showCrisisOverlay('frost', Date.now() + 10000, {});
       return '🔑 Company-wide password reset. Revenue paused for 10 seconds.';
     },
     actions: []
@@ -551,6 +558,7 @@ const EVENTS = [
       { label: 'Welcome to the cloud', effect: (gs) => {
         const duration = 15000 + Math.floor(Math.random() * 10000); // 15-25s
         gs.revPenalty = { mult: 0.25, until: Date.now() + duration };
+        showCrisisOverlay('statuspage', Date.now() + duration, {});
         return `☁️ Cloud outage — revenue at 25% for ${Math.round(duration/1000)}s. Nothing you can do.`;
       }},
     ]
@@ -1768,6 +1776,7 @@ let gameState = {
   revPenalty: null,
   revBonus: null,
   powerOutage: null,
+  crisisOverlay: null,
   dbOutage: null,
   hireFrozen: null,
   taxDebts: [],
@@ -2114,6 +2123,7 @@ function selectArc(arcKey) {
   gameState.revPenalty = null;
   gameState.revBonus = null;
   gameState.powerOutage = null;
+  hideCrisisOverlay();
   gameState.dbOutage = null;
   gameState.miniTaskBlocked = null;
   gameState.hireFrozen = null;
@@ -2205,6 +2215,7 @@ function showArcSelect() {
 function trySpawnMiniTask() {
   if (gameState.miniTaskActive) return;
   if (gameState.miniTaskBlocked && Date.now() < gameState.miniTaskBlocked.until) return; // email server down
+  if (isCrisisBlocking()) return; // crisis overlay blocks mini-tasks
   if (gameState.miniTaskCooldown > 0) { gameState.miniTaskCooldown--; return; }
 
   // VP of Ops auto-handling
@@ -2668,6 +2679,10 @@ function isNextUnlock(index) {
 
 function updateDisplay() {
   if (!gameState.arc) return;
+
+  // Update crisis overlay (progress bars, terminal scroll, expiry)
+  updateCrisisOverlay();
+
   const cashEl = document.getElementById('cash-display');
   cashEl.textContent = formatMoney(gameState.cash);
 
@@ -4911,6 +4926,7 @@ function resetGame() {
   gameState.revPenalty = null;
   gameState.revBonus = null;
   gameState.powerOutage = null;
+  hideCrisisOverlay();
   gameState.dbOutage = null;
   gameState.miniTaskBlocked = null;
   gameState.hireFrozen = null;
@@ -5354,6 +5370,7 @@ let dealTimer = null;
 function spawnDeal() {
   const rev = totalRevPerTick();
   if (rev <= 0) return;
+  if (isCrisisBlocking()) return; // crisis overlay blocks deals
 
   const seconds = 30 + Math.floor(Math.random() * 31); // 30-60s of revenue
   const amount = rev * seconds;
@@ -5404,6 +5421,7 @@ function spawnDeal() {
 
 function clickDeal() {
   if (!gameState.dealActive) return;
+  if (isCrisisBlocking()) return; // crisis overlay blocks deals
   const deal = gameState.dealActive;
   deal.clicksDone++;
 
@@ -5452,6 +5470,7 @@ function failDeal() {
 // ===== OVERTIME =====
 function clickOvertime() {
   if (!isFeatureEnabled('overtime')) return;
+  if (isCrisisBlocking()) return; // crisis overlay blocks overtime
   const rev = totalRevPerTick();
   if (rev <= 0) return;
 
@@ -7500,6 +7519,295 @@ function setEventFreqMult(val) {
 }
 
 window.setEventFreqMult = setEventFreqMult;
+
+// ===== CRISIS OVERLAY SYSTEM =====
+const BSOD_STOP_CODES = [
+  'POWER_FAILURE_IN_BUILDING_3',
+  'UPS_BATTERY_DEPLETED',
+  'GENERATOR_FAILED',
+  'UNEXPECTED_KERNEL_MODE_TRAP',
+  'CRITICAL_PROCESS_DIED'
+];
+
+function generateTerminalLines() {
+  const randBlock = 3145728 + Math.floor(Math.random() * 5000000);
+  const randInode = 700000 + Math.floor(Math.random() * 200000);
+  const totalBlocks = 2097152 + Math.floor(Math.random() * 2000000);
+  const usedBlocks = totalBlocks - 1024 - Math.floor(Math.random() * 2048);
+  const totalInodes = 900000 + Math.floor(Math.random() * 100000);
+  const usedInodes = Math.floor(totalInodes * 0.6) + Math.floor(Math.random() * 50000);
+  return [
+    '[root@prod-db-01 ~]# fsck -y /dev/sda1',
+    'fsck from util-linux 2.38.1',
+    'e2fsck 1.47.0 (5-Feb-2023)',
+    '/dev/sda1: recovering journal',
+    '',
+    `Block bitmap differences: +(${randBlock}--${randBlock + 255})`,
+    'Fix? yes',
+    '',
+    `Inode bitmap differences: +(${randInode}--${randInode + 31})`,
+    'Fix? yes',
+    '',
+    'Pass 1: Checking inodes, blocks, and sizes',
+    'Pass 2: Checking directory structure',
+    'Pass 3: Checking directory connectivity',
+    'Pass 4: Checking reference counts',
+    'Pass 5: Checking group summary information',
+    '',
+    `Free blocks count wrong (${totalBlocks}, counted=${totalBlocks - 1024}).`,
+    'Fix? yes',
+    '',
+    '/dev/sda1: ***** FILE SYSTEM WAS MODIFIED *****',
+    `/dev/sda1: ${usedInodes}/${totalInodes} files, ${usedBlocks}/${totalBlocks} blocks`
+  ];
+}
+
+function buildProgressBar(progress, width) {
+  width = width || 20;
+  const filled = Math.round(progress * width);
+  const empty = width - filled;
+  const pct = Math.round(progress * 100);
+  return '█'.repeat(filled) + '░'.repeat(empty) + ' ' + pct + '%';
+}
+
+function showCrisisOverlay(type, until, data) {
+  data = data || {};
+  gameState.crisisOverlay = { type: type, until: until, data: data };
+
+  if (type === 'frost') {
+    // Frost: no full overlay, just visual effect on grid + title bar
+    const grid = document.getElementById('grid-container');
+    if (grid) grid.classList.add('crisis-frost-active');
+    const titleText = document.getElementById('title-text');
+    if (titleText) {
+      gameState.crisisOverlay.data._origTitle = titleText.textContent;
+      if (!titleText.textContent.includes('(Not Responding)')) {
+        titleText.textContent = titleText.textContent + ' (Not Responding)';
+      }
+    }
+    return;
+  }
+
+  // Block grid interactions for non-frost crises
+  const grid = document.getElementById('grid-container');
+  if (grid) grid.classList.add('crisis-blocked');
+
+  const overlay = document.getElementById('crisis-overlay');
+  const content = document.getElementById('crisis-content');
+  if (!overlay || !content) return;
+
+  // Set type-specific class
+  overlay.className = 'crisis-' + type;
+
+  // Terminal: pre-generate lines if not provided
+  if (type === 'terminal' && !data.lines) {
+    data.lines = generateTerminalLines();
+    data.revealed = 0;
+    data._lastReveal = Date.now();
+  }
+
+  // Statuspage: pre-generate service statuses
+  if (type === 'statuspage' && !data.services) {
+    const statuses = ['Major Outage', 'Degraded', 'Operational'];
+    data.services = [
+      { name: 'API', status: 'Major Outage' },
+      { name: 'Dashboard', status: statuses[Math.floor(Math.random() * 2)] },
+      { name: 'Data Processing', status: statuses[Math.floor(Math.random() * 2)] },
+      { name: 'Authentication', status: statuses[1 + Math.floor(Math.random() * 2)] }
+    ];
+  }
+
+  // Initial render
+  const total = until - Date.now() + (until - Date.now());
+  content.innerHTML = renderCrisisContent(type, 0, data, until);
+  overlay.style.display = '';
+
+  // Scroll terminal to bottom
+  if (type === 'terminal') {
+    content.scrollTop = content.scrollHeight;
+  }
+}
+
+function renderCrisisContent(type, progress, data, until) {
+  const remaining = Math.max(0, until - Date.now());
+  const secsLeft = Math.ceil(remaining / 1000);
+  const bar = buildProgressBar(progress, 20);
+
+  switch (type) {
+    case 'bsod': {
+      const stopCode = (data && data.stopCode) || 'CRITICAL_PROCESS_DIED';
+      return `<div class="crisis-bsod-frown">:(</div>
+<div class="crisis-bsod-msg">Your company ran into a problem and needs to restart. We're just collecting some error info, and then we'll restart for you.</div>
+<div class="crisis-bsod-progress">${bar}</div>
+<div class="crisis-bsod-stop">Stop code: ${stopCode}</div>`;
+    }
+
+    case 'ransomware': {
+      const mm = Math.floor(secsLeft / 60);
+      const ss = String(secsLeft % 60).padStart(2, '0');
+      const timer = String(mm).padStart(2, '0') + ':' + ss;
+      return `<div class="crisis-ransom-lock">🔒</div>
+<div class="crisis-ransom-title">YOUR FILES HAVE BEEN ENCRYPTED</div>
+<div class="crisis-ransom-body">All company data has been locked by CryptoLocker v4.2.0<br><br>Send 15 BTC to:</div>
+<div class="crisis-ransom-addr">1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa</div>
+<div class="crisis-ransom-body" style="margin-bottom:8px">Time remaining before files are permanently deleted:</div>
+<div class="crisis-ransom-timer">${timer}</div>
+<div class="crisis-ransom-progress">${bar}</div>`;
+    }
+
+    case 'ddos': {
+      return `<div class="crisis-ddos-icon">🦕</div>
+<div class="crisis-ddos-title">This site can't be reached</div>
+<div class="crisis-ddos-subtitle">corp.internal.net took too long to respond.</div>
+<div class="crisis-ddos-list">Try:<br>• Checking the connection<br>• Checking the proxy and the firewall<br>• Running Windows Network Diagnostics</div>
+<div class="crisis-ddos-err">ERR_CONNECTION_TIMED_OUT</div>
+<div class="crisis-ddos-mitigate">CloudFlare mitigation: ${Math.round(progress * 100)}%</div>
+<div class="crisis-ddos-progress">${bar}</div>`;
+    }
+
+    case 'terminal': {
+      const lines = (data && data.lines) || [];
+      const revealed = (data && data.revealed) || 0;
+      const visibleLines = lines.slice(0, revealed);
+      let html = '<div class="crisis-terminal-lines">';
+      for (let i = 0; i < visibleLines.length; i++) {
+        html += '<div class="crisis-terminal-line">' + escapeHtml(visibleLines[i]) + '</div>';
+      }
+      if (progress < 1) {
+        html += '<span class="crisis-terminal-cursor"></span>';
+      }
+      html += '</div>';
+      html += '<div class="crisis-terminal-progress">' + bar + ' — Estimated: ' + String(Math.floor(secsLeft / 60)).padStart(2, '0') + ':' + String(secsLeft % 60).padStart(2, '0') + '</div>';
+      return html;
+    }
+
+    case 'statuspage': {
+      const services = (data && data.services) || [];
+      let svcHtml = '';
+      for (const svc of services) {
+        const cls = svc.status === 'Major Outage' ? 'status-outage' : svc.status === 'Degraded' ? 'status-degraded' : 'status-operational';
+        const dot = svc.status === 'Major Outage' ? '●' : svc.status === 'Degraded' ? '●' : '●';
+        svcHtml += `<div class="crisis-status-svc"><span class="crisis-status-svc-name">${escapeHtml(svc.name)}</span><span class="crisis-status-svc-status ${cls}">${dot} ${escapeHtml(svc.status)}</span></div>`;
+      }
+      const mm = Math.floor(secsLeft / 60);
+      const ss = String(secsLeft % 60).padStart(2, '0');
+      return `<div class="crisis-status-banner">● MAJOR OUTAGE</div>
+<div class="crisis-status-provider">AWS US-EAST-1</div>
+<div class="crisis-status-desc">Investigating — We are currently investigating increased error rates in the US-EAST-1 region.</div>
+<div class="crisis-status-services">${svcHtml}</div>
+<div class="crisis-status-updated">Last updated: 2 minutes ago</div>
+<div class="crisis-status-eta">Estimated resolution: ${String(mm).padStart(2, '0')}:${ss}</div>`;
+    }
+
+    default:
+      return '';
+  }
+}
+
+function escapeHtml(s) {
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+function updateCrisisOverlay() {
+  const crisis = gameState.crisisOverlay;
+  if (!crisis) return;
+
+  const now = Date.now();
+  const remaining = crisis.until - now;
+
+  // Expired?
+  if (remaining <= 0) {
+    hideCrisisOverlay();
+    return;
+  }
+
+  // Calculate total duration from the start data (estimate from remaining + elapsed progress)
+  // We'll use a simple approach: store startTime in data on first call
+  if (!crisis.data._startTime) {
+    crisis.data._startTime = now;
+    crisis.data._totalDuration = remaining;
+  }
+  const total = crisis.data._totalDuration;
+  const elapsed = now - crisis.data._startTime;
+  const progress = Math.min(1, elapsed / total);
+
+  if (crisis.type === 'frost') {
+    // Frost: just keep grid effect + title bar, no overlay to update
+    return;
+  }
+
+  // Terminal: reveal lines over time
+  if (crisis.type === 'terminal' && crisis.data.lines) {
+    const timeSinceReveal = now - (crisis.data._lastReveal || now);
+    if (timeSinceReveal >= 1500 && crisis.data.revealed < crisis.data.lines.length) {
+      crisis.data.revealed++;
+      crisis.data._lastReveal = now;
+    }
+  }
+
+  const content = document.getElementById('crisis-content');
+  if (content) {
+    content.innerHTML = renderCrisisContent(crisis.type, progress, crisis.data, crisis.until);
+    // Auto-scroll terminal to bottom
+    if (crisis.type === 'terminal') {
+      content.scrollTop = content.scrollHeight;
+    }
+  }
+}
+
+function hideCrisisOverlay() {
+  const crisis = gameState.crisisOverlay;
+  if (!crisis) return;
+
+  if (crisis.type === 'frost') {
+    // Restore grid
+    const grid = document.getElementById('grid-container');
+    if (grid) grid.classList.remove('crisis-frost-active');
+    // Restore title
+    const titleText = document.getElementById('title-text');
+    if (titleText && crisis.data._origTitle) {
+      titleText.textContent = crisis.data._origTitle;
+    }
+  } else {
+    // Hide the overlay
+    const overlay = document.getElementById('crisis-overlay');
+    if (overlay) {
+      overlay.className = 'hidden';
+      overlay.style.display = '';
+    }
+    // Unblock grid
+    const grid = document.getElementById('grid-container');
+    if (grid) grid.classList.remove('crisis-blocked');
+  }
+
+  gameState.crisisOverlay = null;
+}
+
+function isCrisisActive() {
+  return gameState.crisisOverlay && Date.now() < gameState.crisisOverlay.until;
+}
+
+function isCrisisBlocking() {
+  // Returns true if a non-frost crisis overlay is active (blocks grid interaction)
+  return isCrisisActive() && gameState.crisisOverlay.type !== 'frost';
+}
+
+function testCrisis(type) {
+  const duration = type === 'frost' ? 10000 : 12000;
+  const until = Date.now() + duration;
+  const data = {};
+  if (type === 'bsod') {
+    data.stopCode = BSOD_STOP_CODES[Math.floor(Math.random() * BSOD_STOP_CODES.length)];
+  }
+  if (type === 'terminal') {
+    data.lines = generateTerminalLines();
+    data.revealed = 0;
+    data._lastReveal = Date.now();
+  }
+  showCrisisOverlay(type, until, data);
+}
+
+window.testCrisis = testCrisis;
 window.unlockSource = unlockSource;
 window.hireEmployee = hireEmployee;
 window.upgradeSource = upgradeSource;

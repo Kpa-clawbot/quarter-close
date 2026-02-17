@@ -20,7 +20,7 @@
   <meta name="description" content="An idle tycoon game disguised as a spreadsheet. Look busy. Get rich.">
   <title>Q4 Financials - Operations.xlsx - Quarter Close</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='4' fill='%23217346'/><rect x='4' y='4' width='7' height='5' rx='1' fill='white'/><rect x='13' y='4' width='7' height='5' rx='1' fill='white'/><rect x='22' y='4' width='7' height='5' rx='1' fill='white'/><rect x='4' y='11' width='7' height='5' rx='1' fill='white' opacity='0.8'/><rect x='13' y='11' width='7' height='5' rx='1' fill='white' opacity='0.8'/><rect x='22' y='11' width='7' height='5' rx='1' fill='white' opacity='0.8'/><rect x='4' y='18' width='7' height='5' rx='1' fill='white' opacity='0.6'/><rect x='13' y='18' width='7' height='5' rx='1' fill='white' opacity='0.6'/><rect x='22' y='18' width='7' height='5' rx='1' fill='white' opacity='0.6'/><rect x='4' y='25' width='7' height='5' rx='1' fill='white' opacity='0.4'/><rect x='13' y='25' width='7' height='5' rx='1' fill='white' opacity='0.4'/><rect x='22' y='25' width='7' height='5' rx='1' fill='white' opacity='0.4'/></svg>">
-  <link rel="stylesheet" href="style.css?v=101">
+  <link rel="stylesheet" href="style.css?v=102">
 </head>
 <body>
   <!-- ===== SPLASH SCREEN ===== -->
@@ -185,7 +185,9 @@
     </div>
 
     <!-- Spreadsheet Grid -->
-    <div id="grid-container">
+    <div id="grid-container" style="position:relative">
+      <!-- Crisis overlay (z-index above grid, below modals) -->
+      <div id="crisis-overlay" class="hidden"><div id="crisis-content"></div></div>
       <!-- Column Headers (inside grid for shared column sizing) -->
       <div id="col-headers" class="grid-row">
         <div class="row-num-header"></div>
@@ -266,7 +268,7 @@
       <span class="rb-val" id="stat-day"></span>
       <span class="rb-sep">│</span>
       <span class="rb-val" id="stat-qtr" style="color:#217346;font-weight:600"></span>
-      <span style="margin-left:auto" id="debug-tools" class="hidden"><button class="cell-btn btn-max" onclick="triggerIRS()" style="color:#c00">🧪 IRS</button> <button class="cell-btn btn-max" onclick="triggerBonus()" style="color:#217346">🧪 5×</button> <button class="cell-btn btn-max" onclick="forceIPO()" style="color:#0078d4">🧪 IPO</button> <button class="cell-btn btn-max" onclick="resetBoardRoom()" style="color:#7b1fa2">🧪 Reset BR</button> <span style="position:relative;display:inline-block"><button class="cell-btn btn-max" onclick="toggleDebugEventDropdown()" style="color:#e65100">🧪 Event ▾</button><div id="debug-event-dropdown" class="hidden" style="position:absolute;bottom:100%;right:0;background:#fff;border:1px solid #ccc;border-radius:4px;box-shadow:0 2px 8px rgba(0,0,0,.2);max-height:300px;overflow-y:auto;z-index:999;width:320px;margin-bottom:2px"></div></span> <button class="cell-btn btn-max" onclick="testAllJuice()" style="color:#e91e63;font-weight:700">🧃 Juice</button> <span style="position:relative;display:inline-block"><button class="cell-btn btn-max" onclick="toggleJuiceKnobs()" style="color:#e91e63">🎛️ Knobs ▾</button><div id="juice-knobs-dropdown" class="hidden" style="position:absolute;bottom:100%;right:0;background:var(--bg-main,#fff);border:1px solid #ccc;border-radius:4px;box-shadow:0 2px 8px rgba(0,0,0,.2);z-index:999;width:280px;margin-bottom:2px;padding:8px;font-size:0.6875rem"></div></span> <span style="margin-left:6px;border-left:1px solid #ccc;padding-left:6px"><button class="cell-btn btn-max speed-btn" id="speed-1" onclick="setGameSpeed(1)" style="color:#333;font-weight:700">1×</button> <button class="cell-btn btn-max speed-btn" id="speed-2" onclick="setGameSpeed(2)">2×</button> <button class="cell-btn btn-max speed-btn" id="speed-3" onclick="setGameSpeed(3)">3×</button> <button class="cell-btn btn-max speed-btn" id="speed-5" onclick="setGameSpeed(5)">5×</button> <button class="cell-btn btn-max speed-btn" id="speed-10" onclick="setGameSpeed(10)">10×</button></span></span>
+      <span style="margin-left:auto" id="debug-tools" class="hidden"><button class="cell-btn btn-max" onclick="triggerIRS()" style="color:#c00">🧪 IRS</button> <button class="cell-btn btn-max" onclick="triggerBonus()" style="color:#217346">🧪 5×</button> <button class="cell-btn btn-max" onclick="forceIPO()" style="color:#0078d4">🧪 IPO</button> <button class="cell-btn btn-max" onclick="resetBoardRoom()" style="color:#7b1fa2">🧪 Reset BR</button> <span style="position:relative;display:inline-block"><button class="cell-btn btn-max" onclick="toggleDebugEventDropdown()" style="color:#e65100">🧪 Event ▾</button><div id="debug-event-dropdown" class="hidden" style="position:absolute;bottom:100%;right:0;background:#fff;border:1px solid #ccc;border-radius:4px;box-shadow:0 2px 8px rgba(0,0,0,.2);max-height:300px;overflow-y:auto;z-index:999;width:320px;margin-bottom:2px"></div></span> <button class="cell-btn btn-max" onclick="testAllJuice()" style="color:#e91e63;font-weight:700">🧃 Juice</button> <span style="position:relative;display:inline-block"><button class="cell-btn btn-max" onclick="toggleJuiceKnobs()" style="color:#e91e63">🎛️ Knobs ▾</button><div id="juice-knobs-dropdown" class="hidden" style="position:absolute;bottom:100%;right:0;background:var(--bg-main,#fff);border:1px solid #ccc;border-radius:4px;box-shadow:0 2px 8px rgba(0,0,0,.2);z-index:999;width:280px;margin-bottom:2px;padding:8px;font-size:0.6875rem"></div></span> <button class="cell-btn btn-max" onclick="testCrisis('bsod')" style="color:#0078d7">🧪 BSOD</button> <button class="cell-btn btn-max" onclick="testCrisis('ransomware')" style="color:#c00">🧪 Ransom</button> <button class="cell-btn btn-max" onclick="testCrisis('ddos')" style="color:#666">🧪 DDoS</button> <button class="cell-btn btn-max" onclick="testCrisis('terminal')" style="color:#0a0">🧪 DB</button> <button class="cell-btn btn-max" onclick="testCrisis('frost')" style="color:#69c">🧪 Frost</button> <button class="cell-btn btn-max" onclick="testCrisis('statuspage')" style="color:#e74c3c">🧪 Status</button> <span style="margin-left:6px;border-left:1px solid #ccc;padding-left:6px"><button class="cell-btn btn-max speed-btn" id="speed-1" onclick="setGameSpeed(1)" style="color:#333;font-weight:700">1×</button> <button class="cell-btn btn-max speed-btn" id="speed-2" onclick="setGameSpeed(2)">2×</button> <button class="cell-btn btn-max speed-btn" id="speed-3" onclick="setGameSpeed(3)">3×</button> <button class="cell-btn btn-max speed-btn" id="speed-5" onclick="setGameSpeed(5)">5×</button> <button class="cell-btn btn-max speed-btn" id="speed-10" onclick="setGameSpeed(10)">10×</button></span></span>
     </div>
 
     <!-- Sheet Tabs -->
@@ -774,7 +776,7 @@
     </div>
   </div>
 
-  <script src="game.js?v=189"></script>
+  <script src="game.js?v=190"></script>
   <script>
     if (location.hostname === 'kpa-clawbot.github.io') {
       var s = document.createElement('script');

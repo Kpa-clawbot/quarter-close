@@ -3355,3 +3355,353 @@ body.col-resizing * {
   color: var(--accent-red) !important;
   font-weight: 700;
 }
+
+/* ============================================
+   Crisis Overlay System
+   ============================================ */
+#crisis-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 500;
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  animation: crisis-fade-in 0.3s ease-out;
+}
+
+#crisis-overlay.hidden {
+  display: none !important;
+}
+
+@keyframes crisis-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+#crisis-content {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  overflow-y: auto;
+}
+
+/* --- BSOD --- */
+#crisis-overlay.crisis-bsod {
+  background: #0078d7;
+}
+#crisis-overlay.crisis-bsod #crisis-content {
+  color: white;
+  font-family: 'Segoe UI', sans-serif;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 10% 15%;
+}
+.crisis-bsod-frown {
+  font-size: 5rem;
+  margin-bottom: 16px;
+  line-height: 1;
+}
+.crisis-bsod-msg {
+  font-size: 1.1rem;
+  line-height: 1.6;
+  margin-bottom: 20px;
+  max-width: 480px;
+}
+.crisis-bsod-progress {
+  font-family: 'Consolas', 'Courier New', monospace;
+  font-size: 0.875rem;
+  margin-bottom: 16px;
+  letter-spacing: 0.5px;
+}
+.crisis-bsod-stop {
+  font-size: 0.75rem;
+  opacity: 0.8;
+}
+
+/* --- Ransomware --- */
+#crisis-overlay.crisis-ransomware {
+  background: #1a1a1a;
+}
+#crisis-overlay.crisis-ransomware #crisis-content {
+  color: #ff4444;
+  font-family: 'Consolas', 'Courier New', monospace;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+.crisis-ransom-lock {
+  font-size: 3rem;
+  margin-bottom: 12px;
+}
+.crisis-ransom-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: 2px;
+  margin-bottom: 16px;
+}
+.crisis-ransom-body {
+  font-size: 0.8125rem;
+  color: #ccc;
+  line-height: 1.6;
+  margin-bottom: 16px;
+  max-width: 400px;
+}
+.crisis-ransom-addr {
+  font-size: 0.6875rem;
+  color: #ff4444;
+  background: #2a2a2a;
+  padding: 6px 12px;
+  border-radius: 3px;
+  margin-bottom: 16px;
+  word-break: break-all;
+}
+.crisis-ransom-timer {
+  font-size: 1.5rem;
+  color: #ff4444;
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+.crisis-ransom-progress {
+  font-size: 0.875rem;
+  color: #888;
+  letter-spacing: 0.5px;
+}
+
+/* --- DDoS (Chrome error page) --- */
+#crisis-overlay.crisis-ddos {
+  background: #f5f5f5;
+}
+#crisis-overlay.crisis-ddos #crisis-content {
+  color: #333;
+  font-family: 'Segoe UI', Arial, sans-serif;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+.crisis-ddos-icon {
+  font-size: 3rem;
+  margin-bottom: 16px;
+  opacity: 0.6;
+}
+.crisis-ddos-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: #333;
+}
+.crisis-ddos-subtitle {
+  font-size: 0.8125rem;
+  color: #666;
+  margin-bottom: 16px;
+}
+.crisis-ddos-list {
+  text-align: left;
+  font-size: 0.75rem;
+  color: #555;
+  margin-bottom: 16px;
+  line-height: 1.8;
+}
+.crisis-ddos-err {
+  font-family: 'Consolas', 'Courier New', monospace;
+  font-size: 0.75rem;
+  color: #999;
+  margin-bottom: 16px;
+}
+.crisis-ddos-mitigate {
+  font-size: 0.8125rem;
+  color: #555;
+  margin-bottom: 8px;
+}
+.crisis-ddos-progress {
+  font-family: 'Consolas', 'Courier New', monospace;
+  font-size: 0.875rem;
+  color: #333;
+  letter-spacing: 0.5px;
+}
+
+/* DDoS dark mode */
+html[data-theme="dark"] #crisis-overlay.crisis-ddos {
+  background: #2d2d2d;
+}
+html[data-theme="dark"] #crisis-overlay.crisis-ddos .crisis-ddos-title {
+  color: #e0e0e0;
+}
+html[data-theme="dark"] #crisis-overlay.crisis-ddos .crisis-ddos-subtitle {
+  color: #aaa;
+}
+html[data-theme="dark"] #crisis-overlay.crisis-ddos .crisis-ddos-list {
+  color: #bbb;
+}
+html[data-theme="dark"] #crisis-overlay.crisis-ddos .crisis-ddos-err {
+  color: #777;
+}
+html[data-theme="dark"] #crisis-overlay.crisis-ddos .crisis-ddos-mitigate {
+  color: #bbb;
+}
+html[data-theme="dark"] #crisis-overlay.crisis-ddos .crisis-ddos-progress {
+  color: #e0e0e0;
+}
+html[data-theme="dark"] #crisis-overlay.crisis-ddos #crisis-content {
+  color: #e0e0e0;
+}
+
+/* --- Terminal (fsck recovery) --- */
+#crisis-overlay.crisis-terminal {
+  background: #0c0c0c;
+}
+#crisis-overlay.crisis-terminal #crisis-content {
+  color: #00ff00;
+  font-family: 'Consolas', 'Courier New', monospace;
+  font-size: 0.75rem;
+  align-items: flex-start;
+  justify-content: flex-end;
+  padding: 12px 16px;
+  overflow-y: auto;
+}
+.crisis-terminal-lines {
+  width: 100%;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.crisis-terminal-line {
+  opacity: 0.9;
+}
+.crisis-terminal-cursor {
+  display: inline-block;
+  width: 8px;
+  height: 1em;
+  background: #00ff00;
+  animation: terminal-blink 1s step-end infinite;
+  vertical-align: text-bottom;
+  margin-left: 2px;
+}
+@keyframes terminal-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+.crisis-terminal-progress {
+  margin-top: 12px;
+  font-size: 0.8125rem;
+  color: #00ff00;
+  letter-spacing: 0.5px;
+}
+
+/* --- Frost (Not Responding) --- */
+#grid-container.crisis-frost-active {
+  filter: blur(2px) grayscale(0.5);
+  opacity: 0.6;
+  pointer-events: none;
+  cursor: wait;
+}
+
+/* --- Statuspage --- */
+#crisis-overlay.crisis-statuspage {
+  background: #fff;
+}
+#crisis-overlay.crisis-statuspage #crisis-content {
+  color: #333;
+  font-family: 'Segoe UI', Arial, sans-serif;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 20px 24px;
+}
+.crisis-status-banner {
+  width: 100%;
+  max-width: 400px;
+  background: #e74c3c;
+  color: white;
+  text-align: center;
+  font-weight: 700;
+  font-size: 0.875rem;
+  padding: 10px 16px;
+  border-radius: 4px;
+  margin-bottom: 16px;
+  letter-spacing: 1px;
+}
+.crisis-status-provider {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 12px;
+}
+.crisis-status-desc {
+  font-size: 0.75rem;
+  color: #666;
+  margin-bottom: 16px;
+  line-height: 1.5;
+  max-width: 400px;
+}
+.crisis-status-services {
+  width: 100%;
+  max-width: 400px;
+  margin-bottom: 16px;
+}
+.crisis-status-svc {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 0;
+  border-bottom: 1px solid #eee;
+  font-size: 0.75rem;
+}
+.crisis-status-svc-name {
+  color: #333;
+}
+.crisis-status-svc-status {
+  font-weight: 600;
+  font-size: 0.6875rem;
+}
+.crisis-status-svc-status.status-outage { color: #e74c3c; }
+.crisis-status-svc-status.status-degraded { color: #f39c12; }
+.crisis-status-svc-status.status-operational { color: #27ae60; }
+.crisis-status-updated {
+  font-size: 0.6875rem;
+  color: #999;
+  margin-bottom: 12px;
+}
+.crisis-status-eta {
+  font-size: 0.875rem;
+  color: #333;
+  font-weight: 600;
+}
+
+/* Statuspage dark mode */
+html[data-theme="dark"] #crisis-overlay.crisis-statuspage {
+  background: #1e1e1e;
+}
+html[data-theme="dark"] #crisis-overlay.crisis-statuspage #crisis-content {
+  color: #e0e0e0;
+}
+html[data-theme="dark"] .crisis-status-provider {
+  color: #e0e0e0;
+}
+html[data-theme="dark"] .crisis-status-desc {
+  color: #aaa;
+}
+html[data-theme="dark"] .crisis-status-svc-name {
+  color: #d0d0d0;
+}
+html[data-theme="dark"] .crisis-status-svc {
+  border-bottom-color: #333;
+}
+html[data-theme="dark"] .crisis-status-updated {
+  color: #777;
+}
+html[data-theme="dark"] .crisis-status-eta {
+  color: #e0e0e0;
+}
+
+/* Grid blocking during crisis (non-frost overlays) */
+#grid-container.crisis-blocked {
+  pointer-events: none;
+}
