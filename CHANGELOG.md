@@ -2,6 +2,37 @@
 
 All notable changes to Quarter Close.
 
+## [v0.7.0] — 2026-02-17 — Crisis Mode
+
+### ⚡ Crisis Overlays
+When disaster strikes, your spreadsheet fights back with dramatic full-screen overlays:
+- **Power Outage → Blue Screen of Death** — Windows-style BSOD with random stop codes and recovery progress bar
+- **Ransomware → Lock Screen** — dark terminal with red text, fake BTC ransom address, countdown timer
+- **DDoS Attack → Chrome Error Page** — "ERR_CONNECTION_TIMED_OUT" with CloudFlare-style recovery progress
+- **Database Corruption → Terminal Console** — green-on-black fsck recovery with lines appearing one by one
+- **Password Reset → (Not Responding)** — screen frosts over with blur + grayscale, title bar shows "(Not Responding)"
+- **Cloud Outage → Status Page** — corporate incident page with service-by-service status indicators
+- Grid interactions blocked during crises (menus and Board Room still accessible)
+- DDoS now drops revenue to 0% (was 50%) — full outage justifies the dramatic overlay
+
+### 🏢 Board Room Improvements
+- **Completed categories collapse** — fully-purchased upgrade categories shrink to a single "✅ Complete (3/3)" row
+- **VP of Ops stats expanded** — from one cramped line to three detailed rows: tasks completed, avg per task, capture rate, revenue earned, left on table, best streak
+- **Separate column widths** — Operations and Board Room tabs now have independent column widths, saved separately
+
+### ✨ More Visual Feedback
+- **$/day floating numbers** — shows delta (`+$2.5M`) when revenue rate changes from upgrades or hires
+- **Rev/Q floating numbers** — shows quarterly delta (`+$225M/Q`) with cell flash on changes
+- **RE spend floats** — Board Room purchases show floating `-500 RE` with red cell flash
+- **Float stacking** — multiple simultaneous floating numbers on the same cell now stagger 24px apart instead of overlapping
+
+### 🔧 Fixes
+- **Chart no longer reappears after close on reload** — init order bug: chart mode was loading before save data, always seeing default "visible" state
+- **Milestone spam on reload fixed** — milestone trackers (_lastCashMilestone, _lastRevDayMilestone, _lastREMilestone) now persist in save data
+- **Revenue stat suffixes fixed** — status bar revenue above Quadrillion now shows correct Qi/Sx/Sp/Oc/No/Dc suffixes instead of raw numbers
+- **Crisis overlay covers full viewport** — uses position:fixed instead of absolute, works in both Operations and Board Room tabs
+- **Column resize works in Board Room** — removed the guard that was blocking column resize in the Board Room tab
+
 ## [v0.6.0] — 2026-02-17 — Quality of Life
 
 ### ✨ Visual Effects ("Game Juice")
