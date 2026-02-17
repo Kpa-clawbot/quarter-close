@@ -1993,10 +1993,7 @@ body.col-resizing * {
   overflow: hidden;
 }
 
-#boss-grid::before {
-  content: '';
-  grid-column: 1;
-  grid-row: 1;
+.boss-corner {
   background: var(--bg-main);
   border-right: 1px solid var(--border-medium);
   border-bottom: 1px solid var(--border-medium);
@@ -2028,6 +2025,14 @@ body.col-resizing * {
 .boss-cell {
   border-right: 1px solid var(--border-faint);
   border-bottom: 1px solid var(--border-faint);
+  font-size: 0.6875rem;
+  padding: 0 4px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  display: flex;
+  align-items: center;
+  color: var(--text-primary);
 }
 
 /* ============================================

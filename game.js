@@ -5358,11 +5358,28 @@ function generateBossGrid() {
   const grid = document.getElementById('boss-grid');
   grid.innerHTML = '';
 
-  const corner = document.createElement('div');
-  corner.style.cssText = `background:${dm('#f0f0f0')};border-right:1px solid ${dm('#c0c0c0')};border-bottom:1px solid ${dm('#c0c0c0')};`;
-  grid.appendChild(corner);
+  // Fake spreadsheet data — looks like someone's boring budget tracker
+  const fakeData = {
+    'A1': 'Category', 'B1': 'Jan', 'C1': 'Feb', 'D1': 'Mar', 'E1': 'Q1 Total', 'F1': 'Notes',
+    'A2': 'Office Supplies', 'B2': '$1,247', 'C2': '$983', 'D2': '$1,105', 'E2': '$3,335', 'F2': 'includes toner',
+    'A3': 'Software Licenses', 'B3': '$4,500', 'C3': '$4,500', 'D3': '$4,500', 'E3': '$13,500',
+    'A4': 'Travel', 'B4': '$2,100', 'C4': '$0', 'D4': '$3,800', 'E4': '$5,900', 'F4': 'conf in March',
+    'A5': 'Catering', 'B5': '$650', 'C5': '$720', 'D5': '$890', 'E5': '$2,260',
+    'A6': 'Utilities', 'B6': '$1,800', 'C6': '$1,800', 'D6': '$1,800', 'E6': '$5,400',
+    'A7': 'Misc', 'B7': '$340', 'C7': '$125', 'D7': '$567', 'E7': '$1,032',
+    'A8': '', 'B8': '', 'C8': '', 'D8': '', 'E8': '',
+    'A9': 'TOTAL', 'B9': '$10,637', 'C9': '$8,128', 'D9': '$12,662', 'E9': '$31,427',
+    'A11': 'Budget', 'B11': '$12,000', 'C11': '$12,000', 'D11': '$12,000', 'E11': '$36,000',
+    'A12': 'Variance', 'B12': '$1,363', 'C12': '$3,872', 'D12': '-$662', 'E12': '$4,573',
+  };
+  const headerRow = { 'A1':1,'B1':1,'C1':1,'D1':1,'E1':1,'F1':1,'A9':1,'A11':1 };
+  const numberCols = { 'B':1,'C':1,'D':1,'E':1 };
 
   const cols = 'ABCDEFGHIJ';
+  const corner = document.createElement('div');
+  corner.className = 'boss-corner';
+  grid.appendChild(corner);
+
   for (let c = 0; c < 10; c++) {
     const header = document.createElement('div');
     header.className = 'boss-col-header';
@@ -5378,6 +5395,14 @@ function generateBossGrid() {
     for (let c = 0; c < 10; c++) {
       const cell = document.createElement('div');
       cell.className = 'boss-cell';
+      const key = cols[c] + r;
+      const val = fakeData[key];
+      if (val) {
+        cell.textContent = val;
+        if (headerRow[key]) cell.style.fontWeight = '700';
+        if (numberCols[cols[c]] && r > 1) cell.style.textAlign = 'right';
+        if (key === 'D12') cell.style.color = dm('#c00');
+      }
       grid.appendChild(cell);
     }
   }
