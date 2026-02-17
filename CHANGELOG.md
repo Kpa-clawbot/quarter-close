@@ -15,23 +15,41 @@ When disaster strikes, your spreadsheet fights back with dramatic full-screen ov
 - Grid interactions blocked during crises (menus and Board Room still accessible)
 - DDoS now drops revenue to 0% (was 50%) — full outage justifies the dramatic overlay
 
+### 🤝 Sales Director (NEW)
+- **New Board Room upgrade** — auto-closes "Close the Deal" popups so you never miss a contract
+- Three levels: Lv1 (1,000 RE, 50% deal value), Lv2 (4,000 RE, 75%), Lv3 (15,000 RE, 100%)
+- Stats tracking in Board Room: deals closed, revenue earned, left on table, capture rate
+- Automation hint after 5 manual deals — email from Sales Department nudges toward Board Room
+
 ### 🏢 Board Room Improvements
+- **Board Room reorganized** — old "Operations" category split into three clean groups: 👥 Hiring (COO), 📋 Admin (VP of Ops), 🤝 Sales (Sales Director). Each collapses independently when fully purchased.
 - **Completed categories collapse** — fully-purchased upgrade categories shrink to a single "✅ Complete (3/3)" row
-- **VP of Ops stats expanded** — from one cramped line to three detailed rows: tasks completed, avg per task, capture rate, revenue earned, left on table, best streak
-- **Separate column widths** — Operations and Board Room tabs now have independent column widths, saved separately
+- **Mixed categories handled** — categories with both finite and repeatable upgrades (like Revenue) collapse the finished tiers while keeping repeatable ones visible (e.g., Growth Initiative)
+- **VP of Ops stats expanded** — three detailed rows: tasks completed, avg per task, capture rate, revenue earned, left on table, best streak
+- **Sales Director stats** — deals closed, revenue earned, left on table, capture rate
+- **Separate column widths** — Operations and Board Room tabs have independent column widths, saved separately
+
+### 💰 CFO Budget Rebalance
+- **CFO Lv3 no longer traps you at 5%** — old logic halved budget on tax debt AND subtracted 5% on streaks, bottoming out permanently
+- **CFO now splurges on winning streaks** — streak ≥3 adds +2% per streak level (up to 40%) instead of reducing budget
+- **Base rates bumped** — conservative 25% (was 20%), in-line 18% (was 15%), ambitious 12% (was 10%)
+- **Budget sliders always usable** — dragging the slider when Auto is on automatically switches to manual control
+- **CTO/COO auto-buy floats from budget pool** — floating numbers now appear on the pool display, not the main cash number
 
 ### ✨ More Visual Feedback
-- **$/day floating numbers** — shows delta (`+$2.5M`) when revenue rate changes from upgrades or hires
-- **Rev/Q floating numbers** — shows quarterly delta (`+$225M/Q`) with cell flash on changes
-- **RE spend floats** — Board Room purchases show floating `-500 RE` with red cell flash
-- **Float stacking** — multiple simultaneous floating numbers on the same cell now stagger 24px apart instead of overlapping
+- **RE earn floats** — shows `+42 RE` when retained earnings increase (earnings beats, events)
+- **RE spend floats** — Board Room purchases show floating `-500 RE` from the RE display
+- **$/day floating numbers** — shows delta (`+$2.5M`) when revenue rate changes
+- **Rev/Q floating numbers** — shows quarterly delta (`+$225M/Q`) with cell flash
+- **Float stacking capped at 3** — no more climbing off-screen; uses modular positioning
+- **RE display moved to cell E** — cleaner layout with rev/Q in cell D, ⭐ RE in cell E
 
 ### 🔧 Fixes
-- **Chart no longer reappears after close on reload** — init order bug: chart mode was loading before save data, always seeing default "visible" state
-- **Milestone spam on reload fixed** — milestone trackers (_lastCashMilestone, _lastRevDayMilestone, _lastREMilestone) now persist in save data
-- **Revenue stat suffixes fixed** — status bar revenue above Quadrillion now shows correct Qi/Sx/Sp/Oc/No/Dc suffixes instead of raw numbers
-- **Crisis overlay covers full viewport** — uses position:fixed instead of absolute, works in both Operations and Board Room tabs
-- **Column resize works in Board Room** — removed the guard that was blocking column resize in the Board Room tab
+- **Chart no longer reappears after close on reload** — init order bug fixed
+- **Milestone spam on reload fixed** — milestone trackers now persist in save data
+- **Revenue stat suffixes fixed** — status bar above Quadrillion shows correct suffixes
+- **Crisis overlay covers full viewport** — position:fixed, works in both tabs
+- **Column resize works in Board Room** — removed blocking guard
 
 ## [v0.6.0] — 2026-02-17 — Quality of Life
 

@@ -354,7 +354,7 @@ Added 8 new IT disaster events with varied mechanics:
 | Event | Sender | Effect | Player Choice |
 |-------|--------|--------|---------------|
 | Ransomware | IT Security | Full revenue freeze 30-60s or 15% cash | Pay vs rebuild |
-| DDoS Attack | Network Operations | 50% revenue 20-30s | No choice |
+| DDoS Attack | Network Operations | 0% revenue 20-30s | No choice |
 | DB Corruption | DBA Team | Random dept offline 15-20s or 3% cash | Fix vs wait |
 | Email Server Down | IT Department | Mini-tasks blocked 45-60s | No choice |
 | Password Reset | IT Security | 10s full freeze (timed) | No choice |
@@ -468,3 +468,26 @@ Level/prestige/breakthrough tags right-justified via flexbox. Name left, tags ri
 - Triggers: 10 mini-tasks → VP of Ops, 5 tax settlements → CPA, 3 missed earnings → CFO, 15 manual hires → COO
 - Phase-gated (post-IPO only), fires once per hint type
 - Tracked in gameState.automationHints
+
+**Sales Director (v0.7.0)**
+- Board Room purchase in Sales category, auto-closes "Close the Deal" popups
+- 3 levels: Lv1 (1000 RE, 50% value), Lv2 (4000 RE, 75%), Lv3 (15000 RE, 100%)
+- Stats tracking in gameState.salesDirStats: dealsCompleted, totalRevenue, revenueMissed
+- Auto-close happens in spawnDeal() before popup is shown — no popup at all when active
+- Automation hint after 5 manual deals (hintManualDealCount, includes both closes and failures)
+
+**Board Room Categories (v0.7.0)**
+- Old "Operations" split into 3 categories: Hiring (COO), Admin (VP of Ops), Sales (Sales Director)
+- Each collapses independently when all tiers purchased
+- Categories with mix of finite+repeatable upgrades collapse finite into summary, keep repeatable visible
+- Sort order: chain-grouped (base ID), then by cost within chain — no interleaving
+
+**CFO Budget Rebalance (v0.7.0)**
+- CFO Lv3 base rates: conservative 25%, in-line 18%, ambitious 12%
+- Tax debt: -3% (min 8%) — was halving to floor of 5%
+- Streak ≥3: +2% per streak level, cap 40% — was -5% at streak ≥5
+- Budget sliders always usable; dragging auto-disables CFO Auto (`_autoBuyActive` flag)
+
+**CTO/COO Auto-Buy Float Fix (v0.7.0)**
+- `_autoBuyActive` flag suppresses flashCash/floatingNumber on main cash display during auto-buy
+- Float triggers on `#cto-pool-display` / `#coo-pool-display` spans inside budget row instead

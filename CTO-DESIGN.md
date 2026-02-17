@@ -144,9 +144,10 @@ function ctoAutoUpgrade(level):
 - Effect: Adds "Auto" toggle next to budget slider
 - When Auto ON: CFO sets budget % each quarter automatically, slider moves on its own
   - CFO Lv1: fixed 15% always
-  - CFO Lv2: adjusts based on guidance — conservative guidance → higher budget, ambitious → tighter
-  - CFO Lv3: factors in streak, analyst baseline, tax debt. Slashes budget if unpaid taxes. Tightens proactively on long streaks.
+  - CFO Lv2: adjusts based on guidance — conservative 25%, in-line 18%, ambitious 12%
+  - CFO Lv3: tax debt reduces by 3% (min 8%); winning streak ≥3 adds +2%/streak (cap 40%)
 - When Auto OFF: player controls slider manually (default)
+- Dragging the slider automatically unchecks Auto (switches to manual)
 - `gameState.ctoBudgetAuto` — boolean, persisted in save
 
 ### CTO Tier Behavior (within budget)
