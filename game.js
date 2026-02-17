@@ -214,6 +214,7 @@ function buildSaveData() {
     overtimeClicks: gameState.overtimeClicks || 0,
     focusTipShown: gameState.focusTipShown || false,
     columnWidths: gameState.columnWidths || null,
+    boardroomColumnWidths: gameState.boardroomColumnWidths || null,
     chartVisible: gameState.chartVisible !== false,
     chartPosition: gameState.chartPosition || null,
     juiceEnabled: gameState.juiceEnabled !== false,
@@ -4828,6 +4829,7 @@ function loadGame(slotId) {
     gameState.overtimeClicks = data.overtimeClicks || 0;
     gameState.focusTipShown = data.focusTipShown || false;
     gameState.columnWidths = data.columnWidths || null;
+    gameState.boardroomColumnWidths = data.boardroomColumnWidths || null;
     gameState.chartVisible = data.chartVisible !== false;
     gameState.chartPosition = data.chartPosition || null;
     gameState.juiceEnabled = data.juiceEnabled !== false;
@@ -4983,6 +4985,7 @@ function resetGame() {
   gameState.overtimeClicks = 0;
   gameState.focusTipShown = false;
   gameState.columnWidths = null;
+  gameState.boardroomColumnWidths = null;
   gameState.chartPosition = null;
   gameState.chartVisible = true;
   gameState.juiceEnabled = true;
@@ -6348,11 +6351,12 @@ function switchTab(tab) {
     tabOps.classList.remove('active');
     tabBR.classList.add('active');
     gridArea.classList.add('boardroom-layout');
-    // Apply custom column widths if set, otherwise let CSS class handle defaults
-    if (gameState.columnWidths) {
-      applyColumnWidths(gameState.columnWidths);
+    // Apply boardroom-specific column widths
+    const brWidths = gameState.boardroomColumnWidths;
+    if (brWidths) {
+      applyColumnWidths(brWidths);
     } else {
-      gridArea.style.gridTemplateColumns = '';
+      gridArea.style.gridTemplateColumns = ''; // use CSS defaults
     }
     buildBoardRoom();
   } else {
@@ -6965,10 +6969,22 @@ window.toggleDarkMode = toggleDarkMode;
 
 // ===== COLUMN RESIZE =====
 const DEFAULT_COL_WIDTHS = [200, 120, 128, 190, 160, 130, 120]; // px equivalents of default rem widths (A-G)
+const DEFAULT_BR_COL_WIDTHS = [160, 288, 112, 128, 160, 128, 120]; // boardroom defaults (A-G, matches CSS boardroom-layout)
 const MIN_COL_WIDTH = 40;
 
 function getColumnWidths() {
+  if (gameState.activeTab === 'boardroom') {
+    return gameState.boardroomColumnWidths || DEFAULT_BR_COL_WIDTHS.slice();
+  }
   return gameState.columnWidths || DEFAULT_COL_WIDTHS.slice();
+}
+
+function setColumnWidths(widths) {
+  if (gameState.activeTab === 'boardroom') {
+    gameState.boardroomColumnWidths = widths;
+  } else {
+    gameState.columnWidths = widths;
+  }
 }
 
 function applyColumnWidths(widths) {
@@ -7015,7 +7031,7 @@ function initColumnResize() {
       const newWidth = Math.max(MIN_COL_WIDTH, Math.round(startWidth + delta));
       const widths = getColumnWidths();
       widths[col] = newWidth;
-      gameState.columnWidths = widths;
+      setColumnWidths(widths);
       applyColumnWidths(widths);
     }
 
