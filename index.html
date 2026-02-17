@@ -440,7 +440,7 @@
           </label>
           <label class="option-toggle">
             <input type="checkbox" id="toggle-overtime" onchange="toggleFeature('overtime', this.checked)">
-            <span class="option-name">⏰ Overtime</span>
+            <span class="option-name">⏰ All-Hands Sprint</span>
             <span class="option-info">Click for instant revenue bursts with diminishing returns per quarter.</span>
           </label>
           <label class="option-toggle">
@@ -520,13 +520,14 @@
             <div class="help-section">
               <h4>🎯 Management Focus</h4>
               <p><b>Click a department's name</b> (look for the 🎯 icon) to add focus points.</p>
-              <p>Each point = <b>+5% revenue</b> for that department, up to <b>+50%</b> at max focus.</p>
-              <p>Focus <b>decays</b> over time — 1 point lost every 10 seconds of not clicking. Keep rotating between departments for maximum benefit.</p>
-              <p>The bonus shows as a green percentage in the Rev/day column.</p>
+              <p>Each point = <b>+25% revenue</b> for that department, up to <b>+200%</b> (8 stacks).</p>
+              <p>Focus <b>decays</b> over time — 1 point lost every 20 seconds of not clicking. Keep rotating between departments for maximum benefit.</p>
+              <p>Works on automated departments — this is your main active play mechanic late game.</p>
             </div>
             <div class="help-section">
-              <h4>⏰ Overtime</h4>
-              <p>The <b>"Push It"</b> button below your departments gives instant cash equal to 5 seconds of revenue.</p>
+              <h4>⏰ All-Hands Sprint</h4>
+              <p>The <b>"All-Hands"</b> button below your departments gives 30 days of total revenue per charge.</p>
+              <p><b>3 charges per quarter</b> — use them wisely. No diminishing returns, each charge is full power.</p>
               <p><b>Diminishing returns:</b> each click in the same quarter gives less. Click 1 = 100%, click 5 ≈ 57%, click 10 ≈ 40%.</p>
               <p>Resets every quarter — fresh energy each Q.</p>
               <p>Shows your click count, next payout, and efficiency %.</p>
@@ -832,7 +833,7 @@
     </div>
   </div>
 
-  <script src="game.js?v=215"></script>
+  <script src="game.js?v=216"></script>
   <script>
     if (location.hostname === 'kpa-clawbot.github.io') {
       var s = document.createElement('script');

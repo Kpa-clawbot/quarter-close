@@ -213,7 +213,7 @@ function buildSaveData() {
     lastQuarterRE: gameState.lastQuarterRE || 0,
     featureToggles: gameState.featureToggles || DEFAULT_FEATURES,
     eventFreqMult: EVENT_FREQ_MULT,
-    overtimeClicks: gameState.overtimeClicks || 0,
+    overtimeCharges: gameState.overtimeCharges || 0,
     focusTipShown: gameState.focusTipShown || false,
     columnWidths: gameState.columnWidths || null,
     boardroomColumnWidths: gameState.boardroomColumnWidths || null,
@@ -2069,7 +2069,7 @@ function sourceRevPerTick(source) {
   const upgradeMult = 1 + source.upgradeLevel * 0.5;
   const prestigeMult = Math.pow(10, source.prestigeLevel || 0);
   const breakthroughMult = source.breakthroughMult || 1;
-  const focusMult = isFeatureEnabled('managementFocus') ? 1 + (source.focus || 0) * 0.05 : 1;
+  const focusMult = isFeatureEnabled('managementFocus') ? 1 + (source.focus || 0) * 0.25 : 1;
   return source.employees * stats.baseRate * upgradeMult * prestigeMult * breakthroughMult * focusMult / 365.25;
 }
 
@@ -2105,7 +2105,7 @@ function sourceAnnualRev(source) {
   const upgradeMult = 1 + source.upgradeLevel * 0.5;
   const prestigeMult = Math.pow(10, source.prestigeLevel || 0);
   const breakthroughMult = source.breakthroughMult || 1;
-  const focusMult = isFeatureEnabled('managementFocus') ? 1 + (source.focus || 0) * 0.05 : 1;
+  const focusMult = isFeatureEnabled('managementFocus') ? 1 + (source.focus || 0) * 0.25 : 1;
   return source.employees * stats.baseRate * upgradeMult * prestigeMult * breakthroughMult * focusMult;
 }
 
@@ -2623,11 +2623,11 @@ function buildGrid() {
   const otRowNum = SOURCE_STATS.length + 3;
   overtimeRow.innerHTML = `
     <div class="row-num">${otRowNum}</div>
-    <div class="cell cell-a" style="font-weight:600;color:${dm('#555')}">⏰ Overtime</div>
+    <div class="cell cell-a" style="font-weight:600;color:${dm('#555')}">⏰ All-Hands Sprint</div>
     <div class="cell cell-b" id="overtime-clicks" style="font-size:0.6875rem;color:${dm('#888')}"></div>
     <div class="cell cell-c" id="overtime-next" style="font-family:Consolas,monospace;font-size:0.6875rem;color:${dm('#217346')};justify-content:flex-end"></div>
     <div class="cell cell-d">
-      <button class="cell-btn btn-collect" id="overtime-btn" onclick="clickOvertime()" title="Instant cash (5s of revenue). Diminishing returns per quarter.">Push It</button>
+      <button class="cell-btn btn-collect" id="overtime-btn" onclick="clickOvertime()" title="30 days of total revenue per charge. 3 charges per quarter.">All-Hands</button>
     </div>
     <div class="cell cell-e" id="overtime-diminish" style="font-size:0.625rem;color:${dm('#999')}"></div>
     <div class="cell cell-f"></div>
@@ -2709,7 +2709,7 @@ function updateGridValues() {
     const breakthroughTag = (state.breakthroughMult || 1) > 1 ? ` <span style="color:${dm('#2e7d32')};font-size:0.625rem">🔬×${state.breakthroughMult}</span>` : '';
     const focusLevel = state.focus || 0;
     const focusable = isFeatureEnabled('managementFocus') && state.automated;
-    const focusIcon = focusable ? `<span class="focus-icon${focusLevel > 0 ? ' focus-active' : ''}" title="Click to boost revenue (+5% per click, max +50%)">🎯</span>` : '';
+    const focusIcon = focusable ? `<span class="focus-icon${focusLevel > 0 ? ' focus-active' : ''}" title="Click to boost revenue (+25% per click, max +200%, decays over time)">🎯</span>` : '';
     const tags = (state.upgradeLevel > 0 ? `<span style="color:${dm('#999')};font-size:0.625rem">Lv${state.upgradeLevel}</span>` : '') + prestigeTag + breakthroughTag;
     nameCell.innerHTML = `<span style="display:flex;align-items:center;justify-content:space-between;width:100%"><span>${focusIcon}${src.name}</span><span style="white-space:nowrap">${tags}</span></span>`;
     if (focusable) {
@@ -2736,7 +2736,7 @@ function updateGridValues() {
     } else {
       row.classList.remove('db-outage');
       if (isFeatureEnabled('managementFocus') && focusLevel > 0) {
-        rateCell.innerHTML = `${formatPerTick(revPerDay)} <span class="focus-bonus">+${focusLevel * 5}%</span>`;
+        rateCell.innerHTML = `${formatPerTick(revPerDay)} <span class="focus-bonus">+${focusLevel * 25}%</span>`;
       } else {
         rateCell.textContent = formatPerTick(revPerDay);
       }
@@ -2779,9 +2779,9 @@ function updateGridValues() {
     const a3 = row.querySelector('[data-field="action3"]');
     if (!state.automated) {
       const pending = state.pendingCollect;
-      const clickVal = src.clickValue;
+      const clickVal = sourceRevPerTick(state) * 0.5;
       const hasPending = pending > 0.005;
-      a3.innerHTML = `<button class="cell-btn btn-collect" onclick="collectSource(${i})" title="Click to collect pending revenue">Collect${hasPending ? ' ' + formatMoney(pending) : ''} (+${formatMoney(clickVal)})</button>`;
+      a3.innerHTML = `<button class="cell-btn btn-collect" onclick="collectSource(${i})" title="Click to collect — 50% of daily revenue per click">Collect${hasPending ? ' ' + formatMoney(pending) : ''} (+${formatMoney(clickVal)})</button>`;
     } else if (gameState.isPublic) {
       const pCost = prestigeCost(state);
       const canPrestige = gameState.retainedEarnings >= pCost;
@@ -3154,9 +3154,8 @@ function collectSource(index) {
   const state = gameState.sources[index];
   if (!state.unlocked || state.automated) return;
 
-  // Click value = flat bonus per click + any pending passive
-  const src = getSourceDef(index);
-  const clickEarnings = src.clickValue + state.pendingCollect;
+  // Click value = 50% of dept's daily revenue + any pending passive
+  const clickEarnings = sourceRevPerTick(state) * 0.5 + state.pendingCollect;
   gameState.cash += clickEarnings;
   gameState.totalEarned += clickEarnings;
   gameState.quarterRevenue += clickEarnings;
@@ -4388,7 +4387,7 @@ function gameTick() {
   if (currentDay - gameState.lastQuarterDay >= 90) {
     processQuarterlyTax();
     gameState.lastQuarterDay = currentDay;
-    gameState.overtimeClicks = 0; // reset overtime each quarter
+    gameState.overtimeCharges = 3; // 3 charges per quarter
     if (gameState.vpOpsStats) gameState.vpOpsStats.quarterTasks = 0; // reset VP Ops quarter counter
   }
 
@@ -5015,7 +5014,7 @@ function loadGame(slotId) {
     gameState.lastQuarterRE = data.lastQuarterRE || 0;
     gameState.featureToggles = data.featureToggles || { ...DEFAULT_FEATURES };
     EVENT_FREQ_MULT = data.eventFreqMult != null ? data.eventFreqMult : 1.0;
-    gameState.overtimeClicks = data.overtimeClicks || 0;
+    gameState.overtimeCharges = data.overtimeCharges || 0;
     gameState.focusTipShown = data.focusTipShown || false;
     gameState.columnWidths = data.columnWidths || null;
     gameState.boardroomColumnWidths = data.boardroomColumnWidths || null;
@@ -5178,7 +5177,7 @@ function resetGame() {
   gameState.lastQuarterRE = 0;
   gameState.featureToggles = { ...DEFAULT_FEATURES };
   EVENT_FREQ_MULT = 1.0;
-  gameState.overtimeClicks = 0;
+  gameState.overtimeCharges = 3;
   gameState.focusTipShown = false;
   gameState.columnWidths = null;
   gameState.boardroomColumnWidths = null;
@@ -5534,7 +5533,7 @@ function clickFocus(sourceIndex) {
   if (!state || !state.unlocked || state.employees === 0) return;
 
   if (!state.focus) state.focus = 0;
-  state.focus = Math.min(10, state.focus + 1);
+  state.focus = Math.min(8, state.focus + 1); // max 8 stacks = +200%
   state.lastFocusClick = Date.now();
 
   // Brief cell flash
@@ -5555,8 +5554,8 @@ function decayFocus() {
   for (const state of gameState.sources) {
     if (!state.focus || state.focus <= 0) continue;
     const elapsed = now - (state.lastFocusClick || 0);
-    // Lose 1 focus point every 10 seconds since last click
-    const shouldHave = Math.max(0, (state.focus || 0) - Math.floor(elapsed / 10000));
+    // Lose 1 focus point every 20 seconds since last click
+    const shouldHave = Math.max(0, (state.focus || 0) - Math.floor(elapsed / 20000));
     if (shouldHave < state.focus) {
       state.focus = shouldHave;
     }
@@ -5704,25 +5703,24 @@ function failDeal() {
 // ===== OVERTIME =====
 function clickOvertime() {
   if (!isFeatureEnabled('overtime')) return;
-  if (isCrisisBlocking()) return; // crisis overlay blocks overtime
+  if (isCrisisBlocking()) return;
   const rev = totalRevPerTick();
   if (rev <= 0) return;
 
-  if (!gameState.overtimeClicks) gameState.overtimeClicks = 0;
+  const charges = gameState.overtimeCharges || 0;
+  if (charges <= 0) return;
 
-  // Base = 5 seconds of revenue, diminishing returns
-  const diminish = 1 / (1 + gameState.overtimeClicks * 0.15);
-  const amount = rev * 5 * diminish;
+  // Each charge = 30 days of total revenue, no diminishing
+  const amount = rev * 30;
 
   gameState.cash += amount;
   gameState.totalEarned += amount;
   gameState.quarterRevenue += amount;
   if (gameState.isPublic) gameState.earningsQuarterRevenue += amount;
-  gameState.overtimeClicks++;
+  gameState.overtimeCharges--;
 
   flashCash(); floatingNumber(amount, document.getElementById('cash-display'), false);
-  // Status bar feedback
-  document.getElementById('status-text').textContent = `⏰ Overtime! +${formatMoney(amount)}`;
+  document.getElementById('status-text').textContent = `⏰ All-Hands Sprint! +${formatMoney(amount)} (${gameState.overtimeCharges} left)`;
   setTimeout(() => {
     const st = document.getElementById('status-text');
     if (st && st.textContent.startsWith('⏰')) st.textContent = 'Ready';
@@ -5745,15 +5743,16 @@ function updateOvertimeRow() {
   }
   row.style.display = '';
 
-  const clicks = gameState.overtimeClicks || 0;
+  const charges = gameState.overtimeCharges || 0;
   const rev = totalRevPerTick();
-  const nextDiminish = 1 / (1 + clicks * 0.15);
-  const nextAmount = rev * 5 * nextDiminish;
-  const pct = Math.round(nextDiminish * 100);
+  const nextAmount = rev * 30;
 
-  document.getElementById('overtime-clicks').textContent = clicks > 0 ? `${clicks} this Q` : '';
-  document.getElementById('overtime-next').textContent = `+${formatMoney(nextAmount)}`;
-  document.getElementById('overtime-diminish').textContent = clicks > 0 ? `${pct}% efficiency` : '';
+  document.getElementById('overtime-clicks').textContent = charges > 0 ? `${charges}/3 charges` : '0/3 — resets next Q';
+  document.getElementById('overtime-next').textContent = charges > 0 ? `+${formatMoney(nextAmount)}` : 'exhausted';
+  document.getElementById('overtime-diminish').textContent = charges > 0 ? '30 days of revenue' : '';
+
+  const btn = document.getElementById('overtime-btn');
+  if (btn) btn.disabled = charges <= 0;
 }
 
 function showAbout() {
