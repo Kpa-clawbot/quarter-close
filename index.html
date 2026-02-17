@@ -236,6 +236,7 @@
 
       <!-- Board Room (RE Prestige Shop, post-IPO) -->
       <div id="board-room-rows" class="hidden"></div>
+      <div id="dashboard-rows" class="hidden"></div>
 
       <div id="filler-rows"></div>
     </div>
@@ -277,6 +278,7 @@
       <div class="sheet-tab disabled" title="Unlocks at Series A">Sales</div>
       <div class="sheet-tab disabled" title="Unlocks at Series A">R&D</div>
       <div class="sheet-tab hidden" id="tab-board-room" onclick="switchTab('boardroom')">Board Room</div>
+      <div class="sheet-tab hidden" id="tab-dashboard" onclick="switchTab('dashboard')">Reports</div>
       <div class="sheet-tab add-tab">+</div>
       <div id="tab-spacer"></div>
     </div>
@@ -795,7 +797,7 @@
     </div>
   </div>
 
-  <script src="game.js?v=206"></script>
+  <script src="game.js?v=207"></script>
   <script>
     if (location.hostname === 'kpa-clawbot.github.io') {
       var s = document.createElement('script');

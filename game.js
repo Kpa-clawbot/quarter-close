@@ -187,6 +187,8 @@ function buildSaveData() {
     retainedEarnings: gameState.retainedEarnings || 0,
     analystBaseline: gameState.analystBaseline || 1.0,
     earningsStreak: gameState.earningsStreak || 0,
+    earningsBeatCount: gameState.earningsBeatCount || 0,
+    earningsMissCount: gameState.earningsMissCount || 0,
     currentGuidance: gameState.currentGuidance || null,
     guidanceTarget: gameState.guidanceTarget || 0,
     lastEarningsDay: gameState.lastEarningsDay || 0,
@@ -1912,6 +1914,8 @@ let gameState = {
   retainedEarnings: 0,
   analystBaseline: 1.0,
   earningsStreak: 0,       // positive = consecutive beats, negative = consecutive misses
+  earningsBeatCount: 0,
+  earningsMissCount: 0,
   currentGuidance: null,   // 'conservative'|'in-line'|'ambitious'|'aggressive'
   guidanceTarget: 0,       // revenue target for current quarter
   lastEarningsDay: 0,      // game-day of last earnings report
@@ -1919,7 +1923,7 @@ let gameState = {
   ipoStockPriceStart: 0,  // stock price at start of current earnings quarter
   // Phase 2.2: Board Room
   boardRoomPurchases: {},  // map of upgrade IDs to purchase count/level
-  activeTab: 'operations', // 'operations' | 'boardroom'
+  activeTab: 'operations', // 'operations' | 'boardroom' | 'dashboard'
   activeCFOLevel: 0,       // 0 = manual, 1/2/3 = Finance Dept level in use
   activeCTOLevel: 0,       // 0 = manual, 1/2/3 = Tech Dept level in use
   ctoBudgetPct: 15,        // 0-100, slider value for CTO quarterly budget
@@ -2289,7 +2293,10 @@ function selectArc(arcKey) {
   // Reset Board Room state
   document.getElementById('board-room-rows').innerHTML = '';
   document.getElementById('board-room-rows').classList.add('hidden');
+  document.getElementById('dashboard-rows').innerHTML = '';
+  document.getElementById('dashboard-rows').classList.add('hidden');
   _lastBoardRoomHash = '';
+  _lastDashboardHash = '';
   switchTab('operations');
   updateBoardRoomTab();
 
@@ -2991,6 +2998,8 @@ function updateDisplay() {
   updateBoardRoomTab();
   if (gameState.activeTab === 'boardroom') {
     buildBoardRoom();
+  } else if (gameState.activeTab === 'dashboard') {
+    buildDashboard();
   }
 
   // Check cash milestones
@@ -4971,6 +4980,8 @@ function loadGame(slotId) {
     if (gameState.analystBaseline > 2.5) gameState.analystBaseline = 1.5; // cap inflated saves
     if (gameState.analystBaseline < 0.5) gameState.analystBaseline = 0.8; // rescue crushed saves
     gameState.earningsStreak = data.earningsStreak || 0;
+    gameState.earningsBeatCount = data.earningsBeatCount || 0;
+    gameState.earningsMissCount = data.earningsMissCount || 0;
     gameState.currentGuidance = data.currentGuidance || null;
     gameState.guidanceTarget = data.guidanceTarget || 0;
     gameState.lastEarningsDay = data.lastEarningsDay || 0;
@@ -6368,6 +6379,7 @@ function processEarnings() {
 
     gameState.retainedEarnings += reEarned;
     gameState.earningsStreak = Math.max(0, gameState.earningsStreak) + 1;
+    gameState.earningsBeatCount = (gameState.earningsBeatCount || 0) + 1;
 
     // Analyst ratchet (slowed by Analyst Relations upgrade)
     const hasAnalystRelations = hasBoardRoomUpgrade('analyst_relations');
@@ -6395,6 +6407,7 @@ function processEarnings() {
       reEarned = 0;
 
       gameState.earningsStreak = Math.min(0, gameState.earningsStreak) - 1;
+      gameState.earningsMissCount = (gameState.earningsMissCount || 0) + 1;
 
       // Analyst ratchet (downgrade not affected by Analyst Relations)
       if (gameState.earningsStreak <= -2) {
@@ -6544,40 +6557,57 @@ function switchTab(tab) {
   const taxPanel = document.getElementById('tax-panel');
   const fillerRows = document.getElementById('filler-rows');
   const boardRoom = document.getElementById('board-room-rows');
+  const dashboardRows = document.getElementById('dashboard-rows');
   const tabOps = document.getElementById('tab-operations');
   const tabBR = document.getElementById('tab-board-room');
+  const tabDash = document.getElementById('tab-dashboard');
 
   const gridArea = document.getElementById('grid-container');
   const deptHeader = document.getElementById('row-1');
 
+  // Hide everything first
+  revenueRows.classList.add('hidden');
+  taxPanel.classList.add('hidden');
+  fillerRows.classList.add('hidden');
+  if (deptHeader) deptHeader.classList.add('hidden');
+  boardRoom.classList.add('hidden');
+  dashboardRows.classList.add('hidden');
+  tabOps.classList.remove('active');
+  tabBR.classList.remove('active');
+  tabDash.classList.remove('active');
+  gridArea.classList.remove('boardroom-layout');
+
   if (tab === 'boardroom') {
-    revenueRows.classList.add('hidden');
-    taxPanel.classList.add('hidden');
-    fillerRows.classList.add('hidden');
-    if (deptHeader) deptHeader.classList.add('hidden');
     boardRoom.classList.remove('hidden');
-    tabOps.classList.remove('active');
     tabBR.classList.add('active');
     gridArea.classList.add('boardroom-layout');
-    // Apply boardroom-specific column widths
     const brWidths = gameState.boardroomColumnWidths;
     if (brWidths) {
       applyColumnWidths(brWidths);
     } else {
-      gridArea.style.gridTemplateColumns = ''; // use CSS defaults
+      gridArea.style.gridTemplateColumns = '';
     }
     buildBoardRoom();
+  } else if (tab === 'dashboard') {
+    dashboardRows.classList.remove('hidden');
+    tabDash.classList.add('active');
+    gridArea.classList.add('boardroom-layout');
+    // Use boardroom column widths for dashboard too
+    const brWidths = gameState.boardroomColumnWidths;
+    if (brWidths) {
+      applyColumnWidths(brWidths);
+    } else {
+      gridArea.style.gridTemplateColumns = '';
+    }
+    buildDashboard();
   } else {
     revenueRows.classList.remove('hidden');
     taxPanel.classList.remove('hidden');
     fillerRows.classList.remove('hidden');
     if (deptHeader) deptHeader.classList.remove('hidden');
-    boardRoom.classList.add('hidden');
     tabOps.classList.add('active');
-    tabBR.classList.remove('active');
-    gridArea.classList.remove('boardroom-layout');
     if (gameState.columnWidths) applyColumnWidths(gameState.columnWidths);
-    _lastTaxPanelHash = ''; // force rebuild
+    _lastTaxPanelHash = '';
     updateTaxPanel();
     buildFillerRows();
   }
@@ -6585,10 +6615,19 @@ function switchTab(tab) {
 
 function updateBoardRoomTab() {
   const tabBR = document.getElementById('tab-board-room');
+  const tabDash = document.getElementById('tab-dashboard');
   if (gameState.isPublic) {
     tabBR.classList.remove('hidden');
+    // Show Reports tab once any Board Room upgrade is purchased
+    const hasPurchases = gameState.boardRoomPurchases && Object.keys(gameState.boardRoomPurchases).length > 0;
+    if (hasPurchases) {
+      tabDash.classList.remove('hidden');
+    } else {
+      tabDash.classList.add('hidden');
+    }
   } else {
     tabBR.classList.add('hidden');
+    tabDash.classList.add('hidden');
   }
 }
 
@@ -6821,11 +6860,7 @@ function buildBoardRoom() {
     gameState.cooBudgetPct, gameState.cooBudgetPool, gameState.cooTargetCost,
     gameState.ctoBudgetAuto, gameState.cooBudgetAuto,
     gameState.ctoUpgradeCount, gameState.cooHireCount,
-    gameState.vpOpsEnabled, JSON.stringify(gameState.vpOpsStats),
-    JSON.stringify(gameState.salesDirStats),
-    JSON.stringify(gameState.execAssistantStats),
-    JSON.stringify(gameState.prDirectorStats),
-    gameState.ctoSpentThisQuarter, gameState.cooSpentThisQuarter,
+    gameState.vpOpsEnabled,
   ].join('|');
   if (hashParts === _lastBoardRoomHash && container.innerHTML !== '') return;
   _lastBoardRoomHash = hashParts;
@@ -7003,175 +7038,6 @@ function buildBoardRoom() {
     } // end upgrade loop
   } // end category loop
 
-  // VP of Ops stats display — expanded detail
-  if (getVPOpsLevel() > 0) {
-    const stats = gameState.vpOpsStats || { tasksCompleted: 0, totalRevenue: 0, revenueMissed: 0, longestStreak: 0, quarterTasks: 0 };
-    const vpLevel = getVPOpsLevel();
-    const enabledLabel = gameState.vpOpsEnabled ? '✅ ON' : '❌ OFF';
-    const enabledColor = gameState.vpOpsEnabled ? dm('#2e7d32') : dm('#c00');
-    const efficiency = vpLevel === 1 ? '50%' : vpLevel === 2 ? '75%' : '100%';
-    const streakCap = vpLevel === 1 ? 'None' : vpLevel === 2 ? 'Cap 5' : 'Unlimited';
-
-    // Row 1: VP level + toggle
-    html += `<div class="grid-row br-upgrade-row br-owned" style="border-top:2px solid ${dm('#e0e0e0','#444')}">
-      <div class="row-num">${rowNum++}</div>
-      <div class="cell cell-a" style="font-weight:700;color:${dm('#5c6bc0')}">📋 VP of Operations</div>
-      <div class="cell cell-b" style="font-size:0.625rem;color:${dm('#888')}">Lv${vpLevel} — ${efficiency} reward, streaks: ${streakCap}</div>
-      <div class="cell cell-c"></div>
-      <div class="cell cell-d" style="justify-content:flex-end"><button class="cell-btn" onclick="gameState.vpOpsEnabled=!gameState.vpOpsEnabled;_lastBoardRoomHash='';buildBoardRoom();saveGame()" style="font-size:0.625rem;color:${enabledColor};font-weight:700">${enabledLabel}</button></div>
-      <div class="cell cell-e"></div>
-      <div class="cell cell-f"></div>
-      <div class="cell cell-g"></div>
-      <div class="cell cell-h"></div>
-    </div>`;
-    totalUpgradeRows++;
-
-    // Row 2: Performance stats
-    const avgPerTask = stats.tasksCompleted > 0 ? formatMoney(stats.totalRevenue / stats.tasksCompleted) : '$0';
-    const captureRate = vpLevel < 3 && stats.totalRevenue + stats.revenueMissed > 0
-      ? Math.round(stats.totalRevenue / (stats.totalRevenue + stats.revenueMissed) * 100) + '%'
-      : '100%';
-    html += `<div class="grid-row br-upgrade-row br-owned">
-      <div class="row-num">${rowNum++}</div>
-      <div class="cell cell-a" style="font-size:0.5625rem;color:${dm('#999')};padding-left:1.2rem">Tasks Completed</div>
-      <div class="cell cell-b" style="font-size:0.625rem;font-weight:600;color:${dm('#333')}">${stats.tasksCompleted.toLocaleString()}</div>
-      <div class="cell cell-c" style="font-size:0.5625rem;color:${dm('#999')}">Avg per Task</div>
-      <div class="cell cell-d" style="font-size:0.625rem;font-weight:600;color:${dm('#333')}">${avgPerTask}</div>
-      <div class="cell cell-e"></div>
-      <div class="cell cell-f" style="font-size:0.5625rem;color:${dm('#999')}">Capture Rate</div>
-      <div class="cell cell-g" style="font-size:0.625rem;font-weight:600;color:${dm(captureRate === '100%' ? '#2e7d32' : '#e65100')}">${captureRate}</div>
-      <div class="cell cell-h"></div>
-    </div>`;
-    totalUpgradeRows++;
-
-    // Row 3: Revenue stats
-    const missedColor = stats.revenueMissed > 0 && vpLevel < 3 ? dm('#c00') : dm('#999');
-    html += `<div class="grid-row br-upgrade-row br-owned">
-      <div class="row-num">${rowNum++}</div>
-      <div class="cell cell-a" style="font-size:0.5625rem;color:${dm('#999')};padding-left:1.2rem">Revenue Earned</div>
-      <div class="cell cell-b" style="font-size:0.625rem;font-weight:600;color:${dm('#2e7d32')}">${formatMoney(stats.totalRevenue)}</div>
-      <div class="cell cell-c" style="font-size:0.5625rem;color:${dm('#999')}">Left on Table</div>
-      <div class="cell cell-d" style="font-size:0.625rem;font-weight:600;color:${missedColor}">${vpLevel < 3 ? formatMoney(stats.revenueMissed) : '—'}</div>
-      <div class="cell cell-e"></div>
-      <div class="cell cell-f" style="font-size:0.5625rem;color:${dm('#999')}">Best Streak</div>
-      <div class="cell cell-g" style="font-size:0.625rem;font-weight:600;color:${dm('#e65100')}">🔥 ${stats.longestStreak}</div>
-      <div class="cell cell-h"></div>
-    </div>`;
-    totalUpgradeRows++;
-  }
-
-  // Sales Director stats display
-  if (getSalesDirLevel() > 0) {
-    const stats = gameState.salesDirStats || { dealsCompleted: 0, totalRevenue: 0, revenueMissed: 0 };
-    const sdLevel = getSalesDirLevel();
-    const efficiency = sdLevel === 1 ? '50%' : sdLevel === 2 ? '75%' : '100%';
-
-    html += `<div class="grid-row br-upgrade-row br-owned" style="border-top:2px solid ${dm('#e0e0e0','#444')}">
-      <div class="row-num">${rowNum++}</div>
-      <div class="cell cell-a" style="font-weight:700;color:${dm('#2e7d32')}">🤝 Sales Director</div>
-      <div class="cell cell-b" style="font-size:0.625rem;color:${dm('#888')}">Lv${sdLevel} — ${efficiency} deal value</div>
-      <div class="cell cell-c"></div>
-      <div class="cell cell-d"></div>
-      <div class="cell cell-e"></div>
-      <div class="cell cell-f" style="font-size:0.5625rem;color:${dm('#999')}">Deals Closed</div>
-      <div class="cell cell-g" style="font-size:0.625rem;font-weight:600;color:${dm('#333')}">${stats.dealsCompleted.toLocaleString()}</div>
-      <div class="cell cell-h"></div>
-    </div>`;
-    totalUpgradeRows++;
-
-    const captureRate = sdLevel < 3 && stats.totalRevenue + stats.revenueMissed > 0
-      ? Math.round(stats.totalRevenue / (stats.totalRevenue + stats.revenueMissed) * 100) + '%'
-      : '100%';
-    html += `<div class="grid-row br-upgrade-row br-owned">
-      <div class="row-num">${rowNum++}</div>
-      <div class="cell cell-a" style="font-size:0.5625rem;color:${dm('#999')};padding-left:1.2rem">Revenue Earned</div>
-      <div class="cell cell-b" style="font-size:0.625rem;font-weight:600;color:${dm('#2e7d32')}">${formatMoney(stats.totalRevenue)}</div>
-      <div class="cell cell-c" style="font-size:0.5625rem;color:${dm('#999')}">Left on Table</div>
-      <div class="cell cell-d" style="font-size:0.625rem;font-weight:600;color:${dm(sdLevel < 3 ? '#c00' : '#999')}">${sdLevel < 3 ? formatMoney(stats.revenueMissed) : '—'}</div>
-      <div class="cell cell-e"></div>
-      <div class="cell cell-f" style="font-size:0.5625rem;color:${dm('#999')}">Capture Rate</div>
-      <div class="cell cell-g" style="font-size:0.625rem;font-weight:600;color:${dm(captureRate === '100%' ? '#2e7d32' : '#e65100')}">${captureRate}</div>
-      <div class="cell cell-h"></div>
-    </div>`;
-    totalUpgradeRows++;
-  }
-
-  // CTO stats display
-  if (getTechDeptLevel() > 0) {
-    const ctoLevel = getTechDeptLevel();
-    const strategy = ctoLevel === 1 ? 'cheapest first' : ctoLevel === 2 ? 'best ROI' : 'ROI + timing';
-    const upgrades = gameState.ctoUpgradeCount || 0;
-    const spent = gameState.ctoSpentThisQuarter || 0;
-    html += `<div class="grid-row br-upgrade-row br-owned" style="border-top:2px solid ${dm('#e0e0e0','#444')}">
-      <div class="row-num">${rowNum++}</div>
-      <div class="cell cell-a" style="font-weight:700;color:${dm('#1565c0')}">🔧 CTO</div>
-      <div class="cell cell-b" style="font-size:0.625rem;color:${dm('#888')}">Lv${ctoLevel} — ${strategy}</div>
-      <div class="cell cell-c"></div>
-      <div class="cell cell-d" style="font-size:0.5625rem;color:${dm('#999')}">Upgrades Bought</div>
-      <div class="cell cell-e" style="font-size:0.625rem;font-weight:600;color:${dm('#333')}">${upgrades.toLocaleString()}</div>
-      <div class="cell cell-f" style="font-size:0.5625rem;color:${dm('#999')}">Spent This Q</div>
-      <div class="cell cell-g" style="font-size:0.625rem;font-weight:600;color:${dm('#333')}">${formatMoney(spent)}</div>
-      <div class="cell cell-h"></div>
-    </div>`;
-    totalUpgradeRows++;
-  }
-
-  // COO stats display
-  if (getOpsDeptLevel() > 0) {
-    const cooLevel = getOpsDeptLevel();
-    const strategy = cooLevel === 1 ? 'cheapest first' : cooLevel === 2 ? 'best ROI' : 'ROI + timing';
-    const hires = gameState.cooHireCount || 0;
-    const spent = gameState.cooSpentThisQuarter || 0;
-    html += `<div class="grid-row br-upgrade-row br-owned" style="border-top:2px solid ${dm('#e0e0e0','#444')}">
-      <div class="row-num">${rowNum++}</div>
-      <div class="cell cell-a" style="font-weight:700;color:${dm('#e65100')}">👥 COO</div>
-      <div class="cell cell-b" style="font-size:0.625rem;color:${dm('#888')}">Lv${cooLevel} — ${strategy}</div>
-      <div class="cell cell-c"></div>
-      <div class="cell cell-d" style="font-size:0.5625rem;color:${dm('#999')}">Hires Made</div>
-      <div class="cell cell-e" style="font-size:0.625rem;font-weight:600;color:${dm('#333')}">${hires.toLocaleString()}</div>
-      <div class="cell cell-f" style="font-size:0.5625rem;color:${dm('#999')}">Spent This Q</div>
-      <div class="cell cell-g" style="font-size:0.625rem;font-weight:600;color:${dm('#333')}">${formatMoney(spent)}</div>
-      <div class="cell cell-h"></div>
-    </div>`;
-    totalUpgradeRows++;
-  }
-
-  // Executive Assistant stats display
-  if (hasExecAssistant()) {
-    const stats = gameState.execAssistantStats || { handled: 0, cashEarned: 0, cashSpent: 0 };
-    const net = stats.cashEarned - stats.cashSpent;
-    const netColor = net >= 0 ? dm('#2e7d32') : dm('#c00');
-    html += `<div class="grid-row br-upgrade-row br-owned" style="border-top:2px solid ${dm('#e0e0e0','#444')}">
-      <div class="row-num">${rowNum++}</div>
-      <div class="cell cell-a" style="font-weight:700;color:${dm('#7b1fa2')}">🗂️ Executive Assistant</div>
-      <div class="cell cell-b" style="font-size:0.625rem;color:${dm('#888')}">Emails handled: ${stats.handled}</div>
-      <div class="cell cell-c"></div>
-      <div class="cell cell-d" style="font-size:0.5625rem;color:${dm('#999')}">Net P&L</div>
-      <div class="cell cell-e" style="font-size:0.625rem;font-weight:600;color:${netColor}">${net >= 0 ? '+' : ''}${formatMoney(net)}</div>
-      <div class="cell cell-f" style="font-size:0.5625rem;color:${dm('#999')}">Earned</div>
-      <div class="cell cell-g" style="font-size:0.625rem;font-weight:600;color:${dm('#2e7d32')}">${formatMoney(stats.cashEarned)}</div>
-      <div class="cell cell-h"></div>
-    </div>`;
-    totalUpgradeRows++;
-  }
-
-  // PR Director stats display
-  if (hasPRDirector()) {
-    const stats = gameState.prDirectorStats || { handled: 0, boostsActivated: 0 };
-    html += `<div class="grid-row br-upgrade-row br-owned" style="border-top:2px solid ${dm('#e0e0e0','#444')}">
-      <div class="row-num">${rowNum++}</div>
-      <div class="cell cell-a" style="font-weight:700;color:${dm('#00838f')}">📣 PR Director</div>
-      <div class="cell cell-b" style="font-size:0.625rem;color:${dm('#888')}">Press events: ${stats.handled}</div>
-      <div class="cell cell-c"></div>
-      <div class="cell cell-d" style="font-size:0.5625rem;color:${dm('#999')}">Boosts Activated</div>
-      <div class="cell cell-e" style="font-size:0.625rem;font-weight:600;color:${dm('#333')}">${stats.boostsActivated}</div>
-      <div class="cell cell-f"></div>
-      <div class="cell cell-g"></div>
-      <div class="cell cell-h"></div>
-    </div>`;
-    totalUpgradeRows++;
-  }
-
   // Filler rows for the board room view
   const ROW_HEIGHT = 28;
   const gridBottom = container.getBoundingClientRect().top || 300;
@@ -7192,6 +7058,276 @@ function buildBoardRoom() {
       <div class="cell"></div><div class="cell"></div><div class="cell"></div>
       <div class="cell"></div><div class="cell"></div><div class="cell"></div>
       <div class="cell"></div><div class="cell"></div>
+    </div>`;
+  }
+
+  container.innerHTML = html;
+}
+
+// ===== REPORTS TAB =====
+let _lastDashboardHash = '';
+
+function buildDashboard() {
+  const container = document.getElementById('dashboard-rows');
+  if (!container) return;
+
+  // Hash for change detection
+  const hashParts = [
+    JSON.stringify(gameState.vpOpsStats),
+    JSON.stringify(gameState.salesDirStats),
+    JSON.stringify(gameState.execAssistantStats),
+    JSON.stringify(gameState.prDirectorStats),
+    gameState.ctoUpgradeCount, gameState.ctoSpentThisQuarter,
+    gameState.cooHireCount, gameState.cooSpentThisQuarter,
+    gameState.vpOpsEnabled, gameState.totalTaxPaid,
+    gameState.ctoTarget, gameState.cooTarget,
+    getTechDeptLevel(), getOpsDeptLevel(), getVPOpsLevel(), getSalesDirLevel(),
+    hasExecAssistant(), hasPRDirector(),
+  ].join('|');
+  if (hashParts === _lastDashboardHash && container.innerHTML !== '') return;
+  _lastDashboardHash = hashParts;
+
+  let html = '';
+  let rowNum = 2;
+
+  // Header
+  html += `<div class="grid-row br-header-row">
+    <div class="row-num">${rowNum++}</div>
+    <div class="cell cell-a" style="font-weight:700;font-size:0.75rem;color:${dm('#333')}">📊 C-Suite Performance Reports</div>
+    <div class="cell cell-b"></div><div class="cell cell-c"></div><div class="cell cell-d"></div>
+    <div class="cell cell-e"></div><div class="cell cell-f"></div><div class="cell cell-g"></div><div class="cell cell-h"></div>
+  </div>`;
+
+  const anyRole = getTechDeptLevel() > 0 || getOpsDeptLevel() > 0 || getVPOpsLevel() > 0 ||
+                  getSalesDirLevel() > 0 || hasExecAssistant() || hasPRDirector();
+
+  if (!anyRole) {
+    html += `<div class="grid-row br-upgrade-row">
+      <div class="row-num">${rowNum++}</div>
+      <div class="cell cell-a" style="color:${dm('#999')};font-style:italic">No C-suite hires yet. Purchase upgrades in the Board Room.</div>
+      <div class="cell cell-b"></div><div class="cell cell-c"></div><div class="cell cell-d"></div>
+      <div class="cell cell-e"></div><div class="cell cell-f"></div><div class="cell cell-g"></div><div class="cell cell-h"></div>
+    </div>`;
+  }
+
+  // --- CFO (always present since you need CFO for earnings) ---
+  const cfoLevel = gameState.activeCFOLevel || 0;
+  if (cfoLevel > 0) {
+    const strategy = cfoLevel === 1 ? 'gut feeling' : cfoLevel === 2 ? 'hit guidance' : 'adaptive budgets';
+    html += `<div class="grid-row br-upgrade-row br-owned" style="border-top:2px solid ${dm('#e0e0e0','#444')}">
+      <div class="row-num">${rowNum++}</div>
+      <div class="cell cell-a" style="font-weight:700;color:${dm('#6a1b9a')}">📊 CFO</div>
+      <div class="cell cell-b" style="font-size:0.625rem;color:${dm('#888')}">Lv${cfoLevel} — ${strategy}</div>
+      <div class="cell cell-c"></div>
+      <div class="cell cell-d" style="font-size:0.5625rem;color:${dm('#999')}">Earnings Beat</div>
+      <div class="cell cell-e" style="font-size:0.625rem;font-weight:600;color:${dm('#2e7d32')}">${gameState.earningsBeatCount || 0}</div>
+      <div class="cell cell-f" style="font-size:0.5625rem;color:${dm('#999')}">Earnings Missed</div>
+      <div class="cell cell-g" style="font-size:0.625rem;font-weight:600;color:${dm('#c00')}">${gameState.earningsMissCount || 0}</div>
+      <div class="cell cell-h"></div>
+    </div>`;
+  }
+
+  // --- CTO ---
+  if (getTechDeptLevel() > 0) {
+    const ctoLevel = getTechDeptLevel();
+    const strategy = ctoLevel === 1 ? 'cheapest first' : ctoLevel === 2 ? 'best ROI' : 'ROI + timing';
+    const upgrades = gameState.ctoUpgradeCount || 0;
+    const spent = gameState.ctoSpentThisQuarter || 0;
+    const target = gameState.ctoTarget || '—';
+    html += `<div class="grid-row br-upgrade-row br-owned" style="border-top:2px solid ${dm('#e0e0e0','#444')}">
+      <div class="row-num">${rowNum++}</div>
+      <div class="cell cell-a" style="font-weight:700;color:${dm('#1565c0')}">🔧 CTO</div>
+      <div class="cell cell-b" style="font-size:0.625rem;color:${dm('#888')}">Lv${ctoLevel} — ${strategy}</div>
+      <div class="cell cell-c"></div>
+      <div class="cell cell-d" style="font-size:0.5625rem;color:${dm('#999')}">Upgrades Bought</div>
+      <div class="cell cell-e" style="font-size:0.625rem;font-weight:600;color:${dm('#333')}">${upgrades.toLocaleString()}</div>
+      <div class="cell cell-f" style="font-size:0.5625rem;color:${dm('#999')}">Spent This Q</div>
+      <div class="cell cell-g" style="font-size:0.625rem;font-weight:600;color:${dm('#333')}">${formatMoney(spent)}</div>
+      <div class="cell cell-h"></div>
+    </div>`;
+    html += `<div class="grid-row br-upgrade-row br-owned">
+      <div class="row-num">${rowNum++}</div>
+      <div class="cell cell-a" style="font-size:0.5625rem;color:${dm('#999')};padding-left:1.2rem">Current Target</div>
+      <div class="cell cell-b" style="font-size:0.625rem;font-weight:600;color:${dm('#333')}">${target}</div>
+      <div class="cell cell-c" style="font-size:0.5625rem;color:${dm('#999')}">Next Cost</div>
+      <div class="cell cell-d" style="font-size:0.625rem;font-weight:600;color:${dm('#333')}">${gameState.ctoTargetCost ? formatMoney(gameState.ctoTargetCost) : '—'}</div>
+      <div class="cell cell-e"></div><div class="cell cell-f"></div><div class="cell cell-g"></div><div class="cell cell-h"></div>
+    </div>`;
+  }
+
+  // --- COO ---
+  if (getOpsDeptLevel() > 0) {
+    const cooLevel = getOpsDeptLevel();
+    const strategy = cooLevel === 1 ? 'cheapest first' : cooLevel === 2 ? 'best ROI' : 'ROI + timing';
+    const hires = gameState.cooHireCount || 0;
+    const spent = gameState.cooSpentThisQuarter || 0;
+    const target = gameState.cooTarget || '—';
+    html += `<div class="grid-row br-upgrade-row br-owned" style="border-top:2px solid ${dm('#e0e0e0','#444')}">
+      <div class="row-num">${rowNum++}</div>
+      <div class="cell cell-a" style="font-weight:700;color:${dm('#e65100')}">👥 COO</div>
+      <div class="cell cell-b" style="font-size:0.625rem;color:${dm('#888')}">Lv${cooLevel} — ${strategy}</div>
+      <div class="cell cell-c"></div>
+      <div class="cell cell-d" style="font-size:0.5625rem;color:${dm('#999')}">Hires Made</div>
+      <div class="cell cell-e" style="font-size:0.625rem;font-weight:600;color:${dm('#333')}">${hires.toLocaleString()}</div>
+      <div class="cell cell-f" style="font-size:0.5625rem;color:${dm('#999')}">Spent This Q</div>
+      <div class="cell cell-g" style="font-size:0.625rem;font-weight:600;color:${dm('#333')}">${formatMoney(spent)}</div>
+      <div class="cell cell-h"></div>
+    </div>`;
+    html += `<div class="grid-row br-upgrade-row br-owned">
+      <div class="row-num">${rowNum++}</div>
+      <div class="cell cell-a" style="font-size:0.5625rem;color:${dm('#999')};padding-left:1.2rem">Current Target</div>
+      <div class="cell cell-b" style="font-size:0.625rem;font-weight:600;color:${dm('#333')}">${target}</div>
+      <div class="cell cell-c" style="font-size:0.5625rem;color:${dm('#999')}">Next Cost</div>
+      <div class="cell cell-d" style="font-size:0.625rem;font-weight:600;color:${dm('#333')}">${gameState.cooTargetCost ? formatMoney(gameState.cooTargetCost) : '—'}</div>
+      <div class="cell cell-e"></div><div class="cell cell-f"></div><div class="cell cell-g"></div><div class="cell cell-h"></div>
+    </div>`;
+  }
+
+  // --- VP of Operations ---
+  if (getVPOpsLevel() > 0) {
+    const stats = gameState.vpOpsStats || { tasksCompleted: 0, totalRevenue: 0, revenueMissed: 0, longestStreak: 0, quarterTasks: 0 };
+    const vpLevel = getVPOpsLevel();
+    const enabledLabel = gameState.vpOpsEnabled ? '✅ ON' : '❌ OFF';
+    const enabledColor = gameState.vpOpsEnabled ? dm('#2e7d32') : dm('#c00');
+    const efficiency = vpLevel === 1 ? '50%' : vpLevel === 2 ? '75%' : '100%';
+    const streakCap = vpLevel === 1 ? 'None' : vpLevel === 2 ? 'Cap 5' : 'Unlimited';
+
+    html += `<div class="grid-row br-upgrade-row br-owned" style="border-top:2px solid ${dm('#e0e0e0','#444')}">
+      <div class="row-num">${rowNum++}</div>
+      <div class="cell cell-a" style="font-weight:700;color:${dm('#5c6bc0')}">📋 VP of Operations</div>
+      <div class="cell cell-b" style="font-size:0.625rem;color:${dm('#888')}">Lv${vpLevel} — ${efficiency} reward, streaks: ${streakCap}</div>
+      <div class="cell cell-c"></div>
+      <div class="cell cell-d" style="justify-content:flex-end"><button class="cell-btn" onclick="gameState.vpOpsEnabled=!gameState.vpOpsEnabled;_lastDashboardHash='';buildDashboard();saveGame()" style="font-size:0.625rem;color:${enabledColor};font-weight:700">${enabledLabel}</button></div>
+      <div class="cell cell-e"></div><div class="cell cell-f"></div><div class="cell cell-g"></div><div class="cell cell-h"></div>
+    </div>`;
+
+    const avgPerTask = stats.tasksCompleted > 0 ? formatMoney(stats.totalRevenue / stats.tasksCompleted) : '$0';
+    const captureRate = vpLevel < 3 && stats.totalRevenue + stats.revenueMissed > 0
+      ? Math.round(stats.totalRevenue / (stats.totalRevenue + stats.revenueMissed) * 100) + '%'
+      : '100%';
+    html += `<div class="grid-row br-upgrade-row br-owned">
+      <div class="row-num">${rowNum++}</div>
+      <div class="cell cell-a" style="font-size:0.5625rem;color:${dm('#999')};padding-left:1.2rem">Tasks Completed</div>
+      <div class="cell cell-b" style="font-size:0.625rem;font-weight:600;color:${dm('#333')}">${stats.tasksCompleted.toLocaleString()}</div>
+      <div class="cell cell-c" style="font-size:0.5625rem;color:${dm('#999')}">Avg per Task</div>
+      <div class="cell cell-d" style="font-size:0.625rem;font-weight:600;color:${dm('#333')}">${avgPerTask}</div>
+      <div class="cell cell-e"></div>
+      <div class="cell cell-f" style="font-size:0.5625rem;color:${dm('#999')}">Capture Rate</div>
+      <div class="cell cell-g" style="font-size:0.625rem;font-weight:600;color:${dm(captureRate === '100%' ? '#2e7d32' : '#e65100')}">${captureRate}</div>
+      <div class="cell cell-h"></div>
+    </div>`;
+
+    const missedColor = stats.revenueMissed > 0 && vpLevel < 3 ? dm('#c00') : dm('#999');
+    html += `<div class="grid-row br-upgrade-row br-owned">
+      <div class="row-num">${rowNum++}</div>
+      <div class="cell cell-a" style="font-size:0.5625rem;color:${dm('#999')};padding-left:1.2rem">Revenue Earned</div>
+      <div class="cell cell-b" style="font-size:0.625rem;font-weight:600;color:${dm('#2e7d32')}">${formatMoney(stats.totalRevenue)}</div>
+      <div class="cell cell-c" style="font-size:0.5625rem;color:${dm('#999')}">Left on Table</div>
+      <div class="cell cell-d" style="font-size:0.625rem;font-weight:600;color:${missedColor}">${vpLevel < 3 ? formatMoney(stats.revenueMissed) : '—'}</div>
+      <div class="cell cell-e"></div>
+      <div class="cell cell-f" style="font-size:0.5625rem;color:${dm('#999')}">Best Streak</div>
+      <div class="cell cell-g" style="font-size:0.625rem;font-weight:600;color:${dm('#e65100')}">🔥 ${stats.longestStreak}</div>
+      <div class="cell cell-h"></div>
+    </div>`;
+  }
+
+  // --- Sales Director ---
+  if (getSalesDirLevel() > 0) {
+    const stats = gameState.salesDirStats || { dealsCompleted: 0, totalRevenue: 0, revenueMissed: 0 };
+    const sdLevel = getSalesDirLevel();
+    const efficiency = sdLevel === 1 ? '50%' : sdLevel === 2 ? '75%' : '100%';
+
+    html += `<div class="grid-row br-upgrade-row br-owned" style="border-top:2px solid ${dm('#e0e0e0','#444')}">
+      <div class="row-num">${rowNum++}</div>
+      <div class="cell cell-a" style="font-weight:700;color:${dm('#2e7d32')}">🤝 Sales Director</div>
+      <div class="cell cell-b" style="font-size:0.625rem;color:${dm('#888')}">Lv${sdLevel} — ${efficiency} deal value</div>
+      <div class="cell cell-c"></div>
+      <div class="cell cell-d"></div><div class="cell cell-e"></div>
+      <div class="cell cell-f" style="font-size:0.5625rem;color:${dm('#999')}">Deals Closed</div>
+      <div class="cell cell-g" style="font-size:0.625rem;font-weight:600;color:${dm('#333')}">${stats.dealsCompleted.toLocaleString()}</div>
+      <div class="cell cell-h"></div>
+    </div>`;
+
+    const captureRate = sdLevel < 3 && stats.totalRevenue + stats.revenueMissed > 0
+      ? Math.round(stats.totalRevenue / (stats.totalRevenue + stats.revenueMissed) * 100) + '%'
+      : '100%';
+    html += `<div class="grid-row br-upgrade-row br-owned">
+      <div class="row-num">${rowNum++}</div>
+      <div class="cell cell-a" style="font-size:0.5625rem;color:${dm('#999')};padding-left:1.2rem">Revenue Earned</div>
+      <div class="cell cell-b" style="font-size:0.625rem;font-weight:600;color:${dm('#2e7d32')}">${formatMoney(stats.totalRevenue)}</div>
+      <div class="cell cell-c" style="font-size:0.5625rem;color:${dm('#999')}">Left on Table</div>
+      <div class="cell cell-d" style="font-size:0.625rem;font-weight:600;color:${dm(sdLevel < 3 ? '#c00' : '#999')}">${sdLevel < 3 ? formatMoney(stats.revenueMissed) : '—'}</div>
+      <div class="cell cell-e"></div>
+      <div class="cell cell-f" style="font-size:0.5625rem;color:${dm('#999')}">Capture Rate</div>
+      <div class="cell cell-g" style="font-size:0.625rem;font-weight:600;color:${dm(captureRate === '100%' ? '#2e7d32' : '#e65100')}">${captureRate}</div>
+      <div class="cell cell-h"></div>
+    </div>`;
+  }
+
+  // --- Executive Assistant ---
+  if (hasExecAssistant()) {
+    const stats = gameState.execAssistantStats || { handled: 0, cashEarned: 0, cashSpent: 0 };
+    const net = stats.cashEarned - stats.cashSpent;
+    const netColor = net >= 0 ? dm('#2e7d32') : dm('#c00');
+    html += `<div class="grid-row br-upgrade-row br-owned" style="border-top:2px solid ${dm('#e0e0e0','#444')}">
+      <div class="row-num">${rowNum++}</div>
+      <div class="cell cell-a" style="font-weight:700;color:${dm('#7b1fa2')}">🗂️ Executive Assistant</div>
+      <div class="cell cell-b" style="font-size:0.625rem;color:${dm('#888')}">Emails handled: ${stats.handled}</div>
+      <div class="cell cell-c"></div>
+      <div class="cell cell-d" style="font-size:0.5625rem;color:${dm('#999')}">Net P&L</div>
+      <div class="cell cell-e" style="font-size:0.625rem;font-weight:600;color:${netColor}">${net >= 0 ? '+' : ''}${formatMoney(net)}</div>
+      <div class="cell cell-f" style="font-size:0.5625rem;color:${dm('#999')}">Earned</div>
+      <div class="cell cell-g" style="font-size:0.625rem;font-weight:600;color:${dm('#2e7d32')}">${formatMoney(stats.cashEarned)}</div>
+      <div class="cell cell-h"></div>
+    </div>`;
+  }
+
+  // --- PR Director ---
+  if (hasPRDirector()) {
+    const stats = gameState.prDirectorStats || { handled: 0, boostsActivated: 0 };
+    html += `<div class="grid-row br-upgrade-row br-owned" style="border-top:2px solid ${dm('#e0e0e0','#444')}">
+      <div class="row-num">${rowNum++}</div>
+      <div class="cell cell-a" style="font-weight:700;color:${dm('#00838f')}">📣 PR Director</div>
+      <div class="cell cell-b" style="font-size:0.625rem;color:${dm('#888')}">Press events: ${stats.handled}</div>
+      <div class="cell cell-c"></div>
+      <div class="cell cell-d" style="font-size:0.5625rem;color:${dm('#999')}">Boosts Activated</div>
+      <div class="cell cell-e" style="font-size:0.625rem;font-weight:600;color:${dm('#333')}">${stats.boostsActivated}</div>
+      <div class="cell cell-f"></div><div class="cell cell-g"></div><div class="cell cell-h"></div>
+    </div>`;
+  }
+
+  // --- CPA ---
+  if (hasBoardRoomUpgrade('cpa')) {
+    html += `<div class="grid-row br-upgrade-row br-owned" style="border-top:2px solid ${dm('#e0e0e0','#444')}">
+      <div class="row-num">${rowNum++}</div>
+      <div class="cell cell-a" style="font-weight:700;color:${dm('#455a64')}">🧾 CPA</div>
+      <div class="cell cell-b" style="font-size:0.625rem;color:${dm('#888')}">Auto-pay taxes & settle debts</div>
+      <div class="cell cell-c"></div>
+      <div class="cell cell-d" style="font-size:0.5625rem;color:${dm('#999')}">Total Taxes Paid</div>
+      <div class="cell cell-e" style="font-size:0.625rem;font-weight:600;color:${dm('#c00')}">${formatMoney(gameState.totalTaxPaid || 0)}</div>
+      <div class="cell cell-f"></div><div class="cell cell-g"></div><div class="cell cell-h"></div>
+    </div>`;
+  }
+
+  // Filler rows
+  const ROW_HEIGHT = 28;
+  const gridBottom = container.getBoundingClientRect().top || 300;
+  const viewportHeight = window.innerHeight;
+  const revBar = document.getElementById('revenue-breakdown');
+  const sheetTabs = document.getElementById('sheet-tabs');
+  const statusBar = document.getElementById('status-bar');
+  const bottomChrome = (revBar ? revBar.offsetHeight : 0) +
+                        (sheetTabs ? sheetTabs.offsetHeight : 0) +
+                        (statusBar ? statusBar.offsetHeight : 0);
+  const usedRows = rowNum;
+  const available = viewportHeight - gridBottom - bottomChrome - (usedRows * ROW_HEIGHT);
+  const fillerCount = Math.max(3, Math.ceil(available / ROW_HEIGHT) + 1);
+
+  for (let i = 0; i < fillerCount; i++) {
+    html += `<div class="grid-row br-upgrade-row">
+      <div class="row-num">${rowNum++}</div>
+      <div class="cell cell-a"></div><div class="cell cell-b"></div><div class="cell cell-c"></div><div class="cell cell-d"></div>
+      <div class="cell cell-e"></div><div class="cell cell-f"></div><div class="cell cell-g"></div><div class="cell cell-h"></div>
     </div>`;
   }
 
@@ -7492,6 +7628,7 @@ function init() {
     showArcSelect();
   }
   initChartMode(); // must run AFTER loadGame so chartVisible reflects saved state
+  if (loaded) switchTab(gameState.activeTab); // restore saved tab
   setInterval(gameTick, 1000);
 
   } catch (e) {
