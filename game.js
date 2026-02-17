@@ -4466,17 +4466,9 @@ function gameTick() {
 
   } // end speed loop
 
-  // Preserve scroll position across DOM updates (sticky rows can trigger reset)
-  const gc = document.getElementById('grid-container');
-  const scrollBefore = gc ? gc.scrollTop : 0;
-
   updateToastButtons();
   updateGridValues();
   updateDisplay();
-
-  if (gc && Math.abs(gc.scrollTop - scrollBefore) > 1) {
-    gc.scrollTop = scrollBefore;
-  }
 }
 
 // ===== EVENTS =====
@@ -6604,6 +6596,7 @@ function switchTab(tab) {
   const tabDash = document.getElementById('tab-dashboard');
 
   const gridArea = document.getElementById('grid-container');
+  const gridHeader = document.getElementById('grid-header');
   const deptHeader = document.getElementById('row-1');
 
   // Hide everything first
@@ -6617,20 +6610,25 @@ function switchTab(tab) {
   tabBR.classList.remove('active');
   tabDash.classList.remove('active');
   gridArea.classList.remove('boardroom-layout');
+  if (gridHeader) gridHeader.classList.remove('boardroom-layout');
 
   // Cash row visible on all tabs except dashboard
   const cashRow = document.getElementById('row-cash');
   if (cashRow) cashRow.classList.toggle('hidden', tab === 'dashboard');
+  // Header visible on all tabs except dashboard
+  if (gridHeader) gridHeader.classList.toggle('hidden', tab === 'dashboard');
 
   if (tab === 'boardroom') {
     boardRoom.classList.remove('hidden');
     tabBR.classList.add('active');
     gridArea.classList.add('boardroom-layout');
+    if (gridHeader) gridHeader.classList.add('boardroom-layout');
     const brWidths = gameState.boardroomColumnWidths;
     if (brWidths) {
       applyColumnWidths(brWidths);
     } else {
       gridArea.style.gridTemplateColumns = '';
+      if (gridHeader) gridHeader.style.gridTemplateColumns = '';
     }
     buildBoardRoom();
   } else if (tab === 'dashboard') {
@@ -7509,13 +7507,16 @@ function setColumnWidths(widths) {
 
 function applyColumnWidths(widths) {
   const grid = document.getElementById('grid-container');
+  const header = document.getElementById('grid-header');
   if (!grid) return;
   const cols = ['2.5rem']; // row-num column stays fixed
   for (let i = 0; i < 7; i++) {
     cols.push((widths[i] || DEFAULT_COL_WIDTHS[i]) + 'px');
   }
   cols.push('1fr'); // col H stays flexible
-  grid.style.gridTemplateColumns = cols.join(' ');
+  const colStr = cols.join(' ');
+  grid.style.gridTemplateColumns = colStr;
+  if (header) header.style.gridTemplateColumns = colStr;
 }
 
 function initColumnResize() {

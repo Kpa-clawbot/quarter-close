@@ -20,7 +20,7 @@
   <meta name="description" content="An idle tycoon game disguised as a spreadsheet. Look busy. Get rich.">
   <title>Q4 Financials - Operations.xlsx - Quarter Close</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='4' fill='%23217346'/><rect x='4' y='4' width='7' height='5' rx='1' fill='white'/><rect x='13' y='4' width='7' height='5' rx='1' fill='white'/><rect x='22' y='4' width='7' height='5' rx='1' fill='white'/><rect x='4' y='11' width='7' height='5' rx='1' fill='white' opacity='0.8'/><rect x='13' y='11' width='7' height='5' rx='1' fill='white' opacity='0.8'/><rect x='22' y='11' width='7' height='5' rx='1' fill='white' opacity='0.8'/><rect x='4' y='18' width='7' height='5' rx='1' fill='white' opacity='0.6'/><rect x='13' y='18' width='7' height='5' rx='1' fill='white' opacity='0.6'/><rect x='22' y='18' width='7' height='5' rx='1' fill='white' opacity='0.6'/><rect x='4' y='25' width='7' height='5' rx='1' fill='white' opacity='0.4'/><rect x='13' y='25' width='7' height='5' rx='1' fill='white' opacity='0.4'/><rect x='22' y='25' width='7' height='5' rx='1' fill='white' opacity='0.4'/></svg>">
-  <link rel="stylesheet" href="style.css?v=109">
+  <link rel="stylesheet" href="style.css?v=110">
 </head>
 <body>
   <!-- ===== SPLASH SCREEN ===== -->
@@ -185,10 +185,8 @@
     </div>
 
     <!-- Spreadsheet Grid -->
-    <div id="grid-container" style="position:relative">
-      <!-- Crisis overlay (z-index above grid, below modals) -->
-      <div id="crisis-overlay" class="hidden"><div id="crisis-content"></div></div>
-      <!-- Column Headers (inside grid for shared column sizing) -->
+    <div id="grid-header">
+      <!-- Column Headers -->
       <div id="col-headers" class="grid-row">
         <div class="row-num-header"></div>
         <div class="col-header">A<div class="col-resize" data-col="0"></div></div>
@@ -200,7 +198,6 @@
         <div class="col-header col-g">G<div class="col-resize" data-col="6"></div></div>
         <div class="col-header col-h">H</div>
       </div>
-      <!-- Row 1: Header / Cash -->
       <!-- Row 1: Key stats -->
       <div class="grid-row stats-row" id="row-cash">
         <div class="row-num">1</div>
@@ -213,6 +210,10 @@
         <div class="cell cell-g rev-value" id="total-rev">$0.00</div>
         <div class="cell cell-h" id="stock-price-cell"></div>
       </div>
+    </div>
+    <div id="grid-container" style="position:relative">
+      <!-- Crisis overlay (z-index above grid, below modals) -->
+      <div id="crisis-overlay" class="hidden"><div id="crisis-content"></div></div>
 
       <!-- Row 2: Column headers -->
       <div class="grid-row header-row" id="row-1">
@@ -856,7 +857,7 @@
     </div>
   </div>
 
-  <script src="game.js?v=221"></script>
+  <script src="game.js?v=222"></script>
   <script>
     if (location.hostname === 'kpa-clawbot.github.io') {
       var s = document.createElement('script');
