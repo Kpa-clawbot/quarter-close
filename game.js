@@ -3068,10 +3068,13 @@ function flashCash(direction) {
 // Floating number effect (damage numbers)
 function floatingNumber(amount, element, isSpend) {
   if (!gameState.juiceEnabled) return;
+  const rect = element.getBoundingClientRect();
   const span = document.createElement('span');
   span.className = 'floating-number ' + (isSpend ? 'spend' : 'earn');
   span.textContent = (isSpend ? '-' : '+') + formatMoney(Math.abs(amount));
-  element.appendChild(span);
+  span.style.left = (rect.left + rect.width / 2) + 'px';
+  span.style.top = rect.top + 'px';
+  document.body.appendChild(span);
   span.addEventListener('animationend', () => span.remove());
 }
 
@@ -3099,16 +3102,18 @@ function checkCashMilestone() {
 }
 
 function fireMilestonePop() {
-  // Apply to the cell wrapper (cell-b), not cash-display, to avoid animation conflicts with flashCash
   const el = document.getElementById('cash-display');
-  const cell = el ? el.closest('.cell') || el : el;
-  cell.classList.remove('cash-milestone');
-  void cell.offsetWidth;
-  cell.classList.add('cash-milestone');
-  const handler = (e) => {
-    if (e.animationName === 'milestone-pop') cell.classList.remove('cash-milestone');
-  };
-  cell.addEventListener('animationend', handler, { once: true });
+  if (!el) return;
+  // Golden floating milestone label
+  const milestone = gameState._lastCashMilestone || gameState.cash;
+  const rect = el.getBoundingClientRect();
+  const span = document.createElement('span');
+  span.className = 'floating-number milestone';
+  span.textContent = '🎉 ' + formatMoney(milestone) + '!';
+  span.style.left = (rect.left + rect.width / 2) + 'px';
+  span.style.top = rect.top + 'px';
+  document.body.appendChild(span);
+  span.addEventListener('animationend', () => span.remove());
 }
 
 // Insufficient funds feedback

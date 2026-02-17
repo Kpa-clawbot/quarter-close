@@ -3303,9 +3303,7 @@ body.col-resizing * {
 
 /* 2. Floating Numbers */
 .floating-number {
-  position: absolute;
-  top: 0;
-  left: 50%;
+  position: fixed;
   transform: translateX(-50%);
   font-size: var(--juice-float-size);
   font-weight: 700;
@@ -3326,14 +3324,17 @@ body.col-resizing * {
   100% { opacity: 0; transform: translateX(-50%) translateY(var(--juice-float-dist)); }
 }
 
-/* 4. Big Number Pop (Milestone) */
-.cash-milestone {
-  animation: milestone-pop var(--juice-pop-dur) cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+/* 4. Big Number Pop (Milestone — golden float) */
+.floating-number.milestone {
+  font-size: calc(var(--juice-float-size) * 1.5);
+  color: #ffd700 !important;
+  text-shadow: 0 0 8px rgba(255, 215, 0, 0.6), 0 0 16px rgba(255, 165, 0, 0.4);
+  animation: float-up-milestone var(--juice-pop-dur) ease-out forwards;
 }
-@keyframes milestone-pop {
-  0% { transform: scale(1); text-shadow: none; }
-  30% { transform: scale(var(--juice-pop-scale, 1.2)); text-shadow: 0 0 8px #ffd700, 0 0 16px #ffa500; }
-  100% { transform: scale(1); text-shadow: none; }
+@keyframes float-up-milestone {
+  0% { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+  30% { opacity: 1; transform: translateX(-50%) translateY(-15px) scale(var(--juice-pop-scale, 1.2)); }
+  100% { opacity: 0; transform: translateX(-50%) translateY(calc(var(--juice-float-dist) * 1.5)) scale(1); }
 }
 
 /* 5. Insufficient Funds Shake */
