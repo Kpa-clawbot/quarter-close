@@ -118,3 +118,48 @@ Only show these tips:
 
 *Added: Feb 16, 2026*
 *Status: Design notes only — not implementing yet*
+
+---
+
+## 4. Editable Formulas — True Excel Experience
+
+**Concept:** Let the player directly edit formulas in the formula bar that affect real game mechanics. The spreadsheet isn't just a skin — it becomes the actual interface.
+
+**How it could work:**
+- Click a cell → formula bar shows the real formula (e.g., `=B3*1.15^C3` for hire cost)
+- Player can edit the formula → changes propagate to the game
+- Some formulas locked (core mechanics), others unlockable via Board Room or progression
+- Wrong formulas = real consequences (circular refs crash revenue, bad tax formulas trigger audits)
+
+**Possible editable formulas:**
+- Tax rate calculation (risky — IRS notices if you go too low)
+- Hire cost scaling exponent (the `1.15^n` curve)
+- Revenue per employee multiplier
+- Depreciation schedule
+- Guidance target formula
+
+**Board Room unlock path:**
+- "Spreadsheet Admin Access" — unlock formula editing for specific categories
+- "Macro License" — create simple automation macros (=IF statements that auto-trigger actions)
+- "VBA Developer" — unlock advanced formulas / custom functions
+
+**Design tensions:**
+- Players who know Excel formulas get a genuine advantage (skill expression!)
+- Guardrails needed: can't set tax to 0% without consequences, can't make revenue infinite
+- Validation layer: game checks formulas for "reasonableness" — IRS audits, board investigations, SEC inquiries
+- Easter eggs: entering specific real Excel formulas could trigger unique events
+
+**Why this is cool:**
+- Deepens the "spreadsheet disguise" from cosmetic to mechanical
+- Unique among idle games — no one else has done this
+- Skill expression: Excel power users get rewarded
+- Natural content cliff solution: formula editing is emergent gameplay
+
+**Risks:**
+- Complex to implement (formula parser, validation, error handling)
+- Could break game balance if not carefully constrained
+- Accessibility: players who don't know Excel might feel excluded
+- Need good defaults so non-editors still progress normally
+
+*Added: Feb 17, 2026*
+*Status: Long-term backlog — significant design + engineering effort*
