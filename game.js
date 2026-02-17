@@ -2703,9 +2703,11 @@ function updateDisplay() {
       const reVal = gameState.retainedEarnings || 0;
       reEl.textContent = reVal ? formatCompact(reVal) : '0';
       reEl.style.color = '';
-      // RE flash on change
+      // RE flash + float on change
       if (gameState._prevRE !== undefined && reVal !== gameState._prevRE) {
-        flashCell(reEl, reVal > gameState._prevRE ? 'earn' : 'spend');
+        const reDelta = reVal - gameState._prevRE;
+        flashCell(reEl, reDelta > 0 ? 'earn' : 'spend');
+        floatingNumber(reDelta, reEl, reDelta < 0, Math.abs(reDelta).toLocaleString() + ' RE');
       }
       gameState._prevRE = reVal;
       // RE milestones
@@ -2762,24 +2764,7 @@ function updateDisplay() {
     if (gameState._prevRevPerQ !== undefined && revPerQ !== gameState._prevRevPerQ) {
       flashCell(reLabel, revPerQ > gameState._prevRevPerQ ? 'earn' : 'spend');
       const delta = revPerQ - gameState._prevRevPerQ;
-      const rect = reLabel.getBoundingClientRect();
-      if (gameState.juiceEnabled) {
-        const span = document.createElement('span');
-        span.className = 'floating-number ' + (delta < 0 ? 'spend' : 'earn');
-        span.textContent = (delta < 0 ? '-' : '+') + formatMoney(Math.abs(delta)) + '/Q';
-        span.style.left = (rect.left + rect.width / 2) + 'px';
-        const key = 're-label';
-        const offset = (_activeFloats.get(key) || 0);
-        span.style.top = (rect.top - offset * 24) + 'px';
-        _activeFloats.set(key, offset + 1);
-        document.body.appendChild(span);
-        span.addEventListener('animationend', () => {
-          span.remove();
-          const cur = _activeFloats.get(key) || 1;
-          if (cur <= 1) _activeFloats.delete(key);
-          else _activeFloats.set(key, cur - 1);
-        });
-      }
+      floatingNumber(delta, reLabel, delta < 0, formatMoney(Math.abs(delta)) + '/Q');
     }
     gameState._prevRevPerQ = revPerQ;
   }
@@ -3140,12 +3125,14 @@ function flashCash(direction) {
 
 // Floating number effect (damage numbers)
 let _activeFloats = new Map(); // element -> count of active floats
-function floatingNumber(amount, element, isSpend) {
+function floatingNumber(amount, element, isSpend, customText) {
   if (!gameState.juiceEnabled) return;
   const rect = element.getBoundingClientRect();
   const span = document.createElement('span');
   span.className = 'floating-number ' + (isSpend ? 'spend' : 'earn');
-  span.textContent = (isSpend ? '-' : '+') + formatMoney(Math.abs(amount));
+  span.textContent = customText
+    ? ((isSpend ? '-' : '+') + customText)
+    : ((isSpend ? '-' : '+') + formatMoney(Math.abs(amount)));
   span.style.left = (rect.left + rect.width / 2) + 'px';
   // Stagger vertically if multiple floats on same element
   const key = element.id || element;
@@ -6906,14 +6893,7 @@ function purchaseBoardRoomUpgrade(id) {
   const reEl = document.getElementById('re-display');
   if (reEl && gameState.juiceEnabled) {
     flashCell(reEl, 'spend');
-    const rect = reEl.getBoundingClientRect();
-    const span = document.createElement('span');
-    span.className = 'floating-number spend';
-    span.textContent = '-' + cost.toLocaleString() + ' RE';
-    span.style.left = (rect.left + rect.width / 2) + 'px';
-    span.style.top = rect.top + 'px';
-    document.body.appendChild(span);
-    span.addEventListener('animationend', () => span.remove());
+    floatingNumber(-cost, reEl, true, cost.toLocaleString() + ' RE');
   }
 
   // Auto-activate Finance Dept when first purchased
