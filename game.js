@@ -4880,7 +4880,7 @@ function toggleBossMode() {
     document.getElementById('event-toast').classList.add('hidden');
     document.getElementById('deal-popup').classList.add('hidden');
     document.getElementById('mini-task-bar').classList.add('hidden');
-    document.title = 'Book1 - Excel';
+    document.title = 'Book1.xlsx';
   } else {
     document.title = 'Q4 Financials - Operations.xlsx - Quarter Close';
   }
