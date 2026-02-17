@@ -6342,7 +6342,12 @@ function switchTab(tab) {
     tabOps.classList.remove('active');
     tabBR.classList.add('active');
     gridArea.classList.add('boardroom-layout');
-    gridArea.style.gridTemplateColumns = ''; // let CSS class handle boardroom columns
+    // Apply custom column widths if set, otherwise let CSS class handle defaults
+    if (gameState.columnWidths) {
+      applyColumnWidths(gameState.columnWidths);
+    } else {
+      gridArea.style.gridTemplateColumns = '';
+    }
     buildBoardRoom();
   } else {
     revenueRows.classList.remove('hidden');
@@ -6962,7 +6967,7 @@ function getColumnWidths() {
 
 function applyColumnWidths(widths) {
   const grid = document.getElementById('grid-container');
-  if (!grid || gameState.activeTab === 'boardroom') return;
+  if (!grid) return;
   const cols = ['2.5rem']; // row-num column stays fixed
   for (let i = 0; i < 7; i++) {
     cols.push((widths[i] || DEFAULT_COL_WIDTHS[i]) + 'px');
