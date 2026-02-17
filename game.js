@@ -2650,18 +2650,15 @@ function updateDisplay() {
   const cashEl = document.getElementById('cash-display');
   cashEl.textContent = formatMoney(gameState.cash);
 
-  // RE display — only show after IPO
+  // RE value display (cell E) — only show after IPO
   const reEl = document.getElementById('re-display');
-  const reLabel = document.querySelector('.re-label');
   if (reEl) {
     if (gameState.isPublic) {
       reEl.textContent = gameState.retainedEarnings ? formatCompact(gameState.retainedEarnings) : '0';
       reEl.style.visibility = '';
-      if (reLabel) { reLabel.textContent = '⭐ RE'; reLabel.style.visibility = ''; }
     } else {
       reEl.textContent = '';
       reEl.style.visibility = 'hidden';
-      if (reLabel) { reLabel.textContent = ''; reLabel.style.visibility = 'hidden'; }
     }
   }
 
@@ -2688,8 +2685,18 @@ function updateDisplay() {
   } else {
     ptEl.textContent = formatPerTick(perTick) + '/day';
   }
-  // Append rev/Q to cell C
-  ptEl.innerHTML += `<span style="color:${dm('#888')};font-size:0.5625rem;margin:0 0.15rem">│</span><span style="font-size:0.625rem;color:${dm('#217346')}">${formatCompact(gameState.quarterRevenue)}/Q</span>`;
+
+  // Rev/Q in cell D (+ RE label when post-IPO)
+  const reLabel = document.querySelector('.re-label');
+  if (reLabel) {
+    if (gameState.isPublic) {
+      reLabel.innerHTML = `<span style="font-size:0.625rem;color:${dm('#217346')};font-weight:600">${formatCompact(gameState.quarterRevenue)}/Q</span> <span style="font-size:0.5rem;color:${dm('#888')}">│</span> <span style="font-size:0.5rem;color:${dm('#d4a017')}">⭐ RE</span>`;
+      reLabel.style.visibility = '';
+    } else {
+      reLabel.innerHTML = `<span style="font-size:0.625rem;color:${dm('#217346')};font-weight:600">${formatCompact(gameState.quarterRevenue)}/Q</span>`;
+      reLabel.style.visibility = '';
+    }
+  }
 
   // Stock price in header (Phase 2.1)
   const stockCell = document.getElementById('stock-price-cell');
