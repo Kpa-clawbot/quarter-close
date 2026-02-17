@@ -1688,6 +1688,7 @@ function toggleCooBudgetAuto(enabled) {
 }
 
 // CTO auto-upgrade logic — buys ONE dept upgrade per tick
+let _autoBuyActive = false; // suppress cash flash/float during CTO/COO auto-buy
 function ctoAutoUpgrade() {
   try {
     const level = gameState.activeCTOLevel;
@@ -1743,7 +1744,12 @@ function ctoAutoUpgrade() {
       gameState.ctoJustBought = true; // flash flag for UI
       // upgradeSource deducts from cash — add cost back since CTO pays from pool
       gameState.cash += target.cost;
+      _autoBuyActive = true;
       upgradeSource(target.index);
+      _autoBuyActive = false;
+      // Float from CTO pool, not main cash
+      const ctoPoolEl = document.getElementById('cto-pool-display');
+      if (ctoPoolEl) floatingNumber(target.cost, ctoPoolEl, true);
     }
   } catch (e) {
     console.error('[CTO] Error:', e);
@@ -1808,7 +1814,12 @@ function cooAutoHire() {
       gameState.cooJustBought = true;
       // hireEmployee deducts from cash — add cost back since COO pays from pool
       gameState.cash += target.cost;
+      _autoBuyActive = true;
       hireEmployee(target.index);
+      _autoBuyActive = false;
+      // Float from COO pool, not main cash
+      const cooPoolEl = document.getElementById('coo-pool-display');
+      if (cooPoolEl) floatingNumber(target.cost, cooPoolEl, true);
     }
   } catch (e) {
     console.error('[COO] Error:', e);
@@ -2977,8 +2988,10 @@ function hireEmployee(index) {
   gameState.hintManualHireCount = (gameState.hintManualHireCount || 0) + 1;
   updateGridValues();
   updateDisplay();
-  flashCash('spend');
-  floatingNumber(cost, document.getElementById('cash-display'), true);
+  if (!_autoBuyActive) {
+    flashCash('spend');
+    floatingNumber(cost, document.getElementById('cash-display'), true);
+  }
 }
 
 function hireMax(index) {
@@ -3042,8 +3055,10 @@ function upgradeSource(index) {
   gameState.totalSpentUpgrades += cost;
   updateGridValues();
   updateDisplay();
-  flashCash('spend');
-  floatingNumber(cost, document.getElementById('cash-display'), true);
+  if (!_autoBuyActive) {
+    flashCash('spend');
+    floatingNumber(cost, document.getElementById('cash-display'), true);
+  }
 }
 
 function automateSource(index) {
@@ -6615,7 +6630,7 @@ function buildCSuiteHTML(rowNum) {
           <span class="cto-budget-pct" style="${ctoPctColor}" ${ctoPctTitle}>${ctoEffective}%</span>
         </div>
         <div class="cell cell-c" style="font-family:Consolas,monospace;font-size:0.625rem;color:${barColor}" title="${progress}% toward next upgrade">${bar}</div>
-        <div class="cell cell-d" style="font-size:0.625rem;color:${dm('#666')};white-space:nowrap">${poolStr} / ${costStr}</div>
+        <div class="cell cell-d" style="font-size:0.625rem;color:${dm('#666')};white-space:nowrap"><span id="cto-pool-display">${poolStr} / ${costStr}</span></div>
         <div class="cell cell-e" style="font-size:0.625rem">${autoLabel}</div>
         <div class="cell cell-f"></div>
         <div class="cell cell-g"></div>
@@ -6689,7 +6704,7 @@ function buildCSuiteHTML(rowNum) {
           <span class="cto-budget-pct" style="${cooPctColor}" ${cooPctTitle}>${cooEffective}%</span>
         </div>
         <div class="cell cell-c" style="font-family:Consolas,monospace;font-size:0.625rem;color:${cooBarColor}" title="${cooProgress}% toward next hire">${cooBar}</div>
-        <div class="cell cell-d" style="font-size:0.625rem;color:${dm('#666')};white-space:nowrap">${cooPoolStr} / ${cooCostStr}</div>
+        <div class="cell cell-d" style="font-size:0.625rem;color:${dm('#666')};white-space:nowrap"><span id="coo-pool-display">${cooPoolStr} / ${cooCostStr}</span></div>
         <div class="cell cell-e" style="font-size:0.625rem">${cooAutoLabel}</div>
         <div class="cell cell-f"></div>
         <div class="cell cell-g"></div>
