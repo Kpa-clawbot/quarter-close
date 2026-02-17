@@ -35,6 +35,8 @@
 
 **Active Play Scaling:** Click rewards (Collect, Focus, Sprint) must scale proportionally with game progression. Never use flat values that become irrelevant. Use percentages of current revenue, not absolute numbers.
 
+**Scroll Position Preservation:** Any function that wipes/rebuilds DOM inside `#grid-container` MUST save `gc.scrollTop` before and restore it after. This includes `buildFillerRows()`, `buildGrid()`, `updateTaxPanel()`, and any future functions that do `innerHTML = ''` on grid children. Also: `updateTaxPanel()`'s change-detection hash must use `formatMoney()` output, NOT raw numeric values — raw values change every tick and cause unnecessary full rebuilds.
+
 ## Project Structure
 
 - `index.html` — page structure + OG meta tags for social embeds
