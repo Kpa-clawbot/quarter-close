@@ -1321,7 +1321,7 @@ const BOARD_ROOM_UPGRADES = [
     cost: 500,
     requires: null,
     maxCount: 1,
-    category: 'Operations',
+    category: 'Admin',
   },
   {
     id: 'vp_ops_2',
@@ -1330,7 +1330,7 @@ const BOARD_ROOM_UPGRADES = [
     cost: 2000,
     requires: 'vp_ops_1',
     maxCount: 1,
-    category: 'Operations',
+    category: 'Admin',
   },
   {
     id: 'vp_ops_3',
@@ -1339,7 +1339,7 @@ const BOARD_ROOM_UPGRADES = [
     cost: 8000,
     requires: 'vp_ops_2',
     maxCount: 1,
-    category: 'Operations',
+    category: 'Admin',
   },
   // Sales Director — auto-closes deals
   {
@@ -1349,7 +1349,7 @@ const BOARD_ROOM_UPGRADES = [
     cost: 1000,
     requires: null,
     maxCount: 1,
-    category: 'Operations',
+    category: 'Sales',
   },
   {
     id: 'sales_dir_2',
@@ -1358,7 +1358,7 @@ const BOARD_ROOM_UPGRADES = [
     cost: 4000,
     requires: 'sales_dir_1',
     maxCount: 1,
-    category: 'Operations',
+    category: 'Sales',
   },
   {
     id: 'sales_dir_3',
@@ -1367,7 +1367,7 @@ const BOARD_ROOM_UPGRADES = [
     cost: 15000,
     requires: 'sales_dir_2',
     maxCount: 1,
-    category: 'Operations',
+    category: 'Sales',
   },
 ];
 
@@ -6758,14 +6758,16 @@ function buildBoardRoom() {
   }
 
   // Group upgrades by category, sort each group by cost ascending
-  const categoryOrder = ['Expansion', 'Revenue', 'Talent', 'Finance', 'Technology', 'Operations', 'Tax', 'Investor', 'Protection'];
+  const categoryOrder = ['Expansion', 'Revenue', 'Talent', 'Finance', 'Technology', 'Operations', 'Admin', 'Sales', 'Tax', 'Investor', 'Protection'];
   const categoryLabels = {
     Expansion: '🌍 Market Expansion',
     Revenue: '💰 Revenue',
     Talent: '🎓 Talent Acquisition',
     Finance: '📊 Finance',
     Technology: '🔧 Technology',
-    Operations: '📋 Operations',
+    Operations: '👥 Hiring',
+    Admin: '📋 Admin',
+    Sales: '🤝 Sales',
     Tax: '🏛️ Tax',
     Investor: '📈 Investor Relations',
     Protection: '🛡️ Protection',
@@ -6775,9 +6777,14 @@ function buildBoardRoom() {
     if (!grouped[upgrade.category]) grouped[upgrade.category] = [];
     grouped[upgrade.category].push(upgrade);
   }
-  // Sort each group by effective cost
+  // Sort each group: by upgrade chain first (group related upgrades together), then by cost within chain
   for (const cat of Object.keys(grouped)) {
-    grouped[cat].sort((a, b) => getUpgradeCost(a) - getUpgradeCost(b));
+    const chainOf = (u) => u.id.replace(/_\d+$/, '');
+    grouped[cat].sort((a, b) => {
+      const chainA = chainOf(a), chainB = chainOf(b);
+      if (chainA !== chainB) return chainA.localeCompare(chainB);
+      return getUpgradeCost(a) - getUpgradeCost(b);
+    });
   }
 
   let totalUpgradeRows = 0;
@@ -6952,6 +6959,42 @@ function buildBoardRoom() {
       <div class="cell cell-e"></div>
       <div class="cell cell-f" style="font-size:0.5625rem;color:${dm('#999')}">Best Streak</div>
       <div class="cell cell-g" style="font-size:0.625rem;font-weight:600;color:${dm('#e65100')}">🔥 ${stats.longestStreak}</div>
+      <div class="cell cell-h"></div>
+    </div>`;
+    totalUpgradeRows++;
+  }
+
+  // Sales Director stats display
+  if (getSalesDirLevel() > 0) {
+    const stats = gameState.salesDirStats || { dealsCompleted: 0, totalRevenue: 0, revenueMissed: 0 };
+    const sdLevel = getSalesDirLevel();
+    const efficiency = sdLevel === 1 ? '50%' : sdLevel === 2 ? '75%' : '100%';
+
+    html += `<div class="grid-row br-upgrade-row br-owned" style="border-top:2px solid ${dm('#e0e0e0','#444')}">
+      <div class="row-num">${rowNum++}</div>
+      <div class="cell cell-a" style="font-weight:700;color:${dm('#2e7d32')}">🤝 Sales Director</div>
+      <div class="cell cell-b" style="font-size:0.625rem;color:${dm('#888')}">Lv${sdLevel} — ${efficiency} deal value</div>
+      <div class="cell cell-c"></div>
+      <div class="cell cell-d"></div>
+      <div class="cell cell-e"></div>
+      <div class="cell cell-f" style="font-size:0.5625rem;color:${dm('#999')}">Deals Closed</div>
+      <div class="cell cell-g" style="font-size:0.625rem;font-weight:600;color:${dm('#333')}">${stats.dealsCompleted.toLocaleString()}</div>
+      <div class="cell cell-h"></div>
+    </div>`;
+    totalUpgradeRows++;
+
+    const captureRate = sdLevel < 3 && stats.totalRevenue + stats.revenueMissed > 0
+      ? Math.round(stats.totalRevenue / (stats.totalRevenue + stats.revenueMissed) * 100) + '%'
+      : '100%';
+    html += `<div class="grid-row br-upgrade-row br-owned">
+      <div class="row-num">${rowNum++}</div>
+      <div class="cell cell-a" style="font-size:0.5625rem;color:${dm('#999')};padding-left:1.2rem">Revenue Earned</div>
+      <div class="cell cell-b" style="font-size:0.625rem;font-weight:600;color:${dm('#2e7d32')}">${formatMoney(stats.totalRevenue)}</div>
+      <div class="cell cell-c" style="font-size:0.5625rem;color:${dm('#999')}">Left on Table</div>
+      <div class="cell cell-d" style="font-size:0.625rem;font-weight:600;color:${dm(sdLevel < 3 ? '#c00' : '#999')}">${sdLevel < 3 ? formatMoney(stats.revenueMissed) : '—'}</div>
+      <div class="cell cell-e"></div>
+      <div class="cell cell-f" style="font-size:0.5625rem;color:${dm('#999')}">Capture Rate</div>
+      <div class="cell cell-g" style="font-size:0.625rem;font-weight:600;color:${dm(captureRate === '100%' ? '#2e7d32' : '#e65100')}">${captureRate}</div>
       <div class="cell cell-h"></div>
     </div>`;
     totalUpgradeRows++;
