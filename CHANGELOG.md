@@ -54,12 +54,21 @@ When disaster strikes, your spreadsheet fights back with dramatic full-screen ov
 - **Float stacking capped at 3** — no more climbing off-screen; uses modular positioning
 - **RE display moved to cell E** — cleaner layout with rev/Q in cell D, ⭐ RE in cell E
 
+### 🖱️ Active Play Revamp
+All three clicking mechanics were worthless past early game — now they scale with progression:
+- **Collect** — was a flat $1-$5,000 per click (useless at $1T/day). Now gives **50% of department's daily revenue** per click — scales with prestige, upgrades, breakthroughs, Board Room multipliers.
+- **Management Focus** — was +5% per click, max +50%, decayed every 10s. Now **+25% per click, max +200%** (8 stacks), decays every 20s. Works on automated departments — main late-game active mechanic.
+- **Overtime → All-Hands Sprint** — was 5s of revenue with diminishing returns (spam clicks, each worth less). Now **3 charges per quarter**, each giving **30 days of total revenue** at full power. Tactical: pick your moments.
+
 ### 🔧 Fixes
+- **Dark mode crisis overlays fixed** — DDoS and Statuspage overlays flashed bright white in dark mode. 19 CSS dark mode overrides used wrong selector (`html[data-theme="dark"]` instead of `.dark-mode`) and never applied. Now correctly themed.
+- **Hire/upgrade $/day preview fixed** — buttons showed tiny deltas ("+$1.18/d") ignoring prestige (★ = 10×), breakthroughs (🔬), and Board Room revenue multipliers. Now shows actual expected gain.
 - **Chart no longer reappears after close on reload** — init order bug fixed
 - **Milestone spam on reload fixed** — milestone trackers now persist in save data
 - **Revenue stat suffixes fixed** — status bar above Quadrillion shows correct suffixes
 - **Crisis overlay covers full viewport** — position:fixed, works in both tabs
 - **Column resize works in Board Room** — removed blocking guard
+- **formatMoney handles negatives** — negative numbers no longer show raw scientific notation
 
 ## [v0.6.0] — 2026-02-17 — Quality of Life
 

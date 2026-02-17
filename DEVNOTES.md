@@ -27,6 +27,14 @@
 - Hosted on GitHub Pages (public repo required for free plan)
 - Local dev server: `nohup python3 -m http.server 8090 &` (must use nohup, not bare exec)
 
+## ⚠️ Hard Rules (Don't Break These Again)
+
+**Dark Mode CSS:** The dark mode toggle adds `body.dark-mode` class. All dark mode overrides MUST use `.dark-mode` as the selector — NOT `html[data-theme="dark"]` or any other selector. This was broken for all crisis overlay dark overrides and went unnoticed. WCAG contrast matters — don't flash bright white screens in dark mode.
+
+**Button Delta Formulas:** Any button showing a preview delta ("+$X/d" on hire/upgrade) MUST include ALL multipliers: `upgradeMult`, `prestigeMult` (`Math.pow(10, prestigeLevel)`), `breakthroughMult`, `getBoardRoomRevMultiplier()`. If the revenue formula changes, the delta preview must change too. The gold standard is `sourceRevPerTick()` — deltas should be derivable from it.
+
+**Active Play Scaling:** Click rewards (Collect, Focus, Sprint) must scale proportionally with game progression. Never use flat values that become irrelevant. Use percentages of current revenue, not absolute numbers.
+
 ## Project Structure
 
 - `index.html` — page structure + OG meta tags for social embeds
@@ -518,3 +526,20 @@ Level/prestige/breakthrough tags right-justified via flexbox. Name left, tags ri
 **formatMoney Negative Numbers (v0.7.0)**
 - `formatMoney()` only checked `n >= threshold` — negative numbers fell through to raw `.toFixed(2)`
 - Fixed with `if (n < 0) return '-' + formatMoney(-n);` recursive handler at top of function
+
+**Active Play Revamp (v0.7.0)**
+- **Collect**: Changed from flat `clickValue` ($1-$5000) to `sourceRevPerTick(state) * 0.5` — 50% of dept daily revenue per click. Scales with all multipliers automatically since it calls `sourceRevPerTick()`.
+- **Management Focus**: `focusMult` changed from `1 + focus * 0.05` (max 10 stacks = +50%) to `1 + focus * 0.25` (max 8 stacks = +200%). Decay slowed from 10s to 20s per point. Works on automated departments — late-game active play mechanic.
+- **Overtime → All-Hands Sprint**: Replaced diminishing `1/(1+clicks*0.15)` infinite-click model with charge-based system. `gameState.overtimeCharges` = 3 per quarter, each gives `totalRevPerTick() * 30` (30 days of total revenue). Button disables when charges exhausted. Resets in `processQuarterlyTax()`.
+
+**Dark Mode Crisis Overlay Fix (v0.7.0)**
+- **Root cause**: 19 CSS rules used `html[data-theme="dark"]` selector, but `toggleDarkMode()` only sets `body.dark-mode` class. The selectors never matched — all dark overrides for DDoS and Statuspage were dead code.
+- **Fix**: `sed -i 's/html\[data-theme="dark"\]/.dark-mode/g' style.css`
+- **Accessibility concern**: DDoS (`#f5f5f5`) and Statuspage (`#fff`) are near-white backgrounds that flash full-screen suddenly. In dark mode, this violates WCAG "three flashes" guidance and is jarring. The fix applies existing dark overrides that map to `#2d2d2d` / `#1e1e1e`.
+- **Lesson**: When adding new CSS for a themed component, use `.dark-mode` selector. Search for `html[data-theme` to catch any future occurrences.
+
+**Hire/Upgrade Delta Display Fix (v0.7.0)**
+- `hireGainPerDay` only used `src.baseRate * upgradeMult / 365.25` — missing prestige, breakthrough, Board Room multipliers
+- `revGainPerDay` (upgrade) only used `state.employees * src.baseRate * 0.5 / 365.25` — same problem
+- Fix: both now include full multiplier chain matching `sourceRevPerTick()`: `upgradeMult * prestigeMult * breakthroughMult * getBoardRoomRevMultiplier()`
+- **Rule**: Any new multiplier added to `sourceRevPerTick()` MUST also be added to the button delta calculations
