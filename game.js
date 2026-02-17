@@ -393,6 +393,7 @@ const EVENTS = [
       { label: 'Accept (+5% cash)', effect: (gs) => {
         const gift = Math.max(10, Math.floor(gs.cash * 0.05));
         gs.cash += gift;
+        flashCash(); floatingNumber(gift, document.getElementById('cash-display'), false);
         return `Mom invested ${formatMoney(gift)}! Thanks, Mom.`;
       }},
       { label: 'Decline (no effect)', effect: () => 'You declined. Mom is mildly hurt.' },
@@ -407,6 +408,7 @@ const EVENTS = [
       { label: 'Refund (-2% cash)', effect: (gs) => {
         const refund = Math.max(5, Math.floor(gs.cash * 0.02));
         gs.cash -= refund;
+        flashCash('spend'); floatingNumber(refund, document.getElementById('cash-display'), true);
         return `Refunded ${formatMoney(refund)}. Complaint resolved.`;
       }},
       { label: 'Ignore (rev -10% for 60s)', effect: (gs) => {
@@ -424,6 +426,7 @@ const EVENTS = [
       { label: '🍺 Take the meeting (5% cash)', effect: (gs) => {
         const cost = Math.max(50, Math.floor(gs.cash * 0.05));
         gs.cash -= cost;
+        flashCash('spend'); floatingNumber(cost, document.getElementById('cash-display'), true);
         // 40% chance it's actually good
         if (Math.random() < 0.4) {
           const rev = totalRevPerTick();
@@ -432,6 +435,7 @@ const EVENTS = [
           gs.totalEarned += bonus;
           gs.quarterRevenue += bonus;
           if (gs.isPublic) gs.earningsQuarterRevenue += bonus;
+          flashCash(); floatingNumber(bonus, document.getElementById('cash-display'), false);
           return `Spent ${formatMoney(cost)} on dinner... but the idea was legit! Closed a ${formatMoney(bonus)} side deal.`;
         } else {
           return `Spent ${formatMoney(cost)} on drinks. The pitch was an MLM. Classic.`;
@@ -462,6 +466,7 @@ const EVENTS = [
       { label: '💰 Pay ransom (15% cash)', effect: (gs) => {
         const cost = Math.max(100, Math.floor(gs.cash * 0.15));
         gs.cash -= cost;
+        flashCash('spend'); floatingNumber(cost, document.getElementById('cash-display'), true);
         return `Paid ${formatMoney(cost)} ransom. Systems restored. IT is "looking into it."`;
       }},
       { label: '🛡️ Refuse — rebuild from backups', effect: (gs) => {
@@ -493,6 +498,7 @@ const EVENTS = [
       { label: '💰 Emergency restore (3% cash)', effect: (gs) => {
         const cost = Math.max(50, Math.floor(gs.cash * 0.03));
         gs.cash -= cost;
+        flashCash('spend'); floatingNumber(cost, document.getElementById('cash-display'), true);
         return `Paid ${formatMoney(cost)} for emergency DB restore. Crisis averted.`;
       }},
       { label: '⏳ Wait for auto-recovery', effect: (gs) => {
@@ -558,6 +564,7 @@ const EVENTS = [
       { label: '🚨 Hotfix now (5% cash)', effect: (gs) => {
         const cost = Math.max(100, Math.floor(gs.cash * 0.05));
         gs.cash -= cost;
+        flashCash('spend'); floatingNumber(cost, document.getElementById('cash-display'), true);
         return `Spent ${formatMoney(cost)} on an emergency war room. Bug squashed. Engineers need therapy.`;
       }},
       { label: '📋 Next sprint', effect: (gs) => {
@@ -662,6 +669,7 @@ const EVENTS = [
             gs2.totalEarned += bonus;
             gs2.quarterRevenue += bonus;
             trackEarningsRevenue(bonus);
+            flashCash(); floatingNumber(bonus, document.getElementById('cash-display'), false);
             return `💰 ${name} scored! +${formatMoney(bonus)} from the big client.`;
           }},
         ]
@@ -3031,16 +3039,16 @@ function tickDepreciation() {
 
 function flashCash(direction) {
   const el = document.getElementById('cash-display');
-  // Scale bump (always on — basic tactile feedback)
-  el.classList.remove('cash-bump');
+  // Remove all animation classes first
+  el.classList.remove('cash-bump', 'cell-uptick', 'cell-downtick');
   void el.offsetWidth;
-  el.classList.add('cash-bump');
-  // Direction-aware color flash (juice)
   if (gameState.juiceEnabled) {
-    const flashClass = direction === 'spend' ? 'cell-downtick' : 'cell-uptick';
-    el.classList.remove('cell-uptick', 'cell-downtick');
-    void el.offsetWidth;
-    el.classList.add(flashClass);
+    const cls = direction === 'spend' ? 'cell-downtick' : 'cell-uptick';
+    el.classList.add(cls);
+    el.addEventListener('animationend', () => el.classList.remove(cls), { once: true });
+  } else {
+    el.classList.add('cash-bump');
+    el.addEventListener('animationend', () => el.classList.remove('cash-bump'), { once: true });
   }
 }
 

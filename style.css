@@ -3285,10 +3285,10 @@ body.col-resizing * {
 
 /* 1. Cell Value Flash (uptick/downtick) */
 .cell-uptick {
-  animation: uptick-flash var(--juice-flash-dur) ease-out;
+  animation: bump 0.2s ease-out, uptick-flash var(--juice-flash-dur) ease-out;
 }
 .cell-downtick {
-  animation: downtick-flash var(--juice-flash-dur) ease-out;
+  animation: bump 0.2s ease-out, downtick-flash var(--juice-flash-dur) ease-out;
 }
 @keyframes uptick-flash {
   0% { background-color: var(--flash-uptick); }
