@@ -7085,7 +7085,6 @@ function buildDashboard() {
     gameState.ctoUpgradeCount, gameState.ctoSpentThisQuarter,
     gameState.cooHireCount, gameState.cooSpentThisQuarter,
     gameState.vpOpsEnabled, gameState.totalTaxPaid,
-    gameState.ctoTarget, gameState.cooTarget,
     getTechDeptLevel(), getOpsDeptLevel(), getVPOpsLevel(), getSalesDirLevel(),
     hasExecAssistant(), hasPRDirector(),
   ].join('|');
@@ -7138,7 +7137,6 @@ function buildDashboard() {
     const strategy = ctoLevel === 1 ? 'cheapest first' : ctoLevel === 2 ? 'best ROI' : 'ROI + timing';
     const upgrades = gameState.ctoUpgradeCount || 0;
     const spent = gameState.ctoSpentThisQuarter || 0;
-    const target = gameState.ctoTarget || '—';
     html += `<div class="grid-row br-upgrade-row br-owned" style="border-top:2px solid ${dm('#e0e0e0','#444')}">
       <div class="row-num">${rowNum++}</div>
       <div class="cell cell-a" style="font-weight:700;color:${dm('#1565c0')}">🔧 CTO</div>
@@ -7150,14 +7148,6 @@ function buildDashboard() {
       <div class="cell cell-g" style="font-size:0.625rem;font-weight:600;color:${dm('#333')}">${formatMoney(spent)}</div>
       <div class="cell cell-h"></div>
     </div>`;
-    html += `<div class="grid-row br-upgrade-row br-owned">
-      <div class="row-num">${rowNum++}</div>
-      <div class="cell cell-a" style="font-size:0.5625rem;color:${dm('#999')};padding-left:1.2rem">Current Target</div>
-      <div class="cell cell-b" style="font-size:0.625rem;font-weight:600;color:${dm('#333')}">${target}</div>
-      <div class="cell cell-c" style="font-size:0.5625rem;color:${dm('#999')}">Next Cost</div>
-      <div class="cell cell-d" style="font-size:0.625rem;font-weight:600;color:${dm('#333')}">${gameState.ctoTargetCost ? formatMoney(gameState.ctoTargetCost) : '—'}</div>
-      <div class="cell cell-e"></div><div class="cell cell-f"></div><div class="cell cell-g"></div><div class="cell cell-h"></div>
-    </div>`;
   }
 
   // --- COO ---
@@ -7166,7 +7156,6 @@ function buildDashboard() {
     const strategy = cooLevel === 1 ? 'cheapest first' : cooLevel === 2 ? 'best ROI' : 'ROI + timing';
     const hires = gameState.cooHireCount || 0;
     const spent = gameState.cooSpentThisQuarter || 0;
-    const target = gameState.cooTarget || '—';
     html += `<div class="grid-row br-upgrade-row br-owned" style="border-top:2px solid ${dm('#e0e0e0','#444')}">
       <div class="row-num">${rowNum++}</div>
       <div class="cell cell-a" style="font-weight:700;color:${dm('#e65100')}">👥 COO</div>
@@ -7177,14 +7166,6 @@ function buildDashboard() {
       <div class="cell cell-f" style="font-size:0.5625rem;color:${dm('#999')}">Spent This Q</div>
       <div class="cell cell-g" style="font-size:0.625rem;font-weight:600;color:${dm('#333')}">${formatMoney(spent)}</div>
       <div class="cell cell-h"></div>
-    </div>`;
-    html += `<div class="grid-row br-upgrade-row br-owned">
-      <div class="row-num">${rowNum++}</div>
-      <div class="cell cell-a" style="font-size:0.5625rem;color:${dm('#999')};padding-left:1.2rem">Current Target</div>
-      <div class="cell cell-b" style="font-size:0.625rem;font-weight:600;color:${dm('#333')}">${target}</div>
-      <div class="cell cell-c" style="font-size:0.5625rem;color:${dm('#999')}">Next Cost</div>
-      <div class="cell cell-d" style="font-size:0.625rem;font-weight:600;color:${dm('#333')}">${gameState.cooTargetCost ? formatMoney(gameState.cooTargetCost) : '—'}</div>
-      <div class="cell cell-e"></div><div class="cell cell-f"></div><div class="cell cell-g"></div><div class="cell cell-h"></div>
     </div>`;
   }
 
