@@ -3046,23 +3046,27 @@ function tickDepreciation() {
 
 function flashCash(direction) {
   const el = document.getElementById('cash-display');
-  const cell = el ? el.closest('.cell') || el : el;
-  // Scale bump on the text element
+  if (!el) return;
+  // Background flash — use CSS transition instead of animation to avoid conflicts
+  if (gameState.juiceEnabled) {
+    const color = direction === 'spend'
+      ? (document.documentElement.dataset.theme === 'dark' ? '#3a1b1b' : '#f8d7da')
+      : (document.documentElement.dataset.theme === 'dark' ? '#1b3a1b' : '#d4edda');
+    const dur = getComputedStyle(document.documentElement).getPropertyValue('--juice-flash-dur').trim() || '0.8s';
+    el.style.transition = 'none';
+    el.style.backgroundColor = color;
+    // Force reflow
+    void el.offsetWidth;
+    el.style.transition = 'background-color ' + dur + ' ease-out';
+    el.style.backgroundColor = '';
+  }
+  // Scale bump via class
   el.classList.remove('cash-bump');
   void el.offsetWidth;
   el.classList.add('cash-bump');
-  el.addEventListener('animationend', () => el.classList.remove('cash-bump'), { once: true });
-  // Background flash on the parent cell (no animation conflict)
-  if (gameState.juiceEnabled) {
-    const cls = direction === 'spend' ? 'cell-downtick' : 'cell-uptick';
-    const anim = direction === 'spend' ? 'downtick-flash' : 'uptick-flash';
-    cell.classList.remove('cell-uptick', 'cell-downtick');
-    void cell.offsetWidth;
-    cell.classList.add(cls);
-    cell.addEventListener('animationend', (e) => {
-      if (e.animationName === anim) cell.classList.remove(cls);
-    }, { once: true });
-  }
+  el.addEventListener('animationend', (e) => {
+    if (e.animationName === 'bump') el.classList.remove('cash-bump');
+  }, { once: true });
 }
 
 // Floating number effect (damage numbers)
