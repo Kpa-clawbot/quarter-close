@@ -426,6 +426,9 @@ Total weight: 40. Base chance: 2% per tick. Cooldown: 30-60s (avg 45s). ~1 event
 ### Debug Mode
 Debug tools (🧪 buttons) hidden by default. Activate by tapping "💰 Cash" label 7× within 2 seconds. Session-only, resets on page load.
 
+### Debug Speed Controls
+`setGameSpeed(n)` changes the actual `setInterval` rate: 1×=1000ms, 2×=500ms, 5×=200ms, 10×=100ms. Each tick is still exactly one game day. Previously used a `for` loop running the tick body N times per interval, which caused events to skip, earnings/tax to fire multiple times, and `Date.now()`-based timers to break. Odometer duration scales inversely with speed so animation stays smooth at high rates.
+
 ### Number Formatting
 Added tiers up to Decillion: K, M, B, T, Q, Qi (1e18), Sx (1e21), Sp (1e24), Oc (1e27), No (1e30), Dc (1e33).
 

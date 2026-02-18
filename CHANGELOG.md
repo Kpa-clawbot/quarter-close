@@ -30,10 +30,10 @@ All notable changes to Quarter Close.
 - **Simplified display** — just "X spent this Q" instead of confusing "avail" numbers.
 
 ### 🔧 Fixes
+- **Debug speed controls** — now changes actual tick interval (1×=1s, 5×=200ms, 10×=100ms) instead of running multiple days per tick. Fixes events getting skipped and earnings/tax cycles firing wrong at high speed.
 - **Guidance target $0 on load** — stale saves now recalculate the target from current revenue rate.
 - **Rev/Day fixed** — per-department Rev/Day was missing Board Room revenue multiplier.
 - **formatMoney negatives** — handles negative numbers correctly.
-- **Removed unused scramble system** — `scrambleText()` and drumroll speed knob removed.
 
 ## [v0.7.1] — 2026-02-18 — Polish & Fixes
 
