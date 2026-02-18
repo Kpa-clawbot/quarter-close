@@ -4320,18 +4320,10 @@ function updateTaxPanel() {
     gameState.activeCFOLevel || 0,
     gameState.activeCTOLevel || 0,
     gameState.ctoBudgetPct || 0,
-    formatMoney(gameState.ctoSpentThisQuarter || 0),
-    formatMoney(gameState.ctoBudgetPool || 0),
-    gameState.ctoTarget || '',
-    gameState.ctoJustBought ? 1 : 0,
     gameState.ctoBudgetAuto ? 1 : 0,
     gameState.ctoUpgradeCount || 0,
     gameState.activeCOOLevel || 0,
     gameState.cooBudgetPct || 0,
-    formatMoney(gameState.cooSpentThisQuarter || 0),
-    formatMoney(gameState.cooBudgetPool || 0),
-    gameState.cooTarget || '',
-    gameState.cooJustBought ? 1 : 0,
     gameState.cooBudgetAuto ? 1 : 0,
     gameState.cooHireCount || 0,
     getFinanceDeptLevel(),
@@ -4347,11 +4339,70 @@ function updateTaxPanel() {
     buildFillerRows();
     if (gc && scrollBefore > 0) gc.scrollTop = scrollBefore;
   }
+
+  // Update volatile CTO/COO pool displays without full rebuild (prevents slider reset)
+  _updateCtoCooPools();
 }
 
 // Debug: trigger quarterly tax
 function triggerIRS() {
   processQuarterlyTax();
+}
+
+// Update CTO/COO pool displays, progress bars, and target info without full panel rebuild.
+// This prevents the slider from resetting mid-drag (pool values change every tick).
+function _updateCtoCooPools() {
+  // CTO pool display
+  const ctoPoolEl = document.getElementById('cto-pool-display');
+  if (ctoPoolEl) {
+    const pool = gameState.ctoBudgetPool || 0;
+    const cost = gameState.ctoTargetCost || 0;
+    ctoPoolEl.textContent = `${formatCompact(pool)} / ${cost > 0 ? formatCompact(cost) : '—'}`;
+  }
+  // CTO progress bar
+  const ctoBarEl = document.getElementById('cto-progress-bar');
+  if (ctoBarEl) {
+    const pool = gameState.ctoBudgetPool || 0;
+    const cost = gameState.ctoTargetCost || 0;
+    const progress = cost > 0 ? Math.min(100, Math.round(pool / cost * 100)) : 0;
+    const filled = Math.round(progress / 10);
+    const justBought = gameState.ctoJustBought;
+    if (justBought) gameState.ctoJustBought = false;
+    ctoBarEl.textContent = '█'.repeat(filled) + '░'.repeat(10 - filled);
+    ctoBarEl.style.color = dm(justBought ? '#217346' : progress >= 90 ? '#b8860b' : '#666');
+    ctoBarEl.title = `${progress}% toward next upgrade`;
+  }
+  // CTO target
+  const ctoTargetEl = document.getElementById('cto-target-display');
+  if (ctoTargetEl) {
+    ctoTargetEl.textContent = gameState.activeCTOLevel > 0 && gameState.ctoTarget ? `Next: ${gameState.ctoTarget}` : '';
+  }
+
+  // COO pool display
+  const cooPoolEl = document.getElementById('coo-pool-display');
+  if (cooPoolEl) {
+    const pool = gameState.cooBudgetPool || 0;
+    const cost = gameState.cooTargetCost || 0;
+    cooPoolEl.textContent = `${formatCompact(pool)} / ${cost > 0 ? formatCompact(cost) : '—'}`;
+  }
+  // COO progress bar
+  const cooBarEl = document.getElementById('coo-progress-bar');
+  if (cooBarEl) {
+    const pool = gameState.cooBudgetPool || 0;
+    const cost = gameState.cooTargetCost || 0;
+    const progress = cost > 0 ? Math.min(100, Math.round(pool / cost * 100)) : 0;
+    const filled = Math.round(progress / 10);
+    const justBought = gameState.cooJustBought;
+    if (justBought) gameState.cooJustBought = false;
+    cooBarEl.textContent = '█'.repeat(filled) + '░'.repeat(10 - filled);
+    cooBarEl.style.color = dm(justBought ? '#217346' : progress >= 90 ? '#b8860b' : '#666');
+    cooBarEl.title = `${progress}% toward next hire`;
+  }
+  // COO target
+  const cooTargetEl = document.getElementById('coo-target-display');
+  if (cooTargetEl) {
+    cooTargetEl.textContent = gameState.activeCOOLevel > 0 && gameState.cooTarget ? `Next: ${gameState.cooTarget}` : '';
+  }
 }
 
 function triggerBonus() {
@@ -6845,7 +6896,7 @@ function buildCSuiteHTML(rowNum) {
       <div class="cell cell-e"></div>
       <div class="cell cell-f" style="font-size:0.5625rem;color:${dm('#888')}">${activeCTO > 0 ? `Upgrades: ${gameState.ctoUpgradeCount || 0}` : ''}</div>
       <div class="cell cell-g"></div>
-      <div class="cell cell-h" style="font-size:0.5rem;color:${dm('#999')};white-space:nowrap">${activeCTO > 0 && gameState.ctoTarget ? `Next: ${gameState.ctoTarget}` : ''}</div>
+      <div class="cell cell-h" id="cto-target-display" style="font-size:0.5rem;color:${dm('#999')};white-space:nowrap">${activeCTO > 0 && gameState.ctoTarget ? `Next: ${gameState.ctoTarget}` : ''}</div>
     </div>`;
 
     // CTO Budget sub-row (only when CTO is active)
@@ -6880,7 +6931,7 @@ function buildCSuiteHTML(rowNum) {
           <input type="range" min="0" max="100" step="5" value="${budgetPct}" class="cto-budget-slider" oninput="setCtoBudgetPct(this.value); if(gameState.ctoBudgetAuto){gameState.ctoBudgetAuto=false;_lastTaxPanelHash='';}" title="${sliderTitle}">
           <span class="cto-budget-pct" style="${ctoPctColor}" ${ctoPctTitle}>${ctoEffective}%</span>
         </div>
-        <div class="cell cell-c" style="font-family:Consolas,monospace;font-size:0.625rem;color:${barColor}" title="${progress}% toward next upgrade">${bar}</div>
+        <div class="cell cell-c" id="cto-progress-bar" style="font-family:Consolas,monospace;font-size:0.625rem;color:${barColor}" title="${progress}% toward next upgrade">${bar}</div>
         <div class="cell cell-d" style="font-size:0.625rem;color:${dm('#666')};white-space:nowrap"><span id="cto-pool-display">${poolStr} / ${costStr}</span></div>
         <div class="cell cell-e" style="font-size:0.625rem">${autoLabel}</div>
         <div class="cell cell-f"></div>
@@ -6919,7 +6970,7 @@ function buildCSuiteHTML(rowNum) {
       <div class="cell cell-e"></div>
       <div class="cell cell-f" style="font-size:0.5625rem;color:${dm('#888')}">${activeCOO > 0 ? `Hires: ${gameState.cooHireCount || 0}` : ''}</div>
       <div class="cell cell-g"></div>
-      <div class="cell cell-h" style="font-size:0.5rem;color:${dm('#999')};white-space:nowrap">${activeCOO > 0 && gameState.cooTarget ? `Next: ${gameState.cooTarget}` : ''}</div>
+      <div class="cell cell-h" id="coo-target-display" style="font-size:0.5rem;color:${dm('#999')};white-space:nowrap">${activeCOO > 0 && gameState.cooTarget ? `Next: ${gameState.cooTarget}` : ''}</div>
     </div>`;
 
     // COO Budget sub-row
@@ -6954,7 +7005,7 @@ function buildCSuiteHTML(rowNum) {
           <input type="range" min="0" max="100" step="5" value="${cooPct}" class="cto-budget-slider" oninput="setCooBudgetPct(this.value); if(gameState.cooBudgetAuto){gameState.cooBudgetAuto=false;_lastTaxPanelHash='';}" title="${cooSliderTitle}">
           <span class="cto-budget-pct" style="${cooPctColor}" ${cooPctTitle}>${cooEffective}%</span>
         </div>
-        <div class="cell cell-c" style="font-family:Consolas,monospace;font-size:0.625rem;color:${cooBarColor}" title="${cooProgress}% toward next hire">${cooBar}</div>
+        <div class="cell cell-c" id="coo-progress-bar" style="font-family:Consolas,monospace;font-size:0.625rem;color:${cooBarColor}" title="${cooProgress}% toward next hire">${cooBar}</div>
         <div class="cell cell-d" style="font-size:0.625rem;color:${dm('#666')};white-space:nowrap"><span id="coo-pool-display">${cooPoolStr} / ${cooCostStr}</span></div>
         <div class="cell cell-e" style="font-size:0.625rem">${cooAutoLabel}</div>
         <div class="cell cell-f"></div>
