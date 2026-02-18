@@ -3046,6 +3046,32 @@ function updateDisplay() {
   document.getElementById('status-time').textContent = timeStr;
   document.getElementById('status-clicks').textContent = '🖱 ' + gameState.totalClicks;
 
+  // Live status bar: show useful info when no temporary message is active
+  const stEl = document.getElementById('status-text');
+  const stText = stEl ? stEl.textContent : '';
+  const hasTemp = stText && stText !== 'Ready' && !stText.startsWith('Q') && !stText.startsWith('Revenue:') && !stText.startsWith('⚠️ Q');
+  if (stEl && !hasTemp) {
+    if (gameState.isPublic && gameState.guidanceTarget > 0) {
+      const currentDay = Math.floor(gameState.gameElapsedSecs / SECS_PER_DAY);
+      const daysSince = currentDay - gameState.lastEarningsDay;
+      const daysLeft = Math.max(0, EARNINGS_QUARTER_DAYS - daysSince);
+      const qRev = gameState.earningsQuarterRevenue;
+      const tgt = gameState.guidanceTarget;
+      const pctDone = tgt > 0 ? Math.min(999, (qRev / tgt * 100)).toFixed(0) : '0';
+      const qLabel = getEarningsQuarterLabel();
+      if (daysLeft <= 5 && qRev < tgt) {
+        stEl.textContent = `⚠️ ${qLabel} Earnings in ${daysLeft}d · ${pctDone}% of target`;
+      } else {
+        stEl.textContent = `${qLabel} · ${daysLeft}d left · ${pctDone}% of target`;
+      }
+    } else if (!gameState.isPublic) {
+      const totalRev = totalRevPerTick() * SECS_PER_DAY;
+      if (totalRev > 0) {
+        stEl.textContent = `Revenue: ${formatMoney(totalRev)}/day`;
+      }
+    }
+  }
+
   // Phase 2.1: Stock ticker in status bar
   const stockTicker = document.getElementById('stock-ticker');
   if (stockTicker) {
