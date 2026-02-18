@@ -6721,6 +6721,299 @@ function getEarningsQuarterLabel() {
   return `Q${(quarterNum % 4) + 1}`;
 }
 
+// ===== EARNINGS DRUMROLL SYSTEM =====
+
+// --- Danger Drumroll (Miss Tension) ---
+let _dangerActive = false;
+
+function updateEarningsDangerState(earningsDaysSince) {
+  if (!gameState.juiceEnabled || gameState.bossMode || isCrisisBlocking()) {
+    if (_dangerActive) clearDangerEffects();
+    return;
+  }
+  if (!gameState.isPublic) return;
+
+  const daysLeft = Math.max(0, EARNINGS_QUARTER_DAYS - earningsDaysSince);
+  const target = gameState.guidanceTarget;
+  const qRev = gameState.earningsQuarterRevenue;
+
+  // Only in last 15 days, and only if tracking below target
+  if (daysLeft > 15 || daysLeft <= 0 || target <= 0) {
+    if (_dangerActive) clearDangerEffects(true);
+    return;
+  }
+
+  // Project: extrapolate current pace to end of quarter
+  const daysElapsed = earningsDaysSince || 1;
+  const projectedFinal = qRev * (EARNINGS_QUARTER_DAYS / daysElapsed);
+  const trackingBelow = projectedFinal < target;
+
+  if (trackingBelow) {
+    if (!_dangerActive) {
+      _dangerActive = true;
+    }
+    applyDangerEffects(daysLeft);
+  } else {
+    if (_dangerActive) {
+      clearDangerEffects(true); // player pulled it out — relief!
+    }
+  }
+}
+
+function applyDangerEffects(daysLeft) {
+  const isIntense = daysLeft <= 5;
+  const jitterClass = isIntense ? 'earnings-danger-intense' : 'earnings-danger';
+
+  // Cash display jitter
+  const cashEl = document.getElementById('cash-display');
+  if (cashEl) {
+    cashEl.classList.remove('earnings-danger', 'earnings-danger-intense');
+    cashEl.classList.add(jitterClass);
+  }
+
+  // $/day jitter
+  const ptEl = document.getElementById('per-tick-display');
+  if (ptEl) {
+    ptEl.classList.remove('earnings-danger', 'earnings-danger-intense');
+    ptEl.classList.add(jitterClass);
+  }
+
+  // Rev/Day cells — red tint
+  document.querySelectorAll('#grid-container .source-row [data-field="rate"]').forEach(cell => {
+    cell.classList.add('earnings-danger-tint');
+  });
+
+  // Red glow on IR section — intensity scales with urgency
+  const glowIntensity = isIntense ? Math.max(8, 20 - daysLeft * 2) : Math.max(3, 10 - daysLeft * 0.5);
+  document.querySelectorAll('.ir-header > *, .ir-row > *').forEach(cell => {
+    cell.classList.add('earnings-danger-glow');
+    cell.style.setProperty('--danger-glow-intensity', glowIntensity);
+  });
+}
+
+function clearDangerEffects(withRelief) {
+  _dangerActive = false;
+
+  const cashEl = document.getElementById('cash-display');
+  if (cashEl) cashEl.classList.remove('earnings-danger', 'earnings-danger-intense');
+
+  const ptEl = document.getElementById('per-tick-display');
+  if (ptEl) ptEl.classList.remove('earnings-danger', 'earnings-danger-intense');
+
+  document.querySelectorAll('.earnings-danger-tint').forEach(el => {
+    el.classList.remove('earnings-danger-tint');
+  });
+
+  document.querySelectorAll('.earnings-danger-glow').forEach(el => {
+    el.classList.remove('earnings-danger-glow');
+    el.style.removeProperty('--danger-glow-intensity');
+  });
+
+  // Relief flash
+  if (withRelief && gameState.juiceEnabled && !gameState.bossMode && !isCrisisBlocking()) {
+    const cashRow = document.getElementById('row-cash');
+    if (cashRow) {
+      cashRow.classList.add('earnings-relief-flash');
+      setTimeout(() => cashRow.classList.remove('earnings-relief-flash'), 500);
+    }
+  }
+}
+
+// --- Beat/Miss Drumroll ---
+
+function getEarningsDrumrollType() {
+  const qRevenue = gameState.earningsQuarterRevenue;
+  const target = gameState.guidanceTarget;
+  const guidanceKey = gameState.currentGuidance || 'in-line';
+
+  if (target <= 0) return null;
+
+  const margin = (qRevenue - target) / target;
+  const isBeat = qRevenue >= target && Math.abs(margin) > 0.05;
+  const isMiss = qRevenue < target && Math.abs(margin) > 0.05;
+
+  if (isBeat && guidanceKey === 'aggressive') return 'aggressive-beat';
+  if (isBeat && guidanceKey === 'ambitious') return 'ambitious-beat';
+  if (isMiss && (guidanceKey === 'aggressive' || guidanceKey === 'ambitious')) return 'miss-thud';
+
+  return null;
+}
+
+function playEarningsDrumroll(type, callback) {
+  if (type === 'aggressive-beat') {
+    playAggressiveBeatDrumroll(callback);
+  } else if (type === 'ambitious-beat') {
+    playAmbitiousBeatDrumroll(callback);
+  } else if (type === 'miss-thud') {
+    playMissThudDrumroll(callback);
+  } else {
+    callback();
+  }
+}
+
+function playAmbitiousBeatDrumroll(callback) {
+  const cashEl = document.getElementById('cash-display');
+  const ptEl = document.getElementById('per-tick-display');
+
+  if (cashEl) cashEl.classList.add('earnings-shimmer');
+  if (ptEl) ptEl.classList.add('earnings-shimmer');
+
+  showFormulaBarEcho('=EARNINGS("Ambitious Target", "BEAT!")');
+
+  setTimeout(() => {
+    if (cashEl) cashEl.classList.remove('earnings-shimmer');
+    if (ptEl) ptEl.classList.remove('earnings-shimmer');
+
+    const cashRow = document.getElementById('row-cash');
+    if (cashRow) {
+      cashRow.classList.add('earnings-golden-flash');
+      setTimeout(() => cashRow.classList.remove('earnings-golden-flash'), 700);
+    }
+
+    clearDangerEffects(false);
+    callback();
+  }, 2000);
+}
+
+function playAggressiveBeatDrumroll(callback) {
+  const cashEl = document.getElementById('cash-display');
+  const ptEl = document.getElementById('per-tick-display');
+
+  // Find IR revenue display to scramble
+  let revCell = null;
+  document.querySelectorAll('.ir-row').forEach(row => {
+    const label = row.querySelector('.cell-a');
+    if (label && label.textContent.includes('Revenue vs Target')) {
+      revCell = row.querySelector('.cell-d');
+    }
+  });
+
+  const scrambleTargets = [cashEl, ptEl, revCell].filter(Boolean);
+  const originals = scrambleTargets.map(el => el.textContent);
+
+  scrambleTargets.forEach(el => el.classList.add('earnings-scramble'));
+
+  let scrambleFrame = 0;
+  const totalFrames = 80;
+
+  function scrambleStep() {
+    scrambleFrame++;
+    const progress = scrambleFrame / totalFrames;
+    const delay = Math.max(30, 120 * (1 - progress * 0.8));
+
+    scrambleTargets.forEach((el, i) => {
+      el.textContent = scrambleText(originals[i]);
+    });
+
+    if (scrambleFrame < totalFrames) {
+      setTimeout(scrambleStep, delay);
+    } else {
+      // FREEZE
+      document.body.classList.add('earnings-freeze');
+
+      setTimeout(() => {
+        document.body.classList.remove('earnings-freeze');
+
+        scrambleTargets.forEach((el, i) => {
+          el.textContent = originals[i];
+          el.classList.remove('earnings-scramble');
+        });
+
+        // SLAM
+        const cashRow = document.getElementById('row-cash');
+        if (cashRow) {
+          cashRow.classList.add('earnings-slam');
+          setTimeout(() => cashRow.classList.remove('earnings-slam'), 600);
+        }
+
+        if (revCell) {
+          revCell.classList.add('earnings-bounce');
+          setTimeout(() => revCell.classList.remove('earnings-bounce'), 500);
+        }
+
+        spawnEarningsSparkles(cashEl || revCell);
+        showFormulaBarEcho('=JACKPOT("Aggressive Target", "CRUSHED IT!")');
+        clearDangerEffects(false);
+
+        setTimeout(callback, 400);
+      }, 300);
+    }
+  }
+
+  scrambleStep();
+}
+
+function playMissThudDrumroll(callback) {
+  const cashEl = document.getElementById('cash-display');
+  const ptEl = document.getElementById('per-tick-display');
+
+  const scrambleTargets = [cashEl, ptEl].filter(Boolean);
+  const originals = scrambleTargets.map(el => el.textContent);
+
+  scrambleTargets.forEach(el => el.classList.add('earnings-scramble'));
+
+  let frame = 0;
+  const total = 30;
+
+  function step() {
+    frame++;
+    scrambleTargets.forEach(el => {
+      el.textContent = scrambleText(el.textContent);
+    });
+
+    if (frame < total) {
+      setTimeout(step, 60);
+    } else {
+      scrambleTargets.forEach((el, i) => {
+        el.textContent = originals[i];
+        el.classList.remove('earnings-scramble');
+        el.classList.add('earnings-thud-red');
+        setTimeout(() => el.classList.remove('earnings-thud-red'), 500);
+      });
+
+      const gameView = document.getElementById('game-view');
+      if (gameView) {
+        gameView.classList.add('earnings-thud');
+        setTimeout(() => gameView.classList.remove('earnings-thud'), 400);
+      }
+
+      clearDangerEffects(false);
+      setTimeout(callback, 300);
+    }
+  }
+
+  step();
+}
+
+function scrambleText(text) {
+  return text.replace(/[0-9]/g, () => Math.floor(Math.random() * 10).toString());
+}
+
+function spawnEarningsSparkles(anchor) {
+  if (!anchor) return;
+  const rect = anchor.getBoundingClientRect();
+  const cx = rect.left + rect.width / 2;
+  const cy = rect.top + rect.height / 2;
+  const chars = ['✦', '$', '✦', '$', '✦', '💰', '✦', '$'];
+
+  for (let i = 0; i < 8; i++) {
+    const span = document.createElement('span');
+    span.className = 'earnings-sparkle';
+    span.textContent = chars[i];
+    const angle = (i / 8) * Math.PI * 2 + (Math.random() - 0.5) * 0.5;
+    const dist = 30 + Math.random() * 50;
+    const dx = Math.cos(angle) * dist;
+    const dy = Math.sin(angle) * dist - 20;
+    span.style.left = cx + 'px';
+    span.style.top = cy + 'px';
+    span.style.setProperty('--sparkle-dx', dx + 'px');
+    span.style.setProperty('--sparkle-dy', dy + 'px');
+    span.style.animationDelay = (i * 50) + 'ms';
+    document.body.appendChild(span);
+    setTimeout(() => span.remove(), 1200);
+  }
+}
+
 function processEarnings() {
   if (!gameState.isPublic) return;
 
