@@ -5375,6 +5375,12 @@ function loadGame(slotId) {
     gameState.earningsMissCount = data.earningsMissCount || 0;
     gameState.currentGuidance = data.currentGuidance || null;
     gameState.guidanceTarget = data.guidanceTarget || 0;
+    // Rescue: if public with guidance but no target, recalculate
+    if (gameState.isPublic && gameState.guidanceTarget === 0 && gameState.currentGuidance) {
+      const projRev = totalRevPerTick() * EARNINGS_QUARTER_DAYS * gameState.analystBaseline;
+      const gl = GUIDANCE_LEVELS[gameState.currentGuidance];
+      if (gl) gameState.guidanceTarget = Math.floor(projRev * gl.pct);
+    }
     gameState.lastEarningsDay = data.lastEarningsDay || 0;
     gameState.earningsQuarterRevenue = data.earningsQuarterRevenue || 0;
     gameState.ipoStockPriceStart = data.ipoStockPriceStart || 0;
