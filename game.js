@@ -3488,9 +3488,9 @@ function showCellStamp(element, stampType) {
   const rotation = (2 + Math.random() * 3) * (Math.random() < 0.5 ? -1 : 1);
   stamp.style.setProperty('--stamp-rotation', rotation + 'deg');
 
-  // Position over the button
+  // Position above the button (like floatingNumber), offset up 35px
   stamp.style.left = (rect.left + rect.width / 2) + 'px';
-  stamp.style.top = (rect.top + rect.height / 2) + 'px';
+  stamp.style.top = (rect.top - 35) + 'px';
 
   document.body.appendChild(stamp);
   stamp.addEventListener('animationend', () => stamp.remove());
@@ -3584,11 +3584,11 @@ function showEarningsTickerTape(result, qLabel, marginPct, stockPrice) {
 
   document.body.appendChild(bar);
 
-  // Auto-dismiss after one scroll cycle (~9 seconds)
+  // Auto-dismiss after one scroll cycle (~16 seconds)
   setTimeout(() => {
     bar.classList.add('ticker-fade');
     setTimeout(() => bar.remove(), 600);
-  }, 9000);
+  }, 16500);
 }
 
 function showFormulaBarEcho(text) {
@@ -4724,9 +4724,24 @@ function gameTick() {
   // Phase 2.1: Earnings quarter check (every 90 game-days post-IPO)
   if (gameState.isPublic) {
     const earningsDaysSince = currentDay - gameState.lastEarningsDay;
-    if (earningsDaysSince >= EARNINGS_QUARTER_DAYS) {
-      processEarnings();
-      gameState.lastEarningsDay = currentDay;
+
+    // Danger drumroll: check if tracking toward a miss in last 15 days
+    updateEarningsDangerState(earningsDaysSince);
+
+    if (earningsDaysSince >= EARNINGS_QUARTER_DAYS && !gameState._drumrollActive) {
+      // Check if we should play a drumroll before processing earnings
+      const drumrollType = getEarningsDrumrollType();
+      if (drumrollType && gameState.juiceEnabled && !gameState.bossMode && !isCrisisBlocking()) {
+        gameState._drumrollActive = true;
+        playEarningsDrumroll(drumrollType, () => {
+          processEarnings();
+          gameState.lastEarningsDay = Math.floor(gameState.gameElapsedSecs / SECS_PER_DAY);
+          gameState._drumrollActive = false;
+        });
+      } else {
+        processEarnings();
+        gameState.lastEarningsDay = currentDay;
+      }
     }
   }
 

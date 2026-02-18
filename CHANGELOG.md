@@ -5,6 +5,10 @@ All notable changes to Quarter Close.
 ## [v0.7.2] — 2026-02-18 — Odometer, Budget Fixes & Juice Effects
 
 ### 🧃 Juice Effects (New)
+- **Earnings Danger Drumroll** — When tracking toward a MISS in the last 15 days of the quarter, subtle tension effects build: cash and $/day displays get a nervous jitter (1-2px), Rev/Day cells get a faint red tint pulse, and a red glow builds around the IR section (intensifies in last 5 days). If the player catches up, effects snap off with a brief green relief flash.
+- **Beat Celebration — Ambitious** — On an ambitious guidance beat: 2-second shimmer on cash/$/day displays, golden flash across the stats row, formula bar shows `=EARNINGS("Ambitious Target", "BEAT!")`.
+- **Beat Celebration — Aggressive** — On an aggressive guidance beat: full 5-second slot-machine scramble with accelerating digit cycling, 300ms impact freeze, numbers slam into place with green flash + scale bounce, golden sparkle particles (✦ / $) burst from the display, formula bar shows `=JACKPOT("Aggressive Target", "CRUSHED IT!")`.
+- **Miss Thud** — On ambitious/aggressive miss: quick 2-second scramble resolves with red slam + screen shake, danger effects cut off abruptly. No celebration, just impact.
 - **Click Depress** — CSS-only button press feedback: `scale(0.97)` with shadow decrease on `:active`, 100ms spring-back transition. Applies to all `.cell-btn` interactive buttons.
 - **Earnings Ticker Tape** — Bloomberg-style scrolling ticker at the bottom of the screen after quarterly earnings. Shows actual game data: quarter, beat/miss percentage, stock price, analyst reactions. Auto-dismisses after ~9 seconds. Color-coded: green for beats, red for misses, gold for in-line.
 - **Stock Price Heartbeat** — Perpetual pulse glow on the stock price display. Normal: 1.5s cycle. Speeds up to 0.8s for 30s after earnings beat. Slows to 3s after miss. Jittery irregular pulse during crisis events. Dark mode enhanced glow.

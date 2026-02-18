@@ -1677,7 +1677,7 @@ body.col-resizing * {
   border-radius: 2px;
   color: var(--text-secondary);
   font-family: 'Segoe UI', Arial, sans-serif;
-  transition: transform 0.1s ease, box-shadow 0.1s ease, background 0.1s ease, border-color 0.1s ease;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.1s ease, border-color 0.1s ease;
   white-space: nowrap;
   box-shadow: 0 1px 2px rgba(0,0,0,0.08);
 }
@@ -1689,9 +1689,9 @@ body.col-resizing * {
 
 .cell-btn:active {
   background: var(--bg-btn-active);
-  transform: scale(0.97);
+  transform: scale(0.94);
   box-shadow: 0 0 1px rgba(0,0,0,0.05);
-  transition: transform 0.1s ease, box-shadow 0.1s ease;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .cell-btn.btn-collect {
@@ -3794,7 +3794,7 @@ body.col-resizing * {
 .earnings-ticker-text {
   white-space: nowrap;
   display: inline-block;
-  animation: ticker-scroll 9s linear 1;
+  animation: ticker-scroll 16s linear 1;
   padding-left: 100%;
 }
 @keyframes ticker-scroll {
@@ -3862,19 +3862,18 @@ body.dark-mode .stock-heartbeat.heartbeat-jitter {
 /* ===== Cell Stamp Effect ===== */
 .cell-stamp {
   position: fixed;
-  transform: translate(-50%, -50%) scale(1.5) rotate(var(--stamp-rotation, 3deg));
+  transform: translateX(-50%) rotate(var(--stamp-rotation, 3deg));
   font-family: 'Impact', 'Arial Black', sans-serif;
   font-size: 1rem;
   font-weight: 900;
   letter-spacing: 2px;
   text-transform: uppercase;
-  opacity: 0;
   pointer-events: none;
   z-index: 10000;
   padding: 2px 8px;
   border: 3px solid;
   border-radius: 4px;
-  animation: stamp-slam 0.6s ease-out forwards;
+  animation: stamp-float var(--juice-float-dur, 1.8s) ease-out forwards;
 }
 .cell-stamp-hire {
   color: rgba(33, 115, 70, 0.8);
@@ -3888,26 +3887,18 @@ body.dark-mode .stock-heartbeat.heartbeat-jitter {
   color: rgba(198, 40, 40, 0.8);
   border-color: rgba(198, 40, 40, 0.6);
 }
-@keyframes stamp-slam {
+@keyframes stamp-float {
   0% {
-    transform: translate(-50%, -50%) scale(1.5) rotate(var(--stamp-rotation, 3deg));
-    opacity: 0;
+    opacity: 0.85;
+    transform: translateX(-50%) translateY(0) scale(1.15) rotate(var(--stamp-rotation, 3deg));
   }
   15% {
-    transform: translate(-50%, -50%) scale(1.0) rotate(var(--stamp-rotation, 3deg));
-    opacity: 0.7;
-  }
-  25% {
-    transform: translate(-50%, -50%) scale(1.03) rotate(var(--stamp-rotation, 3deg));
-    opacity: 0.7;
-  }
-  35% {
-    transform: translate(-50%, -50%) scale(1.0) rotate(var(--stamp-rotation, 3deg));
-    opacity: 0.65;
+    opacity: 0.8;
+    transform: translateX(-50%) translateY(-8px) scale(1.0) rotate(var(--stamp-rotation, 3deg));
   }
   100% {
-    transform: translate(-50%, -50%) scale(1.0) rotate(var(--stamp-rotation, 3deg));
     opacity: 0;
+    transform: translateX(-50%) translateY(-55px) scale(1.0) rotate(var(--stamp-rotation, 3deg));
   }
 }
 
@@ -3923,4 +3914,215 @@ body.dark-mode .cell-stamp-upgrade {
 body.dark-mode .cell-stamp-automate {
   color: rgba(255, 215, 0, 0.85);
   border-color: rgba(255, 215, 0, 0.65);
+}
+
+/* ============================================
+   Earnings Drumroll — Danger (Miss Tension)
+   ============================================ */
+
+/* Subtle jitter on cash/$/day when tracking toward a miss */
+.earnings-danger {
+  animation: earnings-jitter 0.15s infinite;
+}
+
+@keyframes earnings-jitter {
+  0%   { transform: translate(0, 0); }
+  25%  { transform: translate(-0.5px, 0.5px); }
+  50%  { transform: translate(0.5px, -0.5px); }
+  75%  { transform: translate(-0.5px, -0.5px); }
+  100% { transform: translate(0.5px, 0.5px); }
+}
+
+/* Intensified jitter for last 5 days */
+.earnings-danger-intense {
+  animation: earnings-jitter-intense 0.12s infinite;
+}
+
+@keyframes earnings-jitter-intense {
+  0%   { transform: translate(0, 0); }
+  20%  { transform: translate(-1px, 1px); }
+  40%  { transform: translate(1px, -0.5px); }
+  60%  { transform: translate(-1px, -1px); }
+  80%  { transform: translate(0.5px, 1px); }
+  100% { transform: translate(1px, -1px); }
+}
+
+/* Red tint pulse on Rev/Day cells */
+.earnings-danger-tint {
+  animation: danger-tint-pulse 2s ease-in-out infinite;
+}
+
+@keyframes danger-tint-pulse {
+  0%, 100% { background: rgba(204, 0, 0, 0.03); }
+  50%      { background: rgba(204, 0, 0, 0.08); }
+}
+
+body.dark-mode .earnings-danger-tint {
+  animation: danger-tint-pulse-dark 2s ease-in-out infinite;
+}
+
+@keyframes danger-tint-pulse-dark {
+  0%, 100% { background: rgba(239, 83, 80, 0.03); }
+  50%      { background: rgba(239, 83, 80, 0.10); }
+}
+
+/* Red glow around IR section — intensity controlled by CSS var */
+.earnings-danger-glow {
+  box-shadow: inset 0 0 calc(var(--danger-glow-intensity, 4) * 1px) rgba(204, 0, 0, calc(var(--danger-glow-intensity, 4) * 0.01));
+}
+
+body.dark-mode .earnings-danger-glow {
+  box-shadow: inset 0 0 calc(var(--danger-glow-intensity, 4) * 1px) rgba(239, 83, 80, calc(var(--danger-glow-intensity, 4) * 0.012));
+}
+
+/* Relief flash — brief green pulse when danger clears */
+.earnings-relief-flash {
+  animation: relief-flash 0.4s ease-out;
+}
+
+@keyframes relief-flash {
+  0%   { background: rgba(46, 125, 50, 0.25); }
+  100% { background: transparent; }
+}
+
+body.dark-mode .earnings-relief-flash {
+  animation: relief-flash-dark 0.4s ease-out;
+}
+
+@keyframes relief-flash-dark {
+  0%   { background: rgba(102, 187, 106, 0.2); }
+  100% { background: transparent; }
+}
+
+/* ============================================
+   Earnings Drumroll — Beat Celebration
+   ============================================ */
+
+/* Mini shimmer — rapid opacity flicker on digits */
+.earnings-shimmer {
+  animation: earnings-shimmer-pulse 0.2s ease-in-out infinite alternate;
+}
+
+@keyframes earnings-shimmer-pulse {
+  0%   { opacity: 0.6; color: inherit; }
+  50%  { opacity: 1; }
+  100% { opacity: 0.8; filter: brightness(1.2); }
+}
+
+/* Golden flash on stats row for ambitious beat */
+.earnings-golden-flash > * {
+  animation: golden-flash 0.6s ease-out;
+}
+
+@keyframes golden-flash {
+  0%   { background: rgba(212, 160, 23, 0.35); }
+  100% { background: transparent; }
+}
+
+body.dark-mode .earnings-golden-flash > * {
+  animation: golden-flash-dark 0.6s ease-out;
+}
+
+@keyframes golden-flash-dark {
+  0%   { background: rgba(255, 215, 0, 0.2); }
+  100% { background: transparent; }
+}
+
+/* Aggressive scramble — slot machine digit cycling */
+.earnings-scramble {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.5px;
+}
+
+/* Impact freeze — brief total pause */
+.earnings-freeze * {
+  animation-play-state: paused !important;
+  transition: none !important;
+}
+
+/* Green slam flash for aggressive beat */
+.earnings-slam {
+  animation: slam-flash 0.5s ease-out;
+}
+
+@keyframes slam-flash {
+  0%   { background: rgba(46, 125, 50, 0.4); transform: scale(1.15); }
+  40%  { background: rgba(46, 125, 50, 0.15); transform: scale(1.02); }
+  100% { background: transparent; transform: scale(1); }
+}
+
+body.dark-mode .earnings-slam {
+  animation: slam-flash-dark 0.5s ease-out;
+}
+
+@keyframes slam-flash-dark {
+  0%   { background: rgba(102, 187, 106, 0.3); transform: scale(1.15); }
+  40%  { background: rgba(102, 187, 106, 0.1); transform: scale(1.02); }
+  100% { background: transparent; transform: scale(1); }
+}
+
+/* Revenue cell bounce for aggressive beat resolve */
+.earnings-bounce {
+  animation: earnings-cell-bounce 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes earnings-cell-bounce {
+  0%   { transform: scale(1.2); }
+  60%  { transform: scale(0.98); }
+  100% { transform: scale(1); }
+}
+
+/* Miss thud — red slam + screen shake */
+.earnings-thud {
+  animation: earnings-thud-shake 0.3s ease-out;
+}
+
+@keyframes earnings-thud-shake {
+  0%   { transform: translateX(0); }
+  15%  { transform: translateX(-3px); }
+  30%  { transform: translateX(3px); }
+  45%  { transform: translateX(-2px); }
+  60%  { transform: translateX(2px); }
+  75%  { transform: translateX(-1px); }
+  100% { transform: translateX(0); }
+}
+
+.earnings-thud-red {
+  animation: thud-red-flash 0.4s ease-out;
+}
+
+@keyframes thud-red-flash {
+  0%   { background: rgba(204, 0, 0, 0.3); }
+  100% { background: transparent; }
+}
+
+body.dark-mode .earnings-thud-red {
+  animation: thud-red-flash-dark 0.4s ease-out;
+}
+
+@keyframes thud-red-flash-dark {
+  0%   { background: rgba(239, 83, 80, 0.25); }
+  100% { background: transparent; }
+}
+
+/* Sparkle particles — absolute positioned flying $ / ✦ */
+.earnings-sparkle {
+  position: fixed;
+  pointer-events: none;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #d4a017;
+  z-index: 9999;
+  animation: sparkle-fly 0.8s ease-out forwards;
+  text-shadow: 0 0 4px rgba(212, 160, 23, 0.5);
+}
+
+body.dark-mode .earnings-sparkle {
+  color: #ffd700;
+  text-shadow: 0 0 6px rgba(255, 215, 0, 0.6);
+}
+
+@keyframes sparkle-fly {
+  0%   { opacity: 1; transform: translate(0, 0) scale(1); }
+  100% { opacity: 0; transform: translate(var(--sparkle-dx, 30px), var(--sparkle-dy, -40px)) scale(0.3); }
 }
