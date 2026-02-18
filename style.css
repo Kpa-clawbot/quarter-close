@@ -1677,7 +1677,7 @@ body.col-resizing * {
   border-radius: 2px;
   color: var(--text-secondary);
   font-family: 'Segoe UI', Arial, sans-serif;
-  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.1s ease, border-color 0.1s ease;
+  transition: transform calc(var(--juice-depress-dur) * 1ms) ease, box-shadow calc(var(--juice-depress-dur) * 1ms) ease, background 0.1s ease, border-color 0.1s ease;
   white-space: nowrap;
   box-shadow: 0 1px 2px rgba(0,0,0,0.08);
 }
@@ -1689,9 +1689,9 @@ body.col-resizing * {
 
 .cell-btn:active {
   background: var(--bg-btn-active);
-  transform: scale(0.94);
+  transform: scale(var(--juice-depress-scale));
   box-shadow: 0 0 1px rgba(0,0,0,0.05);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition: transform calc(var(--juice-depress-dur) * 1ms) ease, box-shadow calc(var(--juice-depress-dur) * 1ms) ease;
 }
 
 .cell-btn.btn-collect {
@@ -3325,6 +3325,10 @@ body.col-resizing * {
   --juice-shake-dist: 15px;
   --juice-ms-size: 1.5;
   --juice-odo-dur: 950;
+  --juice-depress-scale: 0.94;
+  --juice-depress-dur: 200;
+  --juice-ticker-dur: 16;
+  --heartbeat-speed: 1.5s;
 }
 
 /* 1. Cell Value Flash (uptick/downtick) */
@@ -3794,7 +3798,7 @@ body.col-resizing * {
 .earnings-ticker-text {
   white-space: nowrap;
   display: inline-block;
-  animation: ticker-scroll 16s linear 1;
+  animation: ticker-scroll calc(var(--juice-ticker-dur) * 1s) linear 1;
   padding-left: 100%;
 }
 @keyframes ticker-scroll {
@@ -3819,8 +3823,7 @@ body.dark-mode .earnings-ticker.ticker-inline {
 
 /* ===== Stock Price Heartbeat ===== */
 .stock-heartbeat {
-  --heartbeat-speed: 1.5s;
-  animation: stock-pulse var(--heartbeat-speed) ease-in-out infinite;
+  animation: stock-pulse var(--heartbeat-speed, 1.5s) ease-in-out infinite;
   border-radius: 2px;
 }
 .stock-heartbeat.heartbeat-jitter {

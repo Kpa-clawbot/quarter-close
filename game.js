@@ -3584,11 +3584,12 @@ function showEarningsTickerTape(result, qLabel, marginPct, stockPrice) {
 
   document.body.appendChild(bar);
 
-  // Auto-dismiss after one scroll cycle (~16 seconds)
+  // Auto-dismiss after one scroll cycle (reads from CSS knob)
+  const tickerDur = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--juice-ticker-dur')) || 16;
   setTimeout(() => {
     bar.classList.add('ticker-fade');
     setTimeout(() => bar.remove(), 600);
-  }, 16500);
+  }, tickerDur * 1000 + 500);
 }
 
 function showFormulaBarEcho(text) {
@@ -5163,6 +5164,10 @@ const JUICE_KNOBS = [
   { id: 'shake-dist', label: 'Shake Distance', prop: '--juice-shake-dist', min: 1, max: 15, step: 1, default: 15, unit: 'px' },
   { id: 'ms-size', label: 'Milestone Size', prop: '--juice-ms-size', min: 1.0, max: 3.0, step: 0.25, default: 1.5, unit: '×' },
   { id: 'odo-dur', label: 'Odometer Duration', prop: '--juice-odo-dur', min: 100, max: 1500, step: 50, default: 950, unit: 'ms' },
+  { id: 'depress-scale', label: 'Click Depress Scale', prop: '--juice-depress-scale', min: 0.85, max: 1.0, step: 0.01, default: 0.94, unit: '' },
+  { id: 'depress-dur', label: 'Click Depress Duration', prop: '--juice-depress-dur', min: 50, max: 500, step: 25, default: 200, unit: 'ms' },
+  { id: 'ticker-dur', label: 'Ticker Tape Speed', prop: '--juice-ticker-dur', min: 5, max: 30, step: 1, default: 16, unit: 's' },
+  { id: 'heartbeat-speed', label: 'Heartbeat Speed', prop: '--heartbeat-speed', min: 0.3, max: 5.0, step: 0.1, default: 1.5, unit: 's' },
 ];
 
 function toggleJuiceKnobs() {
@@ -5216,7 +5221,12 @@ function toggleJuiceKnobs() {
 function setJuiceKnob(prop, value, unit, id) {
   document.documentElement.style.setProperty(prop, value + unit);
   const valEl = document.getElementById('knob-val-' + id);
-  if (valEl) valEl.textContent = parseFloat(value).toFixed(unit === 'rem' ? 3 : 1) + unit;
+  if (valEl) {
+    const knob = JUICE_KNOBS.find(k => k.id === id);
+    const stepStr = knob ? String(knob.step) : '1';
+    const decimals = stepStr.includes('.') ? stepStr.split('.')[1].length : 0;
+    valEl.textContent = parseFloat(value).toFixed(decimals) + unit;
+  }
 }
 
 // ===== BOSS KEY =====
