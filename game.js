@@ -4354,13 +4354,12 @@ function _getFreeCashForBudget() {
   if (gameState.taxDebts) {
     for (const d of gameState.taxDebts) taxReserve += d.current || 0;
   }
-  const estTaxRate = getBoardRoomTaxRate();
-  const currentDay = Math.floor(gameState.gameElapsedSecs / SECS_PER_DAY);
-  const earningsDaysSince = currentDay - gameState.lastEarningsDay;
-  const daysLeft = Math.max(0, EARNINGS_QUARTER_DAYS - earningsDaysSince);
-  if (daysLeft < EARNINGS_QUARTER_DAYS) {
-    taxReserve += (gameState.quarterRevenue || 0) * estTaxRate * 0.5;
-  }
+  // Use the same tax estimation as the P&L display (includes depreciation + AMT)
+  const estTaxableIncome = gameState.quarterRevenue - getQuarterlyDepreciation();
+  const estRegularTax = Math.max(0, Math.floor(estTaxableIncome * getBoardRoomTaxRate()));
+  const estAMT = Math.max(0, Math.floor(gameState.quarterRevenue * getBoardRoomAMTRate()));
+  const estTax = Math.max(estRegularTax, estAMT);
+  taxReserve += estTax;
   return Math.max(0, gameState.cash - taxReserve);
 }
 
