@@ -1730,22 +1730,11 @@ function toggleCooBudgetAuto(enabled) {
 
 // CTO auto-upgrade logic — buys ONE dept upgrade per tick
 let _autoBuyActive = false; // suppress cash flash/float during CTO/COO auto-buy
-function ctoAutoUpgrade() {
+function ctoAutoUpgrade(budget) {
   try {
     const level = gameState.activeCTOLevel;
     if (!level || getTechDeptLevel() < level) return;
-
-    // Budget = % of current free cash
-    let ctoPct = gameState.ctoBudgetPct || 0;
-    if (ctoPct <= 0) return;
-
-    // Normalize if CTO + COO combined > 100%
-    const cooPct = (gameState.activeCOOLevel > 0 && gameState.cooBudgetPct > 0) ? gameState.cooBudgetPct : 0;
-    const totalPct = ctoPct + cooPct;
-    if (totalPct > 100) ctoPct = ctoPct * 100 / totalPct;
-
-    const budget = gameState.cash * (ctoPct / 100);
-    if (budget <= 0) return;
+    if (!budget || budget <= 0) return;
 
     const MAX_OPS_PER_TICK = 50;
     let opsThisTick = 0;
@@ -1838,25 +1827,14 @@ function ctoAutoUpgrade() {
   }
 }
 
-function cooAutoHire() {
+function cooAutoHire(budget) {
   try {
     const level = gameState.activeCOOLevel;
     if (!level || getOpsDeptLevel() < level) return;
 
     const hireFrozen = gameState.hireFrozen && Date.now() < gameState.hireFrozen;
     if (hireFrozen) return;
-
-    // Budget = % of current free cash
-    let cooPct = gameState.cooBudgetPct || 0;
-    if (cooPct <= 0) return;
-
-    // Normalize if CTO + COO combined > 100%
-    const ctoPct = (gameState.activeCTOLevel > 0 && gameState.ctoBudgetPct > 0) ? gameState.ctoBudgetPct : 0;
-    const totalPct = ctoPct + cooPct;
-    if (totalPct > 100) cooPct = cooPct * 100 / totalPct;
-
-    const budget = gameState.cash * (cooPct / 100);
-    if (budget <= 0) return;
+    if (!budget || budget <= 0) return;
 
     const MAX_OPS_PER_TICK = 50;
     let opsThisTick = 0;
@@ -4557,11 +4535,22 @@ function gameTick() {
     checkAutomationHints();
   }
 
-  // CTO auto-upgrade
-  ctoAutoUpgrade();
-
-  // COO auto-hire
-  cooAutoHire();
+  // CTO + COO auto-buy: compute budgets from same cash snapshot
+  {
+    let ctoPct = (gameState.activeCTOLevel > 0 && gameState.ctoBudgetPct > 0) ? gameState.ctoBudgetPct : 0;
+    let cooPct = (gameState.activeCOOLevel > 0 && gameState.cooBudgetPct > 0) ? gameState.cooBudgetPct : 0;
+    const totalPct = ctoPct + cooPct;
+    if (totalPct > 100) {
+      const scale = 100 / totalPct;
+      ctoPct *= scale;
+      cooPct *= scale;
+    }
+    const cashSnapshot = gameState.cash;
+    const ctoBudget = cashSnapshot * (ctoPct / 100);
+    const cooBudget = cashSnapshot * (cooPct / 100);
+    ctoAutoUpgrade(ctoBudget);
+    cooAutoHire(cooBudget);
+  }
 
   // Event system
   if (gameState.eventCooldown > 0) {
