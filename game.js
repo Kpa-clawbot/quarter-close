@@ -5191,7 +5191,6 @@ const JUICE_KNOBS = [
   { id: 'heartbeat-speed', label: 'Heartbeat Speed', prop: '--heartbeat-speed', min: 0.3, max: 5.0, step: 0.1, default: 1.5, unit: 's' },
   { id: 'danger-jitter', label: 'Danger Jitter Intensity', prop: '--juice-danger-jitter', min: 0, max: 5, step: 0.5, default: 2, unit: 'px' },
   { id: 'danger-glow-max', label: 'Danger Glow Max', prop: '--juice-danger-glow-max', min: 0, max: 1.0, step: 0.05, default: 0.4, unit: '' },
-  { id: 'drumroll-speed', label: 'Drumroll Speed', prop: '--juice-drumroll-speed', min: 0.5, max: 3.0, step: 0.1, default: 1.0, unit: '' },
   { id: 'freeze-dur', label: 'Beat Freeze Duration', prop: '--juice-freeze-dur', min: 0, max: 1000, step: 50, default: 300, unit: 'ms' },
   { id: 'shimmer-dur', label: 'Ambitious Shimmer Duration', prop: '--juice-shimmer-dur', min: 500, max: 5000, step: 250, default: 2000, unit: 'ms' },
 ];
@@ -6951,105 +6950,69 @@ function playAmbitiousBeatDrumroll(callback) {
 
 function playAggressiveBeatDrumroll(callback) {
   try {
-    const cashEl = document.getElementById('cash-display');
-    const ptEl = document.getElementById('per-tick-display');
-
-    // Read juice knobs
-    const drumrollSpeed = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--juice-drumroll-speed')) || 1.0;
     const freezeDur = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--juice-freeze-dur')) || 300;
 
-    // Find IR revenue display to scramble
-    let revCell = null;
-    document.querySelectorAll('.ir-row').forEach(row => {
-      const label = row.querySelector('.cell-a');
-      if (label && label.textContent.includes('Revenue vs Target')) {
-        revCell = row.querySelector('.cell-d');
-      }
-    });
+    // Brief pause — everything stops, tension holds
+    document.body.classList.add('earnings-freeze');
 
-    const scrambleTargets = [cashEl, ptEl, revCell].filter(Boolean);
-    const originals = scrambleTargets.map(el => el.textContent);
-
-    scrambleTargets.forEach(el => el.classList.add('earnings-scramble'));
-
-    let scrambleFrame = 0;
-    const totalFrames = Math.round(80 / drumrollSpeed);
-
-    function scrambleStep() {
+    setTimeout(() => {
       try {
-        scrambleFrame++;
-        const progress = scrambleFrame / totalFrames;
-        const delay = Math.max(30, (120 * (1 - progress * 0.8)) / drumrollSpeed);
+        document.body.classList.remove('earnings-freeze');
 
-        scrambleTargets.forEach((el, i) => {
-          el.textContent = scrambleText(originals[i]);
+        // EXPLOSION
+        const cashEl = document.getElementById('cash-display');
+        const ptEl = document.getElementById('per-tick-display');
+        let revCell = null;
+        document.querySelectorAll('.ir-row').forEach(row => {
+          const label = row.querySelector('.cell-a');
+          if (label && label.textContent.includes('Revenue vs Target')) {
+            revCell = row.querySelector('.cell-d');
+          }
         });
 
-        if (scrambleFrame < totalFrames) {
-          setTimeout(scrambleStep, delay);
-        } else {
-          // FREEZE
-          document.body.classList.add('earnings-freeze');
-
-          setTimeout(() => {
-            try {
-              document.body.classList.remove('earnings-freeze');
-
-              scrambleTargets.forEach((el, i) => {
-                el.textContent = originals[i];
-                el.classList.remove('earnings-scramble');
-              });
-
-              // SLAM — full screen celebration
-              const cashRow = document.getElementById('row-cash');
-              if (cashRow) {
-                cashRow.classList.add('earnings-slam');
-                setTimeout(() => cashRow.classList.remove('earnings-slam'), 600);
-              }
-
-              if (revCell) {
-                revCell.classList.add('earnings-bounce');
-                setTimeout(() => revCell.classList.remove('earnings-bounce'), 500);
-              }
-
-              // Screen flash
-              const flash = document.createElement('div');
-              flash.className = 'earnings-screen-flash';
-              document.body.appendChild(flash);
-              setTimeout(() => flash.remove(), 800);
-
-              // Massive sparkle burst from multiple points
-              spawnEarningsSparkles(cashEl || revCell);
-              if (ptEl) spawnEarningsSparkles(ptEl);
-              if (revCell) spawnEarningsSparkles(revCell);
-
-              // Confetti rain
-              spawnEarningsConfetti();
-
-              // Big floating text
-              const gameView = document.getElementById('game-view') || document.body;
-              const bigText = document.createElement('div');
-              bigText.className = 'earnings-big-text';
-              bigText.textContent = '📈 BEAT! 📈';
-              gameView.appendChild(bigText);
-              setTimeout(() => bigText.remove(), 2500);
-
-              showFormulaBarEcho('=JACKPOT("Aggressive Target", "CRUSHED IT!")');
-              clearDangerEffects(false);
-            } catch(e) {
-              console.error('AggressiveBeatDrumroll slam error:', e);
-            }
-
-            setTimeout(callback, 400);
-          }, freezeDur);
+        // Slam flash on cash row
+        const cashRow = document.getElementById('row-cash');
+        if (cashRow) {
+          cashRow.classList.add('earnings-slam');
+          setTimeout(() => cashRow.classList.remove('earnings-slam'), 600);
         }
-      } catch(e) {
-        console.error('AggressiveBeatDrumroll scramble error:', e);
-        callback();
-      }
-    }
 
-    scrambleStep();
+        // Revenue cell bounce
+        if (revCell) {
+          revCell.classList.add('earnings-bounce');
+          setTimeout(() => revCell.classList.remove('earnings-bounce'), 500);
+        }
+
+        // Screen flash
+        const flash = document.createElement('div');
+        flash.className = 'earnings-screen-flash';
+        document.body.appendChild(flash);
+        setTimeout(() => flash.remove(), 800);
+
+        // Massive sparkle bursts from multiple points
+        spawnEarningsSparkles(cashEl || revCell);
+        if (ptEl) spawnEarningsSparkles(ptEl);
+        if (revCell) spawnEarningsSparkles(revCell);
+
+        // Confetti rain
+        spawnEarningsConfetti();
+
+        // Big floating text
+        const gameView = document.getElementById('game-view') || document.body;
+        const bigText = document.createElement('div');
+        bigText.className = 'earnings-big-text';
+        bigText.textContent = '📈 BEAT! 📈';
+        gameView.appendChild(bigText);
+        setTimeout(() => bigText.remove(), 2500);
+
+        showFormulaBarEcho('=JACKPOT("Aggressive Target", "CRUSHED IT!")');
+        clearDangerEffects(false);
+      } catch(e) {
+        console.error('AggressiveBeatDrumroll explosion error:', e);
+      }
+
+      setTimeout(callback, 400);
+    }, freezeDur);
   } catch(e) {
     console.error('AggressiveBeatDrumroll setup error:', e);
     callback();
@@ -7058,77 +7021,56 @@ function playAggressiveBeatDrumroll(callback) {
 
 function playMissThudDrumroll(callback) {
   try {
-    const cashEl = document.getElementById('cash-display');
-    const ptEl = document.getElementById('per-tick-display');
+    const freezeDur = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--juice-freeze-dur')) || 300;
 
-    // Read drumroll speed knob
-    const drumrollSpeed = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--juice-drumroll-speed')) || 1.0;
+    // Brief pause — dread
+    document.body.classList.add('earnings-freeze');
 
-    const scrambleTargets = [cashEl, ptEl].filter(Boolean);
-    const originals = scrambleTargets.map(el => el.textContent);
-
-    scrambleTargets.forEach(el => el.classList.add('earnings-scramble'));
-
-    let frame = 0;
-    const total = Math.round(30 / drumrollSpeed);
-    const frameDelay = Math.max(20, 60 / drumrollSpeed);
-
-    function step() {
+    setTimeout(() => {
       try {
-        frame++;
-        scrambleTargets.forEach(el => {
-          el.textContent = scrambleText(el.textContent);
+        document.body.classList.remove('earnings-freeze');
+
+        // THUD
+        const cashEl = document.getElementById('cash-display');
+        const ptEl = document.getElementById('per-tick-display');
+        [cashEl, ptEl].filter(Boolean).forEach(el => {
+          el.classList.add('earnings-thud-red');
+          setTimeout(() => el.classList.remove('earnings-thud-red'), 800);
         });
 
-        if (frame < total) {
-          setTimeout(step, frameDelay);
-        } else {
-          scrambleTargets.forEach((el, i) => {
-            el.textContent = originals[i];
-            el.classList.remove('earnings-scramble');
-            el.classList.add('earnings-thud-red');
-            setTimeout(() => el.classList.remove('earnings-thud-red'), 800);
-          });
-
-          const gameView = document.getElementById('game-view');
-          if (gameView) {
-            gameView.classList.add('earnings-thud');
-            setTimeout(() => gameView.classList.remove('earnings-thud'), 500);
-          }
-
-          // Red screen flash on miss
-          const flash = document.createElement('div');
-          flash.className = 'earnings-screen-flash earnings-screen-flash-red';
-          document.body.appendChild(flash);
-          setTimeout(() => flash.remove(), 600);
-
-          // Big miss text
-          const bigText = document.createElement('div');
-          bigText.className = 'earnings-big-text earnings-big-text-miss';
-          bigText.textContent = '📉 MISS 📉';
-          (gameView || document.body).appendChild(bigText);
-          setTimeout(() => bigText.remove(), 2500);
-
-          showFormulaBarEcho('=ERROR("Missed Guidance", "OUCH")');
-          clearDangerEffects(false);
-          setTimeout(callback, 400);
+        const gameView = document.getElementById('game-view');
+        if (gameView) {
+          gameView.classList.add('earnings-thud');
+          setTimeout(() => gameView.classList.remove('earnings-thud'), 500);
         }
-      } catch(e) {
-        console.error('MissThudDrumroll step error:', e);
-        callback();
-      }
-    }
 
-    step();
+        // Red screen flash
+        const flash = document.createElement('div');
+        flash.className = 'earnings-screen-flash earnings-screen-flash-red';
+        document.body.appendChild(flash);
+        setTimeout(() => flash.remove(), 600);
+
+        // Big miss text
+        const bigText = document.createElement('div');
+        bigText.className = 'earnings-big-text earnings-big-text-miss';
+        bigText.textContent = '📉 MISS 📉';
+        (gameView || document.body).appendChild(bigText);
+        setTimeout(() => bigText.remove(), 2500);
+
+        showFormulaBarEcho('=ERROR("Missed Guidance", "OUCH")');
+        clearDangerEffects(false);
+      } catch(e) {
+        console.error('MissThudDrumroll explosion error:', e);
+      }
+
+      setTimeout(callback, 400);
+    }, freezeDur);
   } catch(e) {
     console.error('MissThudDrumroll setup error:', e);
     callback();
   }
 }
 
-function scrambleText(text) {
-  return text.replace(/[0-9]/g, () => Math.floor(Math.random() * 10).toString());
-}
 
 function spawnEarningsSparkles(anchor) {
   if (!anchor) return;

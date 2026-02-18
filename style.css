@@ -3332,7 +3332,6 @@ body.col-resizing * {
   --heartbeat-speed: 1.5s;
   --juice-danger-jitter: 2px;
   --juice-danger-glow-max: 0.4;
-  --juice-drumroll-speed: 1.0;
   --juice-freeze-dur: 300;
   --juice-shimmer-dur: 2000;
 }
@@ -4101,12 +4100,6 @@ body.dark-mode .earnings-golden-flash > * {
 @keyframes golden-flash-dark {
   0%   { background: rgba(255, 215, 0, 0.35); box-shadow: 0 0 8px rgba(255, 215, 0, 0.3); }
   100% { background: transparent; box-shadow: none; }
-}
-
-/* Aggressive scramble — slot machine digit cycling */
-.earnings-scramble {
-  font-variant-numeric: tabular-nums;
-  letter-spacing: -0.5px;
 }
 
 /* Impact freeze — brief total pause */
