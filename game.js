@@ -2181,8 +2181,9 @@ function totalAnnualRev() {
 
 // ===== ODOMETER =====
 // Animates cash display by counting from old value to new value
-function updateOdometer(el, newValue, newText) {
+function updateOdometer(el, newValue, newText, decimals) {
   if (!el) return;
+  const d = decimals || 2;
   // If juice disabled or boss mode, just set text
   if (!gameState.juiceEnabled || gameState.bossMode || isCrisisBlocking()) {
     el.textContent = newText;
@@ -2213,7 +2214,7 @@ function updateOdometer(el, newValue, newText) {
     // Ease out cubic
     const eased = 1 - Math.pow(1 - t, 3);
     const current = startVal + (endVal - startVal) * eased;
-    el.textContent = formatMoney(Math.round(current));
+    el.textContent = formatMoney(Math.round(current), d);
     if (t < 1) {
       el._odoAnim = requestAnimationFrame(tick);
     } else {
@@ -2226,20 +2227,21 @@ function updateOdometer(el, newValue, newText) {
 }
 
 // ===== FORMATTING =====
-function formatMoney(n) {
-  if (n < 0) return '-' + formatMoney(-n);
-  if (n >= 1e33) return '$' + (n / 1e33).toFixed(2) + 'Dc';
-  if (n >= 1e30) return '$' + (n / 1e30).toFixed(2) + 'No';
-  if (n >= 1e27) return '$' + (n / 1e27).toFixed(2) + 'Oc';
-  if (n >= 1e24) return '$' + (n / 1e24).toFixed(2) + 'Sp';
-  if (n >= 1e21) return '$' + (n / 1e21).toFixed(2) + 'Sx';
-  if (n >= 1e18) return '$' + (n / 1e18).toFixed(2) + 'Qi';
-  if (n >= 1e15) return '$' + (n / 1e15).toFixed(2) + 'Q';
-  if (n >= 1e12) return '$' + (n / 1e12).toFixed(2) + 'T';
-  if (n >= 1e9) return '$' + (n / 1e9).toFixed(2) + 'B';
-  if (n >= 1e6) return '$' + (n / 1e6).toFixed(2) + 'M';
-  if (n >= 1e4) return '$' + (n / 1e3).toFixed(1) + 'K';
-  return '$' + n.toFixed(2);
+function formatMoney(n, decimals) {
+  const d = decimals !== undefined ? decimals : 2;
+  if (n < 0) return '-' + formatMoney(-n, d);
+  if (n >= 1e33) return '$' + (n / 1e33).toFixed(d) + 'Dc';
+  if (n >= 1e30) return '$' + (n / 1e30).toFixed(d) + 'No';
+  if (n >= 1e27) return '$' + (n / 1e27).toFixed(d) + 'Oc';
+  if (n >= 1e24) return '$' + (n / 1e24).toFixed(d) + 'Sp';
+  if (n >= 1e21) return '$' + (n / 1e21).toFixed(d) + 'Sx';
+  if (n >= 1e18) return '$' + (n / 1e18).toFixed(d) + 'Qi';
+  if (n >= 1e15) return '$' + (n / 1e15).toFixed(d) + 'Q';
+  if (n >= 1e12) return '$' + (n / 1e12).toFixed(d) + 'T';
+  if (n >= 1e9) return '$' + (n / 1e9).toFixed(d) + 'B';
+  if (n >= 1e6) return '$' + (n / 1e6).toFixed(d) + 'M';
+  if (n >= 1e4) return '$' + (n / 1e3).toFixed(Math.max(1, d - 1)) + 'K';
+  return '$' + n.toFixed(d);
 }
 
 function formatNum(n) {
@@ -2923,7 +2925,7 @@ function updateDisplay() {
   updateCrisisOverlay();
 
   const cashEl = document.getElementById('cash-display');
-  updateOdometer(cashEl, gameState.cash, formatMoney(gameState.cash));
+  updateOdometer(cashEl, gameState.cash, formatMoney(gameState.cash, 3), 3);
 
   // RE display (cell E) — ⭐ label + value, only post-IPO
   const reEl = document.getElementById('re-display');
