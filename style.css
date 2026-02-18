@@ -3858,3 +3858,69 @@ body.dark-mode .stock-heartbeat.heartbeat-jitter {
   80%  { box-shadow: 0 0 1px 0 rgba(255, 82, 82, 0.05); }
   100% { box-shadow: 0 0 5px 1px rgba(255, 82, 82, 0.25); }
 }
+
+/* ===== Cell Stamp Effect ===== */
+.cell-stamp {
+  position: fixed;
+  transform: translate(-50%, -50%) scale(1.5) rotate(var(--stamp-rotation, 3deg));
+  font-family: 'Impact', 'Arial Black', sans-serif;
+  font-size: 1rem;
+  font-weight: 900;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 10000;
+  padding: 2px 8px;
+  border: 3px solid;
+  border-radius: 4px;
+  animation: stamp-slam 0.6s ease-out forwards;
+}
+.cell-stamp-hire {
+  color: rgba(33, 115, 70, 0.8);
+  border-color: rgba(33, 115, 70, 0.6);
+}
+.cell-stamp-upgrade {
+  color: rgba(0, 120, 212, 0.8);
+  border-color: rgba(0, 120, 212, 0.6);
+}
+.cell-stamp-automate {
+  color: rgba(198, 40, 40, 0.8);
+  border-color: rgba(198, 40, 40, 0.6);
+}
+@keyframes stamp-slam {
+  0% {
+    transform: translate(-50%, -50%) scale(1.5) rotate(var(--stamp-rotation, 3deg));
+    opacity: 0;
+  }
+  15% {
+    transform: translate(-50%, -50%) scale(1.0) rotate(var(--stamp-rotation, 3deg));
+    opacity: 0.7;
+  }
+  25% {
+    transform: translate(-50%, -50%) scale(1.03) rotate(var(--stamp-rotation, 3deg));
+    opacity: 0.7;
+  }
+  35% {
+    transform: translate(-50%, -50%) scale(1.0) rotate(var(--stamp-rotation, 3deg));
+    opacity: 0.65;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1.0) rotate(var(--stamp-rotation, 3deg));
+    opacity: 0;
+  }
+}
+
+/* Dark mode stamps — brighter colors */
+body.dark-mode .cell-stamp-hire {
+  color: rgba(102, 187, 106, 0.85);
+  border-color: rgba(102, 187, 106, 0.65);
+}
+body.dark-mode .cell-stamp-upgrade {
+  color: rgba(77, 166, 255, 0.85);
+  border-color: rgba(77, 166, 255, 0.65);
+}
+body.dark-mode .cell-stamp-automate {
+  color: rgba(255, 215, 0, 0.85);
+  border-color: rgba(255, 215, 0, 0.65);
+}

@@ -3170,6 +3170,11 @@ function hireEmployee(index) {
   addCapitalExpense(cost);
   gameState.totalSpentHires += cost;
   gameState.hintManualHireCount = (gameState.hintManualHireCount || 0) + 1;
+
+  // Stamp effect
+  const hireBtn = document.querySelector(`#source-row-${index} .btn-hire`);
+  if (hireBtn && !_autoBuyActive) showCellStamp(hireBtn, 'hire');
+
   updateGridValues();
   updateDisplay();
   if (!_autoBuyActive) {
@@ -3237,6 +3242,11 @@ function upgradeSource(index) {
   state.upgradeLevel++;
   addCapitalExpense(cost);
   gameState.totalSpentUpgrades += cost;
+
+  // Stamp effect
+  const upgradeBtn = document.querySelector(`#source-row-${index} .btn-upgrade`);
+  if (upgradeBtn && !_autoBuyActive) showCellStamp(upgradeBtn, 'upgrade');
+
   updateGridValues();
   updateDisplay();
   if (!_autoBuyActive) {
@@ -3255,6 +3265,11 @@ function automateSource(index) {
   state.automated = true;
   addCapitalExpense(cost);
   gameState.totalSpentAuto += cost;
+
+  // Stamp effect
+  const autoBtn = document.querySelector(`#source-row-${index} .btn-automate`);
+  showCellStamp(autoBtn, 'automate');
+
   gameState.cash += state.pendingCollect;
   gameState.totalEarned += state.pendingCollect;
   gameState.quarterRevenue += state.pendingCollect;
@@ -3456,6 +3471,31 @@ function showInsufficientFunds() {
 
 // Stock Price Heartbeat — pulse speed changes after earnings
 let _heartbeatTimer = null;
+
+// Cell Stamp Effect — "HIRED"/"UPGRADED"/"APPROVED" stamp on purchase
+function showCellStamp(element, stampType) {
+  if (!gameState.juiceEnabled || gameState.bossMode || isCrisisBlocking()) return;
+  if (!element) return;
+
+  const rect = element.getBoundingClientRect();
+  const stamp = document.createElement('div');
+  stamp.className = 'cell-stamp cell-stamp-' + stampType;
+
+  const labels = { hire: 'HIRED', upgrade: 'UPGRADED', automate: 'APPROVED' };
+  stamp.textContent = labels[stampType] || stampType.toUpperCase();
+
+  // Random slight rotation (2-5 degrees, random direction)
+  const rotation = (2 + Math.random() * 3) * (Math.random() < 0.5 ? -1 : 1);
+  stamp.style.setProperty('--stamp-rotation', rotation + 'deg');
+
+  // Position over the button
+  stamp.style.left = (rect.left + rect.width / 2) + 'px';
+  stamp.style.top = (rect.top + rect.height / 2) + 'px';
+
+  document.body.appendChild(stamp);
+  stamp.addEventListener('animationend', () => stamp.remove());
+}
+
 function setHeartbeatSpeed(mode) {
   if (!gameState.juiceEnabled || gameState.bossMode || isCrisisBlocking()) return;
   const stockCell = document.getElementById('stock-price-cell');
