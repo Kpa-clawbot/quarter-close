@@ -2,6 +2,20 @@
 
 All notable changes to Quarter Close.
 
+## [v0.7.2] — 2026-02-18 — Odometer & Budget Fixes
+
+### 🎰 Cash Odometer
+- **Smooth counter animation** — cash display counts up/down instead of snapping to new values. 950ms linear animation syncs with 1s game ticks for continuous motion. 3 decimal places so the last digit is always ticking.
+- **Juice knob** — "Odometer Duration" tunable from 100ms to 1500ms in the 🎛️ Juice Tuning panel.
+
+### 💰 CTO/COO Budget Fixes
+- **Tax reserve uses real tax estimate** — was using crude `revenue × rate × 50%`, now uses the same calculation as the P&L display (includes depreciation deductions and AMT).
+- **Simplified display** — removed confusing "avail" number (showed post-tax-reserve budget that didn't match slider %). Now just shows "X spent this Q".
+- **Rev/Day fixed** — per-department Rev/Day was missing Board Room revenue multiplier. Rows now add up to the header $/day. Also fixed offline earnings.
+
+### 🔧 Technical
+- `formatMoney(n, decimals)` — optional precision parameter (default 2, cash uses 3)
+
 ## [v0.7.1] — 2026-02-18 — Polish & Fixes
 
 ### 🖱️ Overtime Rebalanced

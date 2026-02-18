@@ -466,6 +466,7 @@ Level/prestige/breakthrough tags right-justified via flexbox. Name left, tags ri
 - All animation durations/sizes controlled by CSS custom properties (`--juice-*`).
 - Milestone thresholds: Cash/$/day = standard powers of 10 ($1K–$1Q). RE = [100, 250, 500, 1K, 2.5K, 5K, 10K, 25K, 50K, 100K].
 - **Architecture lesson**: `#cash-display` IS the `.cell` div — cannot split parent/child animations. Flash uses CSS `transition`, bump uses CSS `animation` — they're independent properties, no conflicts.
+- **updateOdometer(el, newValue, newText, decimals)**: Smooth counter animation via `requestAnimationFrame`. Interpolates from old numeric value to new, re-rendering `formatMoney()` each frame. 950ms linear easing syncs with 1s game ticks for continuous motion. Cash uses 3 decimal places. Duration tunable via `--juice-odo-dur` CSS property. Respects `juiceEnabled`, boss mode, crisis overlays.
 
 **VP of Operations (v0.6.0)**
 - Board Room purchase, auto-handles mini-tasks
