@@ -6918,7 +6918,7 @@ function buildCSuiteHTML(rowNum) {
       const sliderTitle = gameState.ctoBudgetAuto ? 'CFO controls this — uncheck Auto for manual' : '% of revenue skimmed into CTO budget pool';
 
       // Proportional normalization display: show effective % when combined > 100%
-      const ctoCooPctTotal = budgetPct + (gameState.cooBudgetPct || 0);
+      const ctoCooPctTotal = budgetPct + (gameState.activeCOOLevel > 0 ? (gameState.cooBudgetPct || 0) : 0);
       const ctoNormalized = ctoCooPctTotal > 100;
       const ctoEffective = ctoNormalized ? Math.round(budgetPct * 100 / ctoCooPctTotal) : budgetPct;
       const ctoPctColor = ctoNormalized ? `color:${dm('#c90')}` : '';
@@ -6992,7 +6992,7 @@ function buildCSuiteHTML(rowNum) {
       const cooSliderTitle = gameState.cooBudgetAuto ? 'CFO controls this — uncheck Auto for manual' : '% of revenue skimmed into COO hiring pool';
 
       // Proportional normalization display: show effective % when combined > 100%
-      const cooCtoPctTotal = cooPct + (gameState.ctoBudgetPct || 0);
+      const cooCtoPctTotal = cooPct + (gameState.activeCTOLevel > 0 ? (gameState.ctoBudgetPct || 0) : 0);
       const cooNormalized = cooCtoPctTotal > 100;
       const cooEffective = cooNormalized ? Math.round(cooPct * 100 / cooCtoPctTotal) : cooPct;
       const cooPctColor = cooNormalized ? `color:${dm('#c90')}` : '';
