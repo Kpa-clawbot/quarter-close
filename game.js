@@ -3445,6 +3445,73 @@ function showInsufficientFunds() {
   showFormulaError();
 }
 
+// Earnings Ticker Tape — Bloomberg-style scrolling bar after quarterly earnings
+function showEarningsTickerTape(result, qLabel, marginPct, stockPrice) {
+  if (!gameState.juiceEnabled || gameState.bossMode || isCrisisBlocking()) return;
+
+  // Remove any existing ticker
+  const existing = document.getElementById('earnings-ticker');
+  if (existing) existing.remove();
+
+  const pct = parseFloat(marginPct);
+  const pctStr = (pct >= 0 ? '+' : '') + pct + '%';
+  const priceStr = formatMoney(stockPrice);
+  const sep = ' \u00B7\u00B7\u00B7 ';
+
+  let segments;
+  if (result === 'BEAT') {
+    const actions = ['surges', 'jumps', 'rallies', 'climbs'];
+    const ratings = ['STRONG BUY', 'OUTPERFORM', 'OVERWEIGHT'];
+    const action = actions[Math.floor(Math.random() * actions.length)];
+    const rating = ratings[Math.floor(Math.random() * ratings.length)];
+    segments = [
+      `BREAKING: ${qLabel} Revenue beats estimates by ${pctStr}`,
+      `Stock price ${action} to ${priceStr}`,
+      `Analysts upgrade to ${rating}`,
+      `Institutional investors increase positions`,
+    ];
+  } else if (result === 'MISS') {
+    const reactions = ['Investors express concern', 'Shareholders demand answers', 'Market reacts negatively'];
+    const actions = ['Board demands review', 'Management under pressure', 'Cost-cutting measures expected'];
+    const reaction = reactions[Math.floor(Math.random() * reactions.length)];
+    const action = actions[Math.floor(Math.random() * actions.length)];
+    segments = [
+      `WARNING: ${qLabel} Revenue misses by ${pctStr}`,
+      `Stock price drops to ${priceStr}`,
+      reaction,
+      action,
+    ];
+  } else {
+    // IN-LINE — subtle ticker
+    segments = [
+      `${qLabel} Revenue meets expectations`,
+      `Stock steady at ${priceStr}`,
+      `Analysts maintain current ratings`,
+    ];
+  }
+
+  const tickerText = segments.join(sep) + sep;
+  // Duplicate text for seamless loop
+  const fullText = tickerText + tickerText;
+
+  const bar = document.createElement('div');
+  bar.id = 'earnings-ticker';
+  bar.className = 'earnings-ticker' + (result === 'BEAT' ? ' ticker-beat' : result === 'MISS' ? ' ticker-miss' : ' ticker-inline');
+
+  const inner = document.createElement('span');
+  inner.className = 'earnings-ticker-text';
+  inner.textContent = fullText;
+  bar.appendChild(inner);
+
+  document.body.appendChild(bar);
+
+  // Auto-dismiss after one scroll cycle (~9 seconds)
+  setTimeout(() => {
+    bar.classList.add('ticker-fade');
+    setTimeout(() => bar.remove(), 600);
+  }, 9000);
+}
+
 function showFormulaBarEcho(text) {
   const fb = document.getElementById('formula-input');
   if (!fb) return;
@@ -6665,6 +6732,10 @@ function processEarnings() {
   // Show earnings modal with next quarter guidance selection
   const marginPct = (margin * 100).toFixed(1);
   const resultEmoji = result === 'BEAT' ? '📈' : result === 'MISS' ? '📉' : '➡️';
+
+  // Earnings ticker tape (juice effect)
+  showEarningsTickerTape(result, qLabel, marginPct, newPrice);
+
   const streakBonus = gameState.earningsStreak >= 1 ?
     Math.min(2.0, 1 + gameState.earningsStreak * 0.1) : 1;
   const streakText = gameState.earningsStreak > 1 ? `🔥 ${gameState.earningsStreak} consecutive beats (${streakBonus.toFixed(1)}× RE)` :

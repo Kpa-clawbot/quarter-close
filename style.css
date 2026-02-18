@@ -3750,3 +3750,69 @@ body.col-resizing * {
 #grid-container.crisis-blocked {
   pointer-events: none;
 }
+
+/* ===== Earnings Ticker Tape ===== */
+.earnings-ticker {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 28px;
+  background: #1a1a2e;
+  border-top: 2px solid #333;
+  overflow: hidden;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  font-family: Consolas, 'Courier New', monospace;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  transition: opacity 0.5s ease;
+}
+.earnings-ticker.ticker-fade {
+  opacity: 0;
+}
+.earnings-ticker.ticker-beat {
+  border-top-color: #00c853;
+}
+.earnings-ticker.ticker-beat .earnings-ticker-text {
+  color: #00e676;
+}
+.earnings-ticker.ticker-miss {
+  border-top-color: #ff1744;
+}
+.earnings-ticker.ticker-miss .earnings-ticker-text {
+  color: #ff5252;
+}
+.earnings-ticker.ticker-inline {
+  border-top-color: #ffd740;
+}
+.earnings-ticker.ticker-inline .earnings-ticker-text {
+  color: #ffd740;
+}
+.earnings-ticker-text {
+  white-space: nowrap;
+  display: inline-block;
+  animation: ticker-scroll 9s linear 1;
+  padding-left: 100%;
+}
+@keyframes ticker-scroll {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+/* Dark mode — ticker already dark, just ensure border contrast */
+body.dark-mode .earnings-ticker {
+  background: #0d0d1a;
+  border-top-color: #444;
+}
+body.dark-mode .earnings-ticker.ticker-beat {
+  border-top-color: #00c853;
+}
+body.dark-mode .earnings-ticker.ticker-miss {
+  border-top-color: #ff1744;
+}
+body.dark-mode .earnings-ticker.ticker-inline {
+  border-top-color: #ffd740;
+}
