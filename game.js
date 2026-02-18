@@ -105,6 +105,7 @@ const SOURCE_STATS = [
 const SECS_PER_DAY = 86400;
 const SECS_PER_YEAR = 365.25 * SECS_PER_DAY;
 let gameSpeed = 1;
+let _gameTickInterval = null;
 const TIME_LABEL_BASE = '1 day/tick';
 
 // ===== SAVE SYSTEM =====
@@ -2204,7 +2205,8 @@ function updateOdometer(el, newValue, newText, decimals) {
   if (el._odoAnim) cancelAnimationFrame(el._odoAnim);
 
   const startTime = performance.now();
-  const duration = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--juice-odo-dur')) || 350;
+  const baseDuration = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--juice-odo-dur')) || 350;
+  const duration = gameSpeed > 1 ? Math.round(baseDuration / gameSpeed) : baseDuration;
   const startVal = oldValue;
   const endVal = newValue;
 
@@ -4679,7 +4681,7 @@ function gameTick() {
     }
   }
 
-  for (let _speedIter = 0; _speedIter < gameSpeed; _speedIter++) {
+  // --- Game tick body (one day per call) ---
   if (!gameState.arc) return;
   if (gameState.earningsPaused) return;
   const now = Date.now();
@@ -4861,7 +4863,7 @@ function gameTick() {
   // Management focus decay
   decayFocus();
 
-  } // end speed loop
+  // end game tick body
 
   updateToastButtons();
   updateGridValues();
@@ -5093,6 +5095,9 @@ function setGameSpeed(speed) {
     }
   }
   document.getElementById('status-text').textContent = speed > 1 ? `⏩ Speed: ${speed}×` : 'Ready';
+  // Actually change the tick interval instead of multi-ticking
+  if (_gameTickInterval) clearInterval(_gameTickInterval);
+  _gameTickInterval = setInterval(gameTick, Math.round(1000 / speed));
 }
 window.setGameSpeed = setGameSpeed;
 
@@ -8443,7 +8448,7 @@ function init() {
   }
   initChartMode(); // must run AFTER loadGame so chartVisible reflects saved state
   if (loaded) switchTab(gameState.activeTab); // restore saved tab
-  setInterval(gameTick, 1000);
+  _gameTickInterval = setInterval(gameTick, 1000);
 
   } catch (e) {
     console.error('init() crashed:', e);
