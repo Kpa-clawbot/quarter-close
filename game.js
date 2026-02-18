@@ -1991,12 +1991,12 @@ let gameState = {
   activeCTOLevel: 0,       // 0 = manual, 1/2/3 = Tech Dept level in use
   ctoBudgetPct: 15,        // 0-100, slider value for CTO quarterly budget
   ctoSpentThisQuarter: 0,  // $ spent by CTO this quarter
-  ctoBudgetPool: 0,        // CTO quarterly budget pool (allocated at quarter start)
+  ctoBudgetPool: 0,        // accumulated CTO budget from revenue skimming
   ctoBudgetAuto: false,    // CapEx Planning upgrade — CFO manages budget automatically
   activeCOOLevel: 0,       // 0 = manual, 1/2/3 = Ops Dept level in use
   cooBudgetPct: 15,        // 0-100, slider value for COO hiring budget
   cooSpentThisQuarter: 0,  // $ spent by COO this quarter
-  cooBudgetPool: 0,        // COO quarterly budget pool (allocated at quarter start)
+  cooBudgetPool: 0,        // accumulated COO budget from revenue skimming
   cooBudgetAuto: false,    // CapEx Planning upgrade — CFO manages COO budget automatically
   cooHireCount: 0,         // total hires by COO
   cfoRecords: {},          // { 1: {beats:0,total:0}, 2: {...}, 3: {...} }
@@ -3505,29 +3505,9 @@ function processQuarterlyTax() {
       }
     }
     gameState.ctoSpentThisQuarter = 0;
+    // Pool carries over — unspent CTO budget rolls to next quarter
     gameState.cooSpentThisQuarter = 0;
-
-    // Quarterly budget allocation: lump sum from last quarter's revenue
-    // This is how real corporate budgets work — allocated upfront, not drip-fed
-    if (qRev > 0) {
-      let ctoPct = (gameState.activeCTOLevel > 0 && gameState.ctoBudgetPct > 0)
-        ? gameState.ctoBudgetPct : 0;
-      let cooPct = (gameState.activeCOOLevel > 0 && gameState.cooBudgetPct > 0)
-        ? gameState.cooBudgetPct : 0;
-      // Proportional normalization if combined > 100%
-      const totalPct = ctoPct + cooPct;
-      if (totalPct > 100) {
-        const scale = 100 / totalPct;
-        ctoPct *= scale;
-        cooPct *= scale;
-      }
-      const ctoAlloc = Math.floor(qRev * (ctoPct / 100));
-      const cooAlloc = Math.floor(qRev * (cooPct / 100));
-      gameState.ctoBudgetPool += ctoAlloc;
-      gameState.cooBudgetPool += cooAlloc;
-      // Deduct allocation from cash (it's pre-allocated, not free money)
-      gameState.cash -= (ctoAlloc + cooAlloc);
-    }
+    // COO pool also carries over
   }
 
   // Reset quarterly tracking
@@ -4447,8 +4427,23 @@ function gameTick() {
       const garnished = garnishActive ? Math.floor(fullRev * 0.15) : 0;
 
       if (state.automated) {
-        // Revenue goes straight to cash — CTO/COO budgets are allocated quarterly
-        gameState.cash += rev;
+        // Skim CTO + COO budgets from revenue before adding to cash
+        let ctoPct = (gameState.activeCTOLevel > 0 && gameState.ctoBudgetPct > 0)
+          ? gameState.ctoBudgetPct : 0;
+        let cooPct = (gameState.activeCOOLevel > 0 && gameState.cooBudgetPct > 0)
+          ? gameState.cooBudgetPct : 0;
+        // Proportional normalization: if combined > 100%, scale both down
+        const totalPct = ctoPct + cooPct;
+        if (totalPct > 100) {
+          const scale = 100 / totalPct;
+          ctoPct *= scale;
+          cooPct *= scale;
+        }
+        const ctoSkim = rev * (ctoPct / 100);
+        const cooSkim = rev * (cooPct / 100);
+        gameState.cash += rev - ctoSkim - cooSkim;
+        gameState.ctoBudgetPool = (gameState.ctoBudgetPool || 0) + ctoSkim;
+        gameState.cooBudgetPool = (gameState.cooBudgetPool || 0) + cooSkim;
         gameState.totalEarned += rev;
         gameState.quarterRevenue += rev;
         trackEarningsRevenue(rev);
@@ -6869,7 +6864,7 @@ function buildCSuiteHTML(rowNum) {
       const hasCapEx = hasBoardRoomUpgrade('capex_planning');
       const autoChecked = gameState.ctoBudgetAuto ? 'checked' : '';
       const autoLabel = hasCapEx ? `<label class="cto-auto-label" title="CFO manages budget automatically. Uncheck for manual control."><input type="checkbox" ${autoChecked} onchange="toggleCtoBudgetAuto(this.checked)"> Auto</label>` : '';
-      const sliderTitle = gameState.ctoBudgetAuto ? 'CFO controls this — uncheck Auto for manual' : '% of quarterly revenue allocated to CTO budget';
+      const sliderTitle = gameState.ctoBudgetAuto ? 'CFO controls this — uncheck Auto for manual' : '% of revenue skimmed into CTO budget pool';
 
       // Proportional normalization display: show effective % when combined > 100%
       const ctoCooPctTotal = budgetPct + (gameState.cooBudgetPct || 0);
@@ -6943,7 +6938,7 @@ function buildCSuiteHTML(rowNum) {
       const hasCapEx = hasBoardRoomUpgrade('capex_planning');
       const cooAutoChecked = gameState.cooBudgetAuto ? 'checked' : '';
       const cooAutoLabel = hasCapEx ? `<label class="cto-auto-label" title="CFO manages hiring budget automatically. Uncheck for manual control."><input type="checkbox" ${cooAutoChecked} onchange="toggleCooBudgetAuto(this.checked)"> Auto</label>` : '';
-      const cooSliderTitle = gameState.cooBudgetAuto ? 'CFO controls this — uncheck Auto for manual' : '% of quarterly revenue allocated to COO budget';
+      const cooSliderTitle = gameState.cooBudgetAuto ? 'CFO controls this — uncheck Auto for manual' : '% of revenue skimmed into COO hiring pool';
 
       // Proportional normalization display: show effective % when combined > 100%
       const cooCtoPctTotal = cooPct + (gameState.ctoBudgetPct || 0);
