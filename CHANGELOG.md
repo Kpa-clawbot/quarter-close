@@ -2,29 +2,38 @@
 
 All notable changes to Quarter Close.
 
-## [v0.7.2] — 2026-02-18 — Odometer, Budget Fixes & Juice Effects
+## [v0.7.2] — 2026-02-18 — Juice, Odometer & Polish
 
-### 🧃 Juice Effects (New)
-- **Earnings Danger Drumroll** — When tracking toward a MISS in the last 15 days of the quarter, subtle tension effects build: cash and $/day displays get a nervous jitter (1-2px), Rev/Day cells get a faint red tint pulse, and a red glow builds around the IR section (intensifies in last 5 days). If the player catches up, effects snap off with a brief green relief flash.
-- **Beat Celebration — Ambitious** — On an ambitious guidance beat: 2-second shimmer on cash/$/day displays, golden flash across the stats row, formula bar shows `=EARNINGS("Ambitious Target", "BEAT!")`.
-- **Beat Celebration — Aggressive** — On an aggressive guidance beat: full 5-second slot-machine scramble with accelerating digit cycling, 300ms impact freeze, numbers slam into place with green flash + scale bounce, golden sparkle particles (✦ / $) burst from the display, formula bar shows `=JACKPOT("Aggressive Target", "CRUSHED IT!")`.
-- **Miss Thud** — On ambitious/aggressive miss: quick 2-second scramble resolves with red slam + screen shake, danger effects cut off abruptly. No celebration, just impact.
-- **Click Depress** — CSS-only button press feedback: `scale(0.97)` with shadow decrease on `:active`, 100ms spring-back transition. Applies to all `.cell-btn` interactive buttons.
-- **Earnings Ticker Tape** — Bloomberg-style scrolling ticker at the bottom of the screen after quarterly earnings. Shows actual game data: quarter, beat/miss percentage, stock price, analyst reactions. Auto-dismisses after ~9 seconds. Color-coded: green for beats, red for misses, gold for in-line.
-- **Stock Price Heartbeat** — Perpetual pulse glow on the stock price display. Normal: 1.5s cycle. Speeds up to 0.8s for 30s after earnings beat. Slows to 3s after miss. Jittery irregular pulse during crisis events. Dark mode enhanced glow.
-- **Cell Stamp Effect** — Purchase stamp animation over buttons: "HIRED" (green), "UPGRADED" (blue), "APPROVED" (red/gold). Slams down from 150% to 100% scale with random rotation (2-5°), semi-transparent ink look, fades out over 600ms. Suppressed during auto-buy.
+### 🧃 Visual Effects Overhaul
+- **Earnings Danger System** — When tracking toward a MISS in the last 15 days: cash and $/day jitter, revenue cells get a red tint, red glow builds around the IR section (intensifies in last 5 days). A warning banner now shows at the top of the screen with tracking %, gap amount, and days left. Critical mode (≤5 days) pulses red with "MISS IMMINENT" warning. If the player catches up, everything snaps off with a relief flash.
+- **Beat Celebration — Ambitious** — 2-second shimmer on displays, golden flash across stats row, formula bar shows `=EARNINGS("Ambitious Target", "BEAT!")`.
+- **Beat Celebration — Aggressive** — Brief freeze, then the screen explodes: golden screen flash, 40-piece confetti rain, giant "📈 BEAT! 📈" text slams center screen, triple sparkle burst from multiple points, green slam flash. Real numbers stay visible the whole time — no more confusing digit scramble.
+- **Miss Thud** — Freeze, then red screen flash, screen shake, "📉 MISS 📉" big text, formula bar shows `=ERROR("Missed Guidance", "OUCH")`.
+- **Click Depress** — Buttons shrink and dim on press for tactile feedback. Default scale 0.79 (tunable 0.70-1.0).
+- **Earnings Ticker Tape** — Bloomberg-style scrolling ticker after quarterly earnings. Shows quarter, beat/miss percentage, stock price, analyst reactions. Color-coded.
+- **Stock Price Heartbeat** — Perpetual pulse glow on stock price. Speeds up on beat, slows on miss, jitters during crises.
+- **Cell Stamps** — "HIRED" / "UPGRADED" / "APPROVED" stamps slam down from 180% scale then float away. Bold colors with background tint.
+- **All effects cranked up** — stamps bigger/bolder, heartbeat glow doubled, danger tint 6-18% (was 3-8%), sparkles 12 particles with larger spread, slam/thud shake doubled.
+- **Tunable via juice knobs** — 🎛️ panel with sliders for every effect. Defaults tuned by playtesting.
 
 ### 🎰 Cash Odometer
-- **Smooth counter animation** — cash display counts up/down instead of snapping to new values. 950ms linear animation syncs with 1s game ticks for continuous motion. 3 decimal places so the last digit is always ticking.
-- **Juice knob** — "Odometer Duration" tunable from 100ms to 1500ms in the 🎛️ Juice Tuning panel.
+- **Smooth counter animation** — cash display counts up/down instead of snapping. 950ms linear animation for continuous motion. 3 decimal places so the last digit is always ticking.
 
-### 💰 CTO/COO Budget Fixes
-- **Tax reserve uses real tax estimate** — was using crude `revenue × rate × 50%`, now uses the same calculation as the P&L display (includes depreciation deductions and AMT).
-- **Simplified display** — removed confusing "avail" number (showed post-tax-reserve budget that didn't match slider %). Now just shows "X spent this Q".
-- **Rev/Day fixed** — per-department Rev/Day was missing Board Room revenue multiplier. Rows now add up to the header $/day. Also fixed offline earnings.
+### 📊 Live Status Bar
+- Status bar now shows live info instead of sitting at "Ready": pre-IPO shows revenue/day, post-IPO shows quarter label, days left, and % of target. Temporary messages (events, crises) still display normally.
 
-### 🔧 Technical
-- `formatMoney(n, decimals)` — optional precision parameter (default 2, cash uses 3)
+### 💰 CTO/COO Budget Rework
+- **Budget = % of free cash** — eliminated pool/skimming system entirely. Slider sets what % of free cash (after tax reserves) goes toward auto-buying each tick. Up to 50 operations per tick.
+- **Both budgets from same snapshot** — CTO running first no longer eats into COO's budget.
+- **Tax reserve** — budget computed against free cash minus outstanding tax debts minus estimated quarterly tax. Prevents CTO/COO from spending all the tax money.
+- **Real tax estimate** — uses depreciation deductions and AMT, not crude `revenue × rate × 50%`.
+- **Simplified display** — just "X spent this Q" instead of confusing "avail" numbers.
+
+### 🔧 Fixes
+- **Guidance target $0 on load** — stale saves now recalculate the target from current revenue rate.
+- **Rev/Day fixed** — per-department Rev/Day was missing Board Room revenue multiplier.
+- **formatMoney negatives** — handles negative numbers correctly.
+- **Removed unused scramble system** — `scrambleText()` and drumroll speed knob removed.
 
 ## [v0.7.1] — 2026-02-18 — Polish & Fixes
 
