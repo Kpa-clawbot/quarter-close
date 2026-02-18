@@ -5185,7 +5185,7 @@ const JUICE_KNOBS = [
   { id: 'shake-dist', label: 'Shake Distance', prop: '--juice-shake-dist', min: 1, max: 15, step: 1, default: 15, unit: 'px' },
   { id: 'ms-size', label: 'Milestone Size', prop: '--juice-ms-size', min: 1.0, max: 3.0, step: 0.25, default: 1.5, unit: '×' },
   { id: 'odo-dur', label: 'Odometer Duration', prop: '--juice-odo-dur', min: 100, max: 1500, step: 50, default: 950, unit: 'ms' },
-  { id: 'depress-scale', label: 'Click Depress Scale', prop: '--juice-depress-scale', min: 0.70, max: 1.0, step: 0.01, default: 0.94, unit: '' },
+  { id: 'depress-scale', label: 'Click Depress Scale', prop: '--juice-depress-scale', min: 0.70, max: 1.0, step: 0.01, default: 0.70, unit: '' },
   { id: 'depress-dur', label: 'Click Depress Duration', prop: '--juice-depress-dur', min: 50, max: 500, step: 25, default: 200, unit: 'ms' },
   { id: 'ticker-dur', label: 'Ticker Tape Speed', prop: '--juice-ticker-dur', min: 5, max: 30, step: 1, default: 16, unit: 's' },
   { id: 'heartbeat-speed', label: 'Heartbeat Speed', prop: '--heartbeat-speed', min: 0.3, max: 5.0, step: 0.1, default: 1.5, unit: 's' },
@@ -6827,6 +6827,27 @@ function applyDangerEffects(daysLeft) {
     cell.classList.add('earnings-danger-glow');
     cell.style.setProperty('--danger-glow-intensity', glowIntensity);
   });
+
+  // Danger warning banner in formula bar area
+  let banner = document.getElementById('danger-banner');
+  if (!banner) {
+    banner = document.createElement('div');
+    banner.id = 'danger-banner';
+    banner.className = 'danger-banner';
+    document.body.appendChild(banner);
+  }
+  const pct = gameState.guidanceTarget > 0 
+    ? ((gameState.earningsQuarterRevenue / gameState.guidanceTarget) * 100).toFixed(0) 
+    : 0;
+  const shortfall = gameState.guidanceTarget - gameState.earningsQuarterRevenue;
+  if (isIntense) {
+    banner.innerHTML = `⚠️ EARNINGS WARNING: ${daysLeft}d left · Only ${pct}% of target · Need ${formatMoney(shortfall)} more · MISS IMMINENT ⚠️`;
+    banner.className = 'danger-banner danger-banner-critical';
+  } else {
+    banner.innerHTML = `⚠️ Tracking below guidance · ${daysLeft}d left · ${pct}% of target · Gap: ${formatMoney(shortfall)}`;
+    banner.className = 'danger-banner';
+  }
+  banner.style.display = 'block';
 }
 
 function clearDangerEffects(withRelief) {
@@ -6846,6 +6867,10 @@ function clearDangerEffects(withRelief) {
     el.classList.remove('earnings-danger-glow');
     el.style.removeProperty('--danger-glow-intensity');
   });
+
+  // Remove danger banner
+  const banner = document.getElementById('danger-banner');
+  if (banner) banner.style.display = 'none';
 
   // Relief flash
   if (withRelief && gameState.juiceEnabled && !gameState.bossMode && !isCrisisBlocking()) {
@@ -6975,7 +7000,7 @@ function playAggressiveBeatDrumroll(callback) {
                 el.classList.remove('earnings-scramble');
               });
 
-              // SLAM
+              // SLAM — full screen celebration
               const cashRow = document.getElementById('row-cash');
               if (cashRow) {
                 cashRow.classList.add('earnings-slam');
@@ -6987,7 +7012,28 @@ function playAggressiveBeatDrumroll(callback) {
                 setTimeout(() => revCell.classList.remove('earnings-bounce'), 500);
               }
 
+              // Screen flash
+              const flash = document.createElement('div');
+              flash.className = 'earnings-screen-flash';
+              document.body.appendChild(flash);
+              setTimeout(() => flash.remove(), 800);
+
+              // Massive sparkle burst from multiple points
               spawnEarningsSparkles(cashEl || revCell);
+              if (ptEl) spawnEarningsSparkles(ptEl);
+              if (revCell) spawnEarningsSparkles(revCell);
+
+              // Confetti rain
+              spawnEarningsConfetti();
+
+              // Big floating text
+              const gameView = document.getElementById('game-view') || document.body;
+              const bigText = document.createElement('div');
+              bigText.className = 'earnings-big-text';
+              bigText.textContent = '📈 BEAT! 📈';
+              gameView.appendChild(bigText);
+              setTimeout(() => bigText.remove(), 2500);
+
               showFormulaBarEcho('=JACKPOT("Aggressive Target", "CRUSHED IT!")');
               clearDangerEffects(false);
             } catch(e) {
@@ -7041,17 +7087,31 @@ function playMissThudDrumroll(callback) {
             el.textContent = originals[i];
             el.classList.remove('earnings-scramble');
             el.classList.add('earnings-thud-red');
-            setTimeout(() => el.classList.remove('earnings-thud-red'), 500);
+            setTimeout(() => el.classList.remove('earnings-thud-red'), 800);
           });
 
           const gameView = document.getElementById('game-view');
           if (gameView) {
             gameView.classList.add('earnings-thud');
-            setTimeout(() => gameView.classList.remove('earnings-thud'), 400);
+            setTimeout(() => gameView.classList.remove('earnings-thud'), 500);
           }
 
+          // Red screen flash on miss
+          const flash = document.createElement('div');
+          flash.className = 'earnings-screen-flash earnings-screen-flash-red';
+          document.body.appendChild(flash);
+          setTimeout(() => flash.remove(), 600);
+
+          // Big miss text
+          const bigText = document.createElement('div');
+          bigText.className = 'earnings-big-text earnings-big-text-miss';
+          bigText.textContent = '📉 MISS 📉';
+          (gameView || document.body).appendChild(bigText);
+          setTimeout(() => bigText.remove(), 2500);
+
+          showFormulaBarEcho('=ERROR("Missed Guidance", "OUCH")');
           clearDangerEffects(false);
-          setTimeout(callback, 300);
+          setTimeout(callback, 400);
         }
       } catch(e) {
         console.error('MissThudDrumroll step error:', e);
@@ -7092,6 +7152,24 @@ function spawnEarningsSparkles(anchor) {
     span.style.animationDelay = (i * 40) + 'ms';
     document.body.appendChild(span);
     setTimeout(() => span.remove(), 1500);
+  }
+}
+
+function spawnEarningsConfetti() {
+  const colors = ['#ffd700', '#ff6b35', '#4caf50', '#2196f3', '#e91e63', '#9c27b0', '#ff9800', '#00bcd4'];
+  const shapes = ['■', '●', '▲', '◆', '★'];
+  const count = 40;
+  for (let i = 0; i < count; i++) {
+    const el = document.createElement('div');
+    el.className = 'earnings-confetti';
+    el.textContent = shapes[Math.floor(Math.random() * shapes.length)];
+    el.style.color = colors[Math.floor(Math.random() * colors.length)];
+    el.style.left = (Math.random() * 100) + 'vw';
+    el.style.animationDuration = (2 + Math.random() * 2) + 's';
+    el.style.animationDelay = (Math.random() * 0.8) + 's';
+    el.style.fontSize = (0.6 + Math.random() * 0.8) + 'rem';
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 5000);
   }
 }
 
