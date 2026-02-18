@@ -3329,6 +3329,11 @@ body.col-resizing * {
   --juice-depress-dur: 200;
   --juice-ticker-dur: 16;
   --heartbeat-speed: 1.5s;
+  --juice-danger-jitter: 1px;
+  --juice-danger-glow-max: 0.4;
+  --juice-drumroll-speed: 1.0;
+  --juice-freeze-dur: 300;
+  --juice-shimmer-dur: 2000;
 }
 
 /* 1. Cell Value Flash (uptick/downtick) */
@@ -3930,10 +3935,10 @@ body.dark-mode .cell-stamp-automate {
 
 @keyframes earnings-jitter {
   0%   { transform: translate(0, 0); }
-  25%  { transform: translate(-0.5px, 0.5px); }
-  50%  { transform: translate(0.5px, -0.5px); }
-  75%  { transform: translate(-0.5px, -0.5px); }
-  100% { transform: translate(0.5px, 0.5px); }
+  25%  { transform: translate(calc(var(--juice-danger-jitter, 1px) * -0.5), calc(var(--juice-danger-jitter, 1px) * 0.5)); }
+  50%  { transform: translate(calc(var(--juice-danger-jitter, 1px) * 0.5), calc(var(--juice-danger-jitter, 1px) * -0.5)); }
+  75%  { transform: translate(calc(var(--juice-danger-jitter, 1px) * -0.5), calc(var(--juice-danger-jitter, 1px) * -0.5)); }
+  100% { transform: translate(calc(var(--juice-danger-jitter, 1px) * 0.5), calc(var(--juice-danger-jitter, 1px) * 0.5)); }
 }
 
 /* Intensified jitter for last 5 days */
@@ -3943,11 +3948,11 @@ body.dark-mode .cell-stamp-automate {
 
 @keyframes earnings-jitter-intense {
   0%   { transform: translate(0, 0); }
-  20%  { transform: translate(-1px, 1px); }
-  40%  { transform: translate(1px, -0.5px); }
-  60%  { transform: translate(-1px, -1px); }
-  80%  { transform: translate(0.5px, 1px); }
-  100% { transform: translate(1px, -1px); }
+  20%  { transform: translate(calc(var(--juice-danger-jitter, 1px) * -1), calc(var(--juice-danger-jitter, 1px) * 1)); }
+  40%  { transform: translate(calc(var(--juice-danger-jitter, 1px) * 1), calc(var(--juice-danger-jitter, 1px) * -0.5)); }
+  60%  { transform: translate(calc(var(--juice-danger-jitter, 1px) * -1), calc(var(--juice-danger-jitter, 1px) * -1)); }
+  80%  { transform: translate(calc(var(--juice-danger-jitter, 1px) * 0.5), calc(var(--juice-danger-jitter, 1px) * 1)); }
+  100% { transform: translate(calc(var(--juice-danger-jitter, 1px) * 1), calc(var(--juice-danger-jitter, 1px) * -1)); }
 }
 
 /* Red tint pulse on Rev/Day cells */
@@ -3969,7 +3974,7 @@ body.dark-mode .earnings-danger-tint {
   50%      { background: rgba(239, 83, 80, 0.10); }
 }
 
-/* Red glow around IR section — intensity controlled by CSS var */
+/* Red glow around IR section — intensity controlled by CSS var, scaled by juice knob in JS */
 .earnings-danger-glow {
   box-shadow: inset 0 0 calc(var(--danger-glow-intensity, 4) * 1px) rgba(204, 0, 0, calc(var(--danger-glow-intensity, 4) * 0.01));
 }

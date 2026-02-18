@@ -5185,10 +5185,15 @@ const JUICE_KNOBS = [
   { id: 'shake-dist', label: 'Shake Distance', prop: '--juice-shake-dist', min: 1, max: 15, step: 1, default: 15, unit: 'px' },
   { id: 'ms-size', label: 'Milestone Size', prop: '--juice-ms-size', min: 1.0, max: 3.0, step: 0.25, default: 1.5, unit: '×' },
   { id: 'odo-dur', label: 'Odometer Duration', prop: '--juice-odo-dur', min: 100, max: 1500, step: 50, default: 950, unit: 'ms' },
-  { id: 'depress-scale', label: 'Click Depress Scale', prop: '--juice-depress-scale', min: 0.85, max: 1.0, step: 0.01, default: 0.94, unit: '' },
+  { id: 'depress-scale', label: 'Click Depress Scale', prop: '--juice-depress-scale', min: 0.70, max: 1.0, step: 0.01, default: 0.94, unit: '' },
   { id: 'depress-dur', label: 'Click Depress Duration', prop: '--juice-depress-dur', min: 50, max: 500, step: 25, default: 200, unit: 'ms' },
   { id: 'ticker-dur', label: 'Ticker Tape Speed', prop: '--juice-ticker-dur', min: 5, max: 30, step: 1, default: 16, unit: 's' },
   { id: 'heartbeat-speed', label: 'Heartbeat Speed', prop: '--heartbeat-speed', min: 0.3, max: 5.0, step: 0.1, default: 1.5, unit: 's' },
+  { id: 'danger-jitter', label: 'Danger Jitter Intensity', prop: '--juice-danger-jitter', min: 0, max: 5, step: 0.5, default: 1, unit: 'px' },
+  { id: 'danger-glow-max', label: 'Danger Glow Max', prop: '--juice-danger-glow-max', min: 0, max: 1.0, step: 0.05, default: 0.4, unit: '' },
+  { id: 'drumroll-speed', label: 'Drumroll Speed', prop: '--juice-drumroll-speed', min: 0.5, max: 3.0, step: 0.1, default: 1.0, unit: '' },
+  { id: 'freeze-dur', label: 'Beat Freeze Duration', prop: '--juice-freeze-dur', min: 0, max: 1000, step: 50, default: 300, unit: 'ms' },
+  { id: 'shimmer-dur', label: 'Ambitious Shimmer Duration', prop: '--juice-shimmer-dur', min: 500, max: 5000, step: 250, default: 2000, unit: 'ms' },
 ];
 
 function toggleJuiceKnobs() {
@@ -6814,8 +6819,10 @@ function applyDangerEffects(daysLeft) {
     cell.classList.add('earnings-danger-tint');
   });
 
-  // Red glow on IR section — intensity scales with urgency
-  const glowIntensity = isIntense ? Math.max(8, 20 - daysLeft * 2) : Math.max(3, 10 - daysLeft * 0.5);
+  // Red glow on IR section — intensity scales with urgency, modulated by juice knob
+  const glowMax = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--juice-danger-glow-max')) || 0.4;
+  const baseGlow = isIntense ? Math.max(8, 20 - daysLeft * 2) : Math.max(3, 10 - daysLeft * 0.5);
+  const glowIntensity = baseGlow * (glowMax / 0.4);
   document.querySelectorAll('.ir-header > *, .ir-row > *').forEach(cell => {
     cell.classList.add('earnings-danger-glow');
     cell.style.setProperty('--danger-glow-intensity', glowIntensity);
@@ -6892,6 +6899,8 @@ function playAmbitiousBeatDrumroll(callback) {
 
     showFormulaBarEcho('=EARNINGS("Ambitious Target", "BEAT!")');
 
+    const shimmerDur = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--juice-shimmer-dur')) || 2000;
+
     setTimeout(() => {
       try {
         if (cashEl) cashEl.classList.remove('earnings-shimmer');
@@ -6908,7 +6917,7 @@ function playAmbitiousBeatDrumroll(callback) {
         console.error('AmbitiousBeatDrumroll animation error:', e);
       }
       callback();
-    }, 2000);
+    }, shimmerDur);
   } catch(e) {
     console.error('AmbitiousBeatDrumroll setup error:', e);
     callback();
@@ -6919,6 +6928,10 @@ function playAggressiveBeatDrumroll(callback) {
   try {
     const cashEl = document.getElementById('cash-display');
     const ptEl = document.getElementById('per-tick-display');
+
+    // Read juice knobs
+    const drumrollSpeed = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--juice-drumroll-speed')) || 1.0;
+    const freezeDur = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--juice-freeze-dur')) || 300;
 
     // Find IR revenue display to scramble
     let revCell = null;
@@ -6935,13 +6948,13 @@ function playAggressiveBeatDrumroll(callback) {
     scrambleTargets.forEach(el => el.classList.add('earnings-scramble'));
 
     let scrambleFrame = 0;
-    const totalFrames = 80;
+    const totalFrames = Math.round(80 / drumrollSpeed);
 
     function scrambleStep() {
       try {
         scrambleFrame++;
         const progress = scrambleFrame / totalFrames;
-        const delay = Math.max(30, 120 * (1 - progress * 0.8));
+        const delay = Math.max(30, (120 * (1 - progress * 0.8)) / drumrollSpeed);
 
         scrambleTargets.forEach((el, i) => {
           el.textContent = scrambleText(originals[i]);
@@ -6982,7 +6995,7 @@ function playAggressiveBeatDrumroll(callback) {
             }
 
             setTimeout(callback, 400);
-          }, 300);
+          }, freezeDur);
         }
       } catch(e) {
         console.error('AggressiveBeatDrumroll scramble error:', e);
@@ -7002,13 +7015,17 @@ function playMissThudDrumroll(callback) {
     const cashEl = document.getElementById('cash-display');
     const ptEl = document.getElementById('per-tick-display');
 
+    // Read drumroll speed knob
+    const drumrollSpeed = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--juice-drumroll-speed')) || 1.0;
+
     const scrambleTargets = [cashEl, ptEl].filter(Boolean);
     const originals = scrambleTargets.map(el => el.textContent);
 
     scrambleTargets.forEach(el => el.classList.add('earnings-scramble'));
 
     let frame = 0;
-    const total = 30;
+    const total = Math.round(30 / drumrollSpeed);
+    const frameDelay = Math.max(20, 60 / drumrollSpeed);
 
     function step() {
       try {
@@ -7018,7 +7035,7 @@ function playMissThudDrumroll(callback) {
         });
 
         if (frame < total) {
-          setTimeout(step, 60);
+          setTimeout(step, frameDelay);
         } else {
           scrambleTargets.forEach((el, i) => {
             el.textContent = originals[i];
