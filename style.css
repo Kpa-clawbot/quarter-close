@@ -3322,6 +3322,7 @@ body.col-resizing * {
   --juice-shake-dur: 0.4s;
   --juice-shake-dist: 15px;
   --juice-ms-size: 1.5;
+  --juice-odo-dur: 350;
 }
 
 /* 1. Cell Value Flash (uptick/downtick) */
@@ -3746,39 +3747,4 @@ body.col-resizing * {
 /* Grid blocking during crisis (non-frost overlays) */
 #grid-container.crisis-blocked {
   pointer-events: none;
-}
-
-/* ===== ODOMETER ===== */
-.odometer {
-  display: inline-flex;
-  overflow: hidden;
-  line-height: 1;
-}
-.odo-digit {
-  display: inline-block;
-  position: relative;
-  overflow: hidden;
-  height: 1.1em;
-  vertical-align: bottom;
-}
-.odo-digit-inner {
-  display: flex;
-  flex-direction: column;
-  position: absolute;
-  left: 0;
-  width: 100%;
-  transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
-}
-.odo-digit-inner span {
-  display: block;
-  height: 1.1em;
-  line-height: 1.1em;
-  text-align: center;
-}
-/* Static chars ($ , . suffix letters) — no animation */
-.odo-static {
-  display: inline-block;
-  height: 1.1em;
-  line-height: 1.1em;
-  vertical-align: bottom;
 }

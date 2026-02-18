@@ -2180,93 +2180,49 @@ function totalAnnualRev() {
 }
 
 // ===== ODOMETER =====
-function updateOdometer(el, newText) {
+// Animates cash display by counting from old value to new value
+function updateOdometer(el, newValue, newText) {
   if (!el) return;
   // If juice disabled or boss mode, just set text
   if (!gameState.juiceEnabled || gameState.bossMode || isCrisisBlocking()) {
     el.textContent = newText;
-    el.classList.remove('odometer');
+    el._odoValue = newValue;
     return;
   }
 
-  const oldText = el._odoText || el.textContent || '';
-  if (newText === oldText) return; // no change
-  el._odoText = newText;
+  const oldValue = el._odoValue;
+  el._odoValue = newValue;
 
-  // Pad old text to match length (left-pad with spaces)
-  const maxLen = Math.max(oldText.length, newText.length);
-  const padOld = oldText.padStart(maxLen);
-  const padNew = newText.padStart(maxLen);
-
-  el.classList.add('odometer');
-  el.innerHTML = '';
-
-  for (let i = 0; i < maxLen; i++) {
-    const oldChar = padOld[i];
-    const newChar = padNew[i];
-
-    // Non-digit characters ($ , . suffix letters spaces): static
-    if (!/\d/.test(newChar) && !/\d/.test(oldChar)) {
-      const s = document.createElement('span');
-      s.className = 'odo-static';
-      s.textContent = newChar;
-      el.appendChild(s);
-      continue;
-    }
-
-    // Digit: animate roll
-    const wrapper = document.createElement('span');
-    wrapper.className = 'odo-digit';
-
-    const inner = document.createElement('span');
-    inner.className = 'odo-digit-inner';
-
-    const oldDigit = parseInt(oldChar) || 0;
-    const newDigit = parseInt(newChar) || 0;
-
-    if (oldChar === newChar || !/\d/.test(oldChar)) {
-      // Same digit or old wasn't a digit — just show new, no animation
-      const span = document.createElement('span');
-      span.textContent = newChar;
-      inner.appendChild(span);
-      inner.style.transform = 'translateY(0)';
-      wrapper.appendChild(inner);
-      el.appendChild(wrapper);
-      continue;
-    }
-
-    // Roll direction: always roll "up" for increase, "down" for decrease
-    // Build a strip of digits to roll through
-    const goingUp = newDigit > oldDigit || (newDigit < oldDigit && newDigit + 10 - oldDigit < oldDigit - newDigit);
-    const steps = goingUp
-      ? (newDigit >= oldDigit ? newDigit - oldDigit : newDigit + 10 - oldDigit)
-      : (oldDigit >= newDigit ? oldDigit - newDigit : oldDigit + 10 - newDigit);
-
-    // Build digit strip (limit to actual steps needed, max 10)
-    const stripLen = Math.min(steps + 1, 11);
-    for (let s = 0; s < stripLen; s++) {
-      const span = document.createElement('span');
-      if (goingUp) {
-        span.textContent = (oldDigit + s) % 10;
-      } else {
-        span.textContent = (oldDigit - s + 10) % 10;
-      }
-      inner.appendChild(span);
-    }
-
-    // Start at top, animate to bottom
-    inner.style.transform = 'translateY(0)';
-    wrapper.appendChild(inner);
-    el.appendChild(wrapper);
-
-    // Trigger animation on next frame
-    const targetY = -(stripLen - 1) * 1.1; // em units
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        inner.style.transform = `translateY(${targetY}em)`;
-      });
-    });
+  // No previous value or same value — just set
+  if (oldValue === undefined || oldValue === newValue) {
+    el.textContent = newText;
+    return;
   }
+
+  // Cancel any running animation
+  if (el._odoAnim) cancelAnimationFrame(el._odoAnim);
+
+  const startTime = performance.now();
+  const duration = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--juice-odo-dur')) || 350;
+  const startVal = oldValue;
+  const endVal = newValue;
+
+  function tick(now) {
+    const elapsed = now - startTime;
+    const t = Math.min(1, elapsed / duration);
+    // Ease out cubic
+    const eased = 1 - Math.pow(1 - t, 3);
+    const current = startVal + (endVal - startVal) * eased;
+    el.textContent = formatMoney(Math.round(current));
+    if (t < 1) {
+      el._odoAnim = requestAnimationFrame(tick);
+    } else {
+      el.textContent = newText; // ensure exact final value
+      el._odoAnim = null;
+    }
+  }
+
+  el._odoAnim = requestAnimationFrame(tick);
 }
 
 // ===== FORMATTING =====
@@ -2967,7 +2923,7 @@ function updateDisplay() {
   updateCrisisOverlay();
 
   const cashEl = document.getElementById('cash-display');
-  updateOdometer(cashEl, formatMoney(gameState.cash));
+  updateOdometer(cashEl, gameState.cash, formatMoney(gameState.cash));
 
   // RE display (cell E) — ⭐ label + value, only post-IPO
   const reEl = document.getElementById('re-display');
@@ -5043,6 +4999,7 @@ const JUICE_KNOBS = [
   { id: 'shake-dur', label: 'Shake Duration', prop: '--juice-shake-dur', min: 0.1, max: 1.0, step: 0.05, default: 0.4, unit: 's' },
   { id: 'shake-dist', label: 'Shake Distance', prop: '--juice-shake-dist', min: 1, max: 15, step: 1, default: 15, unit: 'px' },
   { id: 'ms-size', label: 'Milestone Size', prop: '--juice-ms-size', min: 1.0, max: 3.0, step: 0.25, default: 1.5, unit: '×' },
+  { id: 'odo-dur', label: 'Odometer Duration', prop: '--juice-odo-dur', min: 100, max: 1500, step: 50, default: 350, unit: 'ms' },
 ];
 
 function toggleJuiceKnobs() {
