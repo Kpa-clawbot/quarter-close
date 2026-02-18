@@ -5211,13 +5211,13 @@ const JUICE_KNOBS = [
   { id: 'shake-dist', label: 'Shake Distance', prop: '--juice-shake-dist', min: 1, max: 15, step: 1, default: 15, unit: 'px' },
   { id: 'ms-size', label: 'Milestone Size', prop: '--juice-ms-size', min: 1.0, max: 3.0, step: 0.25, default: 1.5, unit: '×' },
   { id: 'odo-dur', label: 'Odometer Duration', prop: '--juice-odo-dur', min: 100, max: 1500, step: 50, default: 950, unit: 'ms' },
-  { id: 'depress-scale', label: 'Click Depress Scale', prop: '--juice-depress-scale', min: 0.70, max: 1.0, step: 0.01, default: 0.70, unit: '' },
+  { id: 'depress-scale', label: 'Click Depress Scale', prop: '--juice-depress-scale', min: 0.70, max: 1.0, step: 0.01, default: 0.79, unit: '' },
   { id: 'depress-dur', label: 'Click Depress Duration', prop: '--juice-depress-dur', min: 50, max: 500, step: 25, default: 200, unit: 'ms' },
-  { id: 'ticker-dur', label: 'Ticker Tape Speed', prop: '--juice-ticker-dur', min: 5, max: 30, step: 1, default: 16, unit: 's' },
+  { id: 'ticker-dur', label: 'Ticker Tape Speed', prop: '--juice-ticker-dur', min: 5, max: 30, step: 1, default: 20, unit: 's' },
   { id: 'heartbeat-speed', label: 'Heartbeat Speed', prop: '--heartbeat-speed', min: 0.3, max: 5.0, step: 0.1, default: 1.5, unit: 's' },
-  { id: 'danger-jitter', label: 'Danger Jitter Intensity', prop: '--juice-danger-jitter', min: 0, max: 5, step: 0.5, default: 2, unit: 'px' },
-  { id: 'danger-glow-max', label: 'Danger Glow Max', prop: '--juice-danger-glow-max', min: 0, max: 1.0, step: 0.05, default: 0.4, unit: '' },
-  { id: 'freeze-dur', label: 'Beat Freeze Duration', prop: '--juice-freeze-dur', min: 0, max: 1000, step: 50, default: 300, unit: 'ms' },
+  { id: 'danger-jitter', label: 'Danger Jitter Intensity', prop: '--juice-danger-jitter', min: 0, max: 5, step: 0.5, default: 5, unit: 'px' },
+  { id: 'danger-glow-max', label: 'Danger Glow Max', prop: '--juice-danger-glow-max', min: 0, max: 1.0, step: 0.05, default: 1.0, unit: '' },
+  { id: 'freeze-dur', label: 'Beat Freeze Duration', prop: '--juice-freeze-dur', min: 0, max: 1000, step: 50, default: 1000, unit: 'ms' },
   { id: 'shimmer-dur', label: 'Ambitious Shimmer Duration', prop: '--juice-shimmer-dur', min: 500, max: 5000, step: 250, default: 2000, unit: 'ms' },
 ];
 

@@ -3326,13 +3326,13 @@ body.col-resizing * {
   --juice-shake-dist: 15px;
   --juice-ms-size: 1.5;
   --juice-odo-dur: 950;
-  --juice-depress-scale: 0.7;
+  --juice-depress-scale: 0.79;
   --juice-depress-dur: 200;
-  --juice-ticker-dur: 16;
+  --juice-ticker-dur: 20;
   --heartbeat-speed: 1.5s;
-  --juice-danger-jitter: 2px;
-  --juice-danger-glow-max: 0.4;
-  --juice-freeze-dur: 300;
+  --juice-danger-jitter: 5px;
+  --juice-danger-glow-max: 1.0;
+  --juice-freeze-dur: 1000;
   --juice-shimmer-dur: 2000;
 }
 
