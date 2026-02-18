@@ -2,7 +2,13 @@
 
 All notable changes to Quarter Close.
 
-## [v0.7.2] — 2026-02-18 — Odometer & Budget Fixes
+## [v0.7.2] — 2026-02-18 — Odometer, Budget Fixes & Juice Effects
+
+### 🧃 Juice Effects (New)
+- **Click Depress** — CSS-only button press feedback: `scale(0.97)` with shadow decrease on `:active`, 100ms spring-back transition. Applies to all `.cell-btn` interactive buttons.
+- **Earnings Ticker Tape** — Bloomberg-style scrolling ticker at the bottom of the screen after quarterly earnings. Shows actual game data: quarter, beat/miss percentage, stock price, analyst reactions. Auto-dismisses after ~9 seconds. Color-coded: green for beats, red for misses, gold for in-line.
+- **Stock Price Heartbeat** — Perpetual pulse glow on the stock price display. Normal: 1.5s cycle. Speeds up to 0.8s for 30s after earnings beat. Slows to 3s after miss. Jittery irregular pulse during crisis events. Dark mode enhanced glow.
+- **Cell Stamp Effect** — Purchase stamp animation over buttons: "HIRED" (green), "UPGRADED" (blue), "APPROVED" (red/gold). Slams down from 150% to 100% scale with random rotation (2-5°), semi-transparent ink look, fades out over 600ms. Suppressed during auto-buy.
 
 ### 🎰 Cash Odometer
 - **Smooth counter animation** — cash display counts up/down instead of snapping to new values. 950ms linear animation syncs with 1s game ticks for continuous motion. 3 decimal places so the last digit is always ticking.
