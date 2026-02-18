@@ -3001,8 +3001,17 @@ function updateDisplay() {
     if (gameState.isPublic) {
       const sp = getStockPrice();
       stockCell.innerHTML = `<span style="color:${dm('#888')}">Stock: </span><span style="font-weight:700;color:${dm('#0078d4')};font-family:Consolas,monospace">${formatMoney(sp)}</span>`;
+      // Heartbeat pulse (juice effect)
+      if (gameState.juiceEnabled && !gameState.bossMode && !isCrisisBlocking()) {
+        if (!stockCell.classList.contains('stock-heartbeat')) {
+          stockCell.classList.add('stock-heartbeat');
+        }
+      } else {
+        stockCell.classList.remove('stock-heartbeat');
+      }
     } else {
       stockCell.innerHTML = '';
+      stockCell.classList.remove('stock-heartbeat');
     }
   }
 
@@ -3443,6 +3452,36 @@ function showInsufficientFunds() {
   el.classList.add('cell-downtick');
   // Formula bar error
   showFormulaError();
+}
+
+// Stock Price Heartbeat — pulse speed changes after earnings
+let _heartbeatTimer = null;
+function setHeartbeatSpeed(mode) {
+  if (!gameState.juiceEnabled || gameState.bossMode || isCrisisBlocking()) return;
+  const stockCell = document.getElementById('stock-price-cell');
+  if (!stockCell) return;
+
+  if (_heartbeatTimer) { clearTimeout(_heartbeatTimer); _heartbeatTimer = null; }
+
+  if (mode === 'fast') {
+    stockCell.style.setProperty('--heartbeat-speed', '0.8s');
+  } else if (mode === 'slow') {
+    stockCell.style.setProperty('--heartbeat-speed', '3s');
+  } else if (mode === 'crisis') {
+    stockCell.style.setProperty('--heartbeat-speed', '0.4s');
+    stockCell.classList.add('heartbeat-jitter');
+  } else {
+    stockCell.style.setProperty('--heartbeat-speed', '1.5s');
+    stockCell.classList.remove('heartbeat-jitter');
+    return; // no timer needed for normal
+  }
+
+  // Revert to normal after 30 seconds
+  _heartbeatTimer = setTimeout(() => {
+    stockCell.style.setProperty('--heartbeat-speed', '1.5s');
+    stockCell.classList.remove('heartbeat-jitter');
+    _heartbeatTimer = null;
+  }, 30000);
 }
 
 // Earnings Ticker Tape — Bloomberg-style scrolling bar after quarterly earnings
@@ -6736,6 +6775,9 @@ function processEarnings() {
   // Earnings ticker tape (juice effect)
   showEarningsTickerTape(result, qLabel, marginPct, newPrice);
 
+  // Stock heartbeat speed change (juice effect)
+  setHeartbeatSpeed(result === 'BEAT' ? 'fast' : result === 'MISS' ? 'slow' : 'normal');
+
   const streakBonus = gameState.earningsStreak >= 1 ?
     Math.min(2.0, 1 + gameState.earningsStreak * 0.1) : 1;
   const streakText = gameState.earningsStreak > 1 ? `🔥 ${gameState.earningsStreak} consecutive beats (${streakBonus.toFixed(1)}× RE)` :
@@ -8508,6 +8550,9 @@ function showCrisisOverlay(type, until, data) {
   content.innerHTML = renderCrisisContent(type, 0, data, until);
   overlay.style.display = '';
 
+  // Crisis heartbeat: jittery pulse
+  setHeartbeatSpeed('crisis');
+
   // Scroll terminal to bottom
   if (type === 'terminal') {
     content.scrollTop = content.scrollHeight;
@@ -8667,6 +8712,9 @@ function hideCrisisOverlay() {
   }
 
   gameState.crisisOverlay = null;
+
+  // Revert heartbeat to normal after crisis
+  setHeartbeatSpeed('normal');
 }
 
 function isCrisisActive() {
