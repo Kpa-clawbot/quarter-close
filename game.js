@@ -1735,64 +1735,95 @@ function ctoAutoUpgrade() {
     const level = gameState.activeCTOLevel;
     if (!level || getTechDeptLevel() < level) return;
 
-    const pool = gameState.ctoBudgetPool || 0;
+    const MAX_OPS_PER_TICK = 50; // prevent runaway loops
+    let opsThisTick = 0;
+    let totalSpent = 0;
 
-    // Build candidate list: all unlocked depts (regardless of affordability)
-    const allCandidates = [];
+    // Earnings timing for Lv3
+    let daysLeft = Infinity;
+    if (level === 3) {
+      const currentDay = Math.floor(gameState.gameElapsedSecs / SECS_PER_DAY);
+      const earningsDaysSince = currentDay - gameState.lastEarningsDay;
+      daysLeft = Math.max(0, EARNINGS_QUARTER_DAYS - earningsDaysSince);
+    }
+
+    _autoBuyActive = true;
+    while (opsThisTick < MAX_OPS_PER_TICK) {
+      const pool = gameState.ctoBudgetPool || 0;
+      if (pool <= 0) break;
+
+      // Build candidate list fresh each iteration (costs change after upgrades)
+      const candidates = [];
+      for (let i = 0; i < gameState.sources.length; i++) {
+        const state = gameState.sources[i];
+        if (!state.unlocked || state.employees === 0) continue;
+        const stats = SOURCE_STATS[state.id];
+        if (!stats) continue;
+        const cost = upgradeCost(state);
+        if (cost > pool) continue; // skip unaffordable
+        const annualRevGain = sourceRevPerTick(state) * 365.25 * 0.5;
+        const roi = cost > 0 ? annualRevGain / cost : 0;
+        candidates.push({ index: i, cost, revGain: annualRevGain, roi, name: stats.name });
+      }
+      if (candidates.length === 0) break;
+
+      // Pick target based on CTO level strategy
+      let target = null;
+      if (level === 1) {
+        candidates.sort((a, b) => a.cost - b.cost);
+        target = candidates[0];
+      } else if (level === 2) {
+        candidates.sort((a, b) => b.roi - a.roi);
+        target = candidates.find(c => c.roi >= 0.001) || candidates[0];
+      } else if (level === 3) {
+        candidates.sort((a, b) => b.roi - a.roi);
+        let threshold = 0.001;
+        if (daysLeft < 5) threshold = 0.05;
+        else if (daysLeft < 20) threshold = 0.01;
+        target = candidates.find(c => c.roi >= threshold);
+        if (!target) break; // Lv3 won't settle for bad ROI
+      }
+
+      if (!target) break;
+
+      // Execute purchase
+      gameState.ctoBudgetPool -= target.cost;
+      gameState.ctoSpentThisQuarter += target.cost;
+      gameState.ctoUpgradeCount = (gameState.ctoUpgradeCount || 0) + 1;
+      gameState.ctoJustBought = true;
+      gameState.cash += target.cost; // offset upgradeSource's deduction
+      upgradeSource(target.index);
+      totalSpent += target.cost;
+      opsThisTick++;
+    }
+    _autoBuyActive = false;
+
+    // Store last target info for display (rebuild after loop)
+    const displayCandidates = [];
     for (let i = 0; i < gameState.sources.length; i++) {
       const state = gameState.sources[i];
       if (!state.unlocked || state.employees === 0) continue;
       const stats = SOURCE_STATS[state.id];
       if (!stats) continue;
       const cost = upgradeCost(state);
-      // Marginal annual revenue gain: each upgrade adds +0.5 to multiplier
       const annualRevGain = sourceRevPerTick(state) * 365.25 * 0.5;
       const roi = cost > 0 ? annualRevGain / cost : 0;
-      allCandidates.push({ index: i, cost, revGain: annualRevGain, roi, name: stats.name });
+      displayCandidates.push({ name: stats.name, cost, roi });
     }
-    if (allCandidates.length === 0) return;
-
-    // Determine target based on CTO level strategy
-    let target = null;
-    if (level === 1) {
-      allCandidates.sort((a, b) => a.cost - b.cost);
-      target = allCandidates[0];
-    } else if (level === 2) {
-      allCandidates.sort((a, b) => b.roi - a.roi);
-      target = allCandidates.find(c => c.roi >= 0.001) || allCandidates[0];
-    } else if (level === 3) {
-      allCandidates.sort((a, b) => b.roi - a.roi);
-      const currentDay = Math.floor(gameState.gameElapsedSecs / SECS_PER_DAY);
-      const earningsDaysSince = currentDay - gameState.lastEarningsDay;
-      const daysLeft = Math.max(0, EARNINGS_QUARTER_DAYS - earningsDaysSince);
-      let threshold = 0.001;
-      if (daysLeft < 5) threshold = 0.05;
-      else if (daysLeft < 20) threshold = 0.01;
-      target = allCandidates.find(c => c.roi >= threshold) || allCandidates[0];
+    if (displayCandidates.length > 0) {
+      if (level === 1) displayCandidates.sort((a, b) => a.cost - b.cost);
+      else displayCandidates.sort((a, b) => b.roi - a.roi);
+      gameState.ctoTarget = displayCandidates[0].name;
+      gameState.ctoTargetCost = displayCandidates[0].cost;
     }
 
-    if (!target) return;
-
-    // Store target info for display
-    gameState.ctoTarget = target.name;
-    gameState.ctoTargetCost = target.cost;
-
-    // Buy if pool can afford it
-    if (pool >= target.cost) {
-      gameState.ctoBudgetPool -= target.cost;
-      gameState.ctoSpentThisQuarter += target.cost;
-      gameState.ctoUpgradeCount = (gameState.ctoUpgradeCount || 0) + 1;
-      gameState.ctoJustBought = true; // flash flag for UI
-      // upgradeSource deducts from cash — add cost back since CTO pays from pool
-      gameState.cash += target.cost;
-      _autoBuyActive = true;
-      upgradeSource(target.index);
-      _autoBuyActive = false;
-      // Float from CTO pool, not main cash
+    // Single aggregate float for all purchases this tick
+    if (totalSpent > 0) {
       const ctoPoolEl = document.getElementById('cto-pool-display');
-      if (ctoPoolEl) floatingNumber(target.cost, ctoPoolEl, true);
+      if (ctoPoolEl) floatingNumber(totalSpent, ctoPoolEl, true);
     }
   } catch (e) {
+    _autoBuyActive = false;
     console.error('[CTO] Error:', e);
   }
 }
@@ -1802,67 +1833,99 @@ function cooAutoHire() {
     const level = gameState.activeCOOLevel;
     if (!level || getOpsDeptLevel() < level) return;
 
-    const pool = gameState.cooBudgetPool || 0;
+    const hireFrozen = gameState.hireFrozen && Date.now() < gameState.hireFrozen;
+    if (hireFrozen) return;
 
-    // Build candidate list: all unlocked depts
-    const allCandidates = [];
+    const MAX_OPS_PER_TICK = 50;
+    let opsThisTick = 0;
+    let totalSpent = 0;
+
+    // Earnings timing for Lv3
+    let nearEarnings = false;
+    if (level === 3) {
+      const currentDay = Math.floor(gameState.gameElapsedSecs / SECS_PER_DAY);
+      const earningsDaysSince = currentDay - gameState.lastEarningsDay;
+      const daysLeft = Math.max(0, EARNINGS_QUARTER_DAYS - earningsDaysSince);
+      nearEarnings = daysLeft < 5;
+    }
+
+    _autoBuyActive = true;
+    while (opsThisTick < MAX_OPS_PER_TICK) {
+      const pool = gameState.cooBudgetPool || 0;
+      if (pool <= 0) break;
+
+      // Check hire freeze (could have been set by an event during loop)
+      if (gameState.hireFrozen && Date.now() < gameState.hireFrozen) break;
+
+      // Build candidate list fresh each iteration (costs change after hires)
+      const candidates = [];
+      for (let i = 0; i < gameState.sources.length; i++) {
+        const state = gameState.sources[i];
+        if (!state.unlocked) continue;
+        const stats = SOURCE_STATS[state.id];
+        if (!stats) continue;
+        const cost = hireCost(state);
+        if (cost > pool) continue; // skip unaffordable
+        const revGain = sourceRevPerTick(state) / Math.max(1, state.employees);
+        candidates.push({ index: i, cost, revGain, employees: state.employees, name: stats.name });
+      }
+      if (candidates.length === 0) break;
+
+      let target = null;
+      if (level === 1) {
+        candidates.sort((a, b) => a.cost - b.cost);
+        target = candidates[0];
+      } else if (level === 2) {
+        candidates.sort((a, b) => (b.revGain / b.cost) - (a.revGain / a.cost));
+        target = candidates[0];
+      } else if (level === 3) {
+        if (nearEarnings) {
+          candidates.sort((a, b) => a.cost - b.cost);
+        } else {
+          candidates.sort((a, b) => (b.revGain / b.cost) - (a.revGain / a.cost));
+        }
+        target = candidates[0];
+      }
+
+      if (!target) break;
+
+      // Execute hire
+      gameState.cooBudgetPool -= target.cost;
+      gameState.cooSpentThisQuarter += target.cost;
+      gameState.cooHireCount = (gameState.cooHireCount || 0) + 1;
+      gameState.cooJustBought = true;
+      gameState.cash += target.cost; // offset hireEmployee's deduction
+      hireEmployee(target.index);
+      totalSpent += target.cost;
+      opsThisTick++;
+    }
+    _autoBuyActive = false;
+
+    // Store last target info for display (rebuild after loop)
+    const displayCandidates = [];
     for (let i = 0; i < gameState.sources.length; i++) {
       const state = gameState.sources[i];
       if (!state.unlocked) continue;
       const stats = SOURCE_STATS[state.id];
       if (!stats) continue;
       const cost = hireCost(state);
-      // Marginal revenue gain from one more employee
       const revGain = sourceRevPerTick(state) / Math.max(1, state.employees);
-      allCandidates.push({ index: i, cost, revGain, employees: state.employees, name: stats.name });
+      displayCandidates.push({ name: stats.name, cost, revGain });
     }
-    if (allCandidates.length === 0) return;
-
-    let target = null;
-    if (level === 1) {
-      // The Recruiter: cheapest hire first
-      allCandidates.sort((a, b) => a.cost - b.cost);
-      target = allCandidates[0];
-    } else if (level === 2) {
-      // VP of Ops: best marginal revenue per hire cost
-      allCandidates.sort((a, b) => (b.revGain / b.cost) - (a.revGain / a.cost));
-      target = allCandidates[0];
-    } else if (level === 3) {
-      // Elite COO: revenue-optimized with earnings timing awareness
-      allCandidates.sort((a, b) => (b.revGain / b.cost) - (a.revGain / a.cost));
-      const currentDay = Math.floor(gameState.gameElapsedSecs / SECS_PER_DAY);
-      const earningsDaysSince = currentDay - gameState.lastEarningsDay;
-      const daysLeft = Math.max(0, EARNINGS_QUARTER_DAYS - earningsDaysSince);
-      if (daysLeft < 5) {
-        // Near earnings: hire cheapest to conserve pool
-        allCandidates.sort((a, b) => a.cost - b.cost);
-      }
-      target = allCandidates[0];
+    if (displayCandidates.length > 0) {
+      if (level === 1) displayCandidates.sort((a, b) => a.cost - b.cost);
+      else displayCandidates.sort((a, b) => (b.revGain / b.cost) - (a.revGain / a.cost));
+      gameState.cooTarget = displayCandidates[0].name;
+      gameState.cooTargetCost = displayCandidates[0].cost;
     }
 
-    if (!target) return;
-
-    // Store target info for display
-    gameState.cooTarget = target.name;
-    gameState.cooTargetCost = target.cost;
-
-    // Hire if pool can afford it (also check hire freeze)
-    const hireFrozen = gameState.hireFrozen && Date.now() < gameState.hireFrozen;
-    if (pool >= target.cost && !hireFrozen) {
-      gameState.cooBudgetPool -= target.cost;
-      gameState.cooSpentThisQuarter += target.cost;
-      gameState.cooHireCount = (gameState.cooHireCount || 0) + 1;
-      gameState.cooJustBought = true;
-      // hireEmployee deducts from cash — add cost back since COO pays from pool
-      gameState.cash += target.cost;
-      _autoBuyActive = true;
-      hireEmployee(target.index);
-      _autoBuyActive = false;
-      // Float from COO pool, not main cash
+    // Single aggregate float for all hires this tick
+    if (totalSpent > 0) {
       const cooPoolEl = document.getElementById('coo-pool-display');
-      if (cooPoolEl) floatingNumber(target.cost, cooPoolEl, true);
+      if (cooPoolEl) floatingNumber(totalSpent, cooPoolEl, true);
     }
   } catch (e) {
+    _autoBuyActive = false;
     console.error('[COO] Error:', e);
   }
 }
