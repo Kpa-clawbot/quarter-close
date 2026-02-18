@@ -5189,7 +5189,7 @@ const JUICE_KNOBS = [
   { id: 'depress-dur', label: 'Click Depress Duration', prop: '--juice-depress-dur', min: 50, max: 500, step: 25, default: 200, unit: 'ms' },
   { id: 'ticker-dur', label: 'Ticker Tape Speed', prop: '--juice-ticker-dur', min: 5, max: 30, step: 1, default: 16, unit: 's' },
   { id: 'heartbeat-speed', label: 'Heartbeat Speed', prop: '--heartbeat-speed', min: 0.3, max: 5.0, step: 0.1, default: 1.5, unit: 's' },
-  { id: 'danger-jitter', label: 'Danger Jitter Intensity', prop: '--juice-danger-jitter', min: 0, max: 5, step: 0.5, default: 1, unit: 'px' },
+  { id: 'danger-jitter', label: 'Danger Jitter Intensity', prop: '--juice-danger-jitter', min: 0, max: 5, step: 0.5, default: 2, unit: 'px' },
   { id: 'danger-glow-max', label: 'Danger Glow Max', prop: '--juice-danger-glow-max', min: 0, max: 1.0, step: 0.05, default: 0.4, unit: '' },
   { id: 'drumroll-speed', label: 'Drumroll Speed', prop: '--juice-drumroll-speed', min: 0.5, max: 3.0, step: 0.1, default: 1.0, unit: '' },
   { id: 'freeze-dur', label: 'Beat Freeze Duration', prop: '--juice-freeze-dur', min: 0, max: 1000, step: 50, default: 300, unit: 'ms' },
@@ -7075,23 +7075,23 @@ function spawnEarningsSparkles(anchor) {
   const rect = anchor.getBoundingClientRect();
   const cx = rect.left + rect.width / 2;
   const cy = rect.top + rect.height / 2;
-  const chars = ['✦', '$', '✦', '$', '✦', '💰', '✦', '$'];
+  const chars = ['✦', '$', '✦', '$', '✦', '💰', '✦', '$', '✦', '$', '💰', '✦'];
 
-  for (let i = 0; i < 8; i++) {
+  for (let i = 0; i < 12; i++) {
     const span = document.createElement('span');
     span.className = 'earnings-sparkle';
     span.textContent = chars[i];
-    const angle = (i / 8) * Math.PI * 2 + (Math.random() - 0.5) * 0.5;
-    const dist = 30 + Math.random() * 50;
+    const angle = (i / 12) * Math.PI * 2 + (Math.random() - 0.5) * 0.5;
+    const dist = 40 + Math.random() * 70;
     const dx = Math.cos(angle) * dist;
-    const dy = Math.sin(angle) * dist - 20;
+    const dy = Math.sin(angle) * dist - 25;
     span.style.left = cx + 'px';
     span.style.top = cy + 'px';
     span.style.setProperty('--sparkle-dx', dx + 'px');
     span.style.setProperty('--sparkle-dy', dy + 'px');
-    span.style.animationDelay = (i * 50) + 'ms';
+    span.style.animationDelay = (i * 40) + 'ms';
     document.body.appendChild(span);
-    setTimeout(() => span.remove(), 1200);
+    setTimeout(() => span.remove(), 1500);
   }
 }
 

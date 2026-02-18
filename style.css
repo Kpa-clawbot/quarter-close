@@ -1690,8 +1690,9 @@ body.col-resizing * {
 .cell-btn:active {
   background: var(--bg-btn-active);
   transform: scale(var(--juice-depress-scale));
-  box-shadow: 0 0 1px rgba(0,0,0,0.05);
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.15);
   transition: transform calc(var(--juice-depress-dur) * 1ms) ease, box-shadow calc(var(--juice-depress-dur) * 1ms) ease;
+  filter: brightness(0.92);
 }
 
 .cell-btn.btn-collect {
@@ -3329,7 +3330,7 @@ body.col-resizing * {
   --juice-depress-dur: 200;
   --juice-ticker-dur: 16;
   --heartbeat-speed: 1.5s;
-  --juice-danger-jitter: 1px;
+  --juice-danger-jitter: 2px;
   --juice-danger-glow-max: 0.4;
   --juice-drumroll-speed: 1.0;
   --juice-freeze-dur: 300;
@@ -3835,16 +3836,16 @@ body.dark-mode .earnings-ticker.ticker-inline {
   animation: stock-pulse-jitter 0.4s ease-in-out infinite;
 }
 @keyframes stock-pulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(0, 120, 212, 0); }
-  50%      { box-shadow: 0 0 6px 1px rgba(0, 120, 212, 0.25); }
+  0%, 100% { box-shadow: 0 0 2px 0 rgba(0, 120, 212, 0.1); }
+  50%      { box-shadow: 0 0 10px 3px rgba(0, 120, 212, 0.4); }
 }
 @keyframes stock-pulse-jitter {
-  0%   { box-shadow: 0 0 0 0 rgba(255, 82, 82, 0); }
-  20%  { box-shadow: 0 0 8px 2px rgba(255, 82, 82, 0.35); }
-  40%  { box-shadow: 0 0 2px 0 rgba(255, 82, 82, 0.1); }
-  60%  { box-shadow: 0 0 6px 1px rgba(255, 82, 82, 0.3); }
-  80%  { box-shadow: 0 0 1px 0 rgba(255, 82, 82, 0.05); }
-  100% { box-shadow: 0 0 4px 1px rgba(255, 82, 82, 0.2); }
+  0%   { box-shadow: 0 0 3px 0 rgba(255, 82, 82, 0.1); }
+  20%  { box-shadow: 0 0 12px 3px rgba(255, 82, 82, 0.5); }
+  40%  { box-shadow: 0 0 4px 1px rgba(255, 82, 82, 0.15); }
+  60%  { box-shadow: 0 0 10px 2px rgba(255, 82, 82, 0.45); }
+  80%  { box-shadow: 0 0 3px 0 rgba(255, 82, 82, 0.1); }
+  100% { box-shadow: 0 0 8px 2px rgba(255, 82, 82, 0.35); }
 }
 
 /* Dark mode heartbeat — brighter glow */
@@ -3855,16 +3856,16 @@ body.dark-mode .stock-heartbeat.heartbeat-jitter {
   animation-name: stock-pulse-jitter-dark;
 }
 @keyframes stock-pulse-dark {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(77, 166, 255, 0); }
-  50%      { box-shadow: 0 0 8px 2px rgba(77, 166, 255, 0.3); }
+  0%, 100% { box-shadow: 0 0 2px 0 rgba(77, 166, 255, 0.1); }
+  50%      { box-shadow: 0 0 12px 3px rgba(77, 166, 255, 0.45); }
 }
 @keyframes stock-pulse-jitter-dark {
-  0%   { box-shadow: 0 0 0 0 rgba(255, 82, 82, 0); }
-  20%  { box-shadow: 0 0 10px 2px rgba(255, 82, 82, 0.4); }
-  40%  { box-shadow: 0 0 2px 0 rgba(255, 82, 82, 0.1); }
-  60%  { box-shadow: 0 0 8px 2px rgba(255, 82, 82, 0.35); }
-  80%  { box-shadow: 0 0 1px 0 rgba(255, 82, 82, 0.05); }
-  100% { box-shadow: 0 0 5px 1px rgba(255, 82, 82, 0.25); }
+  0%   { box-shadow: 0 0 3px 0 rgba(255, 82, 82, 0.1); }
+  20%  { box-shadow: 0 0 14px 3px rgba(255, 82, 82, 0.5); }
+  40%  { box-shadow: 0 0 4px 1px rgba(255, 82, 82, 0.15); }
+  60%  { box-shadow: 0 0 12px 3px rgba(255, 82, 82, 0.45); }
+  80%  { box-shadow: 0 0 3px 0 rgba(255, 82, 82, 0.1); }
+  100% { box-shadow: 0 0 8px 2px rgba(255, 82, 82, 0.35); }
 }
 
 /* ===== Cell Stamp Effect ===== */
@@ -3872,56 +3873,71 @@ body.dark-mode .stock-heartbeat.heartbeat-jitter {
   position: fixed;
   transform: translateX(-50%) rotate(var(--stamp-rotation, 3deg));
   font-family: 'Impact', 'Arial Black', sans-serif;
-  font-size: 1rem;
+  font-size: 1.4rem;
   font-weight: 900;
-  letter-spacing: 2px;
+  letter-spacing: 3px;
   text-transform: uppercase;
   pointer-events: none;
   z-index: 10000;
-  padding: 2px 8px;
+  padding: 4px 14px;
   border: 3px solid;
   border-radius: 4px;
-  animation: stamp-float var(--juice-float-dur, 1.8s) ease-out forwards;
+  animation: stamp-slam-float var(--juice-float-dur, 1.8s) ease-out forwards;
+  text-shadow: 1px 1px 0 rgba(0,0,0,0.15);
 }
 .cell-stamp-hire {
-  color: rgba(33, 115, 70, 0.8);
-  border-color: rgba(33, 115, 70, 0.6);
+  color: rgba(33, 115, 70, 0.95);
+  border-color: rgba(33, 115, 70, 0.8);
+  background: rgba(33, 115, 70, 0.08);
 }
 .cell-stamp-upgrade {
-  color: rgba(0, 120, 212, 0.8);
-  border-color: rgba(0, 120, 212, 0.6);
+  color: rgba(0, 90, 200, 0.95);
+  border-color: rgba(0, 90, 200, 0.8);
+  background: rgba(0, 90, 200, 0.08);
 }
 .cell-stamp-automate {
-  color: rgba(198, 40, 40, 0.8);
-  border-color: rgba(198, 40, 40, 0.6);
+  color: rgba(180, 30, 30, 0.95);
+  border-color: rgba(180, 30, 30, 0.8);
+  background: rgba(180, 30, 30, 0.08);
 }
-@keyframes stamp-float {
+@keyframes stamp-slam-float {
   0% {
-    opacity: 0.85;
-    transform: translateX(-50%) translateY(0) scale(1.15) rotate(var(--stamp-rotation, 3deg));
+    opacity: 0;
+    transform: translateX(-50%) translateY(10px) scale(1.8) rotate(var(--stamp-rotation, 3deg));
+  }
+  8% {
+    opacity: 1;
+    transform: translateX(-50%) translateY(-5px) scale(1.0) rotate(var(--stamp-rotation, 3deg));
   }
   15% {
-    opacity: 0.8;
-    transform: translateX(-50%) translateY(-8px) scale(1.0) rotate(var(--stamp-rotation, 3deg));
+    opacity: 0.95;
+    transform: translateX(-50%) translateY(-8px) scale(1.05) rotate(var(--stamp-rotation, 3deg));
+  }
+  30% {
+    opacity: 0.85;
+    transform: translateX(-50%) translateY(-15px) scale(1.0) rotate(var(--stamp-rotation, 3deg));
   }
   100% {
     opacity: 0;
-    transform: translateX(-50%) translateY(-55px) scale(1.0) rotate(var(--stamp-rotation, 3deg));
+    transform: translateX(-50%) translateY(-70px) scale(0.95) rotate(var(--stamp-rotation, 3deg));
   }
 }
 
 /* Dark mode stamps — brighter colors */
 body.dark-mode .cell-stamp-hire {
-  color: rgba(102, 187, 106, 0.85);
-  border-color: rgba(102, 187, 106, 0.65);
+  color: rgba(102, 200, 106, 0.95);
+  border-color: rgba(102, 200, 106, 0.75);
+  background: rgba(102, 200, 106, 0.1);
 }
 body.dark-mode .cell-stamp-upgrade {
-  color: rgba(77, 166, 255, 0.85);
-  border-color: rgba(77, 166, 255, 0.65);
+  color: rgba(77, 175, 255, 0.95);
+  border-color: rgba(77, 175, 255, 0.75);
+  background: rgba(77, 175, 255, 0.1);
 }
 body.dark-mode .cell-stamp-automate {
-  color: rgba(255, 215, 0, 0.85);
-  border-color: rgba(255, 215, 0, 0.65);
+  color: rgba(255, 215, 0, 0.95);
+  border-color: rgba(255, 215, 0, 0.75);
+  background: rgba(255, 215, 0, 0.1);
 }
 
 /* ============================================
@@ -3961,8 +3977,8 @@ body.dark-mode .cell-stamp-automate {
 }
 
 @keyframes danger-tint-pulse {
-  0%, 100% { background: rgba(204, 0, 0, 0.03); }
-  50%      { background: rgba(204, 0, 0, 0.08); }
+  0%, 100% { background: rgba(204, 0, 0, 0.06); }
+  50%      { background: rgba(204, 0, 0, 0.18); }
 }
 
 body.dark-mode .earnings-danger-tint {
@@ -3970,17 +3986,17 @@ body.dark-mode .earnings-danger-tint {
 }
 
 @keyframes danger-tint-pulse-dark {
-  0%, 100% { background: rgba(239, 83, 80, 0.03); }
-  50%      { background: rgba(239, 83, 80, 0.10); }
+  0%, 100% { background: rgba(239, 83, 80, 0.06); }
+  50%      { background: rgba(239, 83, 80, 0.2); }
 }
 
 /* Red glow around IR section — intensity controlled by CSS var, scaled by juice knob in JS */
 .earnings-danger-glow {
-  box-shadow: inset 0 0 calc(var(--danger-glow-intensity, 4) * 1px) rgba(204, 0, 0, calc(var(--danger-glow-intensity, 4) * 0.01));
+  box-shadow: inset 0 0 calc(var(--danger-glow-intensity, 4) * 2px) rgba(204, 0, 0, calc(var(--danger-glow-intensity, 4) * 0.025));
 }
 
 body.dark-mode .earnings-danger-glow {
-  box-shadow: inset 0 0 calc(var(--danger-glow-intensity, 4) * 1px) rgba(239, 83, 80, calc(var(--danger-glow-intensity, 4) * 0.012));
+  box-shadow: inset 0 0 calc(var(--danger-glow-intensity, 4) * 2px) rgba(239, 83, 80, calc(var(--danger-glow-intensity, 4) * 0.03));
 }
 
 /* Relief flash — brief green pulse when danger clears */
@@ -4012,9 +4028,9 @@ body.dark-mode .earnings-relief-flash {
 }
 
 @keyframes earnings-shimmer-pulse {
-  0%   { opacity: 0.6; color: inherit; }
-  50%  { opacity: 1; }
-  100% { opacity: 0.8; filter: brightness(1.2); }
+  0%   { opacity: 0.3; color: inherit; }
+  50%  { opacity: 1; filter: brightness(1.4); }
+  100% { opacity: 0.5; filter: brightness(1.2); color: #d4a017; }
 }
 
 /* Golden flash on stats row for ambitious beat */
@@ -4023,8 +4039,8 @@ body.dark-mode .earnings-relief-flash {
 }
 
 @keyframes golden-flash {
-  0%   { background: rgba(212, 160, 23, 0.35); }
-  100% { background: transparent; }
+  0%   { background: rgba(212, 160, 23, 0.5); box-shadow: 0 0 8px rgba(212, 160, 23, 0.3); }
+  100% { background: transparent; box-shadow: none; }
 }
 
 body.dark-mode .earnings-golden-flash > * {
@@ -4032,8 +4048,8 @@ body.dark-mode .earnings-golden-flash > * {
 }
 
 @keyframes golden-flash-dark {
-  0%   { background: rgba(255, 215, 0, 0.2); }
-  100% { background: transparent; }
+  0%   { background: rgba(255, 215, 0, 0.35); box-shadow: 0 0 8px rgba(255, 215, 0, 0.3); }
+  100% { background: transparent; box-shadow: none; }
 }
 
 /* Aggressive scramble — slot machine digit cycling */
@@ -4054,8 +4070,8 @@ body.dark-mode .earnings-golden-flash > * {
 }
 
 @keyframes slam-flash {
-  0%   { background: rgba(46, 125, 50, 0.4); transform: scale(1.15); }
-  40%  { background: rgba(46, 125, 50, 0.15); transform: scale(1.02); }
+  0%   { background: rgba(46, 125, 50, 0.55); transform: scale(1.2); }
+  30%  { background: rgba(46, 125, 50, 0.25); transform: scale(1.03); }
   100% { background: transparent; transform: scale(1); }
 }
 
@@ -4064,8 +4080,8 @@ body.dark-mode .earnings-slam {
 }
 
 @keyframes slam-flash-dark {
-  0%   { background: rgba(102, 187, 106, 0.3); transform: scale(1.15); }
-  40%  { background: rgba(102, 187, 106, 0.1); transform: scale(1.02); }
+  0%   { background: rgba(102, 187, 106, 0.45); transform: scale(1.2); }
+  30%  { background: rgba(102, 187, 106, 0.2); transform: scale(1.03); }
   100% { background: transparent; transform: scale(1); }
 }
 
@@ -4087,50 +4103,51 @@ body.dark-mode .earnings-slam {
 
 @keyframes earnings-thud-shake {
   0%   { transform: translateX(0); }
-  15%  { transform: translateX(-3px); }
-  30%  { transform: translateX(3px); }
-  45%  { transform: translateX(-2px); }
-  60%  { transform: translateX(2px); }
-  75%  { transform: translateX(-1px); }
+  15%  { transform: translateX(-6px); }
+  30%  { transform: translateX(5px); }
+  45%  { transform: translateX(-4px); }
+  60%  { transform: translateX(3px); }
+  75%  { transform: translateX(-2px); }
   100% { transform: translateX(0); }
 }
 
 .earnings-thud-red {
-  animation: thud-red-flash 0.4s ease-out;
+  animation: thud-red-flash 0.5s ease-out;
 }
 
 @keyframes thud-red-flash {
-  0%   { background: rgba(204, 0, 0, 0.3); }
-  100% { background: transparent; }
+  0%   { background: rgba(204, 0, 0, 0.45); color: #cc0000; }
+  100% { background: transparent; color: inherit; }
 }
 
 body.dark-mode .earnings-thud-red {
-  animation: thud-red-flash-dark 0.4s ease-out;
+  animation: thud-red-flash-dark 0.5s ease-out;
 }
 
 @keyframes thud-red-flash-dark {
-  0%   { background: rgba(239, 83, 80, 0.25); }
-  100% { background: transparent; }
+  0%   { background: rgba(239, 83, 80, 0.4); color: #ef5350; }
+  100% { background: transparent; color: inherit; }
 }
 
 /* Sparkle particles — absolute positioned flying $ / ✦ */
 .earnings-sparkle {
   position: fixed;
   pointer-events: none;
-  font-size: 0.875rem;
+  font-size: 1.2rem;
   font-weight: 700;
   color: #d4a017;
   z-index: 9999;
-  animation: sparkle-fly 0.8s ease-out forwards;
-  text-shadow: 0 0 4px rgba(212, 160, 23, 0.5);
+  animation: sparkle-fly 1.0s ease-out forwards;
+  text-shadow: 0 0 6px rgba(212, 160, 23, 0.7);
 }
 
 body.dark-mode .earnings-sparkle {
   color: #ffd700;
-  text-shadow: 0 0 6px rgba(255, 215, 0, 0.6);
+  text-shadow: 0 0 8px rgba(255, 215, 0, 0.8);
 }
 
 @keyframes sparkle-fly {
-  0%   { opacity: 1; transform: translate(0, 0) scale(1); }
-  100% { opacity: 0; transform: translate(var(--sparkle-dx, 30px), var(--sparkle-dy, -40px)) scale(0.3); }
+  0%   { opacity: 1; transform: translate(0, 0) scale(1.2); }
+  50%  { opacity: 0.9; }
+  100% { opacity: 0; transform: translate(var(--sparkle-dx, 30px), var(--sparkle-dy, -40px)) scale(0.5); }
 }
