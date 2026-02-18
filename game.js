@@ -4729,16 +4729,37 @@ function gameTick() {
     // Danger drumroll: check if tracking toward a miss in last 15 days
     updateEarningsDangerState(earningsDaysSince);
 
+    // Safety valve: if drumroll stuck for >15s, force-reset
+    if (gameState._drumrollActive && gameState._drumrollStartTime &&
+        Date.now() - gameState._drumrollStartTime > 15000) {
+      console.warn('Drumroll timeout — force resetting');
+      gameState._drumrollActive = false;
+      gameState._drumrollStartTime = null;
+    }
+
     if (earningsDaysSince >= EARNINGS_QUARTER_DAYS && !gameState._drumrollActive) {
       // Check if we should play a drumroll before processing earnings
       const drumrollType = getEarningsDrumrollType();
       if (drumrollType && gameState.juiceEnabled && !gameState.bossMode && !isCrisisBlocking()) {
         gameState._drumrollActive = true;
-        playEarningsDrumroll(drumrollType, () => {
+        gameState._drumrollStartTime = Date.now();
+        try {
+          playEarningsDrumroll(drumrollType, () => {
+            try {
+              processEarnings();
+            } finally {
+              gameState.lastEarningsDay = Math.floor(gameState.gameElapsedSecs / SECS_PER_DAY);
+              gameState._drumrollActive = false;
+              gameState._drumrollStartTime = null;
+            }
+          });
+        } catch(e) {
+          console.error('Drumroll error:', e);
           processEarnings();
           gameState.lastEarningsDay = Math.floor(gameState.gameElapsedSecs / SECS_PER_DAY);
           gameState._drumrollActive = false;
-        });
+          gameState._drumrollStartTime = null;
+        }
       } else {
         processEarnings();
         gameState.lastEarningsDay = currentDay;
@@ -6862,137 +6883,170 @@ function playEarningsDrumroll(type, callback) {
 }
 
 function playAmbitiousBeatDrumroll(callback) {
-  const cashEl = document.getElementById('cash-display');
-  const ptEl = document.getElementById('per-tick-display');
+  try {
+    const cashEl = document.getElementById('cash-display');
+    const ptEl = document.getElementById('per-tick-display');
 
-  if (cashEl) cashEl.classList.add('earnings-shimmer');
-  if (ptEl) ptEl.classList.add('earnings-shimmer');
+    if (cashEl) cashEl.classList.add('earnings-shimmer');
+    if (ptEl) ptEl.classList.add('earnings-shimmer');
 
-  showFormulaBarEcho('=EARNINGS("Ambitious Target", "BEAT!")');
+    showFormulaBarEcho('=EARNINGS("Ambitious Target", "BEAT!")');
 
-  setTimeout(() => {
-    if (cashEl) cashEl.classList.remove('earnings-shimmer');
-    if (ptEl) ptEl.classList.remove('earnings-shimmer');
+    setTimeout(() => {
+      try {
+        if (cashEl) cashEl.classList.remove('earnings-shimmer');
+        if (ptEl) ptEl.classList.remove('earnings-shimmer');
 
-    const cashRow = document.getElementById('row-cash');
-    if (cashRow) {
-      cashRow.classList.add('earnings-golden-flash');
-      setTimeout(() => cashRow.classList.remove('earnings-golden-flash'), 700);
-    }
+        const cashRow = document.getElementById('row-cash');
+        if (cashRow) {
+          cashRow.classList.add('earnings-golden-flash');
+          setTimeout(() => cashRow.classList.remove('earnings-golden-flash'), 700);
+        }
 
-    clearDangerEffects(false);
+        clearDangerEffects(false);
+      } catch(e) {
+        console.error('AmbitiousBeatDrumroll animation error:', e);
+      }
+      callback();
+    }, 2000);
+  } catch(e) {
+    console.error('AmbitiousBeatDrumroll setup error:', e);
     callback();
-  }, 2000);
+  }
 }
 
 function playAggressiveBeatDrumroll(callback) {
-  const cashEl = document.getElementById('cash-display');
-  const ptEl = document.getElementById('per-tick-display');
+  try {
+    const cashEl = document.getElementById('cash-display');
+    const ptEl = document.getElementById('per-tick-display');
 
-  // Find IR revenue display to scramble
-  let revCell = null;
-  document.querySelectorAll('.ir-row').forEach(row => {
-    const label = row.querySelector('.cell-a');
-    if (label && label.textContent.includes('Revenue vs Target')) {
-      revCell = row.querySelector('.cell-d');
-    }
-  });
-
-  const scrambleTargets = [cashEl, ptEl, revCell].filter(Boolean);
-  const originals = scrambleTargets.map(el => el.textContent);
-
-  scrambleTargets.forEach(el => el.classList.add('earnings-scramble'));
-
-  let scrambleFrame = 0;
-  const totalFrames = 80;
-
-  function scrambleStep() {
-    scrambleFrame++;
-    const progress = scrambleFrame / totalFrames;
-    const delay = Math.max(30, 120 * (1 - progress * 0.8));
-
-    scrambleTargets.forEach((el, i) => {
-      el.textContent = scrambleText(originals[i]);
+    // Find IR revenue display to scramble
+    let revCell = null;
+    document.querySelectorAll('.ir-row').forEach(row => {
+      const label = row.querySelector('.cell-a');
+      if (label && label.textContent.includes('Revenue vs Target')) {
+        revCell = row.querySelector('.cell-d');
+      }
     });
 
-    if (scrambleFrame < totalFrames) {
-      setTimeout(scrambleStep, delay);
-    } else {
-      // FREEZE
-      document.body.classList.add('earnings-freeze');
+    const scrambleTargets = [cashEl, ptEl, revCell].filter(Boolean);
+    const originals = scrambleTargets.map(el => el.textContent);
 
-      setTimeout(() => {
-        document.body.classList.remove('earnings-freeze');
+    scrambleTargets.forEach(el => el.classList.add('earnings-scramble'));
+
+    let scrambleFrame = 0;
+    const totalFrames = 80;
+
+    function scrambleStep() {
+      try {
+        scrambleFrame++;
+        const progress = scrambleFrame / totalFrames;
+        const delay = Math.max(30, 120 * (1 - progress * 0.8));
 
         scrambleTargets.forEach((el, i) => {
-          el.textContent = originals[i];
-          el.classList.remove('earnings-scramble');
+          el.textContent = scrambleText(originals[i]);
         });
 
-        // SLAM
-        const cashRow = document.getElementById('row-cash');
-        if (cashRow) {
-          cashRow.classList.add('earnings-slam');
-          setTimeout(() => cashRow.classList.remove('earnings-slam'), 600);
+        if (scrambleFrame < totalFrames) {
+          setTimeout(scrambleStep, delay);
+        } else {
+          // FREEZE
+          document.body.classList.add('earnings-freeze');
+
+          setTimeout(() => {
+            try {
+              document.body.classList.remove('earnings-freeze');
+
+              scrambleTargets.forEach((el, i) => {
+                el.textContent = originals[i];
+                el.classList.remove('earnings-scramble');
+              });
+
+              // SLAM
+              const cashRow = document.getElementById('row-cash');
+              if (cashRow) {
+                cashRow.classList.add('earnings-slam');
+                setTimeout(() => cashRow.classList.remove('earnings-slam'), 600);
+              }
+
+              if (revCell) {
+                revCell.classList.add('earnings-bounce');
+                setTimeout(() => revCell.classList.remove('earnings-bounce'), 500);
+              }
+
+              spawnEarningsSparkles(cashEl || revCell);
+              showFormulaBarEcho('=JACKPOT("Aggressive Target", "CRUSHED IT!")');
+              clearDangerEffects(false);
+            } catch(e) {
+              console.error('AggressiveBeatDrumroll slam error:', e);
+            }
+
+            setTimeout(callback, 400);
+          }, 300);
         }
-
-        if (revCell) {
-          revCell.classList.add('earnings-bounce');
-          setTimeout(() => revCell.classList.remove('earnings-bounce'), 500);
-        }
-
-        spawnEarningsSparkles(cashEl || revCell);
-        showFormulaBarEcho('=JACKPOT("Aggressive Target", "CRUSHED IT!")');
-        clearDangerEffects(false);
-
-        setTimeout(callback, 400);
-      }, 300);
+      } catch(e) {
+        console.error('AggressiveBeatDrumroll scramble error:', e);
+        callback();
+      }
     }
-  }
 
-  scrambleStep();
+    scrambleStep();
+  } catch(e) {
+    console.error('AggressiveBeatDrumroll setup error:', e);
+    callback();
+  }
 }
 
 function playMissThudDrumroll(callback) {
-  const cashEl = document.getElementById('cash-display');
-  const ptEl = document.getElementById('per-tick-display');
+  try {
+    const cashEl = document.getElementById('cash-display');
+    const ptEl = document.getElementById('per-tick-display');
 
-  const scrambleTargets = [cashEl, ptEl].filter(Boolean);
-  const originals = scrambleTargets.map(el => el.textContent);
+    const scrambleTargets = [cashEl, ptEl].filter(Boolean);
+    const originals = scrambleTargets.map(el => el.textContent);
 
-  scrambleTargets.forEach(el => el.classList.add('earnings-scramble'));
+    scrambleTargets.forEach(el => el.classList.add('earnings-scramble'));
 
-  let frame = 0;
-  const total = 30;
+    let frame = 0;
+    const total = 30;
 
-  function step() {
-    frame++;
-    scrambleTargets.forEach(el => {
-      el.textContent = scrambleText(el.textContent);
-    });
+    function step() {
+      try {
+        frame++;
+        scrambleTargets.forEach(el => {
+          el.textContent = scrambleText(el.textContent);
+        });
 
-    if (frame < total) {
-      setTimeout(step, 60);
-    } else {
-      scrambleTargets.forEach((el, i) => {
-        el.textContent = originals[i];
-        el.classList.remove('earnings-scramble');
-        el.classList.add('earnings-thud-red');
-        setTimeout(() => el.classList.remove('earnings-thud-red'), 500);
-      });
+        if (frame < total) {
+          setTimeout(step, 60);
+        } else {
+          scrambleTargets.forEach((el, i) => {
+            el.textContent = originals[i];
+            el.classList.remove('earnings-scramble');
+            el.classList.add('earnings-thud-red');
+            setTimeout(() => el.classList.remove('earnings-thud-red'), 500);
+          });
 
-      const gameView = document.getElementById('game-view');
-      if (gameView) {
-        gameView.classList.add('earnings-thud');
-        setTimeout(() => gameView.classList.remove('earnings-thud'), 400);
+          const gameView = document.getElementById('game-view');
+          if (gameView) {
+            gameView.classList.add('earnings-thud');
+            setTimeout(() => gameView.classList.remove('earnings-thud'), 400);
+          }
+
+          clearDangerEffects(false);
+          setTimeout(callback, 300);
+        }
+      } catch(e) {
+        console.error('MissThudDrumroll step error:', e);
+        callback();
       }
-
-      clearDangerEffects(false);
-      setTimeout(callback, 300);
     }
-  }
 
-  step();
+    step();
+  } catch(e) {
+    console.error('MissThudDrumroll setup error:', e);
+    callback();
+  }
 }
 
 function scrambleText(text) {
