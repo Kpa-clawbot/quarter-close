@@ -3322,7 +3322,7 @@ body.col-resizing * {
   --juice-shake-dur: 0.4s;
   --juice-shake-dist: 15px;
   --juice-ms-size: 1.5;
-  --juice-odo-dur: 350;
+  --juice-odo-dur: 950;
 }
 
 /* 1. Cell Value Flash (uptick/downtick) */

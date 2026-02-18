@@ -2211,8 +2211,8 @@ function updateOdometer(el, newValue, newText, decimals) {
   function tick(now) {
     const elapsed = now - startTime;
     const t = Math.min(1, elapsed / duration);
-    // Ease out cubic
-    const eased = 1 - Math.pow(1 - t, 3);
+    // Nearly linear for smooth continuous motion between ticks
+    const eased = t;
     const current = startVal + (endVal - startVal) * eased;
     el.textContent = formatMoney(Math.round(current), d);
     if (t < 1) {
@@ -5001,7 +5001,7 @@ const JUICE_KNOBS = [
   { id: 'shake-dur', label: 'Shake Duration', prop: '--juice-shake-dur', min: 0.1, max: 1.0, step: 0.05, default: 0.4, unit: 's' },
   { id: 'shake-dist', label: 'Shake Distance', prop: '--juice-shake-dist', min: 1, max: 15, step: 1, default: 15, unit: 'px' },
   { id: 'ms-size', label: 'Milestone Size', prop: '--juice-ms-size', min: 1.0, max: 3.0, step: 0.25, default: 1.5, unit: '×' },
-  { id: 'odo-dur', label: 'Odometer Duration', prop: '--juice-odo-dur', min: 100, max: 1500, step: 50, default: 350, unit: 'ms' },
+  { id: 'odo-dur', label: 'Odometer Duration', prop: '--juice-odo-dur', min: 100, max: 1500, step: 50, default: 950, unit: 'ms' },
 ];
 
 function toggleJuiceKnobs() {
