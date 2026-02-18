@@ -2,6 +2,29 @@
 
 All notable changes to Quarter Close.
 
+## [v0.7.1] — 2026-02-18 — Polish & Fixes
+
+### 🖱️ Overtime Rebalanced
+- **All-Hands Sprint reverted to Overtime** — 3 charges × 30 days was effectively doubling quarterly revenue for free. Back to the original system: unlimited clicks with diminishing returns (5s of revenue per click, efficiency drops with each click, resets each quarter). Rewards active play without being game-breaking.
+
+### 🕴️ Boss Mode Improvements
+- **Proper spreadsheet disguise** — fake Q1 Budget Tracker data, ribbon toolbar, formula bar shows cell references (`E9`, `=SUM(B9:D9)`)
+- **Column/row headers** — `.boss-corner` div for authentic Excel look
+- **Floats suppressed** — no floating numbers, milestone popups, or cell flashes leak through boss mode or crisis overlays
+- **Title bar** — shows "Book1.xlsx" instead of "Book1 - Excel" (avoids trademark)
+
+### 📌 Pinned Row 1
+- **Cash/RE row stays visible** when scrolling Operations and Board Room tabs
+- Column headers (A–H) and Row 1 moved out of the scrollable grid into a fixed `#grid-header` div — eliminates sticky CSS conflicts entirely
+
+### 🔧 Fixes
+- **Scroll position preserved** — Operations tab no longer resets to top every tick. Root cause: tax panel's change-detection hash used raw numeric values that changed every tick, triggering full DOM rebuild. Fixed by hashing on formatted display values + explicit scrollTop save/restore around all DOM rebuilds.
+- **Dark mode crisis overlays** — 19 CSS overrides used dead `html[data-theme="dark"]` selector. All fixed to `.dark-mode`.
+- **Hire/upgrade delta display** — "+$/day" preview on buttons now includes all multipliers (prestige, breakthroughs, Board Room revenue). Previously showed tiny numbers ignoring 10× prestige bonuses.
+- **Active clicking scales with progression** — Collect gives 50% of dept daily revenue (was flat $1-$5K). Management Focus: +25%/click, max +200%, decays every 20s.
+- **"Visual Effects" label** — removed "Juice" from player-facing settings toggle.
+- **formatMoney negatives** — negative numbers display correctly instead of raw scientific notation.
+
 ## [v0.7.0] — 2026-02-17 — Crisis Mode
 
 ### ⚡ Crisis Overlays
