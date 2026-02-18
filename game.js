@@ -4348,21 +4348,39 @@ function triggerIRS() {
 
 // Update CTO/COO pool displays, progress bars, and target info without full panel rebuild.
 // This prevents the slider from resetting mid-drag (pool values change every tick).
+function _getFreeCashForBudget() {
+  // Cash minus tax debts and estimated upcoming quarterly taxes
+  let taxReserve = 0;
+  if (gameState.taxDebts) {
+    for (const d of gameState.taxDebts) taxReserve += d.current || 0;
+  }
+  const estTaxRate = getBoardRoomTaxRate();
+  const currentDay = Math.floor(gameState.gameElapsedSecs / SECS_PER_DAY);
+  const earningsDaysSince = currentDay - gameState.lastEarningsDay;
+  const daysLeft = Math.max(0, EARNINGS_QUARTER_DAYS - earningsDaysSince);
+  if (daysLeft < EARNINGS_QUARTER_DAYS) {
+    taxReserve += (gameState.quarterRevenue || 0) * estTaxRate * 0.5;
+  }
+  return Math.max(0, gameState.cash - taxReserve);
+}
+
 function _updateCtoCooPools() {
-  // CTO budget display: spent this Q / budget available
+  const freeCash = _getFreeCashForBudget();
+
+  // CTO budget display
   const ctoPoolEl = document.getElementById('cto-pool-display');
   if (ctoPoolEl) {
     const spent = gameState.ctoSpentThisQuarter || 0;
     const ctoPct = gameState.ctoBudgetPct || 0;
-    const budgetAvail = gameState.cash * (ctoPct / 100);
+    const budgetAvail = freeCash * (ctoPct / 100);
     ctoPoolEl.textContent = `${formatCompact(spent)} spent · ${formatCompact(budgetAvail)} avail`;
   }
-  // CTO progress bar: shows how much of budget has been used this quarter
+  // CTO progress bar
   const ctoBarEl = document.getElementById('cto-progress-bar');
   if (ctoBarEl) {
     const cost = gameState.ctoTargetCost || 0;
     const ctoPct = gameState.ctoBudgetPct || 0;
-    const budgetAvail = gameState.cash * (ctoPct / 100);
+    const budgetAvail = freeCash * (ctoPct / 100);
     const canAfford = cost > 0 && budgetAvail >= cost;
     const justBought = gameState.ctoJustBought;
     if (justBought) gameState.ctoJustBought = false;
@@ -4383,7 +4401,7 @@ function _updateCtoCooPools() {
   if (cooPoolEl) {
     const spent = gameState.cooSpentThisQuarter || 0;
     const cooPct = gameState.cooBudgetPct || 0;
-    const budgetAvail = gameState.cash * (cooPct / 100);
+    const budgetAvail = freeCash * (cooPct / 100);
     cooPoolEl.textContent = `${formatCompact(spent)} spent · ${formatCompact(budgetAvail)} avail`;
   }
   // COO progress bar
@@ -4391,7 +4409,7 @@ function _updateCtoCooPools() {
   if (cooBarEl) {
     const cost = gameState.cooTargetCost || 0;
     const cooPct = gameState.cooBudgetPct || 0;
-    const budgetAvail = gameState.cash * (cooPct / 100);
+    const budgetAvail = freeCash * (cooPct / 100);
     const canAfford = cost > 0 && budgetAvail >= cost;
     const justBought = gameState.cooJustBought;
     if (justBought) gameState.cooJustBought = false;
@@ -4545,9 +4563,9 @@ function gameTick() {
       ctoPct *= scale;
       cooPct *= scale;
     }
-    const cashSnapshot = gameState.cash;
-    const ctoBudget = cashSnapshot * (ctoPct / 100);
-    const cooBudget = cashSnapshot * (cooPct / 100);
+    const freeCash = _getFreeCashForBudget();
+    const ctoBudget = freeCash * (ctoPct / 100);
+    const cooBudget = freeCash * (cooPct / 100);
     ctoAutoUpgrade(ctoBudget);
     cooAutoHire(cooBudget);
   }
@@ -6902,7 +6920,7 @@ function buildCSuiteHTML(rowNum) {
     if (activeCTO > 0) {
       const budgetPct = gameState.ctoBudgetPct;
       const spent = gameState.ctoSpentThisQuarter || 0;
-      const budgetAvail = gameState.cash * (budgetPct / 100);
+      const budgetAvail = _getFreeCashForBudget() * (budgetPct / 100);
       const targetCost = gameState.ctoTargetCost || 0;
       const spentStr = formatCompact(spent);
       const availStr = formatCompact(budgetAvail);
@@ -6978,7 +6996,7 @@ function buildCSuiteHTML(rowNum) {
     if (activeCOO > 0) {
       const cooPct = gameState.cooBudgetPct;
       const cooSpent = gameState.cooSpentThisQuarter || 0;
-      const cooBudgetAvail = gameState.cash * (cooPct / 100);
+      const cooBudgetAvail = _getFreeCashForBudget() * (cooPct / 100);
       const cooTargetCost = gameState.cooTargetCost || 0;
       const cooSpentStr = formatCompact(cooSpent);
       const cooAvailStr = formatCompact(cooBudgetAvail);
