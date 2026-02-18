@@ -2769,7 +2769,7 @@ function updateGridValues() {
     }
 
     const rev = sourceAnnualRev(state);
-    const revPerDay = rev / 365.25;
+    const revPerDay = rev * getBoardRoomRevMultiplier() / 365.25;
     const hCost = hireCost(state);
     const uCost = upgradeCost(state);
     const aCost = automateCost(state);
@@ -5226,7 +5226,7 @@ function loadGame(slotId) {
       let offlineEarnings = 0;
       for (const state of gameState.sources) {
         if (state.unlocked && state.automated && state.employees > 0) {
-          const daily = sourceAnnualRev(state) / 365.25;
+          const daily = sourceAnnualRev(state) * getBoardRoomRevMultiplier() / 365.25;
           offlineEarnings += daily * elapsed;
         }
       }
