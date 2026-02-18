@@ -4371,9 +4371,7 @@ function _updateCtoCooPools() {
   const ctoPoolEl = document.getElementById('cto-pool-display');
   if (ctoPoolEl) {
     const spent = gameState.ctoSpentThisQuarter || 0;
-    const ctoPct = gameState.ctoBudgetPct || 0;
-    const budgetAvail = freeCash * (ctoPct / 100);
-    ctoPoolEl.textContent = `${formatCompact(spent)} spent · ${formatCompact(budgetAvail)} avail`;
+    ctoPoolEl.textContent = `${formatCompact(spent)} spent this Q`;
   }
   // CTO progress bar
   const ctoBarEl = document.getElementById('cto-progress-bar');
@@ -4400,9 +4398,7 @@ function _updateCtoCooPools() {
   const cooPoolEl = document.getElementById('coo-pool-display');
   if (cooPoolEl) {
     const spent = gameState.cooSpentThisQuarter || 0;
-    const cooPct = gameState.cooBudgetPct || 0;
-    const budgetAvail = freeCash * (cooPct / 100);
-    cooPoolEl.textContent = `${formatCompact(spent)} spent · ${formatCompact(budgetAvail)} avail`;
+    cooPoolEl.textContent = `${formatCompact(spent)} spent this Q`;
   }
   // COO progress bar
   const cooBarEl = document.getElementById('coo-progress-bar');
@@ -6920,10 +6916,10 @@ function buildCSuiteHTML(rowNum) {
     if (activeCTO > 0) {
       const budgetPct = gameState.ctoBudgetPct;
       const spent = gameState.ctoSpentThisQuarter || 0;
-      const budgetAvail = _getFreeCashForBudget() * (budgetPct / 100);
+      const freeCash = _getFreeCashForBudget();
+      const budgetAvail = freeCash * (budgetPct / 100);
       const targetCost = gameState.ctoTargetCost || 0;
       const spentStr = formatCompact(spent);
-      const availStr = formatCompact(budgetAvail);
       const canAfford = targetCost > 0 && budgetAvail >= targetCost;
       const progress = targetCost > 0 ? Math.min(100, Math.round(budgetAvail / targetCost * 100)) : 0;
       const barFilled = Math.round(Math.min(progress, 100) / 10);
@@ -6951,7 +6947,7 @@ function buildCSuiteHTML(rowNum) {
           <span class="cto-budget-pct" style="${ctoPctColor}" ${ctoPctTitle}>${ctoEffective}%</span>
         </div>
         <div class="cell cell-c" id="cto-progress-bar" style="font-family:Consolas,monospace;font-size:0.625rem;color:${barColor}" title="${progress}% toward next upgrade">${bar}</div>
-        <div class="cell cell-d" style="font-size:0.625rem;color:${dm('#666')};white-space:nowrap"><span id="cto-pool-display">${spentStr} spent · ${availStr} avail</span></div>
+        <div class="cell cell-d" style="font-size:0.625rem;color:${dm('#666')};white-space:nowrap"><span id="cto-pool-display">${spentStr} spent this Q</span></div>
         <div class="cell cell-e" style="font-size:0.625rem">${autoLabel}</div>
         <div class="cell cell-f"></div>
         <div class="cell cell-g"></div>
@@ -6996,10 +6992,10 @@ function buildCSuiteHTML(rowNum) {
     if (activeCOO > 0) {
       const cooPct = gameState.cooBudgetPct;
       const cooSpent = gameState.cooSpentThisQuarter || 0;
-      const cooBudgetAvail = _getFreeCashForBudget() * (cooPct / 100);
+      const cooFreeCash = _getFreeCashForBudget();
+      const cooBudgetAvail = cooFreeCash * (cooPct / 100);
       const cooTargetCost = gameState.cooTargetCost || 0;
       const cooSpentStr = formatCompact(cooSpent);
-      const cooAvailStr = formatCompact(cooBudgetAvail);
       const cooCanAfford = cooTargetCost > 0 && cooBudgetAvail >= cooTargetCost;
       const cooProgress = cooTargetCost > 0 ? Math.min(100, Math.round(cooBudgetAvail / cooTargetCost * 100)) : 0;
       const cooBarFilled = Math.round(Math.min(cooProgress, 100) / 10);
@@ -7027,7 +7023,7 @@ function buildCSuiteHTML(rowNum) {
           <span class="cto-budget-pct" style="${cooPctColor}" ${cooPctTitle}>${cooEffective}%</span>
         </div>
         <div class="cell cell-c" id="coo-progress-bar" style="font-family:Consolas,monospace;font-size:0.625rem;color:${cooBarColor}" title="${cooProgress}% toward next hire">${cooBar}</div>
-        <div class="cell cell-d" style="font-size:0.625rem;color:${dm('#666')};white-space:nowrap"><span id="coo-pool-display">${cooSpentStr} spent · ${cooAvailStr} avail</span></div>
+        <div class="cell cell-d" style="font-size:0.625rem;color:${dm('#666')};white-space:nowrap"><span id="coo-pool-display">${cooSpentStr} spent this Q</span></div>
         <div class="cell cell-e" style="font-size:0.625rem">${cooAutoLabel}</div>
         <div class="cell cell-f"></div>
         <div class="cell cell-g"></div>
