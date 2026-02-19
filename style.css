@@ -2211,7 +2211,8 @@ body {
   /* Hide desktop-specific cells in cash row */
   #row-cash .cash-label,
   #row-cash .cell-d,
-  #row-cash .cell-e {
+  #row-cash .cell-e,
+  #row-cash .cell-h {
     display: none !important;
   }
 
@@ -2229,10 +2230,7 @@ body {
     margin-left: 6px;
   }
   #row-cash .rev-value::before {
-    content: "Rev/yr: ";
-    font-family: 'Segoe UI', sans-serif;
-    font-size: 10px;
-    color: rgba(255,255,255,0.55);
+    content: "";
   }
 
   /* ===== GRID CONTAINER: Card-based vertical scroll ===== */
@@ -2522,11 +2520,12 @@ body {
     flex-shrink: 0;
     overflow: hidden;
     background: #f5f5f5;
+    color: #666;
     border-top: 1px solid #e0e0e0;
     order: 90;
   }
   #status-text {
-    max-width: 50vw;
+    max-width: 55vw;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -2534,16 +2533,19 @@ body {
     vertical-align: middle;
     font-size: 10px;
     font-weight: 500;
+    color: #555;
   }
   #game-date {
     font-size: 10px;
     white-space: nowrap;
+    color: #888;
   }
   #status-center,
   #status-clicks,
   #status-zoom,
   #stock-sep,
   #status-left .status-sep,
+  #status-right .status-sep,
   #status-timescale {
     display: none;
   }

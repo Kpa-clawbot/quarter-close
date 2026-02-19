@@ -4945,7 +4945,7 @@ function updateMobileCashHeader() {
   amountEl.textContent = formatMoney(gameState.cash);
   perdayEl.textContent = formatPerTick(totalRevPerTick()) + '/day';
   if (revyrEl) {
-    revyrEl.textContent = formatRate(totalAnnualRev()) + '/yr';
+    revyrEl.textContent = formatRate(totalAnnualRev());
   }
   if (stockEl) {
     if (gameState.isPublic) {
