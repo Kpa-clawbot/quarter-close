@@ -248,7 +248,7 @@ function buildSaveData() {
     ceoStats: gameState.ceoStats || { actionsTaken: 0, tenureStart: 0 },
     goldenParachute: gameState.goldenParachute || 0,
     stockOptions: gameState.stockOptions || 0,
-    _ceoStockBonus: gameState._ceoStockBonus || 0,
+    _ceoStockBonus: gameState._ceoStockBonus ?? 0,
     ceoActionCooldowns: gameState.ceoActionCooldowns || {},
     _ceoTimedEffects: gameState._ceoTimedEffects || [],
     _ceoActionLog: gameState._ceoActionLog || [],
@@ -2088,6 +2088,10 @@ let gameState = {
   ceoStats: { actionsTaken: 0, tenureStart: 0 },
   goldenParachute: 0,
   stockOptions: 0,
+  _ceoStockBonus: 0,
+  ceoActionCooldowns: {},
+  _ceoTimedEffects: [],
+  _ceoActionLog: [],
 };
 
 let gridBuilt = false;
@@ -5582,7 +5586,7 @@ function loadGame(slotId) {
     gameState.ceoStats = data.ceoStats || { actionsTaken: 0, tenureStart: 0 };
     gameState.goldenParachute = data.goldenParachute || 0;
     gameState.stockOptions = data.stockOptions || (gameState.isCEO ? 12500 : 0);
-    gameState._ceoStockBonus = data._ceoStockBonus || 0;
+    gameState._ceoStockBonus = data._ceoStockBonus ?? 0;
     gameState.ceoActionCooldowns = data.ceoActionCooldowns || {};
     gameState._ceoTimedEffects = data._ceoTimedEffects || [];
     gameState._ceoActionLog = data._ceoActionLog || [];
@@ -7535,14 +7539,14 @@ window.debugCTO = function() {
 
 window.revertCEO = function() {
   gameState.isCEO = false;
-  delete gameState.ceoStats;
-  delete gameState.goldenParachute;
-  delete gameState.stockOptions;
-  delete gameState._ceoViewOps;
-  delete gameState._ceoStockBonus;
-  delete gameState.ceoActionCooldowns;
-  delete gameState._ceoTimedEffects;
-  delete gameState._ceoActionLog;
+  gameState.ceoStats = { actionsTaken: 0, tenureStart: 0 };
+  gameState.goldenParachute = 0;
+  gameState.stockOptions = 0;
+  gameState._ceoViewOps = false;
+  gameState._ceoStockBonus = 0;
+  gameState.ceoActionCooldowns = {};
+  gameState._ceoTimedEffects = [];
+  gameState._ceoActionLog = [];
   delete gameState.boardRoomPurchases['hire_ceo'];
   document.getElementById('grid-container').classList.remove('ceo-layout');
   updateBoardRoomTab();
@@ -7552,9 +7556,10 @@ window.revertCEO = function() {
 };
 
 // ===== BOARD ROOM (Phase 2.2) =====
-function switchTab(tab) {
+function switchTab(tab, opts) {
   // If CEO clicks Operations tab while viewing ops, return to CEO dashboard
-  if (tab === 'operations' && gameState.isCEO && gameState._ceoViewOps && gameState.activeTab === 'operations') {
+  // (Skip this toggle when called programmatically from ceoViewOperations)
+  if (!opts?.fromViewOps && tab === 'operations' && gameState.isCEO && gameState._ceoViewOps && gameState.activeTab === 'operations') {
     gameState._ceoViewOps = false;
   }
   // Clear CEO ops view when switching away from operations
@@ -9071,9 +9076,8 @@ function ceoViewOperations() {
   gameState._ceoViewOps = true;
   document.getElementById('status-text').textContent = '📊 Getting in the weeds... (-25 RE)';
   setTimeout(() => { document.getElementById('status-text').textContent = 'Ready'; }, 3000);
-  switchTab('operations');
-  // Auto-return to CEO dashboard when switching away or after a delay
-  // For now, clicking Operations tab again returns to CEO view
+  switchTab('operations', { fromViewOps: true });
+  // Clicking Operations tab again returns to CEO view
   saveGame();
 }
 window.ceoViewOperations = ceoViewOperations;
@@ -9158,9 +9162,20 @@ function purchaseBoardRoomUpgrade(id) {
     gameState.ceoStats = { actionsTaken: 0, tenureStart: getGameDay() };
     gameState.goldenParachute = 0;
     gameState.stockOptions = 12500; // fixed stock option grant
+    gameState._ceoStockBonus = 0;
+    gameState.ceoActionCooldowns = {};
+    gameState._ceoTimedEffects = [];
+    gameState._ceoActionLog = [];
     document.getElementById('status-text').textContent = '🪑 You\'re the CEO now. The corner office awaits.';
     setTimeout(() => { document.getElementById('status-text').textContent = 'Ready'; }, 5000);
+    updateBoardRoomTab(); // update tab label to CEO
     switchTab('operations'); // show the CEO dashboard
+    _lastBoardRoomHash = '';
+    buildBoardRoom();
+    _lastTaxPanelHash = '';
+    updateDisplay();
+    saveGame();
+    return; // skip generic "Purchased" message below
   }
 
   // Status bar feedback
