@@ -4628,7 +4628,9 @@ function _getFreeCashForBudget() {
 }
 
 function _updateCtoCooPools() {
-  const freeCash = _getFreeCashForBudget();
+  // Use stored budget allocations from this tick (stable, not recalculated from live cash)
+  const ctoBudgetAvail = gameState._ctoBudgetAlloc || 0;
+  const cooBudgetAvail = gameState._cooBudgetAlloc || 0;
 
   // CTO budget display
   const ctoPoolEl = document.getElementById('cto-pool-display');
@@ -4640,12 +4642,10 @@ function _updateCtoCooPools() {
   const ctoBarEl = document.getElementById('cto-progress-bar');
   if (ctoBarEl) {
     const cost = gameState.ctoTargetCost || 0;
-    const ctoPct = gameState.ctoBudgetPct || 0;
-    const budgetAvail = freeCash * (ctoPct / 100);
-    const canAfford = cost > 0 && budgetAvail >= cost;
+    const canAfford = cost > 0 && ctoBudgetAvail >= cost;
     const justBought = gameState.ctoJustBought;
     if (justBought) gameState.ctoJustBought = false;
-    const progress = cost > 0 ? Math.min(100, Math.round(budgetAvail / cost * 100)) : 0;
+    const progress = cost > 0 ? Math.min(100, Math.round(ctoBudgetAvail / cost * 100)) : 0;
     const filled = Math.round(Math.min(progress, 100) / 10);
     ctoBarEl.textContent = '█'.repeat(filled) + '░'.repeat(10 - filled);
     ctoBarEl.style.color = dm(justBought ? '#217346' : canAfford ? '#b8860b' : '#666');
@@ -4667,12 +4667,10 @@ function _updateCtoCooPools() {
   const cooBarEl = document.getElementById('coo-progress-bar');
   if (cooBarEl) {
     const cost = gameState.cooTargetCost || 0;
-    const cooPct = gameState.cooBudgetPct || 0;
-    const budgetAvail = freeCash * (cooPct / 100);
-    const canAfford = cost > 0 && budgetAvail >= cost;
+    const canAfford = cost > 0 && cooBudgetAvail >= cost;
     const justBought = gameState.cooJustBought;
     if (justBought) gameState.cooJustBought = false;
-    const progress = cost > 0 ? Math.min(100, Math.round(budgetAvail / cost * 100)) : 0;
+    const progress = cost > 0 ? Math.min(100, Math.round(cooBudgetAvail / cost * 100)) : 0;
     const filled = Math.round(Math.min(progress, 100) / 10);
     cooBarEl.textContent = '█'.repeat(filled) + '░'.repeat(10 - filled);
     cooBarEl.style.color = dm(justBought ? '#217346' : canAfford ? '#b8860b' : '#666');
@@ -4861,6 +4859,9 @@ function gameTick() {
     const freeCash = _getFreeCashForBudget();
     const ctoBudget = freeCash * (ctoPct / 100);
     const cooBudget = freeCash * (cooPct / 100);
+    // Store allocated budgets for display (so bars don't jitter as cash changes)
+    gameState._ctoBudgetAlloc = ctoBudget;
+    gameState._cooBudgetAlloc = cooBudget;
     ctoAutoUpgrade(ctoBudget);
     cooAutoHire(cooBudget);
   }
@@ -7670,8 +7671,7 @@ function buildCSuiteHTML(rowNum) {
     if (activeCTO > 0) {
       const budgetPct = gameState.ctoBudgetPct;
       const spent = gameState.ctoSpentThisQuarter || 0;
-      const freeCash = _getFreeCashForBudget();
-      const budgetAvail = freeCash * (budgetPct / 100);
+      const budgetAvail = gameState._ctoBudgetAlloc || 0;
       const targetCost = gameState.ctoTargetCost || 0;
       const spentStr = formatCompact(spent);
       const canAfford = targetCost > 0 && budgetAvail >= targetCost;
@@ -7746,8 +7746,7 @@ function buildCSuiteHTML(rowNum) {
     if (activeCOO > 0) {
       const cooPct = gameState.cooBudgetPct;
       const cooSpent = gameState.cooSpentThisQuarter || 0;
-      const cooFreeCash = _getFreeCashForBudget();
-      const cooBudgetAvail = cooFreeCash * (cooPct / 100);
+      const cooBudgetAvail = gameState._cooBudgetAlloc || 0;
       const cooTargetCost = gameState.cooTargetCost || 0;
       const cooSpentStr = formatCompact(cooSpent);
       const cooCanAfford = cooTargetCost > 0 && cooBudgetAvail >= cooTargetCost;
