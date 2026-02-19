@@ -3413,6 +3413,18 @@ body {
     border-bottom: 1px solid #ddd;
     margin-bottom: 4px;
   }
+
+  /* Tab transition animation */
+  @keyframes mobTabFadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  #grid-container,
+  #mobile-pnl-view,
+  #mobile-boardroom-view,
+  #mobile-settings-view {
+    animation: mobTabFadeIn 0.2s ease-out;
+  }
 }
 
 /* ============================================

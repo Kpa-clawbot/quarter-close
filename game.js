@@ -1502,7 +1502,8 @@ function updateGridValues() {
     const focusLevel = state.focus || 0;
     const focusable = isFeatureEnabled('managementFocus') && state.automated;
     const focusIcon = focusable ? `<span class="focus-icon${focusLevel > 0 ? ' focus-active' : ''}" title="Click to boost revenue (+5% per click, max +50%)">🎯</span>` : '';
-    const tags = (state.upgradeLevel > 0 ? `<span style="color:#999;font-size:10px">Lv${state.upgradeLevel}</span>` : '') + prestigeTag + breakthroughTag;
+    const lvBadgeCls = _mob ? 'mob-level-badge' : '';
+    const tags = (state.upgradeLevel > 0 ? `<span class="${lvBadgeCls}" style="${_mob ? '' : 'color:#999;font-size:10px'}">Lv${state.upgradeLevel}</span>` : '') + prestigeTag + breakthroughTag;
     const autoTag = (_mob && state.automated) ? '<span style="color:#00897b;font-size:12px;font-weight:600;margin-left:4px">⚡</span>' : '';
     nameCell.innerHTML = `<span style="display:flex;align-items:center;justify-content:space-between;width:100%"><span>${focusIcon}${src.name}${autoTag}</span><span style="white-space:nowrap">${tags}</span></span>`;
     if (focusable) {
@@ -4880,9 +4881,13 @@ function mobileSwitchTab(tab) {
     cashHeader.classList.remove('visible');
   }
 
+  // Re-trigger tab fade animation
+  const retrigger = (el) => { el.style.animation = 'none'; el.offsetHeight; el.style.animation = ''; };
+
   switch (tab) {
     case 'operations':
       gridContainer.style.display = '';
+      retrigger(gridContainer);
       gridContainer.scrollTo({ top: 0, behavior: 'smooth' });
       if (gameState.activeTab !== 'operations') {
         gameState.activeTab = 'operations';
@@ -4890,18 +4895,21 @@ function mobileSwitchTab(tab) {
       break;
     case 'pnl':
       pnlView.classList.remove('hidden');
+      retrigger(pnlView);
       pnlView.scrollTo({ top: 0 });
       _lastMobilePnlHash = '';
       buildMobilePnL();
       break;
     case 'boardroom':
       brView.classList.remove('hidden');
+      retrigger(brView);
       brView.scrollTo({ top: 0 });
       _lastMobileBRHash = '';
       buildMobileBoardRoom();
       break;
     case 'settings':
       settingsView.classList.remove('hidden');
+      retrigger(settingsView);
       settingsView.scrollTo({ top: 0 });
       updateMobileSettings();
       break;
@@ -4909,6 +4917,49 @@ function mobileSwitchTab(tab) {
   mobileHaptic('light');
 }
 window.mobileSwitchTab = mobileSwitchTab;
+
+// ===== SWIPE GESTURE SUPPORT =====
+(function initMobileSwipe() {
+  if (typeof window === 'undefined') return;
+  const MOB_TABS = ['operations', 'pnl', 'boardroom', 'settings'];
+  let _swipeStartX = 0, _swipeStartY = 0, _swiping = false;
+  const MIN_SWIPE = 60, MAX_Y_DRIFT = 80;
+
+  function getVisibleTabs() {
+    return MOB_TABS.filter(t => {
+      if (t === 'boardroom') {
+        const btn = document.getElementById('mob-nav-boardroom');
+        return btn && !btn.classList.contains('hidden');
+      }
+      return true;
+    });
+  }
+
+  document.addEventListener('touchstart', function(e) {
+    if (!isMobile()) return;
+    _swipeStartX = e.touches[0].clientX;
+    _swipeStartY = e.touches[0].clientY;
+    _swiping = true;
+  }, { passive: true });
+
+  document.addEventListener('touchend', function(e) {
+    if (!_swiping || !isMobile()) return;
+    _swiping = false;
+    const dx = e.changedTouches[0].clientX - _swipeStartX;
+    const dy = Math.abs(e.changedTouches[0].clientY - _swipeStartY);
+    if (Math.abs(dx) < MIN_SWIPE || dy > MAX_Y_DRIFT) return;
+
+    const tabs = getVisibleTabs();
+    const curIdx = tabs.indexOf(_mobileActiveTab);
+    if (curIdx < 0) return;
+
+    if (dx < 0 && curIdx < tabs.length - 1) {
+      mobileSwitchTab(tabs[curIdx + 1]);
+    } else if (dx > 0 && curIdx > 0) {
+      mobileSwitchTab(tabs[curIdx - 1]);
+    }
+  }, { passive: true });
+})();
 
 function updateMobileNav() {
   if (!isMobile()) return;
