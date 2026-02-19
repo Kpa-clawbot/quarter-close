@@ -1749,8 +1749,14 @@ let _autoBuyActive = false; // suppress cash flash/float during CTO/COO auto-buy
 function ctoAutoUpgrade(budget) {
   try {
     const level = gameState.activeCTOLevel;
-    if (!level || getTechDeptLevel() < level) return;
-    if (!budget || budget <= 0) return;
+    if (!level || getTechDeptLevel() < level) {
+      if (gameState._ctoDebug) console.log('[CTO] Skip: level=' + level + ' techDept=' + getTechDeptLevel());
+      return;
+    }
+    if (!budget || budget <= 0) {
+      if (gameState._ctoDebug) console.log('[CTO] Skip: budget=' + budget);
+      return;
+    }
 
     const MAX_OPS_PER_TICK = 50;
     let opsThisTick = 0;
@@ -1782,7 +1788,18 @@ function ctoAutoUpgrade(budget) {
         const roi = cost > 0 ? annualRevGain / cost : 0;
         candidates.push({ index: i, cost, revGain: annualRevGain, roi, name: stats.name });
       }
-      if (candidates.length === 0) break;
+      if (candidates.length === 0) {
+        if (gameState._ctoDebug) {
+          const allCosts = [];
+          for (let i = 0; i < gameState.sources.length; i++) {
+            const s = gameState.sources[i];
+            if (!s.unlocked || s.employees === 0) continue;
+            allCosts.push(SOURCE_STATS[s.id].name + ':$' + upgradeCost(s).toFixed(0));
+          }
+          console.log('[CTO] No candidates. remaining=' + remaining.toFixed(0) + ' costs=[' + allCosts.join(', ') + ']');
+        }
+        break;
+      }
 
       // Pick target based on CTO level strategy
       let target = null;
@@ -7441,6 +7458,19 @@ window.forceCEO = function() {
   switchTab('operations');
   saveGame();
   console.log('[DEBUG] CEO mode activated');
+};
+
+window.debugCTO = function() {
+  gameState._ctoDebug = !gameState._ctoDebug;
+  console.log('[CTO] Debug ' + (gameState._ctoDebug ? 'ON' : 'OFF'));
+  console.log('[CTO] State:', {
+    activeCTOLevel: gameState.activeCTOLevel,
+    techDeptLevel: getTechDeptLevel(),
+    pool: gameState.ctoBudgetPool,
+    pct: gameState.ctoBudgetPct,
+    cash: gameState.cash,
+    freeCash: _getFreeCashForBudget()
+  });
 };
 
 window.revertCEO = function() {
