@@ -4323,7 +4323,7 @@ body:not(.dark-mode) #ceo-dashboard {
 }
 
 .ceo-ticker-label {
-  font-size: 0.6875rem;
+  font-size: 0.8125rem;
   text-transform: uppercase;
   letter-spacing: 2px;
   color: #b0b0b0;
@@ -4339,7 +4339,7 @@ body:not(.dark-mode) #ceo-dashboard {
 }
 
 .ceo-ticker-shares {
-  font-size: 0.625rem;
+  font-size: 0.8125rem;
   color: #888;
   margin-top: 0.25rem;
   font-family: Consolas, monospace;
@@ -4364,7 +4364,7 @@ body:not(.dark-mode) #ceo-dashboard {
 }
 
 .ceo-stat-label {
-  font-size: 0.625rem;
+  font-size: 0.8125rem;
   text-transform: uppercase;
   letter-spacing: 1px;
   color: #999;
@@ -4378,7 +4378,7 @@ body:not(.dark-mode) #ceo-dashboard {
 }
 
 .ceo-stat-sub {
-  font-size: 0.5625rem;
+  font-size: 0.75rem;
   color: #666;
   margin-top: 0.15rem;
 }
@@ -4396,7 +4396,7 @@ body:not(.dark-mode) #ceo-dashboard {
   border: none;
   border-radius: 4px;
   cursor: pointer;
-  font-size: 0.75rem;
+  font-size: 0.875rem;
   font-weight: 600;
   font-family: inherit;
   transition: background 0.15s, transform 0.1s;
@@ -4433,7 +4433,7 @@ body:not(.dark-mode) #ceo-dashboard {
   background: rgba(123, 31, 162, 0.3);
   color: #ba68c8;
   border: 1px solid rgba(186, 104, 200, 0.3);
-  font-size: 0.6875rem;
+  font-size: 0.8125rem;
   padding: 0.35rem 0.75rem;
 }
 
@@ -4453,7 +4453,7 @@ body:not(.dark-mode) #ceo-dashboard {
   border: 1px solid rgba(186, 104, 200, 0.2);
   border-radius: 4px;
   margin: 2px 0 4px 0;
-  font-size: 0.6875rem;
+  font-size: 0.875rem;
   color: #ba68c8;
 }
 
@@ -4483,21 +4483,21 @@ body:not(.dark-mode) .ceo-return-banner {
 }
 
 .ceo-category-header {
-  font-size: 0.8125rem;
+  font-size: 1rem;
   font-weight: 700;
   color: #d0d0d0;
   margin-bottom: 0.35rem;
 }
 
 .ceo-category-desc {
-  font-size: 0.5625rem;
+  font-size: 0.8125rem;
   color: #808080;
   margin-bottom: 0.5rem;
   line-height: 1.4;
 }
 
 .ceo-category-placeholder {
-  font-size: 0.6875rem;
+  font-size: 0.875rem;
   color: #555;
   font-style: italic;
   padding: 0.75rem 0;
@@ -4543,7 +4543,7 @@ body:not(.dark-mode) .ceo-return-banner {
 }
 
 .ceo-log-entry {
-  font-size: 0.625rem;
+  font-size: 0.8125rem;
   color: #aaa;
   line-height: 1.5;
   white-space: nowrap;
@@ -4594,7 +4594,7 @@ body:not(.dark-mode) .ceo-return-banner {
   cursor: pointer;
   text-align: left;
   font-family: inherit;
-  font-size: 0.6875rem;
+  font-size: 0.875rem;
   transition: background 0.15s, border-color 0.15s, transform 0.1s;
   touch-action: manipulation;
 }
@@ -4622,11 +4622,11 @@ body:not(.dark-mode) .ceo-return-banner {
 
 .ceo-action-name {
   font-weight: 600;
-  font-size: 0.6875rem;
+  font-size: 0.875rem;
 }
 
 .ceo-action-cost {
-  font-size: 0.5625rem;
+  font-size: 0.8125rem;
   color: #b8860b;
   font-family: Consolas, monospace;
 }
@@ -4638,13 +4638,13 @@ body:not(.dark-mode) .ceo-return-banner {
 }
 
 .ceo-action-desc {
-  font-size: 0.5625rem;
+  font-size: 0.8125rem;
   color: #888;
   flex: 1;
 }
 
 .ceo-action-cd {
-  font-size: 0.5625rem;
+  font-size: 0.8125rem;
   color: #e65100;
   font-family: Consolas, monospace;
   white-space: nowrap;
@@ -4652,7 +4652,7 @@ body:not(.dark-mode) .ceo-return-banner {
 }
 
 .ceo-action-risk {
-  font-size: 0.5rem;
+  font-size: 0.75rem;
   white-space: nowrap;
   margin-left: 0.5rem;
 }
