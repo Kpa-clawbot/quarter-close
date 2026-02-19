@@ -4095,6 +4095,8 @@ let _lastTaxPanelHash = '';
 function updateTaxPanel() {
   updateTaxAlert();
   if (gameState.activeTab === 'boardroom' || gameState.activeTab === 'dashboard') return;
+  // Skip when CEO dashboard is showing (tax panel cells create invisible layout bloat)
+  if (gameState.isCEO && !gameState._ceoViewOps) return;
   const panel = document.getElementById('tax-panel');
   const hasTaxDebts = gameState.taxDebts && gameState.taxDebts.length > 0;
   const hasActivity = gameState.totalEarned > 0;
