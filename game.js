@@ -1834,7 +1834,7 @@ function ctoAutoUpgrade(budget) {
     }
     _autoBuyActive = false;
 
-    // Store last target info for display
+    // Store next target info for display — simulate what CTO would pick next tick
     const displayCandidates = [];
     for (let i = 0; i < gameState.sources.length; i++) {
       const state = gameState.sources[i];
@@ -1847,10 +1847,25 @@ function ctoAutoUpgrade(budget) {
       displayCandidates.push({ name: stats.name, cost, roi });
     }
     if (displayCandidates.length > 0) {
-      if (level === 1) displayCandidates.sort((a, b) => a.cost - b.cost);
-      else displayCandidates.sort((a, b) => b.roi - a.roi);
-      gameState.ctoTarget = displayCandidates[0].name;
-      gameState.ctoTargetCost = displayCandidates[0].cost;
+      // Pick using same strategy as the buying loop
+      let nextTarget = null;
+      if (level === 1) {
+        displayCandidates.sort((a, b) => a.cost - b.cost);
+        nextTarget = displayCandidates[0];
+      } else if (level === 2) {
+        displayCandidates.sort((a, b) => b.roi - a.roi);
+        nextTarget = displayCandidates.find(c => c.roi >= 0.001) || displayCandidates[0];
+      } else if (level === 3) {
+        displayCandidates.sort((a, b) => b.roi - a.roi);
+        let t = 0.0001;
+        if (daysLeft < 5) t = 0.001;
+        else if (daysLeft < 20) t = 0.0005;
+        nextTarget = displayCandidates.find(c => c.roi >= t) || displayCandidates[0];
+      }
+      if (nextTarget) {
+        gameState.ctoTarget = nextTarget.name;
+        gameState.ctoTargetCost = nextTarget.cost;
+      }
     }
 
     // CTO aggregate float: show only if bought something this tick
