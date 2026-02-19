@@ -3413,7 +3413,10 @@ function flashCash(direction) {
 // Floating number effect (damage numbers)
 let _activeFloats = new Map(); // element -> count of active floats
 const _floatCooldowns = new Map(); // element key → { until: timestamp, el: span, amount: number, isSpend: bool }
-const FLOAT_COOLDOWN_MS = 400;
+
+function _getFloatCooldown() {
+  return parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--juice-float-cooldown')) || 400;
+}
 
 function floatingNumber(amount, element, isSpend, customText) {
   if (!gameState.juiceEnabled || gameState.bossMode || isCrisisBlocking()) return;
@@ -3423,7 +3426,7 @@ function floatingNumber(amount, element, isSpend, customText) {
   const existing = _floatCooldowns.get(key);
   if (existing && Date.now() < existing.until && existing.el.parentNode) {
     existing.amount += (isSpend ? -Math.abs(amount) : Math.abs(amount));
-    existing.until = Date.now() + FLOAT_COOLDOWN_MS;
+    existing.until = Date.now() + _getFloatCooldown();
     const net = existing.amount;
     const netSpend = net < 0;
     if (customText) {
@@ -3450,7 +3453,7 @@ function floatingNumber(amount, element, isSpend, customText) {
 
   // Track for cooldown merging
   _floatCooldowns.set(key, {
-    until: Date.now() + FLOAT_COOLDOWN_MS,
+    until: Date.now() + _getFloatCooldown(),
     el: span,
     amount: isSpend ? -Math.abs(amount) : Math.abs(amount),
     isSpend
@@ -5259,6 +5262,7 @@ const JUICE_KNOBS = [
   { id: 'danger-glow-max', label: 'Danger Glow Max', prop: '--juice-danger-glow-max', min: 0, max: 1.0, step: 0.05, default: 1.0, unit: '' },
   { id: 'freeze-dur', label: 'Beat Freeze Duration', prop: '--juice-freeze-dur', min: 0, max: 1000, step: 50, default: 1000, unit: 'ms' },
   { id: 'shimmer-dur', label: 'Ambitious Shimmer Duration', prop: '--juice-shimmer-dur', min: 500, max: 5000, step: 250, default: 2000, unit: 'ms' },
+  { id: 'float-cooldown', label: 'Float Merge Window', prop: '--juice-float-cooldown', min: 0, max: 1000, step: 50, default: 400, unit: 'ms' },
 ];
 
 function toggleJuiceKnobs() {

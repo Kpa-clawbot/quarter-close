@@ -3334,6 +3334,7 @@ body.col-resizing * {
   --juice-danger-glow-max: 1.0;
   --juice-freeze-dur: 1000;
   --juice-shimmer-dur: 2000;
+  --juice-float-cooldown: 400;
 }
 
 /* 1. Cell Value Flash (uptick/downtick) */
