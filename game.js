@@ -4838,32 +4838,13 @@ function gameTick() {
       ctoPct *= scale;
       cooPct *= scale;
     }
-    // Revenue this tick feeds the pools (% of daily revenue, not free cash)
-    const dailyRev = totalRevPerTick();
-    const ctoFunding = dailyRev * (ctoPct / 100);
-    const cooFunding = dailyRev * (cooPct / 100);
-    gameState.ctoBudgetPool = (gameState.ctoBudgetPool || 0) + ctoFunding;
-    gameState.cooBudgetPool = (gameState.cooBudgetPool || 0) + cooFunding;
-    // Pools grow indefinitely from revenue — cash is spoken for.
-    // At spend time, cap to actual cash available, split proportionally.
-    const cashAvail = Math.max(0, gameState.cash);
-    const totalPool = gameState.ctoBudgetPool + gameState.cooBudgetPool;
-    let ctoSpendable, cooSpendable;
-    if (totalPool <= cashAvail) {
-      // Enough cash to cover both pools fully
-      ctoSpendable = gameState.ctoBudgetPool;
-      cooSpendable = gameState.cooBudgetPool;
-    } else if (totalPool > 0) {
-      // Budget cuts — split available cash proportionally
-      ctoSpendable = cashAvail * (gameState.ctoBudgetPool / totalPool);
-      cooSpendable = cashAvail * (gameState.cooBudgetPool / totalPool);
-    } else {
-      ctoSpendable = 0;
-      cooSpendable = 0;
-    }
+    // Allocate % of free cash to each pool (snapshot — both computed before either spends)
+    const freeCash = _getFreeCashForBudget();
+    gameState.ctoBudgetPool = freeCash * (ctoPct / 100);
+    gameState.cooBudgetPool = freeCash * (cooPct / 100);
     // Spend from pools — each deducts from its own pool AND from cash
-    ctoAutoUpgrade(ctoSpendable);
-    cooAutoHire(cooSpendable);
+    ctoAutoUpgrade(gameState.ctoBudgetPool);
+    cooAutoHire(gameState.cooBudgetPool);
   }
 
   // Event system
