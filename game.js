@@ -1503,7 +1503,7 @@ function updateGridValues() {
     const focusable = isFeatureEnabled('managementFocus') && state.automated;
     const focusIcon = focusable ? `<span class="focus-icon${focusLevel > 0 ? ' focus-active' : ''}" title="Click to boost revenue (+5% per click, max +50%)">🎯</span>` : '';
     const tags = (state.upgradeLevel > 0 ? `<span style="color:#999;font-size:10px">Lv${state.upgradeLevel}</span>` : '') + prestigeTag + breakthroughTag;
-    const autoTag = (_mob && state.automated) ? '<span style="color:#00897b;font-size:10px;font-weight:600;margin-left:4px">⚡</span>' : '';
+    const autoTag = (_mob && state.automated) ? '<span style="color:#00897b;font-size:12px;font-weight:600;margin-left:4px">⚡</span>' : '';
     nameCell.innerHTML = `<span style="display:flex;align-items:center;justify-content:space-between;width:100%"><span>${focusIcon}${src.name}${autoTag}</span><span style="white-space:nowrap">${tags}</span></span>`;
     if (focusable) {
       nameCell.style.cursor = 'pointer';

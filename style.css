@@ -2298,8 +2298,11 @@ body {
   .source-row > .cell-c {
     flex: 0 0 auto;
     font-size: 13px;
+    font-weight: 600;
+    color: #217346 !important;
     order: 3;
     justify-content: flex-end;
+    font-family: 'Consolas', 'Courier New', monospace;
   }
 
   /* Card row 2: Hire buttons (full width) */
@@ -2394,6 +2397,12 @@ body {
     color: #8d6e0f;
     font-weight: 600;
     width: 100%;
+  }
+  .source-row .cell-btn.btn-prestige:disabled {
+    background: #f5f5f0;
+    border-color: #ddd;
+    color: #b0a070;
+    opacity: 0.7;
   }
 
   /* When automated+public, cell-f has restructure button — give it full width */
