@@ -4634,7 +4634,10 @@ function _updateCtoCooPools() {
   const ctoPoolEl = document.getElementById('cto-pool-display');
   if (ctoPoolEl) {
     const spent = gameState.ctoSpentThisQuarter || 0;
-    ctoPoolEl.textContent = `${formatCompact(spent)} spent · ${formatCompact(ctoBudgetAvail)} saved`;
+    const nextCost = gameState.ctoTargetCost || 0;
+    let txt = `${formatCompact(spent)} spent · ${formatCompact(ctoBudgetAvail)} saved`;
+    if (nextCost > 0) txt += ` · ${formatCompact(nextCost)} next`;
+    ctoPoolEl.textContent = txt;
   }
   // CTO progress bar
   const ctoBarEl = document.getElementById('cto-progress-bar');
@@ -4659,7 +4662,10 @@ function _updateCtoCooPools() {
   const cooPoolEl = document.getElementById('coo-pool-display');
   if (cooPoolEl) {
     const spent = gameState.cooSpentThisQuarter || 0;
-    cooPoolEl.textContent = `${formatCompact(spent)} spent · ${formatCompact(cooBudgetAvail)} saved`;
+    const nextCost = gameState.cooTargetCost || 0;
+    let txt = `${formatCompact(spent)} spent · ${formatCompact(cooBudgetAvail)} saved`;
+    if (nextCost > 0) txt += ` · ${formatCompact(nextCost)} next`;
+    cooPoolEl.textContent = txt;
   }
   // COO progress bar
   const cooBarEl = document.getElementById('coo-progress-bar');
