@@ -5210,21 +5210,33 @@ function setGameSpeed(speed) {
 }
 window.setGameSpeed = setGameSpeed;
 
+function _debugTapHandler() {
+  debugTapCount++;
+  clearTimeout(debugTapTimer);
+  debugTapTimer = setTimeout(() => { debugTapCount = 0; }, 2000);
+  if (debugTapCount >= 7) {
+    debugTapCount = 0;
+    debugMode = !debugMode;
+    document.getElementById('debug-tools').classList.toggle('hidden', !debugMode);
+    document.getElementById('status-text').textContent = debugMode ? '🧪 Debug mode enabled' : '🧪 Debug mode disabled';
+  }
+}
+
 function initDebugTap() {
   const cashLabel = document.querySelector('.cash-label');
   if (!cashLabel) return;
   cashLabel.style.cursor = 'default';
-  cashLabel.addEventListener('click', () => {
-    debugTapCount++;
-    clearTimeout(debugTapTimer);
-    debugTapTimer = setTimeout(() => { debugTapCount = 0; }, 2000);
-    if (debugTapCount >= 7) {
-      debugTapCount = 0;
-      debugMode = !debugMode;
-      document.getElementById('debug-tools').classList.toggle('hidden', !debugMode);
-      document.getElementById('status-text').textContent = debugMode ? '🧪 Debug mode enabled' : '🧪 Debug mode disabled';
-    }
-  });
+  cashLabel.addEventListener('click', _debugTapHandler);
+}
+
+// Hook debug tap onto CEO dashboard ticker (called from buildCEODashboard)
+function initCEODebugTap() {
+  const ticker = document.querySelector('.ceo-ticker-label');
+  if (!ticker) return;
+  ticker.style.cursor = 'default';
+  // Avoid double-binding
+  ticker.removeEventListener('click', _debugTapHandler);
+  ticker.addEventListener('click', _debugTapHandler);
 }
 
 // ===== DEBUG: TRIGGER EVENTS =====
@@ -9070,6 +9082,7 @@ function buildCEODashboard() {
   html += `</div>`;
 
   container.innerHTML = html;
+  initCEODebugTap();
   } catch(e) { console.error('[CEO] buildCEODashboard crashed:', e); }
 }
 
