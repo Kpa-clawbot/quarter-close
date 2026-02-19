@@ -2,7 +2,7 @@ name: Deploy to GitHub Pages
 
 on:
   push:
-    branches: [master, mobile]
+    branches: [master, mobile, ceo-phase]
 
 permissions:
   contents: read
@@ -32,15 +32,24 @@ jobs:
           ref: mobile
           path: mobile
 
+      - name: Checkout ceo-phase
+        uses: actions/checkout@v4
+        with:
+          ref: ceo-phase
+          path: ceo-phase
+
       - name: Build site structure
         run: |
-          mkdir -p _site/mobile
+          mkdir -p _site/mobile _site/ceo
           # Copy master as root
           cp master/index.html master/style.css master/game.js _site/ 2>/dev/null || true
           cp -r master/assets _site/assets 2>/dev/null || true
           # Copy mobile under /mobile/
           cp mobile/index.html mobile/style.css mobile/game.js _site/mobile/ 2>/dev/null || true
           cp -r mobile/assets _site/mobile/assets 2>/dev/null || true
+          # Copy ceo-phase under /ceo/
+          cp ceo-phase/index.html ceo-phase/style.css ceo-phase/game.js _site/ceo/ 2>/dev/null || true
+          cp -r ceo-phase/assets _site/ceo/assets 2>/dev/null || true
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
