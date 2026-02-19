@@ -242,12 +242,95 @@ The CEO is so detached that doing actual work costs resources. Forces you to tru
 
 ## Game Mechanics
 
-### Stock Price
-- New primary metric in CEO phase.
-- Driven by: revenue growth (automatic), CEO actions (direct), market sentiment (decaying).
-- Sentiment: each action adds positive or negative sentiment that decays over time.
-- Base stock price = f(revenue, assets, earnings history).
-- Modified by: sentiment multiplier, buyback bonus, scandal penalty.
+### Stock Price — The Big Rework
+
+**Current system (pre-CEO):**
+```
+valuation = totalAnnualRev × revenueMultiple
+stockPrice = valuation / sharesOutstanding
+```
+Stock price is purely derived from revenue. No independent existence. No way to manipulate it separately from growing the business.
+
+**CEO phase system: Decoupled stock price**
+
+The core insight: **the gap between real value and perceived value IS the satire.** Real CEOs spend their careers inflating stock price above fundamental value. That's literally the game.
+
+#### Fundamental Value (the truth)
+```
+fundamentalValue = totalAnnualRev × baseMultiple / sharesOutstanding
+```
+This ticks along automatically. Your automation chain (CTO/COO/CFO) drives revenue. The fundamental value is what the company is "actually worth." The player can't directly touch this anymore — they already built the machine.
+
+#### Market Price (the perception)
+```
+marketPrice = fundamentalValue × sentimentMultiplier × momentumFactor
+```
+
+**Sentiment** is the CEO's playground. It's a floating multiplier (starts at 1.0) affected by:
+- CEO actions (tweets, speeches, interviews push it up or down)
+- Buybacks (directly inflate price above fundamentals)
+- Scandals (sudden drops)
+- Market mood (random drift)
+- **Decay**: sentiment always regresses toward 1.0 over time. You have to keep pumping.
+
+**Momentum** simulates market psychology:
+- Positive momentum: when price is rising, it rises faster (FOMO)
+- Negative momentum: when price is falling, it falls faster (panic selling)
+- Creates natural boom/bust cycles the CEO has to surf
+
+#### The Gap = The Danger
+```
+overvaluation = marketPrice / fundamentalValue
+```
+- **1.0-1.5×**: Healthy. Normal CEO optimism. No risk.
+- **1.5-2.5×**: Stretched. Analyst skepticism events start firing. Small chance of correction.
+- **2.5-4.0×**: Dangerous. SEC "informal inquiry." Media scrutiny. Increasing crash probability each tick.
+- **4.0×+**: Bubble territory. Crash is almost inevitable. But if you cash out before it pops...
+
+The overvaluation ratio is visible to the player as a subtle meter — maybe a "Market Confidence" gauge that goes from green to yellow to red to flashing.
+
+#### Crash Mechanics
+When overvaluation gets too high, each tick rolls against a crash probability:
+```
+crashChance = max(0, (overvaluation - 1.5) × 0.02) per tick
+```
+At 2.5× overvaluation: ~2% per tick. At 4.0×: ~5% per tick.
+
+A crash snaps `sentimentMultiplier` back toward 1.0 (not instantly — it overcorrects to ~0.7-0.8, then recovers). The stock price tanks to BELOW fundamental value temporarily. Recovery takes many ticks.
+
+This creates the core tension: **pump as high as you dare, cash out before the crash.**
+
+#### Buyback Mechanics
+Stock buybacks are special — they reduce `sharesOutstanding`, which directly inflates price per share without changing fundamentals. But:
+- Costs real cash (taken from company coffers)
+- Doesn't change revenue or fundamental value
+- Makes future crashes hit harder (fewer shares = more volatile)
+- Real companies spend $800B+/year on this
+
+```
+buyback(amount):
+  sharesRetired = amount / marketPrice
+  sharesOutstanding -= sharesRetired
+  cash -= amount
+  // Price goes up because same value ÷ fewer shares
+```
+
+#### Short Sellers
+When overvaluation is high, short sellers appear. They:
+- Apply downward pressure on sentiment each tick
+- Can be fought with buybacks (but that costs cash)
+- Go away if stock drops to near fundamental value
+- Create a "tug of war" dynamic in the late CEO phase
+- Real: Hindenburg Research, Citron, etc.
+
+#### Analyst Ratings
+3-5 fictional analysts with different personalities:
+- **Bull analyst**: always positive, upgrades easily, downgrades slowly
+- **Bear analyst**: skeptical, quick to downgrade on overvaluation
+- **Momentum analyst**: follows the crowd, amplifies trends
+- Each has a rating: Buy / Hold / Sell
+- Net rating affects sentiment decay rate
+- CEO actions (interviews, earnings calls) can target specific analysts
 
 ### Cooldowns
 - Each action has a cooldown (some short, some long).
@@ -265,12 +348,27 @@ The CEO is so detached that doing actual work costs resources. Forces you to tru
 - High risk: huge potential swings (funding secured tweet, acquisitions, tequila).
 
 ### The Golden Parachute Loop
-1. Enter CEO phase → stock price is your score
-2. CEO actions pump stock → stock goes into golden parachute value
-3. Self-dealing actions (raise, jet, office) also add to parachute
-4. When ready, hit "Cash Out" → prestige reset
-5. New game+ bonus = f(parachute value, stock price at exit, total revenue)
-6. Start over with multipliers → reach CEO phase faster → bigger parachute → loop
+1. Enter CEO phase → market price is your score
+2. CEO actions pump sentiment → stock rises above fundamentals
+3. Self-dealing actions (raise, jet, office) add to golden parachute value
+4. Golden parachute pays out at **market price**, not fundamental value
+5. The incentive: inflate the stock as high as possible before cashing out
+6. But: overvaluation increases crash risk. Cash out too late = crash = bad payout
+7. "Cash Out" button always available — the question is WHEN
+8. New game+ bonus = f(parachute value at exit, market price at exit)
+9. Start over with multipliers → reach CEO phase faster → bigger pump → loop
+
+**The core loop is a game of chicken.** How long do you ride the bubble?
+
+### Prestige Payout Formula
+```
+prestigeMultiplier = 1 + log10(parachuteValue) × overvaluationBonus
+overvaluationBonus = min(3.0, marketPrice / fundamentalValue)  // capped
+```
+- Cashing out at 1.0× overvaluation = safe but modest multiplier
+- Cashing out at 3.0× = maximum bonus (if you can time it)
+- Cashing out during/after a crash = overvaluation is back near 1.0 = you missed it
+- **Rewards skillful timing, not just patience**
 
 ---
 
@@ -298,15 +396,19 @@ Operations tab: locked behind RE gate (or transformed entirely)
 
 3. **How long should the CEO phase sustain?** Target: 15-20 minutes of meaningful play before the player naturally wants to cash out. Enough actions and variety to explore, but not so much that it becomes its own game.
 
-4. **Should the stock price graph be visible?** A real-time stock chart showing the impact of your actions could be very satisfying. Line goes up = dopamine. Line goes down = panic tweet.
+4. **Should the stock price graph be visible?** A real-time stock chart showing the impact of your actions could be very satisfying. Line goes up = dopamine. Line goes down = panic tweet. Could show both market price (green/red line) and fundamental value (gray dashed line) — the gap between them IS the game.
 
 5. **Multiple prestige layers?** First prestige = CEO who cashes out. Second prestige = "Serial Entrepreneur" who starts a new company? Third = "Venture Capitalist" who invests in other companies? Each layer could be a different mini-game. Long-term thinking.
 
-6. **Board resistance?** Should the board ever block CEO actions? (e.g., "The board rejected your proposal for a fourth corporate jet.") Adds friction but also comedy.
+6. **Board resistance?** Should the board ever block CEO actions? (e.g., "The board rejected your proposal for a fourth corporate jet.") Adds friction but also comedy. Could tie to overvaluation — board gets nervous at high ratios.
 
-7. **SEC / regulatory risk?** Should there be a cumulative "heat" meter? Too many risky actions → SEC investigation → forced resignation → bad prestige outcome?
+7. **SEC / regulatory risk?** Current design has overvaluation naturally increasing crash risk. Should there ALSO be explicit SEC investigation events triggered by specific actions (Funding Secured tweet, Cooking the Books)? Separate from the crash mechanic — a targeted penalty for specific bad behavior.
 
-8. **How does revenue keep flowing?** All the automation from pre-CEO phase keeps running. CTO/COO/CFO/VP of Ops all continue working. Revenue grows passively. CEO actions modulate stock price, which is separate from revenue. The company runs itself — you're just the face.
+8. **How does revenue keep flowing?** All the automation from pre-CEO phase keeps running. CTO/COO/CFO/VP of Ops all continue working. Revenue grows passively. CEO actions modulate sentiment/stock price, which is decoupled from revenue. The company runs itself — you're just the face.
+
+9. **Should the player see the crash probability?** Showing "Crash Risk: 3.2%/day" makes it a pure math decision. Hiding it makes it feel more like gambling. Maybe: show a qualitative indicator ("Market Confidence: Fragile") without exact numbers?
+
+10. **Earnings still happen in CEO phase?** Quarterly earnings could cause sentiment shocks — beat expectations = sentiment boost, miss = sentiment crash. But expectations are now set by the inflated stock price, not fundamentals. So high overvaluation makes earnings misses more likely. Another pressure to cash out.
 
 ---
 
