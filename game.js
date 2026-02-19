@@ -1804,6 +1804,7 @@ function ctoAutoUpgrade(budget) {
       if (!target) break;
 
       // Execute purchase (upgradeSource deducts from cash directly)
+      gameState.ctoBudgetPool -= target.cost;
       gameState.ctoSpentThisQuarter += target.cost;
       gameState.ctoUpgradeCount = (gameState.ctoUpgradeCount || 0) + 1;
       gameState.ctoJustBought = true;
@@ -1907,6 +1908,7 @@ function cooAutoHire(budget) {
       if (!target) break;
 
       // Execute hire (hireEmployee deducts from cash directly)
+      gameState.cooBudgetPool -= target.cost;
       gameState.cooSpentThisQuarter += target.cost;
       gameState.cooHireCount = (gameState.cooHireCount || 0) + 1;
       gameState.cooJustBought = true;
@@ -4628,15 +4630,15 @@ function _getFreeCashForBudget() {
 }
 
 function _updateCtoCooPools() {
-  // Use stored budget allocations from this tick (stable, not recalculated from live cash)
-  const ctoBudgetAvail = gameState._ctoBudgetAlloc || 0;
-  const cooBudgetAvail = gameState._cooBudgetAlloc || 0;
+  // Use pool balances (accumulated, stable across ticks)
+  const ctoBudgetAvail = gameState.ctoBudgetPool || 0;
+  const cooBudgetAvail = gameState.cooBudgetPool || 0;
 
   // CTO budget display
   const ctoPoolEl = document.getElementById('cto-pool-display');
   if (ctoPoolEl) {
     const spent = gameState.ctoSpentThisQuarter || 0;
-    ctoPoolEl.textContent = `${formatCompact(spent)} spent this Q`;
+    ctoPoolEl.textContent = `${formatCompact(spent)} spent · ${formatCompact(ctoBudgetAvail)} saved`;
   }
   // CTO progress bar
   const ctoBarEl = document.getElementById('cto-progress-bar');
@@ -4661,7 +4663,7 @@ function _updateCtoCooPools() {
   const cooPoolEl = document.getElementById('coo-pool-display');
   if (cooPoolEl) {
     const spent = gameState.cooSpentThisQuarter || 0;
-    cooPoolEl.textContent = `${formatCompact(spent)} spent this Q`;
+    cooPoolEl.textContent = `${formatCompact(spent)} spent · ${formatCompact(cooBudgetAvail)} saved`;
   }
   // COO progress bar
   const cooBarEl = document.getElementById('coo-progress-bar');
@@ -4846,7 +4848,7 @@ function gameTick() {
     checkAutomationHints();
   }
 
-  // CTO + COO auto-buy: compute budgets from same cash snapshot
+  // CTO + COO auto-buy: accumulate into pools, spend from pools
   {
     let ctoPct = (gameState.activeCTOLevel > 0 && gameState.ctoBudgetPct > 0) ? gameState.ctoBudgetPct : 0;
     let cooPct = (gameState.activeCOOLevel > 0 && gameState.cooBudgetPct > 0) ? gameState.cooBudgetPct : 0;
@@ -4856,14 +4858,24 @@ function gameTick() {
       ctoPct *= scale;
       cooPct *= scale;
     }
+    // Revenue this tick feeds the pools (% of daily revenue, not free cash)
+    const dailyRev = totalRevPerTick();
+    const ctoFunding = dailyRev * (ctoPct / 100);
+    const cooFunding = dailyRev * (cooPct / 100);
+    gameState.ctoBudgetPool = (gameState.ctoBudgetPool || 0) + ctoFunding;
+    gameState.cooBudgetPool = (gameState.cooBudgetPool || 0) + cooFunding;
+    // Cap pools: don't accumulate more than what's actually in cash
     const freeCash = _getFreeCashForBudget();
-    const ctoBudget = freeCash * (ctoPct / 100);
-    const cooBudget = freeCash * (cooPct / 100);
-    // Store allocated budgets for display (so bars don't jitter as cash changes)
-    gameState._ctoBudgetAlloc = ctoBudget;
-    gameState._cooBudgetAlloc = cooBudget;
-    ctoAutoUpgrade(ctoBudget);
-    cooAutoHire(cooBudget);
+    const maxCtoPool = freeCash * (ctoPct / 100);
+    const maxCooPool = freeCash * (cooPct / 100);
+    gameState.ctoBudgetPool = Math.min(gameState.ctoBudgetPool, maxCtoPool);
+    gameState.cooBudgetPool = Math.min(gameState.cooBudgetPool, maxCooPool);
+    // Store for display
+    gameState._ctoBudgetAlloc = gameState.ctoBudgetPool;
+    gameState._cooBudgetAlloc = gameState.cooBudgetPool;
+    // Spend from pools — each deducts from its own pool AND from cash
+    ctoAutoUpgrade(gameState.ctoBudgetPool);
+    cooAutoHire(gameState.cooBudgetPool);
   }
 
   // Event system
@@ -7671,9 +7683,9 @@ function buildCSuiteHTML(rowNum) {
     if (activeCTO > 0) {
       const budgetPct = gameState.ctoBudgetPct;
       const spent = gameState.ctoSpentThisQuarter || 0;
-      const budgetAvail = gameState._ctoBudgetAlloc || 0;
+      const budgetAvail = gameState.ctoBudgetPool || 0;
       const targetCost = gameState.ctoTargetCost || 0;
-      const spentStr = formatCompact(spent);
+      const spentStr = `${formatCompact(spent)} spent · ${formatCompact(budgetAvail)} saved`;
       const canAfford = targetCost > 0 && budgetAvail >= targetCost;
       const progress = targetCost > 0 ? Math.min(100, Math.round(budgetAvail / targetCost * 100)) : 0;
       const barFilled = Math.round(Math.min(progress, 100) / 10);
@@ -7684,7 +7696,7 @@ function buildCSuiteHTML(rowNum) {
       const hasCapEx = hasBoardRoomUpgrade('capex_planning');
       const autoChecked = gameState.ctoBudgetAuto ? 'checked' : '';
       const autoLabel = hasCapEx ? `<label class="cto-auto-label" title="CFO manages budget automatically. Uncheck for manual control."><input type="checkbox" ${autoChecked} onchange="toggleCtoBudgetAuto(this.checked)"> Auto</label>` : '';
-      const sliderTitle = gameState.ctoBudgetAuto ? 'CFO controls this — uncheck Auto for manual' : '% of free cash available for CTO upgrades';
+      const sliderTitle = gameState.ctoBudgetAuto ? 'CFO controls this — uncheck Auto for manual' : '% of daily revenue allocated to CTO upgrade fund';
 
       // Proportional normalization display: show effective % when combined > 100%
       const ctoCooPctTotal = budgetPct + (gameState.activeCOOLevel > 0 ? (gameState.cooBudgetPct || 0) : 0);
@@ -7701,7 +7713,7 @@ function buildCSuiteHTML(rowNum) {
           <span class="cto-budget-pct" style="${ctoPctColor}" ${ctoPctTitle}>${ctoEffective}%</span>
         </div>
         <div class="cell cell-c" id="cto-progress-bar" style="font-family:Consolas,monospace;font-size:0.625rem;color:${barColor}" title="${progress}% toward next upgrade">${bar}</div>
-        <div class="cell cell-d" style="font-size:0.625rem;color:${dm('#666')};white-space:nowrap"><span id="cto-pool-display">${spentStr} spent this Q</span></div>
+        <div class="cell cell-d" style="font-size:0.625rem;color:${dm('#666')};white-space:nowrap"><span id="cto-pool-display">${spentStr}</span></div>
         <div class="cell cell-e" style="font-size:0.625rem">${autoLabel}</div>
         <div class="cell cell-f"></div>
         <div class="cell cell-g"></div>
@@ -7746,9 +7758,9 @@ function buildCSuiteHTML(rowNum) {
     if (activeCOO > 0) {
       const cooPct = gameState.cooBudgetPct;
       const cooSpent = gameState.cooSpentThisQuarter || 0;
-      const cooBudgetAvail = gameState._cooBudgetAlloc || 0;
+      const cooBudgetAvail = gameState.cooBudgetPool || 0;
       const cooTargetCost = gameState.cooTargetCost || 0;
-      const cooSpentStr = formatCompact(cooSpent);
+      const cooSpentStr = `${formatCompact(cooSpent)} spent · ${formatCompact(cooBudgetAvail)} saved`;
       const cooCanAfford = cooTargetCost > 0 && cooBudgetAvail >= cooTargetCost;
       const cooProgress = cooTargetCost > 0 ? Math.min(100, Math.round(cooBudgetAvail / cooTargetCost * 100)) : 0;
       const cooBarFilled = Math.round(Math.min(cooProgress, 100) / 10);
@@ -7759,7 +7771,7 @@ function buildCSuiteHTML(rowNum) {
       const hasCapEx = hasBoardRoomUpgrade('capex_planning');
       const cooAutoChecked = gameState.cooBudgetAuto ? 'checked' : '';
       const cooAutoLabel = hasCapEx ? `<label class="cto-auto-label" title="CFO manages hiring budget automatically. Uncheck for manual control."><input type="checkbox" ${cooAutoChecked} onchange="toggleCooBudgetAuto(this.checked)"> Auto</label>` : '';
-      const cooSliderTitle = gameState.cooBudgetAuto ? 'CFO controls this — uncheck Auto for manual' : '% of free cash available for COO hiring';
+      const cooSliderTitle = gameState.cooBudgetAuto ? 'CFO controls this — uncheck Auto for manual' : '% of daily revenue allocated to COO hiring fund';
 
       // Proportional normalization display: show effective % when combined > 100%
       const cooCtoPctTotal = cooPct + (gameState.activeCTOLevel > 0 ? (gameState.ctoBudgetPct || 0) : 0);
@@ -7776,7 +7788,7 @@ function buildCSuiteHTML(rowNum) {
           <span class="cto-budget-pct" style="${cooPctColor}" ${cooPctTitle}>${cooEffective}%</span>
         </div>
         <div class="cell cell-c" id="coo-progress-bar" style="font-family:Consolas,monospace;font-size:0.625rem;color:${cooBarColor}" title="${cooProgress}% toward next hire">${cooBar}</div>
-        <div class="cell cell-d" style="font-size:0.625rem;color:${dm('#666')};white-space:nowrap"><span id="coo-pool-display">${cooSpentStr} spent this Q</span></div>
+        <div class="cell cell-d" style="font-size:0.625rem;color:${dm('#666')};white-space:nowrap"><span id="coo-pool-display">${cooSpentStr}</span></div>
         <div class="cell cell-e" style="font-size:0.625rem">${cooAutoLabel}</div>
         <div class="cell cell-f"></div>
         <div class="cell cell-g"></div>
