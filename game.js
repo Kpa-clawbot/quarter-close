@@ -4995,7 +4995,27 @@ function updateMobileCashHeader() {
   const stockEl = document.getElementById('mob-cash-stock');
   if (!amountEl || !perdayEl || !gameState.arc) return;
   amountEl.textContent = formatMoney(gameState.cash);
-  perdayEl.textContent = formatPerTick(totalRevPerTick()) + '/day';
+
+  // Show penalty/bonus indicators on mobile cash header
+  const perTick = totalRevPerTick();
+  const hasOutage = gameState.powerOutage && Date.now() < gameState.powerOutage.until;
+  const hasPenalty = gameState.revPenalty && Date.now() < gameState.revPenalty.until;
+  const hasBonus = gameState.revBonus && Date.now() < gameState.revBonus.until;
+  const hasDbOut = gameState.dbOutage && Date.now() < gameState.dbOutage.until;
+
+  if (hasOutage) {
+    perdayEl.innerHTML = `<span style="color:#ff8a80;font-weight:700">⚡ $0.00/day</span>`;
+  } else if (hasPenalty) {
+    const pct = Math.round((1 - gameState.revPenalty.mult) * 100);
+    perdayEl.innerHTML = `<span style="color:#ff8a80">${formatPerTick(perTick)}/day</span> <span style="color:#ff8a80;font-size:11px">▼${pct}%</span>`;
+  } else if (hasDbOut) {
+    perdayEl.innerHTML = `<span style="color:#ffab40">${formatPerTick(perTick)}/day</span> <span style="color:#ffab40;font-size:11px">💾</span>`;
+  } else if (hasBonus) {
+    perdayEl.innerHTML = `<span style="color:#a5d6a7;font-weight:600">${formatPerTick(perTick)}/day</span> <span style="color:#a5d6a7;font-size:11px">▲×${gameState.revBonus.mult}</span>`;
+  } else {
+    perdayEl.textContent = formatPerTick(perTick) + '/day';
+  }
+
   if (revyrEl) {
     revyrEl.textContent = formatRate(totalAnnualRev());
   }

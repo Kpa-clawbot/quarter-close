@@ -2413,10 +2413,10 @@ body {
     width: 100%;
   }
   .source-row .cell-btn.btn-prestige:disabled {
-    background: #f5f5f0;
-    border-color: #ddd;
+    background: linear-gradient(135deg, #faf5e4, #f5edd0);
+    border-color: #d4c08a;
     color: #b0a070;
-    opacity: 0.7;
+    opacity: 0.6;
   }
 
   /* When automated+public, cell-f has restructure button — give it full width */
