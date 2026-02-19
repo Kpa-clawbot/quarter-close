@@ -1796,11 +1796,10 @@ function ctoAutoUpgrade(budget) {
         target = candidates.find(c => c.roi >= 0.001) || candidates[0];
       } else if (level === 3) {
         candidates.sort((a, b) => b.roi - a.roi);
-        let threshold = 0.001;
-        if (daysLeft < 5) threshold = 0.05;
-        else if (daysLeft < 20) threshold = 0.01;
-        target = candidates.find(c => c.roi >= threshold);
-        if (!target) break;
+        let threshold = 0.0001;
+        if (daysLeft < 5) threshold = 0.001;
+        else if (daysLeft < 20) threshold = 0.0005;
+        target = candidates.find(c => c.roi >= threshold) || candidates[0];
       }
 
       if (!target) break;
