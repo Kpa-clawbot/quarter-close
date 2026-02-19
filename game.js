@@ -1418,11 +1418,10 @@ const BOARD_ROOM_UPGRADES = [
     id: 'hire_ceo',
     name: 'Hire CEO',
     desc: 'You\'ve built the machine. Time to hire a figurehead. Unlocks the CEO Dashboard.',
-    cost: 50000,
+    cost: 100000,
     requires: 'market_global',
     maxCount: 1,
     category: 'Executive',
-    customRequires: () => hasBoardRoomUpgrade('market_global'),
   },
 ];
 
