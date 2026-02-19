@@ -3416,8 +3416,8 @@ const _floatCooldowns = new Map(); // element key → timestamp when next float 
 
 function _getFloatCooldown() {
   const dur = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--juice-float-dur')) || 1.8;
-  const divisor = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--juice-float-cooldown')) || 3;
-  return (dur * 1000) / divisor;
+  const divisor = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--juice-float-cooldown')) || 8;
+  return Math.max(150, (dur * 1000) / divisor); // floor at 150ms to prevent overlap on fast taps
 }
 
 function floatingNumber(amount, element, isSpend, customText) {
@@ -5243,7 +5243,7 @@ const JUICE_KNOBS = [
   { id: 'danger-glow-max', label: 'Danger Glow Max', prop: '--juice-danger-glow-max', min: 0, max: 1.0, step: 0.05, default: 1.0, unit: '' },
   { id: 'freeze-dur', label: 'Beat Freeze Duration', prop: '--juice-freeze-dur', min: 0, max: 1000, step: 50, default: 1000, unit: 'ms' },
   { id: 'shimmer-dur', label: 'Ambitious Shimmer Duration', prop: '--juice-shimmer-dur', min: 500, max: 5000, step: 250, default: 2000, unit: 'ms' },
-  { id: 'float-cooldown', label: 'Float Spacing', prop: '--juice-float-cooldown', min: 2, max: 10, step: 1, default: 3, unit: '×' },
+  { id: 'float-cooldown', label: 'Float Spacing', prop: '--juice-float-cooldown', min: 2, max: 10, step: 1, default: 8, unit: '×' },
 ];
 
 function toggleJuiceKnobs() {
