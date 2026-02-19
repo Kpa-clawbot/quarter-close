@@ -1817,11 +1817,13 @@ function ctoAutoUpgrade(budget) {
       gameState.ctoTargetCost = displayCandidates[0].cost;
     }
 
-    // Single aggregate float
-    if (totalSpent > 0) {
+    // CTO aggregate float: show only if bought something this tick
+    // (floats on cto-pool-display which is in the Board Room budget row)
+    if (totalSpent > 0 && opsThisTick === 1) {
       const el = document.getElementById('cto-pool-display');
       if (el) floatingNumber(totalSpent, el, true);
     }
+    // Multi-buy: skip float ($/day change float covers it)
   } catch (e) {
     _autoBuyActive = false;
     console.error('[CTO] Error:', e);
@@ -1917,11 +1919,12 @@ function cooAutoHire(budget) {
       gameState.cooTargetCost = displayCandidates[0].cost;
     }
 
-    // Single aggregate float
-    if (totalSpent > 0) {
+    // COO aggregate float: show only if bought something this tick
+    if (totalSpent > 0 && opsThisTick === 1) {
       const el = document.getElementById('coo-pool-display');
       if (el) floatingNumber(totalSpent, el, true);
     }
+    // Multi-buy: skip float ($/day change float covers it)
   } catch (e) {
     _autoBuyActive = false;
     console.error('[COO] Error:', e);
