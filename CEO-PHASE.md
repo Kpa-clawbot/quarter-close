@@ -388,6 +388,202 @@ Operations tab: locked behind RE gate (or transformed entirely)
 
 ---
 
+## The Exit — Cashing Out & Prestige
+
+### Cash Out Button
+Always visible once you're CEO. No minimum requirement — you can cash out 30 seconds in or ride it for an hour. But the payout scales with how well you played.
+
+```
+exitPayout = goldenParachute + (stockOptions × marketPrice)
+```
+
+- `goldenParachute`: what you explicitly invested via self-dealing actions (raise, jet, office, direct GP investment)
+- `stockOptions`: fixed share grant awarded when you become CEO. The market price at the moment you click Cash Out determines their value.
+
+So the player has two levers:
+1. **Build the parachute** (direct investment, guaranteed)
+2. **Pump the stock** (risky, multiplies your options value)
+
+### The Exit Sequence
+
+Not instant. The exit is a dramatic moment — the climax of the run.
+
+**Step 1: "Board Meeting Called"**
+- Dramatic pause. Boardroom aesthetic.
+- "The CEO has requested a special session of the Board of Directors."
+- Brief loading/tension moment (2-3 seconds).
+
+**Step 2: Farewell Press Conference**
+- One final multiple choice. Your parting words.
+- Options like:
+  - "It's been an honor serving this company" (safe, +5% sentiment)
+  - "This company would be nothing without me" (risky, ±15% sentiment swing)
+  - "I'd like to announce I'm launching a new venture..." (tanks current stock, but +bonus to next run's starting hype)
+  - "No comment" (neutral, no change)
+- Last chance to pump (or accidentally tank) before payout locks in.
+
+**Step 3: The Payout Screen**
+Full-screen breakdown — this is the satisfying crunch of numbers:
+
+```
+╔══════════════════════════════════════╗
+║     📰 THE WALL STREET JOURNAL 📰    ║
+║                                      ║
+║  [Generated Headline]                ║
+║  [Subheadline based on tenure]       ║
+╠══════════════════════════════════════╣
+║                                      ║
+║  Golden Parachute:     $187.4M       ║
+║  Stock Options:        12,500 shares ║
+║    × Market Price:     $4,201.33     ║
+║    = Options Value:    $52.5M        ║
+║                                      ║
+║  ─────────────────────────────       ║
+║  Total Exit Package:   $239.9M       ║
+║                                      ║
+║  Overvaluation at Exit: 2.7×         ║
+║  Peak Overvaluation:    3.4×         ║
+║  Crashes Survived:      2            ║
+║  Quarters as CEO:       8            ║
+║                                      ║
+║  ═══════════════════════════════     ║
+║  PRESTIGE MULTIPLIER:   1.47×        ║
+║                                      ║
+║  [🚀 Start New Venture]              ║
+╚══════════════════════════════════════╝
+```
+
+**Step 4: Newspaper Headline Generation**
+Based on what you actually did as CEO. Tracks action history:
+
+| Play Style | Headline | Subheadline |
+|-----------|----------|-------------|
+| Mostly safe, modest exit | "Steady Hand Steps Down After Unremarkable Tenure" | "Stock barely moved. Board thanks CEO for 'not breaking anything.'" |
+| Pumped to 3×+, clean exit | "Visionary CEO Exits With Record Payout" | "Analysts praise 'masterful timing' as stock reaches all-time high." |
+| Crashed, then cashed out | "Embattled CEO Resigns Amid Market Turbulence" | "Exit package reportedly worth fraction of peak value." |
+| Tons of layoffs | "Chainsaw CEO Retires; Thousands Left Jobless" | "'Efficiency expert' leaves company with half its workforce." |
+| Tons of self-dealing | "Board Privately Relieved As CEO Finally Departs" | "Sources say corner office renovation cost more than Q3 revenue." |
+| Side projects | "Eccentric Founder Leaves to 'Focus on Space Ventures'" | "Company stock rallies 12% on news of departure." |
+| Many acquisitions | "Empire Builder Steps Down From Sprawling Conglomerate" | "Legacy: 14 acquisitions, 3 write-downs, and 1 antitrust investigation." |
+| Heavy tweeting | "CEO's Final Tweet: 'It's Been Real'" | "Social media presence described as 'prolific' by supporters, 'unhinged' by everyone else." |
+| Forced exit (fired) | "Board Ousts CEO In Emergency Session" | "Golden parachute still worth $X despite termination for cause." |
+
+Multiple tags can combine: "Chainsaw CEO's Final Tweet Before Record Exit" etc.
+
+### Forced Exit (The Bad Ending)
+
+Two triggers for involuntary departure:
+
+**1. Stock Crash Below Threshold**
+- If market price drops below 50% of fundamental value (0.5× overvaluation = undervaluation)
+- Board panics, fires you
+- Payout: 50-75% of golden parachute (penalty for mismanagement)
+- Stock options: worthless (price is in the gutter)
+- Headline is brutal
+
+**2. SEC Investigation Critical**
+- Cumulative "heat" from risky actions (Funding Secured, Cooking the Books, etc.)
+- At critical heat level: SEC forces resignation
+- Payout: 60% of golden parachute (legal fees)
+- Stock tanks on the news (options payout at crashed price)
+- Possible "banned from public companies" modifier on next run (cosmetic)
+
+Forced exits still prestige — you still get a multiplier, just a worse one. The player is never truly stuck. But it stings.
+
+### Why Both Endings Work
+
+**Voluntary exit** = "I built this, I timed it right, I won." Satisfying mastery.
+**Forced exit** = "I flew too close to the sun." Still fun, still progress, lessons learned. The newspaper roasts you.
+
+Neither is a game over. Both lead to new game+. The difference is how much bonus you carry forward.
+
+---
+
+## New Game+ — What Carries Over
+
+### Prestige Multiplier (Core Bonus)
+```
+prestigeMultiplier = 1 + log10(exitPayout) × overvaluationBonus
+overvaluationBonus = min(3.0, marketPriceAtExit / fundamentalValueAtExit)
+```
+- Safe exit at 1.0× = modest multiplier
+- Risky exit at 3.0× = maximum bonus (if timed right)
+- Crashed exit = overvaluation near or below 1.0 = minimal bonus
+- **Rewards skillful timing, not just patience**
+
+### What the Multiplier Affects
+
+| Factor | Effect | Notes |
+|--------|--------|-------|
+| Starting cash | × prestigeMultiplier | Skip early clicking faster |
+| RE generation rate | × sqrt(prestigeMultiplier) | Square root to prevent runaway |
+| Board Room unlock costs | ÷ prestigeMultiplier (floor 50%) | Can't go below half cost |
+| Event frequency | Slightly higher (more content per hour) | More engaged, more events |
+| CEO unlock cost | Unchanged | Always the same RE target — the journey matters |
+
+### Cumulative Prestige Bonuses
+Each completed run adds a permanent layer:
+
+| Run | Title | Cumulative Bonus |
+|-----|-------|-----------------|
+| 1 | Founder | Base multiplier from first exit |
+| 2 | Serial Entrepreneur | Run 1 + Run 2 multipliers stack (multiplicative) |
+| 3 | Industry Titan | All three stack |
+| 4 | Mogul | Four deep |
+| 5+ | Too Big to Fail | Titles get increasingly absurd |
+
+The prestige counter is visible from game start: "🔄 Run #3 · Industry Titan"
+
+### What Does NOT Carry Over
+- Cash (reset to starting × multiplier)
+- Employees (rehire from scratch)
+- Revenue sources (re-unlock)
+- Board Room purchases (re-buy, but cheaper)
+- Stock price (fresh IPO when you go public again)
+- Golden parachute (rebuild)
+- CEO actions history (fresh slate)
+
+### What DOES Persist Across All Runs
+- Prestige multiplier (cumulative)
+- Run counter + title
+- Best exit payout (high score)
+- Best peak overvaluation survived (bragging rights)
+- Total career earnings (vanity stat)
+- Newspaper collection (gallery of all your headlines — trophy case)
+
+### The Newspaper Collection
+Every exit generates a headline. These are saved permanently.
+Accessible from a "Press Clippings" or "Trophy Case" menu.
+Players can see their history: "Run #1: 'Steady Hand Steps Down' → Run #4: 'Eccentric Mogul's Rocket Explodes, Stock Rallies'"
+
+This is the long-term engagement hook. Players want to collect funny headlines.
+
+---
+
+## Pacing & Timing
+
+### Target Session Length by Phase
+| Phase | Duration | What's Happening |
+|-------|----------|-----------------|
+| Early game (clicking) | 5-15 min | Unlocking departments, manual play |
+| Mid game (automation) | 30-60 min | CTO/COO/CFO, Board Room upgrades |
+| Late game (pre-CEO) | 15-30 min | Finishing Board Room, accumulating RE for CEO |
+| CEO phase | 15-20 min | Mini-game, pumping stock, timing exit |
+| **Total first run** | **~90-120 min** | |
+| **Subsequent runs** | **~45-75 min** | Faster with prestige multipliers |
+
+### CEO Phase Internal Pacing
+- Minutes 1-3: Explore the dashboard, try safe actions
+- Minutes 3-8: Start taking risks, stock climbing, learn the sentiment system
+- Minutes 8-12: Deep into it — managing analysts, fighting short sellers, buybacks
+- Minutes 12-16: Overvaluation getting dangerous, crash risk mounting
+- Minutes 16-20: The tension peak — cash out or push for more?
+- Minute 20+: Diminishing returns on most actions. Natural "I should cash out" feeling.
+
+The CEO phase should NOT require exact timing — it's not a reflex game. The crash probability ramps slowly enough that the player has time to make a considered decision. The tension is strategic, not twitch.
+
+---
+
 ## Open Questions
 
 1. **How expensive should the CEO hire be?** It's the final Board Room purchase. Needs to feel like an achievement, not something you stumble into. 50,000 RE? 100,000 RE?
@@ -398,7 +594,7 @@ Operations tab: locked behind RE gate (or transformed entirely)
 
 4. **Should the stock price graph be visible?** A real-time stock chart showing the impact of your actions could be very satisfying. Line goes up = dopamine. Line goes down = panic tweet. Could show both market price (green/red line) and fundamental value (gray dashed line) — the gap between them IS the game.
 
-5. **Multiple prestige layers?** First prestige = CEO who cashes out. Second prestige = "Serial Entrepreneur" who starts a new company? Third = "Venture Capitalist" who invests in other companies? Each layer could be a different mini-game. Long-term thinking.
+5. **Multiple prestige layers?** First prestige = CEO who cashes out. Second prestige could introduce new mechanics (e.g., your second company starts with "reputation" from first, unlocking different CEO actions). Third+ = increasingly absurd. Long-term thinking.
 
 6. **Board resistance?** Should the board ever block CEO actions? (e.g., "The board rejected your proposal for a fourth corporate jet.") Adds friction but also comedy. Could tie to overvaluation — board gets nervous at high ratios.
 
@@ -409,6 +605,12 @@ Operations tab: locked behind RE gate (or transformed entirely)
 9. **Should the player see the crash probability?** Showing "Crash Risk: 3.2%/day" makes it a pure math decision. Hiding it makes it feel more like gambling. Maybe: show a qualitative indicator ("Market Confidence: Fragile") without exact numbers?
 
 10. **Earnings still happen in CEO phase?** Quarterly earnings could cause sentiment shocks — beat expectations = sentiment boost, miss = sentiment crash. But expectations are now set by the inflated stock price, not fundamentals. So high overvaluation makes earnings misses more likely. Another pressure to cash out.
+
+11. **How many stock options does the CEO get?** Fixed grant at hire? Or scaling with company size? Fixed is simpler and makes the market price the only variable. Scaling adds another knob but might overcomplicate.
+
+12. **Should the farewell press conference affect NEXT run?** "I'm launching a new venture" could give a starting sentiment boost on the next run (hype before you even do anything). Creates interesting cross-run strategy.
+
+13. **Can players skip the CEO phase?** Some players might just want to prestige without the mini-game. Allow a "quiet resignation" that gives a minimal multiplier? Or is forcing everyone through the CEO phase part of the joke?
 
 ---
 
