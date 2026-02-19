@@ -7443,6 +7443,20 @@ window.forceCEO = function() {
   console.log('[DEBUG] CEO mode activated');
 };
 
+window.revertCEO = function() {
+  gameState.isCEO = false;
+  delete gameState.ceoStats;
+  delete gameState.goldenParachute;
+  delete gameState.stockOptions;
+  delete gameState._ceoViewOps;
+  delete gameState.boardRoomPurchases['hire_ceo'];
+  document.getElementById('grid-container').classList.remove('ceo-layout');
+  updateBoardRoomTab();
+  switchTab('operations');
+  saveGame();
+  console.log('[DEBUG] CEO mode reverted — buy from Board Room to re-trigger');
+};
+
 // ===== BOARD ROOM (Phase 2.2) =====
 function switchTab(tab) {
   // If CEO clicks Operations tab while viewing ops, return to CEO dashboard
