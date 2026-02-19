@@ -7618,12 +7618,16 @@ function switchTab(tab) {
     buildDashboard();
   } else {
     // Operations tab — CEO dashboard or normal spreadsheet
+    console.log('[switchTab] ops: isCEO=' + gameState.isCEO + ' viewOps=' + gameState._ceoViewOps + ' dashEl=' + !!ceoDashboard);
     if (gameState.isCEO && !gameState._ceoViewOps) {
       // CEO Dashboard view
       if (ceoDashboard) {
+        console.log('[switchTab] SHOWING CEO dashboard');
         ceoDashboard.classList.remove('hidden');
         gridArea.classList.add('ceo-layout');
         buildCEODashboard();
+      } else {
+        console.error('[switchTab] #ceo-dashboard element NOT FOUND');
       }
     } else {
       // Normal spreadsheet view (or CEO viewing ops for RE cost)
@@ -8921,7 +8925,8 @@ let _lastCEODashHash = '';
 
 function buildCEODashboard() {
   const container = document.getElementById('ceo-dashboard');
-  if (!container) return;
+  if (!container) { console.error('[CEO] #ceo-dashboard not found'); return; }
+  try {
 
   const stockPrice = getStockPrice();
   const re = gameState.retainedEarnings;
@@ -9035,6 +9040,7 @@ function buildCEODashboard() {
   html += `</div>`;
 
   container.innerHTML = html;
+  } catch(e) { console.error('[CEO] buildCEODashboard crashed:', e); }
 }
 
 function ceoViewOperations() {
@@ -9398,6 +9404,7 @@ function init() {
     showArcSelect();
   }
   initChartMode(); // must run AFTER loadGame so chartVisible reflects saved state
+  console.log('[init] loaded=' + loaded + ' activeTab=' + gameState.activeTab + ' isCEO=' + gameState.isCEO);
   if (loaded) switchTab(gameState.activeTab); // restore saved tab
   _gameTickInterval = setInterval(gameTick, 1000);
 
