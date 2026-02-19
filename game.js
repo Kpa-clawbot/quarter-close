@@ -2843,8 +2843,8 @@ function updateGridValues() {
       return;
     }
 
-    const rev = sourceAnnualRev(state);
-    const revPerDay = rev * getBoardRoomRevMultiplier() / 365.25;
+    const rev = sourceAnnualRev(state) * getBoardRoomRevMultiplier();
+    const revPerDay = rev / 365.25;
     const hCost = hireCost(state);
     const uCost = upgradeCost(state);
     const aCost = automateCost(state);
