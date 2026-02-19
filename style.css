@@ -2349,18 +2349,12 @@ body {
     color: #00695c;
   }
 
-  /* AUTO badge in cell-g when automated */
+  /* AUTO badge in cell-g when automated — hide on mobile, indicator is on name row */
   .mob-auto-badge {
-    display: flex !important;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    font-size: 11px;
-    color: #00897b;
-    font-weight: 600;
-    padding: 2px 0;
-    min-height: 20px;
-    opacity: 0.7;
+    display: none !important;
+  }
+  .source-row.mob-automated > .cell-g {
+    display: none !important;
   }
 
   /* Buttons inside cards: proper touch targets */
@@ -2404,6 +2398,10 @@ body {
 
   /* When automated+public, cell-f has restructure button — give it full width */
   .source-row.mob-automated > .cell-f {
+    flex: 1 1 100%;
+  }
+  /* When automated pre-IPO, upgrade row gets full width since no collect button */
+  .source-row.mob-automated > .cell-e {
     flex: 1 1 100%;
   }
 
@@ -2508,8 +2506,11 @@ body {
     min-height: 44px;
     min-width: 44px;
     padding: 10px;
-    font-size: 14px;
+    font-size: 16px;
     border-radius: 6px;
+    background: #ffebee !important;
+    border: 1px solid #ef9a9a !important;
+    color: #c62828 !important;
   }
 
   /* ===== STATUS BAR: Compact ===== */
