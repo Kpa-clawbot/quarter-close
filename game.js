@@ -3412,8 +3412,29 @@ function flashCash(direction) {
 
 // Floating number effect (damage numbers)
 let _activeFloats = new Map(); // element -> count of active floats
+const _floatCooldowns = new Map(); // element key → { until: timestamp, el: span, amount: number, isSpend: bool }
+const FLOAT_COOLDOWN_MS = 400;
+
 function floatingNumber(amount, element, isSpend, customText) {
   if (!gameState.juiceEnabled || gameState.bossMode || isCrisisBlocking()) return;
+  const key = element.id || element;
+
+  // Rate limit: if a float is still in cooldown on this element, merge into it
+  const existing = _floatCooldowns.get(key);
+  if (existing && Date.now() < existing.until && existing.el.parentNode) {
+    existing.amount += (isSpend ? -Math.abs(amount) : Math.abs(amount));
+    existing.until = Date.now() + FLOAT_COOLDOWN_MS;
+    const net = existing.amount;
+    const netSpend = net < 0;
+    if (customText) {
+      existing.el.textContent = (netSpend ? '-' : '+') + customText;
+    } else {
+      existing.el.textContent = (netSpend ? '-' : '+') + formatMoney(Math.abs(net));
+    }
+    existing.el.className = 'floating-number ' + (netSpend ? 'spend' : 'earn');
+    return;
+  }
+
   const rect = element.getBoundingClientRect();
   const span = document.createElement('span');
   span.className = 'floating-number ' + (isSpend ? 'spend' : 'earn');
@@ -3422,16 +3443,27 @@ function floatingNumber(amount, element, isSpend, customText) {
     : ((isSpend ? '-' : '+') + formatMoney(Math.abs(amount)));
   span.style.left = (rect.left + rect.width / 2) + 'px';
   // Stagger vertically — cap at 3 visible slots to avoid climbing off-screen
-  const key = element.id || element;
   const offset = (_activeFloats.get(key) || 0) % 3;
   span.style.top = (rect.top - offset * 22) + 'px';
   _activeFloats.set(key, (_activeFloats.get(key) || 0) + 1);
   document.body.appendChild(span);
+
+  // Track for cooldown merging
+  _floatCooldowns.set(key, {
+    until: Date.now() + FLOAT_COOLDOWN_MS,
+    el: span,
+    amount: isSpend ? -Math.abs(amount) : Math.abs(amount),
+    isSpend
+  });
+
   span.addEventListener('animationend', () => {
     span.remove();
     const cur = _activeFloats.get(key) || 1;
     if (cur <= 1) _activeFloats.delete(key);
     else _activeFloats.set(key, cur - 1);
+    // Clear cooldown if this was the tracked span
+    const cd = _floatCooldowns.get(key);
+    if (cd && cd.el === span) _floatCooldowns.delete(key);
   });
 }
 
