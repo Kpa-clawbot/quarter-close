@@ -1762,7 +1762,7 @@ function ctoAutoUpgrade(budget) {
         const stats = SOURCE_STATS[state.id];
         if (!stats) continue;
         const cost = upgradeCost(state);
-        if (cost > remaining || cost > gameState.cash) continue;
+        if (cost > remaining) continue;
         const annualRevGain = sourceRevPerTick(state) * 365.25 * 0.5;
         const roi = cost > 0 ? annualRevGain / cost : 0;
         candidates.push({ index: i, cost, revGain: annualRevGain, roi, name: stats.name });
@@ -1867,7 +1867,7 @@ function cooAutoHire(budget) {
         const stats = SOURCE_STATS[state.id];
         if (!stats) continue;
         const cost = hireCost(state);
-        if (cost > remaining || cost > gameState.cash) continue;
+        if (cost > remaining) continue;
         const revGain = sourceRevPerTick(state) / Math.max(1, state.employees);
         candidates.push({ index: i, cost, revGain, employees: state.employees, name: stats.name });
       }
