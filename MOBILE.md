@@ -132,6 +132,26 @@ This ensures mobile stays in sync with master's features automatically.
 14. ✅ Close the Deal — deal popup with Sign button + haptic per click + success celebration
 15. ✅ Management Focus — department name tap for focus boost
 
+## Polish Pass 3 (Latest)
+
+### Fixes Applied
+1. **Stock price visible in Ops cash header** — `#stock-price-cell` was hidden by `.cell-h { display: none }` rule. Added `display: flex !important` override with higher specificity (`#row-cash #stock-price-cell`). Shows "📈 $X.XX" via CSS `::before` pseudo-element, hiding the "Stock:" label for space efficiency.
+2. **Penalty/bonus indicators improved** — Colors lightened for dark green header background (#ff8a80 red, #ffab40 orange, #a5d6a7 green). Font size bumped from 9px to 11px for readability.
+3. **Non-ops tabs cash header shows effects** — `updateMobileCashHeader()` now renders penalty/bonus/outage indicators with mobile-appropriate colors, matching the Ops tab behavior.
+4. **Prestige button disabled state** — Changed from flat grey (#f5f5f0) to muted gold gradient, maintaining visual identity even when unaffordable.
+
+### Verified Working
+- All 15 core mechanics tested end-to-end
+- Penalty/bonus/outage indicators on both Ops and non-ops headers
+- Boss mode (Excel disguise) renders correctly on mobile viewport
+- Event toasts with action buttons properly positioned above nav
+- Deal popup positioned and functional
+- Mini-task bar with pop-in animation
+- Board Room scrolling through all categories
+- Earnings guidance selection (4 vertical buttons)
+- Swipe gesture between tabs
+- No console errors or warnings
+
 ## Files Modified
 
 All changes are in the standard three files:
