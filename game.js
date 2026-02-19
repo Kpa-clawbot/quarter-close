@@ -5568,9 +5568,14 @@ function loadGame(slotId) {
     gameState.tickSlowdown = data.tickSlowdown || 1;
     // Phase 3: CEO
     gameState.isCEO = data.isCEO || false;
+    // Migration: old saves have hire_ceo purchased but isCEO was never set
+    if (!gameState.isCEO && gameState.boardRoomPurchases['hire_ceo']) {
+      gameState.isCEO = true;
+      console.log('[loadGame] Migrated: hire_ceo purchased but isCEO was false, fixed.');
+    }
     gameState.ceoStats = data.ceoStats || { actionsTaken: 0, tenureStart: 0 };
     gameState.goldenParachute = data.goldenParachute || 0;
-    gameState.stockOptions = data.stockOptions || 0;
+    gameState.stockOptions = data.stockOptions || (gameState.isCEO ? 12500 : 0);
     gameState._ceoStockBonus = data._ceoStockBonus || 0;
     gameState.ceoActionCooldowns = data.ceoActionCooldowns || {};
     gameState._ceoTimedEffects = data._ceoTimedEffects || [];
