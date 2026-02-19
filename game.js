@@ -3435,6 +3435,14 @@ function floatingNumber(amount, element, isSpend, customText) {
       existing.el.textContent = (netSpend ? '-' : '+') + formatMoney(Math.abs(net));
     }
     existing.el.className = 'floating-number ' + (netSpend ? 'spend' : 'earn');
+    // Restart animation so merged float pops fresh
+    existing.el.style.animation = 'none';
+    existing.el.offsetHeight; // force reflow
+    existing.el.style.animation = '';
+    // Re-anchor to element's current position
+    const rect2 = element.getBoundingClientRect();
+    existing.el.style.left = (rect2.left + rect2.width / 2) + 'px';
+    existing.el.style.top = rect2.top + 'px';
     return;
   }
 
