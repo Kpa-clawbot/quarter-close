@@ -1815,7 +1815,7 @@ function ctoAutoUpgrade(budget) {
     }
     _autoBuyActive = false;
 
-    // Store next target info for display — simulate what CTO would pick next tick
+    // Store next target: what CTO will actually buy next (filtered by pool)
     const displayCandidates = [];
     for (let i = 0; i < gameState.sources.length; i++) {
       const state = gameState.sources[i];
@@ -1828,19 +1828,25 @@ function ctoAutoUpgrade(budget) {
       displayCandidates.push({ name: stats.name, cost, roi });
     }
     if (displayCandidates.length > 0) {
+      const poolNow = gameState.ctoBudgetPool || 0;
+      const affordable = displayCandidates.filter(c => c.cost <= poolNow);
+      const pickFrom = affordable.length > 0 ? affordable : displayCandidates;
       let nextTarget = null;
-      if (level === 1) {
-        displayCandidates.sort((a, b) => a.cost - b.cost);
-        nextTarget = displayCandidates[0];
+      if (affordable.length === 0) {
+        pickFrom.sort((a, b) => a.cost - b.cost);
+        nextTarget = pickFrom[0];
+      } else if (level === 1) {
+        pickFrom.sort((a, b) => a.cost - b.cost);
+        nextTarget = pickFrom[0];
       } else if (level === 2) {
-        displayCandidates.sort((a, b) => b.roi - a.roi);
-        nextTarget = displayCandidates.find(c => c.roi >= 0.001) || displayCandidates[0];
+        pickFrom.sort((a, b) => b.roi - a.roi);
+        nextTarget = pickFrom.find(c => c.roi >= 0.001) || pickFrom[0];
       } else if (level === 3) {
-        displayCandidates.sort((a, b) => b.roi - a.roi);
+        pickFrom.sort((a, b) => b.roi - a.roi);
         let t = 0.0001;
         if (daysLeft < 5) t = 0.001;
         else if (daysLeft < 20) t = 0.0005;
-        nextTarget = displayCandidates.find(c => c.roi >= t) || displayCandidates[0];
+        nextTarget = pickFrom.find(c => c.roi >= t) || pickFrom[0];
       }
       if (nextTarget) {
         gameState.ctoTarget = nextTarget.name;
