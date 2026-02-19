@@ -248,6 +248,10 @@ function buildSaveData() {
     ceoStats: gameState.ceoStats || { actionsTaken: 0, tenureStart: 0 },
     goldenParachute: gameState.goldenParachute || 0,
     stockOptions: gameState.stockOptions || 0,
+    _ceoStockBonus: gameState._ceoStockBonus || 0,
+    ceoActionCooldowns: gameState.ceoActionCooldowns || {},
+    _ceoTimedEffects: gameState._ceoTimedEffects || [],
+    _ceoActionLog: gameState._ceoActionLog || [],
     savedAt: Date.now(),
   };
 }
@@ -4940,6 +4944,9 @@ function gameTick() {
   // Management focus decay
   decayFocus();
 
+  // CEO Dashboard tick (stock bonus walk, cooldowns, timed effects)
+  ceoDashboardTick();
+
   // end game tick body
 
   updateToastButtons();
@@ -5549,6 +5556,10 @@ function loadGame(slotId) {
     gameState.ceoStats = data.ceoStats || { actionsTaken: 0, tenureStart: 0 };
     gameState.goldenParachute = data.goldenParachute || 0;
     gameState.stockOptions = data.stockOptions || 0;
+    gameState._ceoStockBonus = data._ceoStockBonus || 0;
+    gameState.ceoActionCooldowns = data.ceoActionCooldowns || {};
+    gameState._ceoTimedEffects = data._ceoTimedEffects || [];
+    gameState._ceoActionLog = data._ceoActionLog || [];
     gameState.activeTab = 'operations';
 
     // Rebuild sources for selected arc
@@ -5702,6 +5713,10 @@ function resetGame() {
   gameState.ceoStats = { actionsTaken: 0, tenureStart: 0 };
   gameState.goldenParachute = 0;
   gameState.stockOptions = 0;
+  gameState._ceoStockBonus = 0;
+  gameState.ceoActionCooldowns = {};
+  gameState._ceoTimedEffects = [];
+  gameState._ceoActionLog = [];
   _lastTaxPanelHash = ''; // force rebuild
   _eventToastQueue = []; // clear queued toasts
   showArcSelect();
@@ -7469,6 +7484,10 @@ window.forceCEO = function() {
   gameState.ceoStats = { actionsTaken: 0, tenureStart: getGameDay() };
   gameState.goldenParachute = 0;
   gameState.stockOptions = 12500;
+  gameState._ceoStockBonus = 0;
+  gameState.ceoActionCooldowns = {};
+  gameState._ceoTimedEffects = [];
+  gameState._ceoActionLog = [];
   updateBoardRoomTab();
   switchTab('operations');
   saveGame();
@@ -7494,6 +7513,10 @@ window.revertCEO = function() {
   delete gameState.goldenParachute;
   delete gameState.stockOptions;
   delete gameState._ceoViewOps;
+  delete gameState._ceoStockBonus;
+  delete gameState.ceoActionCooldowns;
+  delete gameState._ceoTimedEffects;
+  delete gameState._ceoActionLog;
   delete gameState.boardRoomPurchases['hire_ceo'];
   document.getElementById('grid-container').classList.remove('ceo-layout');
   updateBoardRoomTab();
@@ -8320,6 +8343,565 @@ function buildDashboard() {
 }
 
 // ===== CEO DASHBOARD (Phase 3) =====
+
+// --- CEO Action Definitions ---
+const CEO_ACTIONS = [
+  // ===== MUNDANE =====
+  {
+    id: 'schedule_meeting', name: 'Schedule Meeting', icon: '📅',
+    desc: 'Block calendars. Accomplish nothing.', category: 'mundane',
+    cooldown: 3, risk: 0,
+    cost: () => ({}),
+    effect: (gs) => {
+      const msgs = [
+        'You scheduled a meeting about the meeting agenda.',
+        'The meeting concluded with action items to schedule more meetings.',
+        'Synergies were discussed. No one knows what that means.',
+        '47 people attended. 3 were awake.',
+        'Someone unmuted by accident. Meeting extended 20 minutes.',
+      ];
+      return '📅 ' + msgs[Math.floor(Math.random() * msgs.length)];
+    },
+  },
+  {
+    id: 'all_hands', name: 'All-Hands Town Hall', icon: '🎤',
+    desc: 'Inspire the troops. Or bore them.', category: 'mundane',
+    cooldown: 30, risk: 0,
+    cost: () => ({}),
+    effect: (gs) => {
+      const roll = Math.random();
+      if (roll < 0.6) {
+        gs._ceoStockBonus += getStockPrice() * 0.003;
+        return '🎤 "We\'re all in this together." Mild applause. Stock ticks up.';
+      } else {
+        gs._ceoStockBonus -= getStockPrice() * 0.002;
+        return '🎤 Your mic was off for the first 10 minutes. Awkward.';
+      }
+    },
+  },
+  {
+    id: 'strategy_offsite', name: 'Strategy Offsite', icon: '🏔️',
+    desc: 'Fly the C-suite to Aspen. For "alignment."', category: 'mundane',
+    cooldown: 60, risk: 0,
+    cost: () => ({ cash: Math.max(50000, gameState.cash * 0.001) }),
+    effect: (gs) => {
+      const roll = Math.random();
+      if (roll < 0.4) {
+        gs._ceoStockBonus += getStockPrice() * 0.01;
+        return '🏔️ Breakthrough strategy over Wagyu steaks. Stock bumps.';
+      } else if (roll < 0.8) {
+        return '🏔️ Great views. Zero decisions. At least the wine was good.';
+      } else {
+        gs._ceoStockBonus += getStockPrice() * 0.02;
+        return '🏔️ The CFO had an actual good idea. Stock jumps!';
+      }
+    },
+  },
+  {
+    id: 'read_wsj', name: 'Read the WSJ', icon: '📰',
+    desc: 'Check if anyone\'s writing about you.', category: 'mundane',
+    cooldown: 5, risk: 0,
+    cost: () => ({}),
+    effect: (gs) => {
+      gs._ceoStockBonus += getStockPrice() * 0.001;
+      const headlines = [
+        '"Is This Company Overvalued?" — You skip that article.',
+        'Your competitor is on the front page. You\'re not. Concerning.',
+        'Op-ed: "Why CEOs Are Overpaid." You disagree. Respectfully. (Loudly.)',
+        '"Markets Cautiously Optimistic." You take full credit.',
+        'You spot a trend. Or maybe it\'s just the font.',
+      ];
+      return '📰 ' + headlines[Math.floor(Math.random() * headlines.length)];
+    },
+  },
+  {
+    id: 'approve_expenses', name: 'Approve Expense Reports', icon: '✅',
+    desc: 'Pretend to review them. Click approve.', category: 'mundane',
+    cooldown: 8, risk: 0,
+    cost: () => ({ re: 3 }),
+    effect: (gs) => {
+      return '✅ You approved $47,000 in "client entertainment." Sure.';
+    },
+  },
+
+  // ===== SOCIAL MEDIA =====
+  {
+    id: 'post_on_x', name: 'Post on X', icon: '🐦',
+    desc: 'Share hot takes. What could go wrong?', category: 'social',
+    cooldown: 10, risk: 1,
+    cost: () => ({}),
+    effect: (gs) => {
+      const roll = Math.random();
+      if (roll < 0.35) {
+        const bump = getStockPrice() * (0.005 + Math.random() * 0.01);
+        gs._ceoStockBonus += bump;
+        return '🐦 Tweet went viral. Investors love the "authenticity." Stock up.';
+      } else if (roll < 0.65) {
+        return '🐦 12 likes. 3 of them are bots you hired.';
+      } else if (roll < 0.9) {
+        const drop = getStockPrice() * (0.005 + Math.random() * 0.008);
+        gs._ceoStockBonus -= drop;
+        return '🐦 You tweeted your draft resignation letter. Oops. Stock dips.';
+      } else {
+        const drop = getStockPrice() * 0.02;
+        gs._ceoStockBonus -= drop;
+        return '🐦 Replied to a teenager\'s meme with a legal threat. PR nightmare.';
+      }
+    },
+  },
+  {
+    id: 'cnbc_interview', name: 'CNBC Interview', icon: '📺',
+    desc: 'Go on air. Try not to say anything stupid.', category: 'social',
+    cooldown: 45, risk: 2,
+    cost: () => ({}),
+    effect: (gs) => {
+      const roll = Math.random();
+      if (roll < 0.3) {
+        gs._ceoStockBonus += getStockPrice() * 0.02;
+        gs.goldenParachute += 5000;
+        return '📺 Nailed it. "Visionary CEO" trending. Stock surges.';
+      } else if (roll < 0.6) {
+        gs._ceoStockBonus += getStockPrice() * 0.005;
+        return '📺 Competent but boring. Analysts say "steady hand."';
+      } else if (roll < 0.85) {
+        gs._ceoStockBonus -= getStockPrice() * 0.01;
+        return '📺 You said "synergy" 11 times. Twitter is not kind.';
+      } else {
+        gs._ceoStockBonus -= getStockPrice() * 0.03;
+        return '📺 "We\'re definitely NOT going bankrupt." Stock tanks.';
+      }
+    },
+  },
+  {
+    id: 'keynote_speech', name: 'Keynote Speech', icon: '🎙️',
+    desc: 'Buzzwords. Lasers. A Steve Jobs turtleneck.', category: 'social',
+    cooldown: 60, risk: 1,
+    cost: () => ({ cash: Math.max(25000, gameState.cash * 0.0005) }),
+    effect: (gs) => {
+      const buzzwords = ['AI-First', 'Web4', 'Blockchain-Adjacent', 'Quantum-Ready', 'Metaverse-Native', 'Carbon-Negative-ish'];
+      const word = buzzwords[Math.floor(Math.random() * buzzwords.length)];
+      const roll = Math.random();
+      if (roll < 0.5) {
+        gs._ceoStockBonus += getStockPrice() * 0.015;
+        return `🎙️ "We are now ${word}." Standing ovation. Stock pumps.`;
+      } else if (roll < 0.8) {
+        gs._ceoStockBonus += getStockPrice() * 0.005;
+        return `🎙️ The ${word} pivot confused analysts but the demo worked.`;
+      } else {
+        gs._ceoStockBonus -= getStockPrice() * 0.01;
+        return `🎙️ Teleprompter died. You improvised. "${word}" was mentioned 34 times.`;
+      }
+    },
+  },
+  {
+    id: 'blog_post', name: 'Company Blog Post', icon: '📝',
+    desc: 'Ghost-written thought leadership.', category: 'social',
+    cooldown: 12, risk: 0,
+    cost: () => ({}),
+    effect: (gs) => {
+      gs._ceoStockBonus += getStockPrice() * 0.002;
+      return '📝 1,200 words about "Our Journey." Intern wrote it. Mild stock bump.';
+    },
+  },
+
+  // ===== RUTHLESS =====
+  {
+    id: 'announce_layoffs', name: 'Announce Layoffs', icon: '🪓',
+    desc: 'Cut headcount. Wall Street loves "efficiency."', category: 'ruthless',
+    cooldown: 90, risk: 2,
+    cost: () => ({}),
+    effect: (gs) => {
+      gs._ceoStockBonus += getStockPrice() * (0.03 + Math.random() * 0.02);
+      gs.revPenalty = { mult: 0.85, until: Date.now() + 60000 };
+      return '🪓 Laid off 12% of staff. Stock jumps. Revenue... will catch up. Probably.';
+    },
+  },
+  {
+    id: 'stock_buyback', name: 'Stock Buyback', icon: '📈',
+    desc: 'Spend cash to inflate your own stock. Classic.', category: 'ruthless',
+    cooldown: 60, risk: 1,
+    cost: () => ({ cash: Math.max(500000, gameState.cash * 0.05) }),
+    effect: (gs) => {
+      const reducedShares = Math.floor(gs.sharesOutstanding * 0.03);
+      gs._ceoStockBonus += getStockPrice() * (0.02 + Math.random() * 0.03);
+      gs.sharesOutstanding = Math.floor(gs.sharesOutstanding * 0.97);
+      return `📈 Bought back ${formatCompact(reducedShares)} shares. EPS: gamed.`;
+    },
+  },
+  {
+    id: 'acquire_competitor', name: 'Acquire Competitor', icon: '🦈',
+    desc: 'Massive cash outlay. Genius or catastrophe.', category: 'ruthless',
+    cooldown: 120, risk: 3,
+    cost: () => ({ cash: Math.max(2000000, gameState.cash * 0.15) }),
+    effect: (gs) => {
+      const roll = Math.random();
+      if (roll < 0.25) {
+        gs._ceoStockBonus += getStockPrice() * 0.08;
+        const automatedSources = gs.sources.filter(s => s.unlocked && s.automated);
+        if (automatedSources.length > 0) {
+          const target = automatedSources[Math.floor(Math.random() * automatedSources.length)];
+          target.employees += 3;
+        }
+        return '🦈 Acquisition smash hit! Revenue up, stock soars.';
+      } else if (roll < 0.55) {
+        gs._ceoStockBonus += getStockPrice() * 0.02;
+        return '🦈 "Strategically sound." Translation: years to integrate.';
+      } else if (roll < 0.8) {
+        gs._ceoStockBonus -= getStockPrice() * 0.04;
+        return '🦈 Due diligence missed a few things. Like their entire debt.';
+      } else {
+        gs._ceoStockBonus -= getStockPrice() * 0.08;
+        gs.revPenalty = { mult: 0.9, until: Date.now() + 90000 };
+        return '🦈 DISASTER. Acquired company was a Potemkin village. Writedown incoming.';
+      }
+    },
+  },
+  {
+    id: 'spin_off', name: 'Spin Off Division', icon: '✂️',
+    desc: 'Sell a division. Pocket the cash.', category: 'ruthless',
+    cooldown: 90, risk: 2,
+    cost: () => ({}),
+    effect: (gs) => {
+      const cashGain = totalRevPerTick() * 100;
+      gs.cash += cashGain;
+      gs._ceoStockBonus += getStockPrice() * 0.025;
+      gs.revPenalty = { mult: 0.92, until: Date.now() + 45000 };
+      return `✂️ Spun off least profitable division for ${formatCompact(cashGain)}. Leaner.`;
+    },
+  },
+
+  // ===== SELF-DEALING =====
+  {
+    id: 'vote_raise', name: 'Vote Yourself a Raise', icon: '💸',
+    desc: 'The board approved it. (You are the board.)', category: 'selfdealing',
+    cooldown: 45, risk: 0,
+    cost: () => ({ cash: Math.max(100000, gameState.cash * 0.002) }),
+    effect: (gs) => {
+      gs.goldenParachute += Math.max(50000, gameState.cash * 0.001);
+      return '💸 Compensation committee approved a "market adjustment." Worth it.';
+    },
+  },
+  {
+    id: 'renovate_office', name: 'Renovate Corner Office', icon: '🏢',
+    desc: 'Italian marble. Koi pond. The works.', category: 'selfdealing',
+    cooldown: 60, risk: 0,
+    cost: () => {
+      const count = (gameState.ceoStats._officeLevel || 0);
+      return { cash: 200000 * Math.pow(2, count) };
+    },
+    effect: (gs) => {
+      gs.ceoStats._officeLevel = (gs.ceoStats._officeLevel || 0) + 1;
+      const level = gs.ceoStats._officeLevel;
+      gs.goldenParachute += 25000 * level;
+      const upgrades = [
+        'Added a mahogany bookshelf. You don\'t read.',
+        'Installed an aquarium. The fish look judgmental.',
+        'Koi pond with a waterfall. HR filed a noise complaint.',
+        'Private elevator. It goes to one floor.',
+        'Art collection. You tell people it\'s "an investment."',
+      ];
+      return '🏢 ' + (upgrades[Math.min(level - 1, upgrades.length - 1)]);
+    },
+  },
+  {
+    id: 'corporate_jet', name: 'Corporate Jet', icon: '✈️',
+    desc: 'For "business travel." Mostly Cabo.', category: 'selfdealing',
+    cooldown: 90, risk: 1,
+    cost: () => ({ cash: Math.max(2000000, gameState.cash * 0.03) }),
+    effect: (gs) => {
+      gs.goldenParachute += 200000;
+      gs._ceoStockBonus -= getStockPrice() * 0.005;
+      return '✈️ Gulfstream acquired. "Essential for client relationships." (You went to Cabo.)';
+    },
+  },
+  {
+    id: 'golden_parachute', name: 'Structure Golden Parachute', icon: '🪂',
+    desc: 'Lock in your exit package. Just in case.', category: 'selfdealing',
+    cooldown: 120, risk: 1,
+    cost: () => ({ re: 50 }),
+    effect: (gs) => {
+      const payout = getStockPrice() * gs.stockOptions * 0.1;
+      gs.goldenParachute += payout;
+      return `🪂 Severance restructured. Parachute now ${formatMoney(gs.goldenParachute)}.`;
+    },
+  },
+
+  // ===== WTF =====
+  {
+    id: 'funding_secured', name: '"Funding Secured" Tweet', icon: '🚀',
+    desc: 'Claim a deal that doesn\'t exist. YOLO.', category: 'wtf',
+    cooldown: 120, risk: 3,
+    cost: () => ({}),
+    effect: (gs) => {
+      gs._ceoStockBonus += getStockPrice() * 0.06;
+      if (!gs._ceoTimedEffects) gs._ceoTimedEffects = [];
+      gs._ceoTimedEffects.push({
+        ticksLeft: 15 + Math.floor(Math.random() * 15),
+        type: 'sec_investigation',
+        msg: '⚖️ SEC: "Funding Secured" tweet under investigation.',
+      });
+      return '🚀 "Funding Secured." Stock rockets. Your lawyer just called. Twice.';
+    },
+  },
+  {
+    id: 'pivot_buzzword', name: 'Pivot to Buzzword', icon: '🔄',
+    desc: 'We\'re an AI company now. Or blockchain. Whatever.', category: 'wtf',
+    cooldown: 60, risk: 2,
+    cost: () => ({}),
+    effect: (gs) => {
+      const pivots = ['AI', 'Blockchain', 'Quantum Computing', 'Space Tourism', 'Lab-Grown Meat', 'Nuclear Fusion'];
+      const pivot = pivots[Math.floor(Math.random() * pivots.length)];
+      gs._ceoStockBonus += getStockPrice() * 0.03;
+      if (!gs._ceoTimedEffects) gs._ceoTimedEffects = [];
+      gs._ceoTimedEffects.push({
+        ticksLeft: 20 + Math.floor(Math.random() * 10),
+        type: 'pivot_hangover',
+        msg: `🔄 Analysts realize you don't actually do ${pivot}.`,
+      });
+      return `🔄 "We're pivoting to ${pivot}." Stock pumps on hype. For now.`;
+    },
+  },
+  {
+    id: 'side_project', name: 'Start Side Project', icon: '🛸',
+    desc: 'A submarine company. Or tunnel thing. Why not?', category: 'wtf',
+    cooldown: 90, risk: 2,
+    cost: () => ({ cash: Math.max(500000, gameState.cash * 0.02) }),
+    effect: (gs) => {
+      const roll = Math.random();
+      if (roll < 0.3) {
+        gs._ceoStockBonus += getStockPrice() * 0.04;
+        gs.goldenParachute += 100000;
+        return '🛸 Your submarine company somehow works. Baffled but bullish.';
+      } else {
+        gs.revPenalty = { mult: 0.95, until: Date.now() + 30000 };
+        gs._ceoStockBonus -= getStockPrice() * 0.01;
+        return '🛸 Side project hemorrhaging cash. Board is "concerned."';
+      }
+    },
+  },
+  {
+    id: 'tequila_board', name: 'Tequila at Board Meeting', icon: '🥃',
+    desc: 'Liquid courage. Anything could happen.', category: 'wtf',
+    cooldown: 45, risk: 3,
+    cost: () => ({}),
+    effect: (gs) => {
+      const roll = Math.random();
+      if (roll < 0.2) {
+        gs._ceoStockBonus += getStockPrice() * 0.04;
+        gs.goldenParachute += 100000;
+        return '🥃 Drunk you is a genius negotiator. Deal closed. Board stunned.';
+      } else if (roll < 0.5) {
+        gs._ceoStockBonus += getStockPrice() * 0.01;
+        return '🥃 Surprisingly coherent 5-year plan. Nobody noticed the slurring.';
+      } else if (roll < 0.8) {
+        gs._ceoStockBonus -= getStockPrice() * 0.02;
+        return '🥃 Called a board member by their ex\'s name. Things are tense.';
+      } else {
+        gs._ceoStockBonus -= getStockPrice() * 0.05;
+        gs.goldenParachute = Math.max(0, gs.goldenParachute - 50000);
+        return '🥃 Video leaked. #TequilaCEO trending. Stock craters.';
+      }
+    },
+  },
+
+  // ===== NETWORKING =====
+  {
+    id: 'golf_investors', name: 'Golf with Investors', icon: '⛳',
+    desc: 'Close deals on the back nine.', category: 'networking',
+    cooldown: 30, risk: 0,
+    cost: () => ({}),
+    effect: (gs) => {
+      const roll = Math.random();
+      if (roll < 0.4) {
+        const deal = totalRevPerTick() * 50;
+        gs.cash += deal;
+        gs._ceoStockBonus += getStockPrice() * 0.008;
+        return `⛳ Putting impressed them. Landed a ${formatCompact(deal)} deal.`;
+      } else if (roll < 0.7) {
+        gs._ceoStockBonus += getStockPrice() * 0.003;
+        return '⛳ Nice round. Nothing concrete but they\'ll "circle back."';
+      } else {
+        return '⛳ Lost 12 balls. They lost interest. Weather was nice though.';
+      }
+    },
+  },
+  {
+    id: 'davos', name: 'Davos / Conference', icon: '🌐',
+    desc: 'Rub elbows with world leaders. $$$$.', category: 'networking',
+    cooldown: 90, risk: 0,
+    cost: () => ({ cash: Math.max(500000, gameState.cash * 0.005) }),
+    effect: (gs) => {
+      gs._ceoStockBonus += getStockPrice() * 0.015;
+      gs.goldenParachute += 50000;
+      return '🌐 Davos was "transformative." Selfie with a prime minister. 10K LinkedIn likes.';
+    },
+  },
+  {
+    id: 'charity_gala', name: 'Charity Gala', icon: '🎭',
+    desc: 'Do good. Look good. Write it off.', category: 'networking',
+    cooldown: 45, risk: 0,
+    cost: () => ({ cash: Math.max(100000, gameState.cash * 0.001) }),
+    effect: (gs) => {
+      gs._ceoStockBonus += getStockPrice() * 0.008;
+      gs.goldenParachute += 15000;
+      return '🎭 Table cost $250K. Donated $10K. PR says "CEO\'s Generous Heart." Stock bumps.';
+    },
+  },
+];
+
+// CEO Action Categories for display
+const CEO_CATEGORIES = [
+  { id: 'mundane', icon: '🪑', name: 'Mundane', desc: 'Meetings, memos, and pretending to work.' },
+  { id: 'social', icon: '📱', name: 'Social Media', desc: 'Shape the narrative. Or destroy it.' },
+  { id: 'ruthless', icon: '🪓', name: 'Ruthless', desc: 'Wall Street loves a cold-blooded CEO.' },
+  { id: 'selfdealing', icon: '💰', name: 'Self-Dealing', desc: 'Build the parachute. Feather the nest.' },
+  { id: 'wtf', icon: '🎰', name: 'WTF', desc: 'High risk. Higher reward. Highest embarrassment.' },
+  { id: 'networking', icon: '🏌️', name: 'Networking', desc: 'Doing nothing, expensively.' },
+];
+
+// Track which category is expanded (null = all collapsed)
+let _ceoCategoryOpen = null;
+
+// --- CEO Tick (called from gameTick) ---
+function ceoDashboardTick() {
+  if (!gameState.isCEO) return;
+
+  // Initialize CEO state if missing
+  if (gameState._ceoStockBonus === undefined) gameState._ceoStockBonus = 0;
+  if (!gameState.ceoActionCooldowns) gameState.ceoActionCooldowns = {};
+  if (!gameState._ceoTimedEffects) gameState._ceoTimedEffects = [];
+  if (!gameState._ceoActionLog) gameState._ceoActionLog = [];
+
+  // Tick down cooldowns
+  for (const actionId of Object.keys(gameState.ceoActionCooldowns)) {
+    if (gameState.ceoActionCooldowns[actionId] > 0) {
+      gameState.ceoActionCooldowns[actionId]--;
+    } else {
+      delete gameState.ceoActionCooldowns[actionId];
+    }
+  }
+
+  // Stock bonus random walk (small drift each tick — keeps the ticker feeling alive)
+  const walkVol = Math.max(getStockPrice() * 0.0005, Math.abs(gameState._ceoStockBonus) * 0.005);
+  gameState._ceoStockBonus += (Math.random() - 0.48) * walkVol;
+  // Gentle mean-reversion (prevents runaway inflation)
+  gameState._ceoStockBonus *= 0.999;
+
+  // Golden Parachute passive growth: small % of stock performance each tick
+  if (gameState._ceoStockBonus > 0 && gameState.goldenParachute > 0) {
+    gameState.goldenParachute += gameState.goldenParachute * 0.0002;
+  }
+
+  // Process timed effects
+  const effects = gameState._ceoTimedEffects;
+  for (let i = effects.length - 1; i >= 0; i--) {
+    effects[i].ticksLeft--;
+    if (effects[i].ticksLeft <= 0) {
+      const e = effects[i];
+      if (e.type === 'sec_investigation') {
+        const fine = Math.max(500000, gameState.cash * 0.05);
+        gameState.cash -= fine;
+        gameState._ceoStockBonus -= getStockPrice() * 0.06;
+        ceoStatusMessage(`⚖️ SEC fined you ${formatCompact(fine)}. Stock tanks.`);
+      } else if (e.type === 'pivot_hangover') {
+        gameState._ceoStockBonus -= getStockPrice() * 0.035;
+        ceoStatusMessage(e.msg);
+      }
+      effects.splice(i, 1);
+    }
+  }
+
+  // Rebuild CEO dashboard if visible
+  if (gameState.activeTab === 'operations' && !gameState._ceoViewOps) {
+    _lastCEODashHash = '';
+    buildCEODashboard();
+  }
+}
+
+function ceoStatusMessage(msg) {
+  const el = document.getElementById('status-text');
+  if (el) el.textContent = msg;
+  if (!gameState._ceoActionLog) gameState._ceoActionLog = [];
+  gameState._ceoActionLog.unshift({ msg, tick: getGameDay() });
+  if (gameState._ceoActionLog.length > 8) gameState._ceoActionLog.length = 8;
+  setTimeout(() => {
+    if (el && el.textContent === msg) el.textContent = 'Ready';
+  }, 5000);
+}
+
+// --- CEO Overvaluation Calculator ---
+function getCEOOvervaluation() {
+  if (!gameState.isCEO) return 1.0;
+  const bonus = gameState._ceoStockBonus || 0;
+  if (bonus <= 0) return 1.0;
+  const realVal = getCompanyValuation();
+  if (realVal <= 0) return 1.0;
+  return 1 + (bonus / realVal) * 8;
+}
+
+// --- Execute CEO Action ---
+function executeCEOAction(actionId) {
+  const action = CEO_ACTIONS.find(a => a.id === actionId);
+  if (!action) return;
+
+  if (!gameState.ceoActionCooldowns) gameState.ceoActionCooldowns = {};
+  if (gameState.ceoActionCooldowns[actionId] > 0) {
+    ceoStatusMessage(`⏳ ${action.name}: ${gameState.ceoActionCooldowns[actionId]} days cooldown`);
+    return;
+  }
+  if (gameState._ceoStockBonus === undefined) gameState._ceoStockBonus = 0;
+
+  // Calculate costs
+  const costs = action.cost();
+  if (costs.cash && gameState.cash < costs.cash) {
+    ceoStatusMessage(`❌ Need ${formatCompact(costs.cash)} cash for ${action.name}`);
+    return;
+  }
+  if (costs.re && gameState.retainedEarnings < costs.re) {
+    ceoStatusMessage(`❌ Need ${costs.re} RE for ${action.name}`);
+    return;
+  }
+
+  // Deduct costs
+  if (costs.cash) {
+    gameState.cash -= costs.cash;
+    const cashEl = document.getElementById('cash-display');
+    if (cashEl && gameState.juiceEnabled) {
+      flashCell(cashEl, 'spend');
+      floatingNumber(-costs.cash, cashEl, true, formatCompact(costs.cash));
+    }
+  }
+  if (costs.re) {
+    gameState.retainedEarnings -= costs.re;
+    const reEl = document.getElementById('re-display');
+    if (reEl && gameState.juiceEnabled) {
+      flashCell(reEl, 'spend');
+      floatingNumber(-costs.re, reEl, true, costs.re + ' RE');
+    }
+  }
+
+  // Execute
+  const result = action.effect(gameState);
+
+  // Track
+  gameState.ceoStats.actionsTaken++;
+  gameState.ceoActionCooldowns[actionId] = action.cooldown;
+
+  ceoStatusMessage(result);
+
+  _lastCEODashHash = '';
+  buildCEODashboard();
+  saveGame();
+}
+window.executeCEOAction = executeCEOAction;
+
+function toggleCEOCategory(catId) {
+  _ceoCategoryOpen = (_ceoCategoryOpen === catId) ? null : catId;
+  _lastCEODashHash = '';
+  buildCEODashboard();
+}
+window.toggleCEOCategory = toggleCEOCategory;
+
 let _lastCEODashHash = '';
 
 function buildCEODashboard() {
@@ -8328,31 +8910,37 @@ function buildCEODashboard() {
 
   const stockPrice = getStockPrice();
   const re = gameState.retainedEarnings;
-  const gp = gameState.goldenParachute;
-  const options = gameState.stockOptions;
+  const gp = gameState.goldenParachute || 0;
+  const options = gameState.stockOptions || 0;
   const optionsValue = options * stockPrice;
+  const bonus = gameState._ceoStockBonus || 0;
 
-  // Simple hash for change detection
-  const hashParts = [stockPrice.toFixed(2), re, gp, options, gameState.ceoStats.actionsTaken].join('|');
+  // Change detection hash
+  const cdKeys = Object.keys(gameState.ceoActionCooldowns || {}).map(k => k + ':' + gameState.ceoActionCooldowns[k]).join(',');
+  const hashParts = [stockPrice.toFixed(2), re, gp.toFixed(0), options, gameState.ceoStats.actionsTaken, cdKeys, _ceoCategoryOpen || 'x', (gameState._ceoActionLog || []).length].join('|');
   if (hashParts === _lastCEODashHash && container.innerHTML !== '') return;
   _lastCEODashHash = hashParts;
 
-  // Overvaluation ratio placeholder (1.0 for now — no sentiment system yet)
-  const overvaluation = 1.0;
+  // Overvaluation
+  const overvaluation = getCEOOvervaluation();
   const confidenceLabel = overvaluation < 1.5 ? 'Stable' : overvaluation < 2.5 ? 'Stretched' : overvaluation < 4 ? 'Fragile' : 'Critical';
   const confidenceColor = overvaluation < 1.5 ? '#2e7d32' : overvaluation < 2.5 ? '#b8860b' : overvaluation < 4 ? '#c00' : '#900';
   const confidenceEmoji = overvaluation < 1.5 ? '🟢' : overvaluation < 2.5 ? '🟡' : overvaluation < 4 ? '🔴' : '💀';
+
+  // Stock direction arrow
+  const stockDir = bonus > getStockPrice() * 0.005 ? '▲' : bonus < -getStockPrice() * 0.005 ? '▼' : '—';
+  const stockDirColor = bonus > 0 ? '#4caf50' : bonus < 0 ? '#ef5350' : '#888';
 
   let html = '';
 
   // Stock Ticker
   html += `<div class="ceo-ticker">
     <div class="ceo-ticker-label">📈 STOCK PRICE</div>
-    <div class="ceo-ticker-price">${formatMoney(stockPrice)}</div>
+    <div class="ceo-ticker-price">${formatMoney(stockPrice)} <span style="color:${dm(stockDirColor)};font-size:0.9em">${stockDir}</span></div>
     <div class="ceo-ticker-shares">${options.toLocaleString()} options × ${formatMoney(stockPrice)} = ${formatMoney(optionsValue)}</div>
   </div>`;
 
-  // Market Confidence + Golden Parachute row
+  // Market Confidence + Golden Parachute + Total Exit Value
   html += `<div class="ceo-stats-row">
     <div class="ceo-stat-card">
       <div class="ceo-stat-label">${confidenceEmoji} Market Confidence</div>
@@ -8362,7 +8950,7 @@ function buildCEODashboard() {
     <div class="ceo-stat-card">
       <div class="ceo-stat-label">🪂 Golden Parachute</div>
       <div class="ceo-stat-value" style="color:${dm('#7b1fa2')}">${formatMoney(gp)}</div>
-      <div class="ceo-stat-sub">Exit package value</div>
+      <div class="ceo-stat-sub">Exit package</div>
     </div>
     <div class="ceo-stat-card">
       <div class="ceo-stat-label">💼 Total Exit Value</div>
@@ -8377,21 +8965,57 @@ function buildCEODashboard() {
     <button class="ceo-btn ceo-btn-cashout" onclick="ceoCashOut()">💰 Cash Out</button>
   </div>`;
 
-  // CEO Action Categories
-  const categories = [
-    { icon: '📱', name: 'Social Media', desc: 'Tweet, interview, keynote — shape the narrative.' },
-    { icon: '🪓', name: 'Corporate Strategy', desc: 'Layoffs, buybacks, acquisitions — Wall Street loves this.' },
-    { icon: '💰', name: 'Self-Dealing', desc: 'Raises, jets, office renovations — build the parachute.' },
-    { icon: '🏌️', name: 'Networking', desc: 'Golf, Davos, galas — doing nothing productively.' },
-  ];
+  // Action log (last few results)
+  const log = gameState._ceoActionLog || [];
+  if (log.length > 0) {
+    html += `<div class="ceo-action-log">`;
+    for (const entry of log.slice(0, 3)) {
+      html += `<div class="ceo-log-entry">${entry.msg}</div>`;
+    }
+    html += `</div>`;
+  }
 
+  // CEO Action Categories
   html += `<div class="ceo-categories">`;
-  for (const cat of categories) {
-    html += `<div class="ceo-category-card">
-      <div class="ceo-category-header">${cat.icon} ${cat.name}</div>
-      <div class="ceo-category-desc">${cat.desc}</div>
-      <div class="ceo-category-placeholder">Coming soon...</div>
-    </div>`;
+  for (const cat of CEO_CATEGORIES) {
+    const isOpen = _ceoCategoryOpen === cat.id;
+    const actions = CEO_ACTIONS.filter(a => a.category === cat.id);
+    html += `<div class="ceo-category-card ${isOpen ? 'ceo-category-open' : ''}" onclick="toggleCEOCategory('${cat.id}')">
+      <div class="ceo-category-header">${cat.icon} ${cat.name} <span class="ceo-category-toggle">${isOpen ? '▾' : '▸'}</span></div>
+      <div class="ceo-category-desc">${cat.desc}</div>`;
+
+    if (isOpen) {
+      html += `<div class="ceo-action-list" onclick="event.stopPropagation()">`;
+      for (const action of actions) {
+        const cd = (gameState.ceoActionCooldowns || {})[action.id] || 0;
+        const costs = action.cost();
+        const canAffordCash = !costs.cash || gameState.cash >= costs.cash;
+        const canAffordRE = !costs.re || gameState.retainedEarnings >= costs.re;
+        const canAct = cd === 0 && canAffordCash && canAffordRE;
+        const disabled = canAct ? '' : 'disabled';
+
+        let costStr = '';
+        if (costs.cash) costStr += formatCompact(costs.cash);
+        if (costs.re) costStr += (costStr ? ' + ' : '') + costs.re + ' RE';
+        if (!costStr) costStr = 'Free';
+
+        const riskDots = '⚠️'.repeat(action.risk) || '—';
+
+        html += `<button class="ceo-action-btn ${disabled ? 'ceo-action-disabled' : ''}" ${disabled ? 'disabled' : ''} onclick="executeCEOAction('${action.id}')">
+          <div class="ceo-action-top">
+            <span class="ceo-action-name">${action.icon} ${action.name}</span>
+            <span class="ceo-action-cost">${costStr}</span>
+          </div>
+          <div class="ceo-action-bottom">
+            <span class="ceo-action-desc">${action.desc}</span>
+            ${cd > 0 ? `<span class="ceo-action-cd">⏳ ${cd}d</span>` : `<span class="ceo-action-risk">${riskDots}</span>`}
+          </div>
+        </button>`;
+      }
+      html += `</div>`;
+    }
+
+    html += `</div>`;
   }
   html += `</div>`;
 
@@ -9100,6 +9724,12 @@ function getCompanyValuation() {
   // Phase 2.1: Earnings multiplier (stock reacts to beats/misses)
   if (gameState.isPublic && gameState._earningsMultiplier) {
     valuation *= gameState._earningsMultiplier;
+  }
+
+  // Phase 3: CEO stock bonus (additive — from CEO actions and random walk)
+  if (gameState.isCEO && gameState._ceoStockBonus) {
+    valuation += gameState._ceoStockBonus;
+    if (valuation < 0) valuation = 1; // floor
   }
 
   return valuation;
