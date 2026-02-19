@@ -4530,3 +4530,152 @@ body:not(.dark-mode) .ceo-return-banner {
     text-align: center;
   }
 }
+
+/* CEO Action Log */
+.ceo-action-log {
+  margin-bottom: 0.75rem;
+  padding: 0.5rem 0.625rem;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 4px;
+  max-height: 4.5em;
+  overflow: hidden;
+}
+
+.ceo-log-entry {
+  font-size: 0.625rem;
+  color: #aaa;
+  line-height: 1.5;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ceo-log-entry:first-child {
+  color: #ddd;
+  font-weight: 600;
+}
+
+/* CEO Category Cards - interactive */
+.ceo-category-card {
+  cursor: pointer;
+  user-select: none;
+}
+
+.ceo-category-open {
+  border-color: rgba(255, 215, 0, 0.2) !important;
+  background: rgba(0, 0, 0, 0.3) !important;
+}
+
+.ceo-category-toggle {
+  float: right;
+  color: #666;
+  font-size: 0.75rem;
+}
+
+/* CEO Action List (inside expanded category) */
+.ceo-action-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.ceo-action-btn {
+  display: block;
+  width: 100%;
+  padding: 0.5rem 0.625rem;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 4px;
+  color: #d0d0d0;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+  font-size: 0.6875rem;
+  transition: background 0.15s, border-color 0.15s, transform 0.1s;
+  touch-action: manipulation;
+}
+
+.ceo-action-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 215, 0, 0.2);
+}
+
+.ceo-action-btn:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.ceo-action-disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.ceo-action-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.2rem;
+}
+
+.ceo-action-name {
+  font-weight: 600;
+  font-size: 0.6875rem;
+}
+
+.ceo-action-cost {
+  font-size: 0.5625rem;
+  color: #b8860b;
+  font-family: Consolas, monospace;
+}
+
+.ceo-action-bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.ceo-action-desc {
+  font-size: 0.5625rem;
+  color: #888;
+  flex: 1;
+}
+
+.ceo-action-cd {
+  font-size: 0.5625rem;
+  color: #e65100;
+  font-family: Consolas, monospace;
+  white-space: nowrap;
+  margin-left: 0.5rem;
+}
+
+.ceo-action-risk {
+  font-size: 0.5rem;
+  white-space: nowrap;
+  margin-left: 0.5rem;
+}
+
+/* Light mode overrides for CEO actions */
+body:not(.dark-mode) .ceo-action-btn {
+  background: rgba(0, 0, 0, 0.03);
+  border-color: rgba(0, 0, 0, 0.1);
+  color: #333;
+}
+
+body:not(.dark-mode) .ceo-action-btn:hover:not(:disabled) {
+  background: rgba(0, 0, 0, 0.06);
+}
+
+body:not(.dark-mode) .ceo-action-desc {
+  color: #666;
+}
+
+body:not(.dark-mode) .ceo-log-entry {
+  color: #555;
+}
+
+body:not(.dark-mode) .ceo-log-entry:first-child {
+  color: #222;
+}
