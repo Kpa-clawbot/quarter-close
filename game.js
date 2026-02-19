@@ -3412,39 +3412,21 @@ function flashCash(direction) {
 
 // Floating number effect (damage numbers)
 let _activeFloats = new Map(); // element -> count of active floats
-const _floatCooldowns = new Map(); // element key → { until: timestamp, el: span, amount: number, isSpend: bool }
+const _floatCooldowns = new Map(); // element key → timestamp when next float allowed
 
 function _getFloatCooldown() {
-  return parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--juice-float-cooldown')) || 400;
+  const dur = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--juice-float-dur')) || 1.8;
+  const divisor = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--juice-float-cooldown')) || 3;
+  return (dur * 1000) / divisor;
 }
 
 function floatingNumber(amount, element, isSpend, customText) {
   if (!gameState.juiceEnabled || gameState.bossMode || isCrisisBlocking()) return;
   const key = element.id || element;
 
-  // Rate limit: if a float is still in cooldown on this element, merge into it
-  const existing = _floatCooldowns.get(key);
-  if (existing && Date.now() < existing.until && existing.el.parentNode) {
-    existing.amount += (isSpend ? -Math.abs(amount) : Math.abs(amount));
-    existing.until = Date.now() + _getFloatCooldown();
-    const net = existing.amount;
-    const netSpend = net < 0;
-    if (customText) {
-      existing.el.textContent = (netSpend ? '-' : '+') + customText;
-    } else {
-      existing.el.textContent = (netSpend ? '-' : '+') + formatMoney(Math.abs(net));
-    }
-    existing.el.className = 'floating-number ' + (netSpend ? 'spend' : 'earn');
-    // Restart animation so merged float pops fresh
-    existing.el.style.animation = 'none';
-    existing.el.offsetHeight; // force reflow
-    existing.el.style.animation = '';
-    // Re-anchor to element's current position
-    const rect2 = element.getBoundingClientRect();
-    existing.el.style.left = (rect2.left + rect2.width / 2) + 'px';
-    existing.el.style.top = rect2.top + 'px';
-    return;
-  }
+  // Rate limit: skip if previous float on this element hasn't traveled far enough
+  const nextAllowed = _floatCooldowns.get(key) || 0;
+  if (Date.now() < nextAllowed) return;
 
   const rect = element.getBoundingClientRect();
   const span = document.createElement('span');
@@ -3459,22 +3441,13 @@ function floatingNumber(amount, element, isSpend, customText) {
   _activeFloats.set(key, (_activeFloats.get(key) || 0) + 1);
   document.body.appendChild(span);
 
-  // Track for cooldown merging
-  _floatCooldowns.set(key, {
-    until: Date.now() + _getFloatCooldown(),
-    el: span,
-    amount: isSpend ? -Math.abs(amount) : Math.abs(amount),
-    isSpend
-  });
+  _floatCooldowns.set(key, Date.now() + _getFloatCooldown());
 
   span.addEventListener('animationend', () => {
     span.remove();
     const cur = _activeFloats.get(key) || 1;
     if (cur <= 1) _activeFloats.delete(key);
     else _activeFloats.set(key, cur - 1);
-    // Clear cooldown if this was the tracked span
-    const cd = _floatCooldowns.get(key);
-    if (cd && cd.el === span) _floatCooldowns.delete(key);
   });
 }
 
@@ -5270,7 +5243,7 @@ const JUICE_KNOBS = [
   { id: 'danger-glow-max', label: 'Danger Glow Max', prop: '--juice-danger-glow-max', min: 0, max: 1.0, step: 0.05, default: 1.0, unit: '' },
   { id: 'freeze-dur', label: 'Beat Freeze Duration', prop: '--juice-freeze-dur', min: 0, max: 1000, step: 50, default: 1000, unit: 'ms' },
   { id: 'shimmer-dur', label: 'Ambitious Shimmer Duration', prop: '--juice-shimmer-dur', min: 500, max: 5000, step: 250, default: 2000, unit: 'ms' },
-  { id: 'float-cooldown', label: 'Float Merge Window', prop: '--juice-float-cooldown', min: 0, max: 1000, step: 50, default: 400, unit: 'ms' },
+  { id: 'float-cooldown', label: 'Float Spacing', prop: '--juice-float-cooldown', min: 2, max: 10, step: 1, default: 3, unit: '×' },
 ];
 
 function toggleJuiceKnobs() {
