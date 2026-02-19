@@ -4864,18 +4864,14 @@ function gameTick() {
     const cooFunding = dailyRev * (cooPct / 100);
     gameState.ctoBudgetPool = (gameState.ctoBudgetPool || 0) + ctoFunding;
     gameState.cooBudgetPool = (gameState.cooBudgetPool || 0) + cooFunding;
-    // Cap pools: don't accumulate more than what's actually in cash
-    const freeCash = _getFreeCashForBudget();
-    const maxCtoPool = freeCash * (ctoPct / 100);
-    const maxCooPool = freeCash * (cooPct / 100);
-    gameState.ctoBudgetPool = Math.min(gameState.ctoBudgetPool, maxCtoPool);
-    gameState.cooBudgetPool = Math.min(gameState.cooBudgetPool, maxCooPool);
-    // Store for display
-    gameState._ctoBudgetAlloc = gameState.ctoBudgetPool;
-    gameState._cooBudgetAlloc = gameState.cooBudgetPool;
+    // Pools grow indefinitely — cash is spoken for. Only cap at actual cash
+    // so we don't try to spend money we literally don't have.
+    const cashCap = Math.max(0, gameState.cash);
+    const ctoPool = Math.min(gameState.ctoBudgetPool, cashCap);
+    const cooPool = Math.min(gameState.cooBudgetPool, cashCap - ctoPool);
     // Spend from pools — each deducts from its own pool AND from cash
-    ctoAutoUpgrade(gameState.ctoBudgetPool);
-    cooAutoHire(gameState.cooBudgetPool);
+    ctoAutoUpgrade(ctoPool);
+    cooAutoHire(cooPool);
   }
 
   // Event system
