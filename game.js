@@ -1761,45 +1761,49 @@ function ctoAutoUpgrade(budget) {
       if (remaining <= 0) break;
 
       // Build candidate list fresh each iteration (costs change after upgrades)
+      // Lv3: consider ALL upgrades (saves for best ROI even if can't afford yet)
       const candidates = [];
+      const allCandidates = [];
       for (let i = 0; i < gameState.sources.length; i++) {
         const state = gameState.sources[i];
         if (!state.unlocked || state.employees === 0) continue;
         const stats = SOURCE_STATS[state.id];
         if (!stats) continue;
         const cost = upgradeCost(state);
-        if (cost > remaining) continue;
         const annualRevGain = sourceRevPerTick(state) * 365.25 * 0.5;
         const roi = cost > 0 ? annualRevGain / cost : 0;
-        candidates.push({ index: i, cost, revGain: annualRevGain, roi, name: stats.name });
-      }
-      if (candidates.length === 0) {
-        if (gameState._ctoDebug) {
-          const allCosts = [];
-          for (let i = 0; i < gameState.sources.length; i++) {
-            const s = gameState.sources[i];
-            if (!s.unlocked || s.employees === 0) continue;
-            allCosts.push(SOURCE_STATS[s.id].name + ':$' + upgradeCost(s).toFixed(0));
-          }
-          console.log('[CTO] No candidates. remaining=' + remaining.toFixed(0) + ' costs=[' + allCosts.join(', ') + ']');
+        allCandidates.push({ index: i, cost, revGain: annualRevGain, roi, name: stats.name });
+        if (cost <= remaining) {
+          candidates.push({ index: i, cost, revGain: annualRevGain, roi, name: stats.name });
         }
-        break;
       }
 
       // Pick target based on CTO level strategy
       let target = null;
       if (level === 1) {
+        if (candidates.length === 0) break;
         candidates.sort((a, b) => a.cost - b.cost);
         target = candidates[0];
       } else if (level === 2) {
+        if (candidates.length === 0) break;
         candidates.sort((a, b) => b.roi - a.roi);
         target = candidates.find(c => c.roi >= 0.001) || candidates[0];
       } else if (level === 3) {
-        candidates.sort((a, b) => b.roi - a.roi);
+        // Lv3: pick best ROI from ALL upgrades, only buy if affordable
+        // If best target is too expensive, SAVE - don't settle for cheap stuff
+        if (allCandidates.length === 0) break;
+        allCandidates.sort((a, b) => b.roi - a.roi);
         let threshold = 0.0001;
         if (daysLeft < 5) threshold = 0.001;
         else if (daysLeft < 20) threshold = 0.0005;
-        target = candidates.find(c => c.roi >= threshold) || candidates[0];
+        const bestTarget = allCandidates.find(c => c.roi >= threshold) || allCandidates[0];
+        if (bestTarget.cost <= remaining) {
+          target = bestTarget;
+        } else {
+          // Can't afford best target - save up, don't buy cheaper stuff
+          if (gameState._ctoDebug) console.log('[CTO] Lv3 saving for ' + bestTarget.name + ' ($' + bestTarget.cost.toFixed(0) + '), have ' + remaining.toFixed(0));
+          break;
+        }
       }
 
       if (!target) break;
@@ -1815,7 +1819,7 @@ function ctoAutoUpgrade(budget) {
     }
     _autoBuyActive = false;
 
-    // Store next target: what CTO will actually buy next (filtered by pool)
+    // Store next target: what CTO is saving for (best ROI from ALL upgrades)
     const displayCandidates = [];
     for (let i = 0; i < gameState.sources.length; i++) {
       const state = gameState.sources[i];
@@ -1828,25 +1832,17 @@ function ctoAutoUpgrade(budget) {
       displayCandidates.push({ name: stats.name, cost, roi });
     }
     if (displayCandidates.length > 0) {
-      const poolNow = gameState.ctoBudgetPool || 0;
-      const affordable = displayCandidates.filter(c => c.cost <= poolNow);
-      const pickFrom = affordable.length > 0 ? affordable : displayCandidates;
       let nextTarget = null;
-      if (affordable.length === 0) {
-        pickFrom.sort((a, b) => a.cost - b.cost);
-        nextTarget = pickFrom[0];
-      } else if (level === 1) {
-        pickFrom.sort((a, b) => a.cost - b.cost);
-        nextTarget = pickFrom[0];
-      } else if (level === 2) {
-        pickFrom.sort((a, b) => b.roi - a.roi);
-        nextTarget = pickFrom.find(c => c.roi >= 0.001) || pickFrom[0];
-      } else if (level === 3) {
-        pickFrom.sort((a, b) => b.roi - a.roi);
-        let t = 0.0001;
-        if (daysLeft < 5) t = 0.001;
-        else if (daysLeft < 20) t = 0.0005;
-        nextTarget = pickFrom.find(c => c.roi >= t) || pickFrom[0];
+      if (level === 1) {
+        displayCandidates.sort((a, b) => a.cost - b.cost);
+        nextTarget = displayCandidates[0];
+      } else {
+        // Lv2/3: best ROI target (what CTO is saving for / will buy)
+        displayCandidates.sort((a, b) => b.roi - a.roi);
+        let t = level === 3 ? 0.0001 : 0.001;
+        if (level === 3 && daysLeft < 5) t = 0.001;
+        else if (level === 3 && daysLeft < 20) t = 0.0005;
+        nextTarget = displayCandidates.find(c => c.roi >= t) || displayCandidates[0];
       }
       if (nextTarget) {
         gameState.ctoTarget = nextTarget.name;
