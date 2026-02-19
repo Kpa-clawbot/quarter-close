@@ -2196,6 +2196,20 @@ body {
     justify-content: flex-start;
     animation: none;
   }
+  /* Allow penalty/bonus colors to show through on mobile */
+  #row-cash .per-tick-value span[style*="color:#c00"] {
+    color: #ff8a80 !important;  /* Lighter red for dark background */
+  }
+  #row-cash .per-tick-value span[style*="color:#e65100"] {
+    color: #ffab40 !important;  /* Lighter orange for dark background */
+  }
+  #row-cash .per-tick-value span[style*="color:#217346"] {
+    color: #a5d6a7 !important;  /* Lighter green for dark background */
+  }
+  /* Make penalty/bonus indicators larger on mobile */
+  #row-cash .per-tick-value span[style*="font-size:9px"] {
+    font-size: 11px !important;
+  }
 
   /* Stock price */
   #row-cash #stock-price-cell {
@@ -3136,12 +3150,29 @@ body {
     animation: cashPulse 0.4s ease-out;
   }
 
-  /* Stock price in cash header */
+  /* Stock price in cash header — override cell-h hiding */
   #row-cash #stock-price-cell {
+    display: flex !important;
     font-size: 12px;
     background: rgba(255,255,255,0.12);
     padding: 2px 8px !important;
     border-radius: 4px;
+  }
+  /* Hide stock price when pre-IPO (no content) */
+  #row-cash #stock-price-cell:empty {
+    display: none !important;
+  }
+  /* Hide "Stock:" label on mobile, show 📈 prefix via CSS */
+  #row-cash #stock-price-cell > span:first-child {
+    display: none !important;
+  }
+  #row-cash #stock-price-cell > span:last-child {
+    color: rgba(255,255,255,0.95) !important;
+    font-size: 12px !important;
+  }
+  #row-cash #stock-price-cell::before {
+    content: '📈 ';
+    font-size: 11px;
   }
 
   /* ===== ARC SELECTION POLISH ===== */
