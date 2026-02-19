@@ -4290,3 +4290,243 @@ body.dark-mode .earnings-big-text-miss {
   color: #ef5350;
   text-shadow: 0 0 20px rgba(239, 83, 80, 0.5), 0 0 40px rgba(204, 0, 0, 0.4);
 }
+
+/* ===== CEO DASHBOARD (Phase 3) ===== */
+.ceo-layout {
+  display: block !important;
+  grid-template-columns: none !important;
+}
+
+#ceo-dashboard {
+  padding: 1rem;
+  min-height: 60vh;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  border-radius: 8px;
+  margin: 4px 0;
+  color: #e0e0e0;
+  font-family: 'Georgia', 'Times New Roman', serif;
+}
+
+body:not(.dark-mode) #ceo-dashboard {
+  background: linear-gradient(135deg, #2c2c3e 0%, #1e2d42 50%, #1a3a5c 100%);
+}
+
+/* Stock Ticker */
+.ceo-ticker {
+  text-align: center;
+  padding: 1rem 0.75rem;
+  margin-bottom: 1rem;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 215, 0, 0.15);
+  border-radius: 6px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
+}
+
+.ceo-ticker-label {
+  font-size: 0.6875rem;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: #b0b0b0;
+  margin-bottom: 0.25rem;
+}
+
+.ceo-ticker-price {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #ffd700;
+  font-family: Consolas, 'Courier New', monospace;
+  text-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+}
+
+.ceo-ticker-shares {
+  font-size: 0.625rem;
+  color: #888;
+  margin-top: 0.25rem;
+  font-family: Consolas, monospace;
+}
+
+/* Stats Row */
+.ceo-stats-row {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.ceo-stat-card {
+  flex: 1;
+  min-width: 120px;
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+  padding: 0.75rem;
+  text-align: center;
+}
+
+.ceo-stat-label {
+  font-size: 0.625rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #999;
+  margin-bottom: 0.25rem;
+}
+
+.ceo-stat-value {
+  font-size: 1.125rem;
+  font-weight: 700;
+  font-family: Consolas, monospace;
+}
+
+.ceo-stat-sub {
+  font-size: 0.5625rem;
+  color: #666;
+  margin-top: 0.15rem;
+}
+
+/* Action Buttons Bar */
+.ceo-actions-bar {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.ceo-btn {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.75rem;
+  font-weight: 600;
+  font-family: inherit;
+  transition: background 0.15s, transform 0.1s;
+  touch-action: manipulation;
+}
+
+.ceo-btn:active {
+  transform: scale(0.97);
+}
+
+.ceo-btn-ops {
+  background: rgba(255, 255, 255, 0.1);
+  color: #b0b0b0;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.ceo-btn-ops:hover {
+  background: rgba(255, 255, 255, 0.18);
+  color: #e0e0e0;
+}
+
+.ceo-btn-cashout {
+  background: linear-gradient(135deg, #b8860b 0%, #daa520 100%);
+  color: #1a1a1a;
+  box-shadow: 0 2px 8px rgba(218, 165, 32, 0.3);
+}
+
+.ceo-btn-cashout:hover {
+  background: linear-gradient(135deg, #daa520 0%, #ffd700 100%);
+  box-shadow: 0 2px 12px rgba(255, 215, 0, 0.4);
+}
+
+.ceo-btn-return {
+  background: rgba(123, 31, 162, 0.3);
+  color: #ba68c8;
+  border: 1px solid rgba(186, 104, 200, 0.3);
+  font-size: 0.6875rem;
+  padding: 0.35rem 0.75rem;
+}
+
+.ceo-btn-return:hover {
+  background: rgba(123, 31, 162, 0.5);
+  color: #ce93d8;
+}
+
+/* CEO Return Banner */
+.ceo-return-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  background: linear-gradient(90deg, rgba(123, 31, 162, 0.15) 0%, rgba(123, 31, 162, 0.05) 100%);
+  border: 1px solid rgba(186, 104, 200, 0.2);
+  border-radius: 4px;
+  margin: 2px 0 4px 0;
+  font-size: 0.6875rem;
+  color: #ba68c8;
+}
+
+body:not(.dark-mode) .ceo-return-banner {
+  background: linear-gradient(90deg, rgba(123, 31, 162, 0.1) 0%, rgba(123, 31, 162, 0.03) 100%);
+  color: #7b1fa2;
+  border-color: rgba(123, 31, 162, 0.15);
+}
+
+/* CEO Categories Grid */
+.ceo-categories {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 0.75rem;
+}
+
+.ceo-category-card {
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 6px;
+  padding: 0.75rem;
+  transition: border-color 0.2s;
+}
+
+.ceo-category-card:hover {
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+.ceo-category-header {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: #d0d0d0;
+  margin-bottom: 0.35rem;
+}
+
+.ceo-category-desc {
+  font-size: 0.5625rem;
+  color: #808080;
+  margin-bottom: 0.5rem;
+  line-height: 1.4;
+}
+
+.ceo-category-placeholder {
+  font-size: 0.6875rem;
+  color: #555;
+  font-style: italic;
+  padding: 0.75rem 0;
+  text-align: center;
+  border-top: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+/* Mobile responsive */
+@media (max-width: 600px) {
+  #ceo-dashboard {
+    padding: 0.75rem;
+  }
+  .ceo-ticker-price {
+    font-size: 1.375rem;
+  }
+  .ceo-stats-row {
+    flex-direction: column;
+  }
+  .ceo-stat-card {
+    min-width: auto;
+  }
+  .ceo-categories {
+    grid-template-columns: 1fr;
+  }
+  .ceo-actions-bar {
+    flex-direction: column;
+  }
+  .ceo-btn {
+    width: 100%;
+    text-align: center;
+  }
+}

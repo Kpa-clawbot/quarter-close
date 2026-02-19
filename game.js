@@ -243,6 +243,11 @@ function buildSaveData() {
     vpOpsStreak: gameState.vpOpsStreak || 0,
     // Slowdown
     tickSlowdown: gameState.tickSlowdown || 1,
+    // Phase 3: CEO
+    isCEO: gameState.isCEO || false,
+    ceoStats: gameState.ceoStats || { actionsTaken: 0, tenureStart: 0 },
+    goldenParachute: gameState.goldenParachute || 0,
+    stockOptions: gameState.stockOptions || 0,
     savedAt: Date.now(),
   };
 }
@@ -1408,6 +1413,17 @@ const BOARD_ROOM_UPGRADES = [
     maxCount: 1,
     category: 'Sales',
   },
+  // CEO — the ultimate Board Room purchase
+  {
+    id: 'hire_ceo',
+    name: 'Hire CEO',
+    desc: 'You\'ve built the machine. Time to hire a figurehead. Unlocks the CEO Dashboard.',
+    cost: 50000,
+    requires: 'market_global',
+    maxCount: 1,
+    category: 'Executive',
+    customRequires: () => hasBoardRoomUpgrade('market_global'),
+  },
 ];
 
 // ===== AUTOMATION HINTS (email nudges toward Board Room upgrades) =====
@@ -2025,6 +2041,11 @@ let gameState = {
   vpOpsStreak: 0,
   // Slowdown speed control
   tickSlowdown: 1,
+  // Phase 3: CEO
+  isCEO: false,
+  ceoStats: { actionsTaken: 0, tenureStart: 0 },
+  goldenParachute: 0,
+  stockOptions: 0,
 };
 
 let gridBuilt = false;
@@ -3165,6 +3186,8 @@ function updateDisplay() {
     buildBoardRoom();
   } else if (gameState.activeTab === 'dashboard') {
     buildDashboard();
+  } else if (gameState.activeTab === 'operations' && gameState.isCEO && !gameState._ceoViewOps) {
+    buildCEODashboard();
   }
 
   // Check cash milestones
@@ -5486,6 +5509,11 @@ function loadGame(slotId) {
     gameState.vpOpsStreak = data.vpOpsStreak || 0;
     // Slowdown
     gameState.tickSlowdown = data.tickSlowdown || 1;
+    // Phase 3: CEO
+    gameState.isCEO = data.isCEO || false;
+    gameState.ceoStats = data.ceoStats || { actionsTaken: 0, tenureStart: 0 };
+    gameState.goldenParachute = data.goldenParachute || 0;
+    gameState.stockOptions = data.stockOptions || 0;
     gameState.activeTab = 'operations';
 
     // Rebuild sources for selected arc
@@ -5634,6 +5662,11 @@ function resetGame() {
   gameState.miniTaskStreak = 0;
   gameState.goldenCellActive = false;
   gameState.goldenCellCooldown = 60;
+  // Phase 3: CEO
+  gameState.isCEO = false;
+  gameState.ceoStats = { actionsTaken: 0, tenureStart: 0 };
+  gameState.goldenParachute = 0;
+  gameState.stockOptions = 0;
   _lastTaxPanelHash = ''; // force rebuild
   _eventToastQueue = []; // clear queued toasts
   showArcSelect();
@@ -7389,9 +7422,34 @@ window.setCooBudgetPct = setCooBudgetPct;
 window.toggleCtoBudgetAuto = toggleCtoBudgetAuto;
 window.toggleCooBudgetAuto = toggleCooBudgetAuto;
 window.setGuidance = setGuidance;
+// Debug: force CEO mode
+window.forceCEO = function() {
+  if (!gameState.isPublic) { console.log('IPO first'); forceIPO(); }
+  gameState.boardRoomPurchases['market_domestic'] = 1;
+  gameState.boardRoomPurchases['market_international'] = 1;
+  gameState.boardRoomPurchases['market_emerging'] = 1;
+  gameState.boardRoomPurchases['market_global'] = 1;
+  gameState.boardRoomPurchases['hire_ceo'] = 1;
+  gameState.isCEO = true;
+  gameState.ceoStats = { actionsTaken: 0, tenureStart: getGameDay() };
+  gameState.goldenParachute = 0;
+  gameState.stockOptions = 12500;
+  updateBoardRoomTab();
+  switchTab('operations');
+  saveGame();
+  console.log('[DEBUG] CEO mode activated');
+};
 
 // ===== BOARD ROOM (Phase 2.2) =====
 function switchTab(tab) {
+  // If CEO clicks Operations tab while viewing ops, return to CEO dashboard
+  if (tab === 'operations' && gameState.isCEO && gameState._ceoViewOps && gameState.activeTab === 'operations') {
+    gameState._ceoViewOps = false;
+  }
+  // Clear CEO ops view when switching away from operations
+  if (tab !== 'operations') {
+    gameState._ceoViewOps = false;
+  }
   gameState.activeTab = tab;
 
   const revenueRows = document.getElementById('revenue-rows');
@@ -7399,6 +7457,7 @@ function switchTab(tab) {
   const fillerRows = document.getElementById('filler-rows');
   const boardRoom = document.getElementById('board-room-rows');
   const dashboardRows = document.getElementById('dashboard-rows');
+  const ceoDashboard = document.getElementById('ceo-dashboard');
   const tabOps = document.getElementById('tab-operations');
   const tabBR = document.getElementById('tab-board-room');
   const tabDash = document.getElementById('tab-dashboard');
@@ -7414,17 +7473,23 @@ function switchTab(tab) {
   if (deptHeader) deptHeader.classList.add('hidden');
   boardRoom.classList.add('hidden');
   dashboardRows.classList.add('hidden');
+  if (ceoDashboard) ceoDashboard.classList.add('hidden');
+  // Remove CEO return banner if present
+  const ceoReturnBanner = document.getElementById('ceo-return-banner');
+  if (ceoReturnBanner) ceoReturnBanner.remove();
   tabOps.classList.remove('active');
   tabBR.classList.remove('active');
   tabDash.classList.remove('active');
   gridArea.classList.remove('boardroom-layout');
+  gridArea.classList.remove('ceo-layout');
   if (gridHeader) gridHeader.classList.remove('boardroom-layout');
 
-  // Cash row visible on all tabs except dashboard
+  // Cash row visible on all tabs except dashboard and CEO view
+  const isCEOView = tab === 'operations' && gameState.isCEO && !gameState._ceoViewOps;
   const cashRow = document.getElementById('row-cash');
-  if (cashRow) cashRow.classList.toggle('hidden', tab === 'dashboard');
-  // Header visible on all tabs except dashboard
-  if (gridHeader) gridHeader.classList.toggle('hidden', tab === 'dashboard');
+  if (cashRow) cashRow.classList.toggle('hidden', tab === 'dashboard' || isCEOView);
+  // Header visible on all tabs except dashboard and CEO view
+  if (gridHeader) gridHeader.classList.toggle('hidden', tab === 'dashboard' || isCEOView);
 
   if (tab === 'boardroom') {
     boardRoom.classList.remove('hidden');
@@ -7452,15 +7517,32 @@ function switchTab(tab) {
     }
     buildDashboard();
   } else {
-    revenueRows.classList.remove('hidden');
-    taxPanel.classList.remove('hidden');
-    fillerRows.classList.remove('hidden');
-    if (deptHeader) deptHeader.classList.remove('hidden');
+    // Operations tab — CEO dashboard or normal spreadsheet
+    if (gameState.isCEO && !gameState._ceoViewOps) {
+      // CEO Dashboard view
+      if (ceoDashboard) {
+        ceoDashboard.classList.remove('hidden');
+        gridArea.classList.add('ceo-layout');
+        buildCEODashboard();
+      }
+    } else {
+      // Normal spreadsheet view (or CEO viewing ops for RE cost)
+      revenueRows.classList.remove('hidden');
+      taxPanel.classList.remove('hidden');
+      fillerRows.classList.remove('hidden');
+      if (deptHeader) deptHeader.classList.remove('hidden');
+      if (cashRow) cashRow.classList.remove('hidden');
+      if (gridHeader) gridHeader.classList.remove('hidden');
+      if (gameState.columnWidths) applyColumnWidths(gameState.columnWidths);
+      _lastTaxPanelHash = '';
+      updateTaxPanel();
+      buildFillerRows();
+      // Show return banner if CEO is viewing ops
+      if (gameState.isCEO && gameState._ceoViewOps) {
+        showCEOReturnBanner();
+      }
+    }
     tabOps.classList.add('active');
-    if (gameState.columnWidths) applyColumnWidths(gameState.columnWidths);
-    _lastTaxPanelHash = '';
-    updateTaxPanel();
-    buildFillerRows();
   }
 }
 
@@ -7479,6 +7561,12 @@ function updateBoardRoomTab() {
   } else {
     tabBR.classList.add('hidden');
     tabDash.classList.add('hidden');
+  }
+
+  // Update Operations tab label when CEO is active
+  const tabOps = document.getElementById('tab-operations');
+  if (tabOps) {
+    tabOps.textContent = gameState.isCEO ? '🪑 CEO' : 'Operations';
   }
 }
 
@@ -7744,7 +7832,7 @@ function buildBoardRoom() {
   }
 
   // Group upgrades by category, sort each group by cost ascending
-  const categoryOrder = ['Expansion', 'Revenue', 'Talent', 'Finance', 'Technology', 'Operations', 'Admin', 'Sales', 'Tax', 'Investor', 'Protection'];
+  const categoryOrder = ['Expansion', 'Revenue', 'Talent', 'Finance', 'Technology', 'Operations', 'Admin', 'Sales', 'Tax', 'Investor', 'Protection', 'Executive'];
   const categoryLabels = {
     Expansion: '🌍 Market Expansion',
     Revenue: '💰 Revenue',
@@ -7757,6 +7845,7 @@ function buildBoardRoom() {
     Tax: '🏛️ Tax',
     Investor: '📈 Investor Relations',
     Protection: '🛡️ Protection',
+    Executive: '🪑 Executive Suite',
   };
   const grouped = {};
   for (const upgrade of BOARD_ROOM_UPGRADES) {
@@ -8170,6 +8259,138 @@ function buildDashboard() {
   container.innerHTML = html;
 }
 
+// ===== CEO DASHBOARD (Phase 3) =====
+let _lastCEODashHash = '';
+
+function buildCEODashboard() {
+  const container = document.getElementById('ceo-dashboard');
+  if (!container) return;
+
+  const stockPrice = getStockPrice();
+  const re = gameState.retainedEarnings;
+  const gp = gameState.goldenParachute;
+  const options = gameState.stockOptions;
+  const optionsValue = options * stockPrice;
+
+  // Simple hash for change detection
+  const hashParts = [stockPrice.toFixed(2), re, gp, options, gameState.ceoStats.actionsTaken].join('|');
+  if (hashParts === _lastCEODashHash && container.innerHTML !== '') return;
+  _lastCEODashHash = hashParts;
+
+  // Overvaluation ratio placeholder (1.0 for now — no sentiment system yet)
+  const overvaluation = 1.0;
+  const confidenceLabel = overvaluation < 1.5 ? 'Stable' : overvaluation < 2.5 ? 'Stretched' : overvaluation < 4 ? 'Fragile' : 'Critical';
+  const confidenceColor = overvaluation < 1.5 ? '#2e7d32' : overvaluation < 2.5 ? '#b8860b' : overvaluation < 4 ? '#c00' : '#900';
+  const confidenceEmoji = overvaluation < 1.5 ? '🟢' : overvaluation < 2.5 ? '🟡' : overvaluation < 4 ? '🔴' : '💀';
+
+  let html = '';
+
+  // Stock Ticker
+  html += `<div class="ceo-ticker">
+    <div class="ceo-ticker-label">📈 STOCK PRICE</div>
+    <div class="ceo-ticker-price">${formatMoney(stockPrice)}</div>
+    <div class="ceo-ticker-shares">${options.toLocaleString()} options × ${formatMoney(stockPrice)} = ${formatMoney(optionsValue)}</div>
+  </div>`;
+
+  // Market Confidence + Golden Parachute row
+  html += `<div class="ceo-stats-row">
+    <div class="ceo-stat-card">
+      <div class="ceo-stat-label">${confidenceEmoji} Market Confidence</div>
+      <div class="ceo-stat-value" style="color:${dm(confidenceColor)}">${confidenceLabel}</div>
+      <div class="ceo-stat-sub">Overvaluation: ${overvaluation.toFixed(1)}×</div>
+    </div>
+    <div class="ceo-stat-card">
+      <div class="ceo-stat-label">🪂 Golden Parachute</div>
+      <div class="ceo-stat-value" style="color:${dm('#7b1fa2')}">${formatMoney(gp)}</div>
+      <div class="ceo-stat-sub">Exit package value</div>
+    </div>
+    <div class="ceo-stat-card">
+      <div class="ceo-stat-label">💼 Total Exit Value</div>
+      <div class="ceo-stat-value" style="color:${dm('#217346')}">${formatMoney(gp + optionsValue)}</div>
+      <div class="ceo-stat-sub">Parachute + Options</div>
+    </div>
+  </div>`;
+
+  // Action buttons row
+  html += `<div class="ceo-actions-bar">
+    <button class="ceo-btn ceo-btn-ops" onclick="ceoViewOperations()">📊 View Operations (25 RE)</button>
+    <button class="ceo-btn ceo-btn-cashout" onclick="ceoCashOut()">💰 Cash Out</button>
+  </div>`;
+
+  // CEO Action Categories
+  const categories = [
+    { icon: '📱', name: 'Social Media', desc: 'Tweet, interview, keynote — shape the narrative.' },
+    { icon: '🪓', name: 'Corporate Strategy', desc: 'Layoffs, buybacks, acquisitions — Wall Street loves this.' },
+    { icon: '💰', name: 'Self-Dealing', desc: 'Raises, jets, office renovations — build the parachute.' },
+    { icon: '🏌️', name: 'Networking', desc: 'Golf, Davos, galas — doing nothing productively.' },
+  ];
+
+  html += `<div class="ceo-categories">`;
+  for (const cat of categories) {
+    html += `<div class="ceo-category-card">
+      <div class="ceo-category-header">${cat.icon} ${cat.name}</div>
+      <div class="ceo-category-desc">${cat.desc}</div>
+      <div class="ceo-category-placeholder">Coming soon...</div>
+    </div>`;
+  }
+  html += `</div>`;
+
+  container.innerHTML = html;
+}
+
+function ceoViewOperations() {
+  const cost = 25;
+  if (gameState.retainedEarnings < cost) {
+    document.getElementById('status-text').textContent = '❌ Not enough RE to view operations (need 25 RE)';
+    setTimeout(() => { document.getElementById('status-text').textContent = 'Ready'; }, 3000);
+    return;
+  }
+  gameState.retainedEarnings -= cost;
+  // Flash RE spend
+  const reEl = document.getElementById('re-display');
+  if (reEl && gameState.juiceEnabled) {
+    flashCell(reEl, 'spend');
+    floatingNumber(-cost, reEl, true, cost + ' RE');
+  }
+  gameState._ceoViewOps = true;
+  document.getElementById('status-text').textContent = '📊 Getting in the weeds... (-25 RE)';
+  setTimeout(() => { document.getElementById('status-text').textContent = 'Ready'; }, 3000);
+  switchTab('operations');
+  // Auto-return to CEO dashboard when switching away or after a delay
+  // For now, clicking Operations tab again returns to CEO view
+  saveGame();
+}
+window.ceoViewOperations = ceoViewOperations;
+
+function ceoReturnToDashboard() {
+  gameState._ceoViewOps = false;
+  switchTab('operations');
+}
+window.ceoReturnToDashboard = ceoReturnToDashboard;
+
+function showCEOReturnBanner() {
+  // Insert a return banner at the top of revenue-rows
+  const revenueRows = document.getElementById('revenue-rows');
+  if (!revenueRows) return;
+  // Remove existing banner if any
+  const existing = document.getElementById('ceo-return-banner');
+  if (existing) existing.remove();
+  const banner = document.createElement('div');
+  banner.id = 'ceo-return-banner';
+  banner.className = 'ceo-return-banner';
+  banner.innerHTML = `<span>📊 You're in the weeds. The board won't be happy.</span> <button class="ceo-btn ceo-btn-return" onclick="ceoReturnToDashboard()">🪑 Return to Corner Office</button>`;
+  revenueRows.parentNode.insertBefore(banner, revenueRows);
+}
+
+function ceoCashOut() {
+  console.log('[CEO] Cash Out clicked. Golden Parachute:', gameState.goldenParachute,
+    'Stock Options:', gameState.stockOptions, '× Price:', getStockPrice(),
+    '= Total:', gameState.goldenParachute + gameState.stockOptions * getStockPrice());
+  document.getElementById('status-text').textContent = '💰 Cash Out coming soon... (logged to console)';
+  setTimeout(() => { document.getElementById('status-text').textContent = 'Ready'; }, 3000);
+}
+window.ceoCashOut = ceoCashOut;
+
 function purchaseBoardRoomUpgrade(id) {
   const upgrade = BOARD_ROOM_UPGRADES.find(u => u.id === id);
   if (!upgrade) return;
@@ -8213,6 +8434,17 @@ function purchaseBoardRoomUpgrade(id) {
   if (id === 'capex_planning') {
     gameState.ctoBudgetAuto = true;
     gameState.cooBudgetAuto = true;
+  }
+
+  // CEO Hire: activate CEO phase
+  if (id === 'hire_ceo') {
+    gameState.isCEO = true;
+    gameState.ceoStats = { actionsTaken: 0, tenureStart: getGameDay() };
+    gameState.goldenParachute = 0;
+    gameState.stockOptions = 12500; // fixed stock option grant
+    document.getElementById('status-text').textContent = '🪑 You\'re the CEO now. The corner office awaits.';
+    setTimeout(() => { document.getElementById('status-text').textContent = 'Ready'; }, 5000);
+    switchTab('operations'); // show the CEO dashboard
   }
 
   // Status bar feedback
