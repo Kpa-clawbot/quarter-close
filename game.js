@@ -6901,9 +6901,23 @@ function resetBoardRoom() {
   gameState.cfoRecords = {};
   gameState.revenueHistory = [];
   gameState.lastQuarterRE = 0;
-  if (gameState.activeTab === 'boardroom') renderBoardRoom();
+  // Reset CEO state if active
+  if (gameState.isCEO) {
+    gameState.isCEO = false;
+    gameState.ceoStats = { actionsTaken: 0, tenureStart: 0 };
+    gameState.goldenParachute = 0;
+    gameState.stockOptions = 0;
+    gameState._ceoStockBonus = 0;
+    gameState.ceoActionCooldowns = {};
+    gameState._ceoTimedEffects = [];
+    gameState._ceoActionLog = [];
+    gameState._ceoViewOps = false;
+    document.getElementById('grid-container').classList.remove('ceo-layout');
+  }
+  if (gameState.activeTab === 'boardroom') { _lastBoardRoomHash = ''; buildBoardRoom(); }
   _lastTaxPanelHash = '';
   updateTaxPanel();
+  updateBoardRoomTab();
   document.getElementById('status-text').textContent = '🧪 Board Room reset — all upgrades cleared, RE set to 0.';
   setTimeout(() => { document.getElementById('status-text').textContent = 'Ready'; }, 3000);
 }
@@ -8159,6 +8173,9 @@ function buildDashboard() {
     <div class="cell cell-e"></div><div class="cell cell-f"></div><div class="cell cell-g"></div><div class="cell cell-h"></div>
   </div>`;
 
+  // --- CFO (always present since you need CFO for earnings) ---
+  const cfoLevel = gameState.activeCFOLevel || 0;
+
   const anyRole = getTechDeptLevel() > 0 || getOpsDeptLevel() > 0 || getVPOpsLevel() > 0 ||
                   getSalesDirLevel() > 0 || hasExecAssistant() || hasPRDirector();
 
@@ -8170,9 +8187,6 @@ function buildDashboard() {
       <div class="cell cell-e"></div><div class="cell cell-f"></div><div class="cell cell-g"></div><div class="cell cell-h"></div>
     </div>`;
   }
-
-  // --- CFO (always present since you need CFO for earnings) ---
-  const cfoLevel = gameState.activeCFOLevel || 0;
   if (cfoLevel > 0) {
     const strategy = cfoLevel === 1 ? 'gut feeling' : cfoLevel === 2 ? 'hit guidance' : 'adaptive budgets';
     html += `<div class="grid-row br-upgrade-row br-owned" style="border-top:2px solid ${dm('#e0e0e0','#444')}">
@@ -9222,7 +9236,8 @@ function toggleDarkMode() {
   // Force re-render of panels that use inline colors
   _lastTaxPanelHash = '';
   updateTaxPanel();
-  renderBoardRoom();
+  _lastBoardRoomHash = '';
+  buildBoardRoom();
 }
 
 function initDarkMode() {
