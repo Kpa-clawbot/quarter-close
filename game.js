@@ -1493,6 +1493,7 @@ function updateGridValues() {
     const hCost = hireCost(state);
     const uCost = upgradeCost(state);
     const aCost = automateCost(state);
+    const _mob = isMobile();
 
     // Name (clickable for focus)
     const nameCell = row.querySelector('[data-field="name"]');
@@ -1540,7 +1541,6 @@ function updateGridValues() {
     // Action 1: Hire + Max
     const a1 = row.querySelector('[data-field="action1"]');
     const frozen = gameState.hireFrozen && Date.now() < gameState.hireFrozen;
-    const _mob = isMobile();
     if (frozen) {
       const sLeft = Math.ceil((gameState.hireFrozen - Date.now()) / 1000);
       a1.innerHTML = `<button class="cell-btn btn-hire" disabled>🚫 Frozen (${sLeft}s)</button>`;
